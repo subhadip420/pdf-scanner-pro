@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pdf_scanner_pro/screens/splash_screen.dart';
+
 
 void main() {
   runApp(const PdfScannerPro());
@@ -12,14 +14,7 @@ class PdfScannerPro extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'PDF Scanner Pro',
-      theme: ThemeData(
-        useMaterial3: true,
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('PDF Scanner Pro'),
-        ),
-      ),
+      home: const SplashScreen(),
     );
   }
 }
