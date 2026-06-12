@@ -54,6 +54,8 @@ dev_dependencies:
   image_picker:
   google_mlkit_text_recognition:
 
+  fluttertoast: ^8.2.12
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
