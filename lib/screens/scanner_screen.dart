@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../main.dart';
 import 'dart:io';
 import 'package:scroll_snap_list/scroll_snap_list.dart';
@@ -82,15 +83,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
   IconData _getRatioIcon() {
     switch (selectedRatio) {
       case "1:1":
-        return Icons.crop_square_rounded;
+        return Symbols.crop_square_sharp;
       case "16:9":
-        return Icons.crop_16_9_rounded;
+        return Symbols.crop_16_9_sharp;
       case "Full":
-        return Icons.fullscreen_rounded;
+        return Symbols.fullscreen_sharp;
       case "4:3":
       default:
-        return Icons
-            .crop_5_4_rounded; // 4:3 ke liye sabse best aur similar icon
+        return Symbols.crop_5_4_sharp; // 4:3 ke liye sabse best aur similar icon
     }
   }
 
@@ -99,14 +99,28 @@ class _ScannerScreenState extends State<ScannerScreen> {
     final String currentMode = mode ?? selectedFlashMode;
     switch (currentMode) {
       case "On":
-        return Icons.flash_on_rounded;
+        return Symbols.flash_on_sharp;
       case "Auto":
-        return Icons.flash_auto_rounded;
+        return Symbols.flash_auto_sharp;
       case "Torch":
-        return Icons.highlight_rounded; // Ya Icons.flashlight_on_rounded
+        return Symbols.highlight_sharp; // Ya Icons.flashlight_on_rounded
       case "Off":
       default:
-        return Icons.flash_off_rounded;
+        return Symbols.flash_off_sharp;
+    }
+  }
+
+  // Timer icon return karne ke liye
+  IconData _getTimerIcon([int? timer]) {
+    final int currentTimer = timer ?? selectedTimer;
+    switch (currentTimer) {
+      case 3:
+        return Symbols.timer_3_alt_1; // 3 second icon
+      case 10:
+        return Symbols.timer_10_alt_1; // 10 second icon
+      case 0:
+      default:
+        return Symbols.timer; // Default timer icon
     }
   }
 
@@ -781,8 +795,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
             color: Colors.black.withOpacity(0.35),
             borderRadius: BorderRadius.circular(30),
           ),
-          child: const Center(
-            child: Text("Timer Options (3s, 5s, 10s)", style: TextStyle(color: Colors.white, fontSize: 14)), // Yahan hum baad me timer ka design daalenge
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Timer", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+              Row(
+                children: [
+                  _buildTimerOption(0),  // Off
+                  _buildTimerOption(3),  // 3s
+                  _buildTimerOption(10), // 10s
+                ],
+              ),
+            ],
           ),
         );
 
@@ -801,9 +825,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 onPressed: () => setState(() => activeMenu = "Flash"),
                 icon: Icon(_getFlashIcon(), color: Colors.white, size: 26),
               ),
+              /// YAHAN TIMER ICON DYNAMIC KAR DIYA
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Timer"),
-                icon: const Icon(Icons.timer_outlined, color: Colors.white, size: 26),
+                icon: Icon(_getTimerIcon(), color: Colors.white, size: 26),
               ),
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Ratio"),
@@ -811,11 +836,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
               IconButton(
                 onPressed: () => showToast("Flip Camera"),
-                icon: const Icon(Icons.flip_camera_android_rounded, color: Colors.white, size: 26),
+                icon: const Icon(Symbols.flip_camera_android_rounded, color: Colors.white, size: 26),
               ),
               IconButton(
                 onPressed: () => showToast("Settings"),
-                icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 26),
+                icon: const Icon(Symbols.settings_photo_camera, color: Colors.white, size: 26),
               ),
             ],
           ),
@@ -823,6 +848,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
+// Ratio menu ke options banane ke liye
   Widget _buildRatioOption(String label) {
     final bool isSelected = selectedRatio == label;
     final Color color = isSelected ? Colors.amber : Colors.white;
@@ -831,8 +857,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       onTap: () {
         setState(() {
           selectedRatio = label;
-          isSelectingRatio =
-              false; // Select hone ke baad wapas normal bar aa jayega
+          activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
         });
         showToast("$label Ratio Selected");
       },
@@ -854,7 +879,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
-  // Flash ke icons wala menu banayega
+  // Flash menu ke icons banane ke liye
   Widget _buildFlashOption(String mode) {
     final bool isSelected = selectedFlashMode == mode;
     final Color color = isSelected ? Colors.amber : Colors.white;
@@ -863,10 +888,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       onTap: () {
         setState(() {
           selectedFlashMode = mode;
-          isSelectingFlash = false; // Select hote hi menu close
-
-          // TODO: Yahan baad me hum CameraController ka flash mode actually set karenge
-          // example: controller.setFlashMode(FlashMode.always);
+          activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
         });
         showToast("Flash $mode");
       },
@@ -874,6 +896,30 @@ class _ScannerScreenState extends State<ScannerScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Icon(
           _getFlashIcon(mode),
+          color: color,
+          size: 26,
+        ),
+      ),
+    );
+  }
+
+  // Timer menu ke icons banane ke liye
+  Widget _buildTimerOption(int seconds) {
+    final bool isSelected = selectedTimer == seconds;
+    final Color color = isSelected ? Colors.amber : Colors.white;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedTimer = seconds;
+          activeMenu = "Default"; // Tap karte hi menu close ho jayega
+        });
+        showToast(seconds == 0 ? "Timer Off" : "Timer ${seconds}s");
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Icon(
+          _getTimerIcon(seconds),
           color: color,
           size: 26,
         ),
