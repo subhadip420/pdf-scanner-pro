@@ -55,6 +55,7 @@ dev_dependencies:
   google_mlkit_text_recognition:
 
   fluttertoast: ^8.2.12
+  scroll_snap_list: ^0.9.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
