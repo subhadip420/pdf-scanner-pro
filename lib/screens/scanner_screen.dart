@@ -5,6 +5,10 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../main.dart';
 import 'dart:io';
 import 'package:scroll_snap_list/scroll_snap_list.dart';
+import 'package:flutter/services.dart'; // For locking orientation
+import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
+import 'dart:async'; // For StreamSubscription
+
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -41,9 +45,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   int currentCameraIndex = 0; // 0 matlab By Default Back Camera
 
+  StreamSubscription<AccelerometerEvent>? _sensorSubscription;
+  double _iconTurns = 0.0; // 0.0 = Portrait, 0.25 = Landscape Left, etc.
+
+
   @override
   void initState() {
     super.initState();
+
+    // Lock screen to Portrait mode only so layout doesn't break
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
 
     controller = CameraController(
       cameras.first,
@@ -60,10 +73,41 @@ class _ScannerScreenState extends State<ScannerScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToDocument();
     });
+
+    // Listen to accelerometer to detect physical phone rotation
+    _sensorSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
+      if (!mounted) return;
+
+      setState(() {
+        if (event.x > 6) {
+          // Phone rotated left -> Rotate icons clockwise to keep them upright
+          _iconTurns = 0.25;
+        } else if (event.x < -6) {
+          // Phone rotated right -> Rotate icons counter-clockwise
+          _iconTurns = -0.25;
+        } else if (event.y > 6) {
+          // Phone is upright -> Reset to normal
+          _iconTurns = 0.0;
+        }
+      });
+    });
+
   }
 
   @override
   void dispose() {
+
+    // Cancel subscription to save battery
+    _sensorSubscription?.cancel();
+
+    // Reset orientation settings when leaving this screen
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
     controller.dispose();
     super.dispose();
   }
@@ -703,7 +747,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             onPressed: () {
                               showToast("Home");
                             },
-                            icon: const Icon(
+                            icon: _buildRotatedIcon(
                               Icons.home_rounded,
                               color: Colors.white,
                               size: 24,
@@ -715,7 +759,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             onPressed: () {
                               showToast("Gallery");
                             },
-                            icon: const Icon(
+                            icon: _buildRotatedIcon(
                               Icons.photo_library_rounded,
                               color: Colors.white,
                               size: 24,
@@ -755,7 +799,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             onPressed: () {
                               showToast("Auto Detect");
                             },
-                            icon: const Icon(
+                            icon: _buildRotatedIcon(
                               Icons.document_scanner_outlined,
                               color: Colors.white,
                               size: 24,
@@ -795,6 +839,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  // Helper widget to animate icon rotation based on phone physical orientation
+  Widget _buildRotatedIcon(IconData iconData, {Color color = Colors.white, double size = 26}) {
+    return AnimatedRotation(
+      turns: _iconTurns,
+      duration: const Duration(milliseconds: 300), // Smooth rotation animation
+      child: Icon(iconData, color: color, size: size),
     );
   }
 
@@ -884,24 +937,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
             children: [
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Flash"),
-                icon: Icon(_getFlashIcon(), color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(_getFlashIcon(), color: Colors.white, size: 26),
               ),
               /// YAHAN TIMER ICON DYNAMIC KAR DIYA
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Timer"),
-                icon: Icon(_getTimerIcon(), color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
               ),
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Ratio"),
-                icon: Icon(_getRatioIcon(), color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(_getRatioIcon(), color: Colors.white, size: 26),
               ),
               IconButton(
                 onPressed: _flipCamera,
-                icon: const Icon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
               ),
               IconButton(
                 onPressed: () => showToast("Settings"),
-                icon: const Icon(Symbols.settings_photo_camera_sharp, color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(Symbols.settings_photo_camera_sharp, color: Colors.white, size: 26),
               ),
             ],
           ),
