@@ -31,18 +31,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool isSelectingRatio = false;
   String selectedRatio = "4:3"; // Default 4:3 select rahega
 
-  // Portrait mode ke hisaab se ratios (width / height)
-  double _getAspectRatio() {
-    switch (selectedRatio) {
-      case "1:1":
-        return 1.0;
-      case "16:9":
-        return 9 / 16;
-      case "4:3":
-      default:
-        return 3 / 4;
-    }
-  }
 
   @override
   void initState() {
@@ -70,6 +58,35 @@ class _ScannerScreenState extends State<ScannerScreen> {
     controller.dispose();
     super.dispose();
   }
+
+  // Portrait mode ke hisaab se ratios (width / height)
+  double _getAspectRatio() {
+    switch (selectedRatio) {
+      case "1:1":
+        return 1.0;
+      case "16:9":
+        return 9 / 16;
+      case "4:3":
+      default:
+        return 3 / 4;
+    }
+  }
+
+  // Selected ratio ke hisaab se dynamic icon
+  IconData _getRatioIcon() {
+    switch (selectedRatio) {
+      case "1:1":
+        return Icons.crop_square_rounded;
+      case "16:9":
+        return Icons.crop_16_9_rounded;
+      case "Full":
+        return Icons.fullscreen_rounded;
+      case "4:3":
+      default:
+        return Icons.crop_5_4_rounded; // 4:3 ke liye sabse best aur similar icon
+    }
+  }
+
 
   void scrollToDocument() {
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -404,13 +421,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     icon: const Icon(Icons.timer_outlined, color: Colors.white, size: 26),
                   ),
                   /// Ratio Button (Jo Ratio menu open karega)
+                  /// Ratio Button (Jo Ratio menu open karega)
                   IconButton(
                     onPressed: () {
                       setState(() {
                         isSelectingRatio = true;
                       });
                     },
-                    icon: const Icon(Icons.crop_16_9_rounded, color: Colors.white, size: 26),
+                    // Yahan humne function call kiya aur 'const' hata diya
+                    icon: Icon(_getRatioIcon(), color: Colors.white, size: 26),
                   ),
                   /// Flip Camera
                   IconButton(
