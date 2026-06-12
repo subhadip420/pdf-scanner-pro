@@ -31,6 +31,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool isSelectingRatio = false;
   String selectedRatio = "4:3"; // Default 4:3 select rahega
 
+  // Portrait mode ke hisaab se ratios (width / height)
+  double _getAspectRatio() {
+    switch (selectedRatio) {
+      case "1:1":
+        return 1.0;
+      case "16:9":
+        return 9 / 16;
+      case "4:3":
+      default:
+        return 3 / 4;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,9 +107,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
     }
 
+    // return Scaffold(
+    //     backgroundColor: const Color(0xFF2C2C2C),
+    // body: SizedBox.expand(
+    // child: Stack(
+    // children: [
+
     return Scaffold(
         backgroundColor: const Color(0xFF2C2C2C),
-    body: SizedBox.expand(
+    body: GestureDetector(
+    // Agar ratio menu open hai, toh screen pe tap karte hi use false kar dega
+    onTap: () {
+    if (isSelectingRatio) {
+    setState(() {
+    isSelectingRatio = false;
+    });
+    }
+    },
+    // Translucent zaroori hai taaki yeh poori screen ke touch ko detect kare
+    behavior: HitTestBehavior.translucent,
+    child: SizedBox.expand(
     child: Stack(
     children: [
 
@@ -109,19 +139,97 @@ class _ScannerScreenState extends State<ScannerScreen> {
           //   ),
           // ),
 
-          Positioned(
-            top: 90,
-            left: 0,
-            right: 0,
-            bottom: 180,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 3 / 4,
+          // Positioned(
+          //   top: 90,
+          //   left: 0,
+          //   right: 0,
+          //   bottom: 180,
+          //   child: Center(
+          //     child: AspectRatio(
+          //       aspectRatio: 3 / 4,
+          //       child: CameraPreview(controller),
+          //     ),
+          //   ),
+          // ),
+
+      // /// Camera Preview
+      // selectedRatio == "Full"
+      //     ? Positioned.fill(
+      //   child: CameraPreview(controller),
+      // )
+      //     : Positioned(
+      //   top: 90,
+      //   left: 0,
+      //   right: 0,
+      //   bottom: 180,
+      //   child: Center(
+      //     child: AspectRatio(
+      //       aspectRatio: _getAspectRatio(),
+      //       child: ClipRect( // ClipRect make sure karta hai ki preview bahar na nikle
+      //         child: CameraPreview(controller),
+      //       ),
+      //     ),
+      //   ),
+      // ),
+
+      /// Camera Preview
+      selectedRatio == "Full"
+          ? Positioned.fill(
+        child: ClipRect(
+          child: FittedBox(
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: controller.value.previewSize?.height ?? 1,
+              height: controller.value.previewSize?.width ?? 1,
+              child: CameraPreview(controller),
+            ),
+          ),
+        ),
+      )
+          : selectedRatio == "1:1"
+          ? Positioned(
+        top: 90,
+        bottom: 180, // Sirf 1:1 ke liye bottom boundary hai taaki center ho sake
+        left: 0,
+        right: 0,
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 1.0,
+            child: ClipRect(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: controller.value.previewSize?.height ?? 1,
+                  height: controller.value.previewSize?.width ?? 1,
+                  child: CameraPreview(controller),
+                ),
+              ),
+            ),
+          ),
+        ),
+      )
+          : Positioned(
+        top: 115,
+        left: 0,
+        right: 0,
+        // 4:3 aur 16:9 ke liye no 'bottom', bilkul pehle jaisa perfect width cover karega
+        child: AspectRatio(
+          aspectRatio: _getAspectRatio(),
+          child: ClipRect(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: controller.value.previewSize?.height ?? 1,
+                height: controller.value.previewSize?.width ?? 1,
                 child: CameraPreview(controller),
               ),
             ),
           ),
-
+        ),
+      ),
           ///for full screen
           // Positioned.fill(
           //   child: CameraPreview(controller),
@@ -538,6 +646,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         ],
       ),
+    ),
     ),
     );
 
