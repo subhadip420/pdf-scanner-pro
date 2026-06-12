@@ -49,6 +49,11 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  camera:
+  cunning_document_scanner:
+  image_picker:
+  google_mlkit_text_recognition:
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
