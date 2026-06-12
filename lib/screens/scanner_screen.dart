@@ -98,20 +98,33 @@ class _ScannerScreenState extends State<ScannerScreen> {
         children: [
 
           /// Camera Preview
-          Align(
-            alignment: const Alignment(0, -0.15),
-            child: AspectRatio(
-              aspectRatio: 3 / 4,
-              child: CameraPreview(controller),
+          // Align(
+          //   alignment: const Alignment(0, -0.15),
+          //   child: AspectRatio(
+          //     aspectRatio: 3 / 4,
+          //     child: CameraPreview(controller),
+          //   ),
+          // ),
+
+          Positioned(
+            top: 90,
+            left: 0,
+            right: 0,
+            bottom: 180,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 3 / 4,
+                child: CameraPreview(controller),
+              ),
             ),
           ),
 
-          /// Dark Overlay
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.15),
-            ),
-          ),
+          // /// Dark Overlay
+          // Positioned.fill(
+          //   child: Container(
+          //     color: Colors.black.withOpacity(0.15),
+          //   ),
+          // ),
 
           /// Top Controls
           SafeArea(
@@ -214,7 +227,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
           /// Scan Modes
           Positioned(
-            bottom: 110,
+            bottom: 130,
             left: 0,
             right: 0,
             child: SizedBox(
@@ -284,111 +297,119 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
 
           /// Bottom Controls
-          Align(
-            alignment: Alignment.bottomCenter,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 30,
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(
-                  top: 10,
                   left: 12,
                   right: 12,
-                  bottom: 60,
+                  bottom: 20,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
 
-                    /// Home
-                    IconButton(
-                      onPressed: () {
-                        showToast("Home");
-                      },
-                      icon: const Icon(
-                        Icons.home_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-
-                    /// Gallery
-                    IconButton(
-                      onPressed: () {
-                        showToast("Gallery");
-                      },
-                      icon: const Icon(
-                        Icons.photo_library_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-
-                    /// Capture Button
-                    GestureDetector(
-                      onTap: () {
-                        showToast("Capture");
-                      },
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 4,
-                          ),
+                      /// Home
+                      IconButton(
+                        onPressed: () {
+                          showToast("Home");
+                        },
+                        icon: const Icon(
+                          Icons.home_rounded,
+                          color: Colors.white,
+                          size: 24,
                         ),
-                        child: Center(
-                          child: Container(
-                            width: 45,
-                            height: 45,
-                            decoration: const BoxDecoration(
+                      ),
+
+                      /// Gallery
+                      IconButton(
+                        onPressed: () {
+                          showToast("Gallery");
+                        },
+                        icon: const Icon(
+                          Icons.photo_library_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+
+                      /// Capture Button
+                      GestureDetector(
+                        onTap: () {
+                          showToast("Capture");
+                        },
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
                               color: Colors.white,
-                              shape: BoxShape.circle,
+                              width: 4,
+                            ),
+                          ),
+                          child: Center(
+                            child: Container(
+                              width: 45,
+                              height: 45,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
 
-                    /// Flip Camera
-                    IconButton(
-                      onPressed: () {
-                        showToast("Flip Camera");
-                      },
-                      icon: const Icon(
-                        Icons.flip_camera_android_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-
-                    /// Last Photo
-                    GestureDetector(
-                      onTap: () {
-                        showToast("Last Photo");
-                      },
-                      child: Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.white54,
-                            width: 1,
-                          ),
+                      /// Flip Camera
+                      IconButton(
+                        onPressed: () {
+                          showToast("Flip Camera");
+                        },
+                        icon: const Icon(
+                          Icons.flip_camera_android_rounded,
+                          color: Colors.white,
+                          size: 24,
                         ),
-                        child: lastCapturedImage == null
-                            ? const SizedBox() // blank
-                            : ClipRRect(
-                          borderRadius: BorderRadius.circular(7),
-                          child: Image.file(
-                            File(lastCapturedImage!.path),
-                            fit: BoxFit.cover,
+                      ),
+
+                      /// Last Photo
+                      GestureDetector(
+                        onTap: () {
+                          showToast("Last Photo");
+                        },
+                        child: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: lastCapturedImage == null
+                              ? const SizedBox()
+                              : ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(lastCapturedImage!.path),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
