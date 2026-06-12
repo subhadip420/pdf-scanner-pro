@@ -9,7 +9,6 @@ import 'package:flutter/services.dart'; // For locking orientation
 import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
 import 'dart:async'; // For StreamSubscription
 
-
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
 
@@ -48,15 +47,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
   StreamSubscription<AccelerometerEvent>? _sensorSubscription;
   double _iconTurns = 0.0; // 0.0 = Portrait, 0.25 = Landscape Left, etc.
 
-
   @override
   void initState() {
     super.initState();
 
     // Lock screen to Portrait mode only so layout doesn't break
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     controller = CameraController(
       cameras.first,
@@ -75,7 +71,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
 
     // Listen to accelerometer to detect physical phone rotation
-    _sensorSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
+    _sensorSubscription = accelerometerEventStream().listen((
+      AccelerometerEvent event,
+    ) {
       if (!mounted) return;
 
       setState(() {
@@ -91,12 +89,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
         }
       });
     });
-
   }
 
   @override
   void dispose() {
-
     // Cancel subscription to save battery
     _sensorSubscription?.cancel();
 
@@ -136,7 +132,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         return Symbols.fullscreen_sharp;
       case "4:3":
       default:
-        return Symbols.crop_5_4_sharp; // 4:3 ke liye sabse best aur similar icon
+        return Symbols
+            .crop_5_4_sharp; // 4:3 ke liye sabse best aur similar icon
     }
   }
 
@@ -258,19 +255,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // return Scaffold(
-    //     backgroundColor: const Color(0xFF2C2C2C),
-    // body: SizedBox.expand(
-    // child: Stack(
-    // children: [
-
     return Scaffold(
       backgroundColor: const Color(0xFF2C2C2C),
       body: GestureDetector(
         onTap: () {
           if (activeMenu != "Default") {
             setState(() {
-              activeMenu = "Default"; // Screen par tap karte hi menu wapas normal ho jayega
+              activeMenu =
+                  "Default"; // Screen par tap karte hi menu wapas normal ho jayega
             });
           }
         },
@@ -279,48 +271,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         child: SizedBox.expand(
           child: Stack(
             children: [
-              /// Camera Preview
-              // Align(
-              //   alignment: const Alignment(0, -0.15),
-              //   child: AspectRatio(
-              //     aspectRatio: 3 / 4,
-              //     child: CameraPreview(controller),
-              //   ),
-              // ),
-
-              // Positioned(
-              //   top: 90,
-              //   left: 0,
-              //   right: 0,
-              //   bottom: 180,
-              //   child: Center(
-              //     child: AspectRatio(
-              //       aspectRatio: 3 / 4,
-              //       child: CameraPreview(controller),
-              //     ),
-              //   ),
-              // ),
-
-              // /// Camera Preview
-              // selectedRatio == "Full"
-              //     ? Positioned.fill(
-              //   child: CameraPreview(controller),
-              // )
-              //     : Positioned(
-              //   top: 90,
-              //   left: 0,
-              //   right: 0,
-              //   bottom: 180,
-              //   child: Center(
-              //     child: AspectRatio(
-              //       aspectRatio: _getAspectRatio(),
-              //       child: ClipRect( // ClipRect make sure karta hai ki preview bahar na nikle
-              //         child: CameraPreview(controller),
-              //       ),
-              //     ),
-              //   ),
-              // ),
-
               /// Camera Preview
               selectedRatio == "Full"
                   ? Positioned.fill(
@@ -383,231 +333,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       ),
                     ),
 
-              ///for full screen
-              // Positioned.fill(
-              //   child: CameraPreview(controller),
-              // ),
-
-              // /// Dark Overlay
-              // Positioned.fill(
-              //   child: Container(
-              //     color: Colors.black.withOpacity(0.15),
-              //   ),
-              // ),
-
-              /// Top Controls
-              /// Top Controls
-              // Positioned(
-              // top: 0,
-              // left: 0,
-              // right: 0,
-              // child: SafeArea(
-              // child: Padding(
-              //           padding: const EdgeInsets.symmetric(
-              //             horizontal: 16,
-              //             vertical: 9,
-              //           ),
-              //           child: Container(
-              //             padding: const EdgeInsets.symmetric(
-              //               horizontal: 8,
-              //               vertical: 4,
-              //             ),
-              //             decoration: BoxDecoration(
-              //               color: Colors.black.withOpacity(0.35),
-              //               borderRadius: BorderRadius.circular(30),
-              //             ),
-              //             child: Row(
-              //               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //               children: [
-              //
-              //                 /// Flash
-              //                 IconButton(
-              //                   onPressed: () {
-              //                     showToast("Flash");
-              //                   },
-              //                   icon: const Icon(
-              //                     Icons.flash_off_rounded,
-              //                     color: Colors.white,
-              //                     size: 26,
-              //                   ),
-              //                 ),
-              //
-              //                 /// Timer
-              //                 IconButton(
-              //                   onPressed: () {
-              //                     showToast("Timer");
-              //                   },
-              //                   icon: const Icon(
-              //                     Icons.timer_outlined,
-              //                     color: Colors.white,
-              //                     size: 26,
-              //                   ),
-              //                 ),
-              //
-              //                 /// Ratio
-              //                 IconButton(
-              //                   onPressed: () {
-              //                     showToast("Ratio");
-              //                   },
-              //                   icon: const Icon(
-              //                     Icons.crop_16_9_rounded,
-              //                     color: Colors.white,
-              //                     size: 26,
-              //                   ),
-              //                 ),
-              //
-              //                 /// Flip Camera
-              //                 IconButton(
-              //                   onPressed: () {
-              //                     showToast("Flip Camera");
-              //                   },
-              //                   icon: const Icon(
-              //                     Icons.flip_camera_android_rounded,
-              //                     color: Colors.white,
-              //                     size: 26,
-              //                   ),
-              //                 ),
-              //
-              //                 /// Settings
-              //                 IconButton(
-              //                   onPressed: () {
-              //                     showToast("Settings");
-              //                   },
-              //                   icon: const Icon(
-              //                     Icons.settings_rounded,
-              //                     color: Colors.white,
-              //                     size: 26,
-              //                   ),
-              //                 ),
-              //               ],
-              //             ),
-              //           ),
-              //         ),
-              //         ),
-              //       ),
-
-              /// Top Controls
-              // Positioned(
-              //   top: 0,
-              //   left: 0,
-              //   right: 0,
-              //   child: SafeArea(
-              //     child: Padding(
-              //       padding: const EdgeInsets.symmetric(
-              //         horizontal: 16,
-              //         vertical: 9,
-              //       ),
-              //       // Yahan Condition lagayi hai
-              //       child: isSelectingRatio
-              //           ? Container(
-              //               padding: const EdgeInsets.symmetric(
-              //                 horizontal: 22,
-              //                 vertical: 14,
-              //               ),
-              //               decoration: BoxDecoration(
-              //                 color: Colors.black.withOpacity(0.35),
-              //                 // Thoda dark background clarity ke liye
-              //                 borderRadius: BorderRadius.circular(30),
-              //               ),
-              //               child: Row(
-              //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //                 children: [
-              //                   const Text(
-              //                     "Aspect ratio",
-              //                     style: TextStyle(
-              //                       color: Colors.white,
-              //                       fontSize: 14,
-              //                       fontWeight: FontWeight.w500,
-              //                     ),
-              //                   ),
-              //                   Row(
-              //                     children: [
-              //                       _buildRatioOption("1:1"),
-              //                       const SizedBox(width: 8),
-              //                       _buildRatioOption("4:3"),
-              //                       const SizedBox(width: 8),
-              //                       _buildRatioOption("16:9"),
-              //                       const SizedBox(width: 8),
-              //                       _buildRatioOption("Full"),
-              //                     ],
-              //                   ),
-              //                 ],
-              //               ),
-              //             )
-              //           : Container(
-              //               padding: const EdgeInsets.symmetric(
-              //                 horizontal: 8,
-              //                 vertical: 4,
-              //               ),
-              //               decoration: BoxDecoration(
-              //                 color: Colors.black.withOpacity(0.35),
-              //                 borderRadius: BorderRadius.circular(30),
-              //               ),
-              //               child: Row(
-              //                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //                 children: [
-              //                   /// Flash
-              //                   IconButton(
-              //                     onPressed: () => showToast("Flash"),
-              //                     icon: const Icon(
-              //                       Icons.flash_off_rounded,
-              //                       color: Colors.white,
-              //                       size: 26,
-              //                     ),
-              //                   ),
-              //
-              //                   /// Timer
-              //                   IconButton(
-              //                     onPressed: () => showToast("Timer"),
-              //                     icon: const Icon(
-              //                       Icons.timer_outlined,
-              //                       color: Colors.white,
-              //                       size: 26,
-              //                     ),
-              //                   ),
-              //
-              //                   /// Ratio Button (Jo Ratio menu open karega)
-              //                   /// Ratio Button (Jo Ratio menu open karega)
-              //                   IconButton(
-              //                     onPressed: () {
-              //                       setState(() {
-              //                         isSelectingRatio = true;
-              //                       });
-              //                     },
-              //                     // Yahan humne function call kiya aur 'const' hata diya
-              //                     icon: Icon(
-              //                       _getRatioIcon(),
-              //                       color: Colors.white,
-              //                       size: 26,
-              //                     ),
-              //                   ),
-              //
-              //                   /// Flip Camera
-              //                   IconButton(
-              //                     onPressed: () => showToast("Flip Camera"),
-              //                     icon: const Icon(
-              //                       Icons.flip_camera_android_rounded,
-              //                       color: Colors.white,
-              //                       size: 26,
-              //                     ),
-              //                   ),
-              //
-              //                   /// Settings
-              //                   IconButton(
-              //                     onPressed: () => showToast("Settings"),
-              //                     icon: const Icon(
-              //                       Icons.settings_rounded,
-              //                       color: Colors.white,
-              //                       size: 26,
-              //                     ),
-              //                   ),
-              //                 ],
-              //               ),
-              //             ),
-              //     ),
-              //   ),
-              // ),
-
               /// Top Controls
               Positioned(
                 top: 0,
@@ -615,7 +340,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 right: 0,
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 9,
+                    ),
                     // Yahan humne simply naya function call kar diya
                     child: _buildTopBarContent(),
                   ),
@@ -843,7 +571,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   // Helper widget to animate icon rotation based on phone physical orientation
-  Widget _buildRotatedIcon(IconData iconData, {Color color = Colors.white, double size = 26}) {
+  Widget _buildRotatedIcon(
+    IconData iconData, {
+    Color color = Colors.white,
+    double size = 26,
+  }) {
     return AnimatedRotation(
       turns: _iconTurns,
       duration: const Duration(milliseconds: 300), // Smooth rotation animation
@@ -863,7 +595,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Flash", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+              const Text(
+                "Flash",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               Row(
                 children: [
                   _buildFlashOption("Off"),
@@ -886,7 +625,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Aspect ratio", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+              const Text(
+                "Aspect ratio",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               Row(
                 children: [
                   _buildRatioOption("1:1"),
@@ -912,11 +658,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Timer", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+              const Text(
+                "Timer",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               Row(
                 children: [
-                  _buildTimerOption(0),  // Off
-                  _buildTimerOption(3),  // 3s
+                  _buildTimerOption(0), // Off
+                  _buildTimerOption(3), // 3s
                   _buildTimerOption(10), // 10s
                 ],
               ),
@@ -937,24 +690,45 @@ class _ScannerScreenState extends State<ScannerScreen> {
             children: [
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Flash"),
-                icon: _buildRotatedIcon(_getFlashIcon(), color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(
+                  _getFlashIcon(),
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
+
               /// YAHAN TIMER ICON DYNAMIC KAR DIYA
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Timer"),
-                icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(
+                  _getTimerIcon(),
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Ratio"),
-                icon: _buildRotatedIcon(_getRatioIcon(), color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(
+                  _getRatioIcon(),
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
               IconButton(
                 onPressed: _flipCamera,
-                icon: _buildRotatedIcon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(
+                  Symbols.flip_camera_android_sharp,
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
               IconButton(
                 onPressed: () => showToast("Settings"),
-                icon: _buildRotatedIcon(Symbols.settings_photo_camera_sharp, color: Colors.white, size: 26),
+                icon: _buildRotatedIcon(
+                  Symbols.settings_photo_camera_sharp,
+                  color: Colors.white,
+                  size: 26,
+                ),
               ),
             ],
           ),
@@ -962,7 +736,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-// Ratio menu ke options banane ke liye
+  // Ratio menu ke options banane ke liye
   Widget _buildRatioOption(String label) {
     final bool isSelected = selectedRatio == label;
     final Color color = isSelected ? Colors.amber : Colors.white;
@@ -1009,11 +783,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Icon(
-          _getFlashIcon(mode),
-          color: color,
-          size: 26,
-        ),
+        child: Icon(_getFlashIcon(mode), color: color, size: 26),
       ),
     );
   }
@@ -1033,13 +803,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: Icon(
-          _getTimerIcon(seconds),
-          color: color,
-          size: 26,
-        ),
+        child: Icon(_getTimerIcon(seconds), color: color, size: 26),
       ),
     );
   }
+}
 
-}///end main class
+///end main class
