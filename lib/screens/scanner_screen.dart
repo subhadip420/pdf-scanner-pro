@@ -47,6 +47,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
   StreamSubscription<AccelerometerEvent>? _sensorSubscription;
   double _iconTurns = 0.0; // 0.0 = Portrait, 0.25 = Landscape Left, etc.
 
+  int capturedPhotosCount = 0; // Counter for the badge
+  bool isCapturing = false; // To prevent multiple taps while capturing
+  int currentCountdown = 0; // Tracks the active countdown (3, 2, 1)
+
   @override
   void initState() {
     super.initState();
@@ -244,6 +248,53 @@ class _ScannerScreenState extends State<ScannerScreen> {
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
     );
+  }
+
+  // Function to capture the photo with countdown logic
+  Future<void> _capturePhoto() async {
+    // Prevent action if camera is not ready or already capturing
+    if (!controller.value.isInitialized || isCapturing) return;
+
+    setState(() {
+      isCapturing = true;
+      activeMenu = "Default"; // Close any open menu
+    });
+
+    try {
+      // Handle the timer delay with a visual countdown
+      if (selectedTimer > 0) {
+        for (int i = selectedTimer; i > 0; i--) {
+          setState(() {
+            currentCountdown = i; // Update the UI with current second
+          });
+          // Wait for exactly 1 second
+          await Future.delayed(const Duration(seconds: 1));
+        }
+
+        // Countdown finished, reset to 0 before capturing
+        setState(() {
+          currentCountdown = 0;
+        });
+      }
+
+      // Capture the picture
+      final XFile photo = await controller.takePicture();
+
+      // Update the state with the new photo and increment the counter
+      setState(() {
+        lastCapturedImage = photo;
+        capturedPhotosCount++;
+        isCapturing = false;
+      });
+
+    } catch (e) {
+      // Handle errors and reset states
+      setState(() {
+        isCapturing = false;
+        currentCountdown = 0;
+      });
+      showToast("Error capturing photo");
+    }
   }
 
   @override
@@ -495,33 +546,107 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
 
                           /// Capture Button
+                          // GestureDetector(
+                          //   onTap: () {
+                          //     showToast("Capture");
+                          //   },
+                          //   child: Container(
+                          //     width: 60,
+                          //     height: 60,
+                          //     decoration: BoxDecoration(
+                          //       shape: BoxShape.circle,
+                          //       border: Border.all(
+                          //         color: Colors.white,
+                          //         width: 4,
+                          //       ),
+                          //     ),
+                          //     child: Center(
+                          //       child: Container(
+                          //         width: 45,
+                          //         height: 45,
+                          //         decoration: const BoxDecoration(
+                          //           color: Colors.white,
+                          //           shape: BoxShape.circle,
+                          //         ),
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+
+                          /// Capture Button
+                          /// Dynamic & Animated Capture Button
                           GestureDetector(
-                            onTap: () {
-                              showToast("Capture");
-                            },
-                            child: Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 4,
-                                ),
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 45,
-                                  height: 45,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
+                            onTap: _capturePhoto,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Base Outer Circle (Always White or Grey)
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
                                     shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
+                                      width: 4,
+                                    ),
                                   ),
                                 ),
-                              ),
+
+                                // Blue Animated Progress Ring (Shows only during countdown)
+                                if (isCapturing && selectedTimer > 0)
+                                  SizedBox(
+                                    width: 56,
+                                    height: 56,
+                                    child: TweenAnimationBuilder<double>(
+                                      // Animates from 0.0 to 1.0 smoothly over the selected timer duration
+                                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                                      duration: Duration(seconds: selectedTimer),
+                                      builder: (context, value, child) {
+                                        return CircularProgressIndicator(
+                                          value: value, // Current progress
+                                          strokeWidth: 4,
+                                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                                          backgroundColor: Colors.transparent,
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                // Inner Content: Numbers OR Solid Circle
+                                if (isCapturing && currentCountdown > 0)
+                                // Show actively counting down number (e.g., 3, 2, 1)
+                                  Text(
+                                    '$currentCountdown',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                else if (!isCapturing && selectedTimer > 0)
+                                // Show selected timer duration before tapping (e.g., 3 or 10)
+                                  Text(
+                                    '$selectedTimer',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                else
+                                // Show default inner solid circle when no timer is selected
+                                  Container(
+                                    width: 45,
+                                    height: 45,
+                                    decoration: BoxDecoration(
+                                      color: isCapturing ? Colors.grey : Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
-
                           /// Auto Detect
                           IconButton(
                             onPressed: () {
@@ -535,26 +660,79 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
 
                           /// Last Photo
+                          // GestureDetector(
+                          //   onTap: () {
+                          //     showToast("Last Photo");
+                          //   },
+                          //   child: Container(
+                          //     width: 42,
+                          //     height: 42,
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.white24,
+                          //       borderRadius: BorderRadius.circular(8),
+                          //     ),
+                          //     child: lastCapturedImage == null
+                          //         ? const SizedBox()
+                          //         : ClipRRect(
+                          //             borderRadius: BorderRadius.circular(8),
+                          //             child: Image.file(
+                          //               File(lastCapturedImage!.path),
+                          //               fit: BoxFit.cover,
+                          //             ),
+                          //           ),
+                          //   ),
+                          // ),
+
+                          /// Last Photo with Counter Badge
                           GestureDetector(
                             onTap: () {
-                              showToast("Last Photo");
+                              if (capturedPhotosCount > 0) {
+                                showToast("Opening Gallery with $capturedPhotosCount photos");
+                              }
                             },
-                            child: Container(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color: Colors.white24,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: lastCapturedImage == null
-                                  ? const SizedBox()
-                                  : ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.file(
-                                        File(lastCapturedImage!.path),
-                                        fit: BoxFit.cover,
+                            child: Stack(
+                              clipBehavior: Clip.none, // Allows the badge to overflow the box slightly
+                              children: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white24,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: lastCapturedImage == null
+                                      ? const SizedBox()
+                                      : ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      File(lastCapturedImage!.path),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+
+                                // Counter Badge (Shows only if photos are captured)
+                                if (capturedPhotosCount > 0)
+                                  Positioned(
+                                    top: -6,
+                                    right: -6,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(5),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.amber, // Highlight color for the badge
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        '$capturedPhotosCount',
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
+                                  ),
+                              ],
                             ),
                           ),
                         ],
@@ -799,7 +977,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           selectedTimer = seconds;
           activeMenu = "Default"; // Tap karte hi menu close ho jayega
         });
-        showToast(seconds == 0 ? "Timer Off" : "Timer ${seconds}s");
+        //showToast(seconds == 0 ? "Timer Off" : "Timer ${seconds}s");
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
