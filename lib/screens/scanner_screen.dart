@@ -39,6 +39,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String activeMenu = "Default";
   int selectedTimer = 0; // 0 matlab Off, baaki 3 aur 10 seconds ke liye
 
+  int currentCameraIndex = 0; // 0 matlab By Default Back Camera
+
   @override
   void initState() {
     super.initState();
@@ -121,6 +123,39 @@ class _ScannerScreenState extends State<ScannerScreen> {
       case 0:
       default:
         return Symbols.timer; // Default timer icon
+    }
+  }
+
+  Future<void> _flipCamera() async {
+    // Agar phone me front camera nahi hai ya 1 hi camera hai
+    if (cameras.length < 2) {
+      showToast("Secondary camera not available");
+      return;
+    }
+
+    // Index ko toggle karein (0 hai toh 1 kardo, 1 hai toh 0 kardo)
+    currentCameraIndex = currentCameraIndex == 0 ? 1 : 0;
+    final CameraDescription newCamera = cameras[currentCameraIndex];
+
+    // Purane camera controller ko stop aur dispose karna zaroori hai
+    await controller.dispose();
+
+    // Naye camera ke saath naya controller banayein
+    controller = CameraController(
+      newCamera,
+      ResolutionPreset.high,
+      enableAudio: false,
+    );
+
+    // Naye controller ko initialize karke UI update karein
+    try {
+      await controller.initialize();
+      if (mounted) {
+        setState(() {}); // Camera change hone par screen refresh hogi
+        showToast(currentCameraIndex == 1 ? "Front Camera" : "Back Camera");
+      }
+    } catch (e) {
+      showToast("Error switching camera");
     }
   }
 
@@ -835,12 +870,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 icon: Icon(_getRatioIcon(), color: Colors.white, size: 26),
               ),
               IconButton(
-                onPressed: () => showToast("Flip Camera"),
-                icon: const Icon(Symbols.flip_camera_android_rounded, color: Colors.white, size: 26),
+                onPressed: _flipCamera,
+                icon: const Icon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
               ),
               IconButton(
                 onPressed: () => showToast("Settings"),
-                icon: const Icon(Symbols.settings_photo_camera, color: Colors.white, size: 26),
+                icon: const Icon(Symbols.settings_photo_camera_sharp, color: Colors.white, size: 26),
               ),
             ],
           ),
