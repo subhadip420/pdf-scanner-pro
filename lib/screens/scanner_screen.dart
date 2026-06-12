@@ -136,7 +136,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 12,
+                vertical: 9,
               ),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -244,7 +244,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
           /// Scan Modes
           Positioned(
-            bottom: 130,
+            bottom: 155,
             left: 0,
             right: 0,
             child: SizedBox(
@@ -317,7 +317,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: 30,
+            bottom: 60,
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.only(
