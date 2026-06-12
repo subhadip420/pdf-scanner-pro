@@ -28,6 +28,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   ];
 
   int selectedIndex = 2; // Document
+  bool isSelectingRatio = false;
+  String selectedRatio = "4:3"; // Default 4:3 select rahega
 
   @override
   void initState() {
@@ -134,94 +136,190 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
           /// Top Controls
     /// Top Controls
-    Positioned(
-    top: 0,
-    left: 0,
-    right: 0,
-    child: SafeArea(
-    child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 9,
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
+    // Positioned(
+    // top: 0,
+    // left: 0,
+    // right: 0,
+    // child: SafeArea(
+    // child: Padding(
+    //           padding: const EdgeInsets.symmetric(
+    //             horizontal: 16,
+    //             vertical: 9,
+    //           ),
+    //           child: Container(
+    //             padding: const EdgeInsets.symmetric(
+    //               horizontal: 8,
+    //               vertical: 4,
+    //             ),
+    //             decoration: BoxDecoration(
+    //               color: Colors.black.withOpacity(0.35),
+    //               borderRadius: BorderRadius.circular(30),
+    //             ),
+    //             child: Row(
+    //               mainAxisAlignment: MainAxisAlignment.spaceAround,
+    //               children: [
+    //
+    //                 /// Flash
+    //                 IconButton(
+    //                   onPressed: () {
+    //                     showToast("Flash");
+    //                   },
+    //                   icon: const Icon(
+    //                     Icons.flash_off_rounded,
+    //                     color: Colors.white,
+    //                     size: 26,
+    //                   ),
+    //                 ),
+    //
+    //                 /// Timer
+    //                 IconButton(
+    //                   onPressed: () {
+    //                     showToast("Timer");
+    //                   },
+    //                   icon: const Icon(
+    //                     Icons.timer_outlined,
+    //                     color: Colors.white,
+    //                     size: 26,
+    //                   ),
+    //                 ),
+    //
+    //                 /// Ratio
+    //                 IconButton(
+    //                   onPressed: () {
+    //                     showToast("Ratio");
+    //                   },
+    //                   icon: const Icon(
+    //                     Icons.crop_16_9_rounded,
+    //                     color: Colors.white,
+    //                     size: 26,
+    //                   ),
+    //                 ),
+    //
+    //                 /// Flip Camera
+    //                 IconButton(
+    //                   onPressed: () {
+    //                     showToast("Flip Camera");
+    //                   },
+    //                   icon: const Icon(
+    //                     Icons.flip_camera_android_rounded,
+    //                     color: Colors.white,
+    //                     size: 26,
+    //                   ),
+    //                 ),
+    //
+    //                 /// Settings
+    //                 IconButton(
+    //                   onPressed: () {
+    //                     showToast("Settings");
+    //                   },
+    //                   icon: const Icon(
+    //                     Icons.settings_rounded,
+    //                     color: Colors.white,
+    //                     size: 26,
+    //                   ),
+    //                 ),
+    //               ],
+    //             ),
+    //           ),
+    //         ),
+    //         ),
+    //       ),
 
-                    /// Flash
-                    IconButton(
-                      onPressed: () {
-                        showToast("Flash");
-                      },
-                      icon: const Icon(
-                        Icons.flash_off_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
 
-                    /// Timer
-                    IconButton(
-                      onPressed: () {
-                        showToast("Timer");
-                      },
-                      icon: const Icon(
-                        Icons.timer_outlined,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-
-                    /// Ratio
-                    IconButton(
-                      onPressed: () {
-                        showToast("Ratio");
-                      },
-                      icon: const Icon(
-                        Icons.crop_16_9_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-
-                    /// Flip Camera
-                    IconButton(
-                      onPressed: () {
-                        showToast("Flip Camera");
-                      },
-                      icon: const Icon(
-                        Icons.flip_camera_android_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-
-                    /// Settings
-                    IconButton(
-                      onPressed: () {
-                        showToast("Settings");
-                      },
-                      icon: const Icon(
-                        Icons.settings_rounded,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      /// Top Controls
+      Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 9,
             ),
+            // Yahan Condition lagayi hai
+            child: isSelectingRatio
+                ? Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 22,
+                vertical: 14,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.35), // Thoda dark background clarity ke liye
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Aspect ratio",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      _buildRatioOption("1:1"),
+                      const SizedBox(width: 8),
+                      _buildRatioOption("4:3"),
+                      const SizedBox(width: 8),
+                      _buildRatioOption("16:9"),
+                      const SizedBox(width: 8),
+                      _buildRatioOption("Full"),
+                    ],
+                  ),
+                ],
+              ),
+            )
+                : Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  /// Flash
+                  IconButton(
+                    onPressed: () => showToast("Flash"),
+                    icon: const Icon(Icons.flash_off_rounded, color: Colors.white, size: 26),
+                  ),
+                  /// Timer
+                  IconButton(
+                    onPressed: () => showToast("Timer"),
+                    icon: const Icon(Icons.timer_outlined, color: Colors.white, size: 26),
+                  ),
+                  /// Ratio Button (Jo Ratio menu open karega)
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        isSelectingRatio = true;
+                      });
+                    },
+                    icon: const Icon(Icons.crop_16_9_rounded, color: Colors.white, size: 26),
+                  ),
+                  /// Flip Camera
+                  IconButton(
+                    onPressed: () => showToast("Flip Camera"),
+                    icon: const Icon(Icons.flip_camera_android_rounded, color: Colors.white, size: 26),
+                  ),
+                  /// Settings
+                  IconButton(
+                    onPressed: () => showToast("Settings"),
+                    icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 26),
+                  ),
+                ],
+              ),
             ),
           ),
+        ),
+      ),
 
           // /// Center Text
           // const Center(
@@ -443,6 +541,36 @@ class _ScannerScreenState extends State<ScannerScreen> {
     ),
     );
 
+  }
+
+  Widget _buildRatioOption(String label) {
+    final bool isSelected = selectedRatio == label;
+    final Color color = isSelected ? Colors.amber : Colors.white;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedRatio = label;
+          isSelectingRatio = false; // Select hone ke baad wapas normal bar aa jayega
+        });
+        showToast("$label Ratio Selected");
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: color, width: 1.5),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
 
