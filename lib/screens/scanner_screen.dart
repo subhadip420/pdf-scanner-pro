@@ -119,6 +119,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           ),
 
+          ///for full screen
+          // Positioned.fill(
+          //   child: CameraPreview(controller),
+          // ),
+
           // /// Dark Overlay
           // Positioned.fill(
           //   child: Container(
@@ -171,12 +176,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
 
                     /// Ratio
+                    // IconButton(
+                    //   onPressed: () {
+                    //     showToast("Ratio");
+                    //   },
+                    //   icon: const Icon(
+                    //     Icons.crop_16_9_rounded,
+                    //     color: Colors.white,
+                    //     size: 26,
+                    //   ),
+                    // ),
+
+                    /// Flip Camera
                     IconButton(
                       onPressed: () {
-                        showToast("Ratio");
+                        showToast("Flip Camera");
                       },
                       icon: const Icon(
-                        Icons.crop_16_9_rounded,
+                        Icons.flip_camera_android_rounded,
                         color: Colors.white,
                         size: 26,
                       ),
@@ -373,13 +390,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         ),
                       ),
 
-                      /// Flip Camera
+                      /// Auto Detect
                       IconButton(
                         onPressed: () {
-                          showToast("Flip Camera");
+                          showToast("Auto Detect");
                         },
                         icon: const Icon(
-                          Icons.flip_camera_android_rounded,
+                          Icons.document_scanner_outlined,
                           color: Colors.white,
                           size: 24,
                         ),
