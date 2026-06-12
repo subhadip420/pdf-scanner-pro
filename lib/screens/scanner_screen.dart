@@ -93,9 +93,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C),
-      body: Stack(
-        children: [
+        backgroundColor: const Color(0xFF2C2C2C),
+    body: SizedBox.expand(
+    child: Stack(
+    children: [
 
           /// Camera Preview
           // Align(
@@ -132,8 +133,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // ),
 
           /// Top Controls
-          SafeArea(
-            child: Padding(
+    /// Top Controls
+    Positioned(
+    top: 0,
+    left: 0,
+    right: 0,
+    child: SafeArea(
+    child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 9,
@@ -176,16 +182,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
 
                     /// Ratio
-                    // IconButton(
-                    //   onPressed: () {
-                    //     showToast("Ratio");
-                    //   },
-                    //   icon: const Icon(
-                    //     Icons.crop_16_9_rounded,
-                    //     color: Colors.white,
-                    //     size: 26,
-                    //   ),
-                    // ),
+                    IconButton(
+                      onPressed: () {
+                        showToast("Ratio");
+                      },
+                      icon: const Icon(
+                        Icons.crop_16_9_rounded,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                    ),
 
                     /// Flip Camera
                     IconButton(
@@ -214,33 +220,34 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
               ),
             ),
-          ),
-
-          /// Center Text
-          const Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-
-                Icon(
-                  Icons.document_scanner_outlined,
-                  color: Colors.white70,
-                  size: 50,
-                ),
-
-                SizedBox(height: 12),
-
-                Text(
-                  "Looking for document...",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
             ),
           ),
+
+          // /// Center Text
+          // const Center(
+          //   child: Column(
+          //     mainAxisSize: MainAxisSize.min,
+          //     children: [
+          //
+          //       Icon(
+          //         Icons.document_scanner_outlined,
+          //         color: Colors.white70,
+          //         size: 50,
+          //       ),
+          //
+          //       SizedBox(height: 12),
+          //
+          //       Text(
+          //         "Looking for document...",
+          //         style: TextStyle(
+          //           color: Colors.white,
+          //           fontSize: 18,
+          //           fontWeight: FontWeight.w600,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
 
           /// Scan Modes
           Positioned(
@@ -433,7 +440,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         ],
       ),
+    ),
     );
+
   }
 
 
