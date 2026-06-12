@@ -31,6 +31,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool isSelectingRatio = false;
   String selectedRatio = "4:3"; // Default 4:3 select rahega
 
+  bool isSelectingFlash = false;
+  String selectedFlashMode = "Off"; // Options: "Off", "On", "Auto", "Torch"
+
+  // Kaunsa top menu open hai: "Default", "Ratio", "Flash", ya "Timer"
+  String activeMenu = "Default";
+  int selectedTimer = 0; // 0 matlab Off, baaki 3 aur 10 seconds ke liye
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +94,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
+  // Selected flash mode ke hisaab se icon return karega
+  IconData _getFlashIcon([String? mode]) {
+    final String currentMode = mode ?? selectedFlashMode;
+    switch (currentMode) {
+      case "On":
+        return Icons.flash_on_rounded;
+      case "Auto":
+        return Icons.flash_auto_rounded;
+      case "Torch":
+        return Icons.highlight_rounded; // Ya Icons.flashlight_on_rounded
+      case "Off":
+      default:
+        return Icons.flash_off_rounded;
+    }
+  }
+
   void scrollToDocument() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (modeController.hasClients) {
@@ -125,11 +148,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF2C2C2C),
       body: GestureDetector(
-        // Agar ratio menu open hai, toh screen pe tap karte hi use false kar dega
         onTap: () {
-          if (isSelectingRatio) {
+          if (activeMenu != "Default") {
             setState(() {
-              isSelectingRatio = false;
+              activeMenu = "Default"; // Screen par tap karte hi menu wapas normal ho jayega
             });
           }
         },
@@ -346,123 +368,137 @@ class _ScannerScreenState extends State<ScannerScreen> {
               //       ),
 
               /// Top Controls
+              // Positioned(
+              //   top: 0,
+              //   left: 0,
+              //   right: 0,
+              //   child: SafeArea(
+              //     child: Padding(
+              //       padding: const EdgeInsets.symmetric(
+              //         horizontal: 16,
+              //         vertical: 9,
+              //       ),
+              //       // Yahan Condition lagayi hai
+              //       child: isSelectingRatio
+              //           ? Container(
+              //               padding: const EdgeInsets.symmetric(
+              //                 horizontal: 22,
+              //                 vertical: 14,
+              //               ),
+              //               decoration: BoxDecoration(
+              //                 color: Colors.black.withOpacity(0.35),
+              //                 // Thoda dark background clarity ke liye
+              //                 borderRadius: BorderRadius.circular(30),
+              //               ),
+              //               child: Row(
+              //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //                 children: [
+              //                   const Text(
+              //                     "Aspect ratio",
+              //                     style: TextStyle(
+              //                       color: Colors.white,
+              //                       fontSize: 14,
+              //                       fontWeight: FontWeight.w500,
+              //                     ),
+              //                   ),
+              //                   Row(
+              //                     children: [
+              //                       _buildRatioOption("1:1"),
+              //                       const SizedBox(width: 8),
+              //                       _buildRatioOption("4:3"),
+              //                       const SizedBox(width: 8),
+              //                       _buildRatioOption("16:9"),
+              //                       const SizedBox(width: 8),
+              //                       _buildRatioOption("Full"),
+              //                     ],
+              //                   ),
+              //                 ],
+              //               ),
+              //             )
+              //           : Container(
+              //               padding: const EdgeInsets.symmetric(
+              //                 horizontal: 8,
+              //                 vertical: 4,
+              //               ),
+              //               decoration: BoxDecoration(
+              //                 color: Colors.black.withOpacity(0.35),
+              //                 borderRadius: BorderRadius.circular(30),
+              //               ),
+              //               child: Row(
+              //                 mainAxisAlignment: MainAxisAlignment.spaceAround,
+              //                 children: [
+              //                   /// Flash
+              //                   IconButton(
+              //                     onPressed: () => showToast("Flash"),
+              //                     icon: const Icon(
+              //                       Icons.flash_off_rounded,
+              //                       color: Colors.white,
+              //                       size: 26,
+              //                     ),
+              //                   ),
+              //
+              //                   /// Timer
+              //                   IconButton(
+              //                     onPressed: () => showToast("Timer"),
+              //                     icon: const Icon(
+              //                       Icons.timer_outlined,
+              //                       color: Colors.white,
+              //                       size: 26,
+              //                     ),
+              //                   ),
+              //
+              //                   /// Ratio Button (Jo Ratio menu open karega)
+              //                   /// Ratio Button (Jo Ratio menu open karega)
+              //                   IconButton(
+              //                     onPressed: () {
+              //                       setState(() {
+              //                         isSelectingRatio = true;
+              //                       });
+              //                     },
+              //                     // Yahan humne function call kiya aur 'const' hata diya
+              //                     icon: Icon(
+              //                       _getRatioIcon(),
+              //                       color: Colors.white,
+              //                       size: 26,
+              //                     ),
+              //                   ),
+              //
+              //                   /// Flip Camera
+              //                   IconButton(
+              //                     onPressed: () => showToast("Flip Camera"),
+              //                     icon: const Icon(
+              //                       Icons.flip_camera_android_rounded,
+              //                       color: Colors.white,
+              //                       size: 26,
+              //                     ),
+              //                   ),
+              //
+              //                   /// Settings
+              //                   IconButton(
+              //                     onPressed: () => showToast("Settings"),
+              //                     icon: const Icon(
+              //                       Icons.settings_rounded,
+              //                       color: Colors.white,
+              //                       size: 26,
+              //                     ),
+              //                   ),
+              //                 ],
+              //               ),
+              //             ),
+              //     ),
+              //   ),
+              // ),
+
+              /// Top Controls
               Positioned(
                 top: 0,
                 left: 0,
                 right: 0,
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 9,
-                    ),
-                    // Yahan Condition lagayi hai
-                    child: isSelectingRatio
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 22,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.35),
-                              // Thoda dark background clarity ke liye
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "Aspect ratio",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    _buildRatioOption("1:1"),
-                                    const SizedBox(width: 8),
-                                    _buildRatioOption("4:3"),
-                                    const SizedBox(width: 8),
-                                    _buildRatioOption("16:9"),
-                                    const SizedBox(width: 8),
-                                    _buildRatioOption("Full"),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          )
-                        : Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.35),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                /// Flash
-                                IconButton(
-                                  onPressed: () => showToast("Flash"),
-                                  icon: const Icon(
-                                    Icons.flash_off_rounded,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                ),
-
-                                /// Timer
-                                IconButton(
-                                  onPressed: () => showToast("Timer"),
-                                  icon: const Icon(
-                                    Icons.timer_outlined,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                ),
-
-                                /// Ratio Button (Jo Ratio menu open karega)
-                                /// Ratio Button (Jo Ratio menu open karega)
-                                IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      isSelectingRatio = true;
-                                    });
-                                  },
-                                  // Yahan humne function call kiya aur 'const' hata diya
-                                  icon: Icon(
-                                    _getRatioIcon(),
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                ),
-
-                                /// Flip Camera
-                                IconButton(
-                                  onPressed: () => showToast("Flip Camera"),
-                                  icon: const Icon(
-                                    Icons.flip_camera_android_rounded,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                ),
-
-                                /// Settings
-                                IconButton(
-                                  onPressed: () => showToast("Settings"),
-                                  icon: const Icon(
-                                    Icons.settings_rounded,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                    // Yahan humne simply naya function call kar diya
+                    child: _buildTopBarContent(),
                   ),
                 ),
               ),
@@ -687,6 +723,106 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
+  Widget _buildTopBarContent() {
+    switch (activeMenu) {
+      case "Flash":
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.35),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Flash", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+              Row(
+                children: [
+                  _buildFlashOption("Off"),
+                  _buildFlashOption("On"),
+                  _buildFlashOption("Auto"),
+                  _buildFlashOption("Torch"),
+                ],
+              ),
+            ],
+          ),
+        );
+
+      case "Ratio":
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.35),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Aspect ratio", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500)),
+              Row(
+                children: [
+                  _buildRatioOption("1:1"),
+                  const SizedBox(width: 8),
+                  _buildRatioOption("4:3"),
+                  const SizedBox(width: 8),
+                  _buildRatioOption("16:9"),
+                  const SizedBox(width: 8),
+                  _buildRatioOption("Full"),
+                ],
+              ),
+            ],
+          ),
+        );
+
+      case "Timer":
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.35),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: const Center(
+            child: Text("Timer Options (3s, 5s, 10s)", style: TextStyle(color: Colors.white, fontSize: 14)), // Yahan hum baad me timer ka design daalenge
+          ),
+        );
+
+      case "Default":
+      default:
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.35),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                onPressed: () => setState(() => activeMenu = "Flash"),
+                icon: Icon(_getFlashIcon(), color: Colors.white, size: 26),
+              ),
+              IconButton(
+                onPressed: () => setState(() => activeMenu = "Timer"),
+                icon: const Icon(Icons.timer_outlined, color: Colors.white, size: 26),
+              ),
+              IconButton(
+                onPressed: () => setState(() => activeMenu = "Ratio"),
+                icon: Icon(_getRatioIcon(), color: Colors.white, size: 26),
+              ),
+              IconButton(
+                onPressed: () => showToast("Flip Camera"),
+                icon: const Icon(Icons.flip_camera_android_rounded, color: Colors.white, size: 26),
+              ),
+              IconButton(
+                onPressed: () => showToast("Settings"),
+                icon: const Icon(Icons.settings_rounded, color: Colors.white, size: 26),
+              ),
+            ],
+          ),
+        );
+    }
+  }
+
   Widget _buildRatioOption(String label) {
     final bool isSelected = selectedRatio == label;
     final Color color = isSelected ? Colors.amber : Colors.white;
@@ -717,4 +853,32 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ),
     );
   }
-}
+
+  // Flash ke icons wala menu banayega
+  Widget _buildFlashOption(String mode) {
+    final bool isSelected = selectedFlashMode == mode;
+    final Color color = isSelected ? Colors.amber : Colors.white;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedFlashMode = mode;
+          isSelectingFlash = false; // Select hote hi menu close
+
+          // TODO: Yahan baad me hum CameraController ka flash mode actually set karenge
+          // example: controller.setFlashMode(FlashMode.always);
+        });
+        showToast("Flash $mode");
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Icon(
+          _getFlashIcon(mode),
+          color: color,
+          size: 26,
+        ),
+      ),
+    );
+  }
+
+}///end main class
