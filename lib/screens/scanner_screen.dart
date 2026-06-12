@@ -150,12 +150,38 @@ class _ScannerScreenState extends State<ScannerScreen> {
     // Naye controller ko initialize karke UI update karein
     try {
       await controller.initialize();
+      await _applyFlashMode(selectedFlashMode);
       if (mounted) {
         setState(() {}); // Camera change hone par screen refresh hogi
         showToast(currentCameraIndex == 1 ? "Front Camera" : "Back Camera");
       }
     } catch (e) {
       showToast("Error switching camera");
+    }
+  }
+
+  Future<void> _applyFlashMode(String mode) async {
+    if (!controller.value.isInitialized) return;
+
+    try {
+      switch (mode) {
+        case "On":
+          await controller.setFlashMode(FlashMode.always);
+          break;
+        case "Auto":
+          await controller.setFlashMode(FlashMode.auto);
+          break;
+        case "Torch":
+          await controller.setFlashMode(FlashMode.torch);
+          break;
+        case "Off":
+        default:
+          await controller.setFlashMode(FlashMode.off);
+          break;
+      }
+    } catch (e) {
+      // Agar front camera me flash nahi hai, toh yeh error handle kar lega
+      showToast("Flash not supported on this camera");
     }
   }
 
@@ -920,11 +946,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
     final Color color = isSelected ? Colors.amber : Colors.white;
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         setState(() {
           selectedFlashMode = mode;
           activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
         });
+        await _applyFlashMode(mode);
         showToast("Flash $mode");
       },
       child: Padding(
