@@ -188,23 +188,25 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       Tooltip(
                         message: "Previous Page",
                         child: GestureDetector(
-                          onTap: _previousPage,
+                          // Agar first page hai (0), to null (disable), warna _previousPage call hoga
+                          onTap: currentPage > 0 ? _previousPage : null,
                           child: Container(
                             width: 40,
                             height: 40,
-                            decoration: const BoxDecoration(
-                              color: Colors.black87,
+                            decoration: BoxDecoration(
+                              // First page par background halka (black38) ho jayega
+                              color: currentPage > 0 ? Colors.black87 : Colors.black38,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                                 Icons.arrow_back_ios_new_rounded,
-                                color: Colors.white,
+                                // First page par icon ka color fade (white30) ho jayega
+                                color: currentPage > 0 ? Colors.white : Colors.white30,
                                 size: 18
                             ),
                           ),
                         ),
                       ),
-
                       /// Middle Controls (Add Icon + Page Count)
                       Row(
                         children: [
@@ -271,17 +273,20 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       Tooltip(
                         message: "Next Page",
                         child: GestureDetector(
-                          onTap: _nextPage,
+                          // Agar last page hai, to null (disable), warna _nextPage call hoga
+                          onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
                           child: Container(
                             width: 40,
                             height: 40,
-                            decoration: const BoxDecoration(
-                              color: Colors.black87,
+                            decoration: BoxDecoration(
+                              // Last page par background halka ho jayega
+                              color: currentPage < widget.imageFiles.length - 1 ? Colors.black87 : Colors.black38,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                                 Icons.arrow_forward_ios_rounded,
-                                color: Colors.white,
+                                // Last page par icon fade ho jayega
+                                color: currentPage < widget.imageFiles.length - 1 ? Colors.white : Colors.white30,
                                 size: 18
                             ),
                           ),
