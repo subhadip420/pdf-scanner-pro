@@ -8,6 +8,8 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'home_screen.dart';
+
 class DocumentEditorScreen extends StatefulWidget {
   final List<File> imageFiles; // Real images coming from ScannerScreen
 
@@ -150,18 +152,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
 
     try {
-      // 1. Storage Permission maangein
-      var status = await Permission.storage.request();
-      if (!status.isGranted) {
-        // Agar Android 13+ hai toh humein photos/videos ki specific permission chahiye hoti hai,
-        // par simple Documents folder ke liye usually permission mil jati hai ya directly create ho jata hai.
-        // Agar deny hua, toh user ko batao:
+      // 1. Storage Permission Manage Karo (Android 11+ ke liye ekdum sahi tarika)
+      if (await Permission.manageExternalStorage.isDenied) {
+        // Yeh user ke samne system setting page open karega permission dene ke liye
+        await Permission.manageExternalStorage.request();
+      }
+
+      // Agar user ne setting se permission nahi di, toh check karke block karo
+      if (!await Permission.manageExternalStorage.isGranted) {
         showToast("Storage permission is required to save PDF");
-        // return; // Abhi testing ke liye isko block nahi kar rahe
+        return; // Aage ka code nahi chalega jab tak permission na mile
       }
 
       // 2. Public Documents folder ka path set karein
-      // Yeh device ke main internal storage me 'Documents/PDF Scanner Pro' folder banayega
       final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
 
       // 3. Agar folder nahi hai, toh naya banao
@@ -170,14 +173,34 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
 
       // 4. File save karein
-      final file = File("${publicDir.path}/$documentName.pdf");
+      // 4. Unique File Name Generator
+      String baseFilePath = "${publicDir.path}/$documentName";
+      String finalFilePath = "$baseFilePath.pdf";
+      File file = File(finalFilePath);
+
+      int counter = 1;
+      // Jab tak is naam ki file milti rahegi, counter badhta jayega (1), (2)...
+      while (await file.exists()) {
+        finalFilePath = "$baseFilePath ($counter).pdf";
+        file = File(finalFilePath);
+        counter++;
+      }
+
+      // Ab safely save karein naye unique naam ke sath
       await file.writeAsBytes(await pdf.save());
 
       showToast("Saved in Documents/PDF Scanner Pro");
 
-      // Save hote hi open karke dikhao
-      await OpenFile.open(file.path);
-
+      // 5. UPDATE: File open karne ka code hata diya hai
+      // Aur seedhe Home Screen par redirect kar diya (Sare purane pages pop ho jayenge)
+      // 5. UPDATE: Seedhe Home Screen par redirect aur baaki sab close
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (Route<dynamic> route) => false, // Yeh condition purane saare pages (Camera, Edit) ko stack se hata degi
+        );
+      }
     } catch (e) {
       showToast("Error saving PDF: $e");
       print("Save Error: $e");

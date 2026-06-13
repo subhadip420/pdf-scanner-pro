@@ -7,7 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:pdfx/pdfx.dart';
-import 'dart:typed_data'; // Uint8List ke liye zaroori hai
+import 'dart:typed_data';
+
+import 'package:permission_handler/permission_handler.dart'; // Uint8List ke liye zaroori hai
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -71,27 +73,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // 1. Files ko folder se read karna aur sort karna
+  // 1. Files ko folder se read karna aur sort karna
   Future<void> _loadPdfFiles() async {
     try {
+      if (await Permission.manageExternalStorage.isDenied) {
+        await Permission.manageExternalStorage.request();
+      }
       final directory = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
       if (await directory.exists()) {
         List<FileSystemEntity> entities = directory.listSync();
-        List<File> files = entities.whereType<File>().where((f) => f.path.endsWith('.pdf')).toList();
+
+        // YAHAN UPDATE KIYA: Hamesha check karega ki file PDF hai (case insensitive)
+        List<File> files = entities
+            .whereType<File>()
+            .where((f) => f.path.toLowerCase().endsWith('.pdf'))
+            .toList();
 
         // Sort: Latest file sabse upar (Descending order)
         files.sort((a, b) {
           return b.lastModifiedSync().compareTo(a.lastModifiedSync());
         });
 
-        setState(() {
-          _pdfFiles = files;
-          _isLoadingFiles = false;
-        });
+        if (mounted) {
+          setState(() {
+            _pdfFiles = files;
+            _isLoadingFiles = false;
+          });
+        }
       } else {
-        setState(() => _isLoadingFiles = false);
+        if (mounted) setState(() => _isLoadingFiles = false);
       }
     } catch (e) {
-      setState(() => _isLoadingFiles = false);
+      if (mounted) setState(() => _isLoadingFiles = false);
       print("Error loading files: $e");
     }
   }
@@ -482,10 +495,21 @@ class _HomeScreenState extends State<HomeScreen> {
       totalItemCount = _pdfFiles.length + (_pdfFiles.length ~/ 5);
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80, top: 10),
-      itemCount: totalItemCount,
-      itemBuilder: (context, index) {
+    return RefreshIndicator(
+        onRefresh: _loadPdfFiles, // Niche swipe karne par list refresh hogi
+        color: Colors.blueAccent,
+        backgroundColor: const Color(0xFF1E1E1E),
+        child: ListView.builder(
+        // 'AlwaysScrollableScrollPhysics' add kiya taaki list chhoti hone par bhi refresh ho sake
+        physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.only(bottom: 80, top: 10),
+    itemCount: totalItemCount,
+    itemBuilder: (context, index) {
+
+    // return ListView.builder(
+    //   padding: const EdgeInsets.only(bottom: 80, top: 10),
+    //   itemCount: totalItemCount,
+    //   itemBuilder: (context, index) {
 
         // Logic: Decide karein ki yeh index Ad ka hai ya File ka
         bool isAdIndex;
@@ -614,7 +638,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
       },
+        ),
     );
+
   }
 
 
