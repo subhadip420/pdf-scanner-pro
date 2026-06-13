@@ -6,7 +6,8 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
-
+import 'package:pdfx/pdfx.dart';
+import 'dart:typed_data'; // Uint8List ke liye zaroori hai
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -380,6 +381,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     // Left Side: Placeholder Thumbnail
+                    // Container(
+                    //   width: 70,
+                    //   height: 90,
+                    //   decoration: BoxDecoration(
+                    //     color: Colors.grey.shade800,
+                    //     borderRadius: BorderRadius.circular(6),
+                    //     border: Border.all(color: Colors.white12),
+                    //   ),
+                    //   child: const Center(
+                    //     child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30),
+                    //   ),
+                    // ),
+
+                    // Left Side: Real PDF Thumbnail
                     Container(
                       width: 70,
                       height: 90,
@@ -388,10 +403,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(color: Colors.white12),
                       ),
-                      child: const Center(
-                        child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30),
-                      ),
+                      clipBehavior: Clip.hardEdge, // Image ko border ke andar gol rakhne ke liye
+                      child: PdfThumbnailView(filePath: file.path), // Yahan Custom Widget call kiya hai
                     ),
+
                     const SizedBox(width: 16),
 
                     // Right Side: Details
@@ -461,3 +476,70 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 }///end main class
+///
+
+// Custom Widget: PDF ka first page as Image render karne ke liye
+class PdfThumbnailView extends StatefulWidget {
+  final String filePath;
+  const PdfThumbnailView({super.key, required this.filePath});
+
+  @override
+  State<PdfThumbnailView> createState() => _PdfThumbnailViewState();
+}
+
+class _PdfThumbnailViewState extends State<PdfThumbnailView> {
+  Uint8List? _imageBytes;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _generateThumbnail();
+  }
+
+  Future<void> _generateThumbnail() async {
+    try {
+      // PDF file open karein
+      final document = await PdfDocument.openFile(widget.filePath);
+      // First page (Page 1) get karein
+      final page = await document.getPage(1);
+
+      // Resolution thodi kam rakhi hai (width/3) taaki list smoothly scroll ho aur memory bache
+      final pageImage = await page.render(
+        width: page.width / 3,
+        height: page.height / 3,
+        format: PdfPageImageFormat.jpeg,
+      );
+
+      await page.close();
+      await document.close();
+
+      if (mounted && pageImage != null) {
+        setState(() {
+          _imageBytes = pageImage.bytes;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _hasError = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Agar error aayi to purana PDF icon dikhao
+    if (_hasError) {
+      return const Center(child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30));
+    }
+    // Jab tak load ho raha hai, loader dikhao
+    if (_imageBytes == null) {
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30));
+    }
+    // Load hone ke baad real image dikhao
+    return Image.memory(
+      _imageBytes!,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+    );
+  }
+}
