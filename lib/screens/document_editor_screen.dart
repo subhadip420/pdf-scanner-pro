@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:open_file/open_file.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class DocumentEditorScreen extends StatefulWidget {
   final List<File> imageFiles; // Real images coming from ScannerScreen
@@ -131,37 +132,55 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   // 3. Main PDF generate karne ka function
+  // 3. Main PDF generate karne ka function (Public Folder Logic)
   Future<void> _generateAndSavePdf() async {
     showToast("Generating PDF...");
 
     final pdf = pw.Document();
 
-    // Saari images ko loop karke PDF ke pages me add karna
     for (var file in widget.imageFiles) {
       final image = pw.MemoryImage(file.readAsBytesSync());
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) {
-            return pw.Center(child: pw.Image(image)); // Image ko PDF page par center me set kiya
+            return pw.Center(child: pw.Image(image));
           },
         ),
       );
     }
 
     try {
-      // Device ki memory me save karne ka path nikalna
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File("${directory.path}/$documentName.pdf");
+      // 1. Storage Permission maangein
+      var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        // Agar Android 13+ hai toh humein photos/videos ki specific permission chahiye hoti hai,
+        // par simple Documents folder ke liye usually permission mil jati hai ya directly create ho jata hai.
+        // Agar deny hua, toh user ko batao:
+        showToast("Storage permission is required to save PDF");
+        // return; // Abhi testing ke liye isko block nahi kar rahe
+      }
 
-      // PDF file save karna
+      // 2. Public Documents folder ka path set karein
+      // Yeh device ke main internal storage me 'Documents/PDF Scanner Pro' folder banayega
+      final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+
+      // 3. Agar folder nahi hai, toh naya banao
+      if (!await publicDir.exists()) {
+        await publicDir.create(recursive: true);
+      }
+
+      // 4. File save karein
+      final file = File("${publicDir.path}/$documentName.pdf");
       await file.writeAsBytes(await pdf.save());
 
-      showToast("PDF Saved successfully!");
-      // TODO: Yahan se aap user ko 'Success Screen' ya 'Home Screen' par bhej sakte hain
+      showToast("Saved in Documents/PDF Scanner Pro");
+
+      // Save hote hi open karke dikhao
       await OpenFile.open(file.path);
 
     } catch (e) {
-      showToast("Error saving PDF");
+      showToast("Error saving PDF: $e");
+      print("Save Error: $e");
     }
   }
 
