@@ -198,7 +198,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       await _applyFlashMode(selectedFlashMode);
       if (mounted) {
         setState(() {}); // Camera change hone par screen refresh hogi
-        showToast(currentCameraIndex == 1 ? "Front Camera" : "Back Camera");
+        //showToast(currentCameraIndex == 1 ? "Front Camera" : "Back Camera");
       }
     } catch (e) {
       showToast("Error switching camera");
@@ -903,7 +903,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               IconButton(
                 onPressed: () => showToast("Settings"),
                 icon: _buildRotatedIcon(
-                  Symbols.settings_photo_camera_sharp,
+                  Symbols.segment_sharp,
                   color: Colors.white,
                   size: 26,
                 ),
@@ -925,7 +925,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           selectedRatio = label;
           activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
         });
-        showToast("$label Ratio Selected");
+        //showToast("$label Ratio Selected");
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -957,7 +957,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
         });
         await _applyFlashMode(mode);
-        showToast("Flash $mode");
+        //showToast("Flash $mode");
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
