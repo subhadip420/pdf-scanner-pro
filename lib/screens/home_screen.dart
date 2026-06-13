@@ -339,11 +339,176 @@ class _HomeScreenState extends State<HomeScreen> {
     // List with Date Grouping Headers
     String? lastCategory;
 
+    // return ListView.builder(
+    //   padding: const EdgeInsets.only(bottom: 80, top: 10), // Bottom padding floating button ke liye
+    //   itemCount: _pdfFiles.length,
+    //   itemBuilder: (context, index) {
+    //     final file = _pdfFiles[index];
+    //     final fileStat = file.statSync();
+    //     final dateCategory = _getDateCategory(fileStat.modified);
+    //
+    //     bool showHeader = lastCategory != dateCategory;
+    //     lastCategory = dateCategory;
+    //
+    //     return Column(
+    //       crossAxisAlignment: CrossAxisAlignment.start,
+    //       children: [
+    //         if (showHeader)
+    //           Padding(
+    //             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    //             child: Text(
+    //               dateCategory,
+    //               style: const TextStyle(
+    //                 color: Colors.white70,
+    //                 fontSize: 14,
+    //                 fontWeight: FontWeight.bold,
+    //               ),
+    //             ),
+    //           ),
+    //
+    //         // PDF File Card (Matching Screenshot)
+    //         GestureDetector(
+    //           onTap: () {
+    //             OpenFile.open(file.path); // Abhi ke liye open_file use kar rahe hain
+    //           },
+    //           child: Container(
+    //             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    //             padding: const EdgeInsets.all(12),
+    //             decoration: BoxDecoration(
+    //               color: const Color(0xFF1E1E1E), // Dark grey card
+    //               borderRadius: BorderRadius.circular(12),
+    //             ),
+    //             child: Row(
+    //               children: [
+    //                 // Left Side: Placeholder Thumbnail
+    //                 // Container(
+    //                 //   width: 70,
+    //                 //   height: 90,
+    //                 //   decoration: BoxDecoration(
+    //                 //     color: Colors.grey.shade800,
+    //                 //     borderRadius: BorderRadius.circular(6),
+    //                 //     border: Border.all(color: Colors.white12),
+    //                 //   ),
+    //                 //   child: const Center(
+    //                 //     child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30),
+    //                 //   ),
+    //                 // ),
+    //
+    //                 // Left Side: Real PDF Thumbnail
+    //                 Container(
+    //                   width: 70,
+    //                   height: 90,
+    //                   decoration: BoxDecoration(
+    //                     color: Colors.grey.shade800,
+    //                     borderRadius: BorderRadius.circular(6),
+    //                     border: Border.all(color: Colors.white12),
+    //                   ),
+    //                   clipBehavior: Clip.hardEdge, // Image ko border ke andar gol rakhne ke liye
+    //                   child: PdfThumbnailView(filePath: file.path), // Yahan Custom Widget call kiya hai
+    //                 ),
+    //
+    //                 const SizedBox(width: 16),
+    //
+    //                 // Right Side: Details
+    //                 Expanded(
+    //                   child: Column(
+    //                     crossAxisAlignment: CrossAxisAlignment.start,
+    //                     children: [
+    //                       // File Name
+    //                       Text(
+    //                         _truncateFileName(file.path.split('/').last),
+    //                         style: const TextStyle(
+    //                           color: Colors.white,
+    //                           fontSize: 16,
+    //                           fontWeight: FontWeight.w500,
+    //                         ),
+    //                         maxLines: 1,
+    //                       ),
+    //                       const SizedBox(height: 6),
+    //
+    //                       // Date & Time
+    //                       Text(
+    //                         DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
+    //                         style: const TextStyle(color: Colors.white54, fontSize: 13),
+    //                       ),
+    //                       const SizedBox(height: 2),
+    //
+    //                       // File Size
+    //                       Text(
+    //                         _getFileSize(fileStat.size),
+    //                         style: const TextStyle(color: Colors.white54, fontSize: 13),
+    //                       ),
+    //                       const SizedBox(height: 8),
+    //
+    //                       // Actions (Share & More)
+    //                       Row(
+    //                         mainAxisAlignment: MainAxisAlignment.end,
+    //                         children: [
+    //                           Tooltip(
+    //                             message: "Share",
+    //                             child: InkWell(
+    //                               onTap: () => showToast("Share clicked"),
+    //                               child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+    //                             ),
+    //                           ),
+    //                           const SizedBox(width: 16),
+    //                           Tooltip(
+    //                             message: "More",
+    //                             child: InkWell(
+    //                               onTap: () => showToast("More options"),
+    //                               child: const Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+    //                             ),
+    //                           ),
+    //                         ],
+    //                       ),
+    //                     ],
+    //                   ),
+    //                 ),
+    //               ],
+    //             ),
+    //           ),
+    //         ),
+    //       ],
+    //     );
+    //   },
+    // );
+
+    // Total items calculate karna (Files + Ads)
+    int totalItemCount;
+    if (_pdfFiles.length < 5) {
+      totalItemCount = _pdfFiles.length + 1; // 1 Ad at the end
+    } else {
+      // Har 5 item ke baad 1 ad (6th item)
+      totalItemCount = _pdfFiles.length + (_pdfFiles.length ~/ 5);
+    }
+
     return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 80, top: 10), // Bottom padding floating button ke liye
-      itemCount: _pdfFiles.length,
+      padding: const EdgeInsets.only(bottom: 80, top: 10),
+      itemCount: totalItemCount,
       itemBuilder: (context, index) {
-        final file = _pdfFiles[index];
+
+        // Logic: Decide karein ki yeh index Ad ka hai ya File ka
+        bool isAdIndex;
+        if (_pdfFiles.length < 5) {
+          isAdIndex = (index == _pdfFiles.length); // Sabse last index ad hoga
+        } else {
+          isAdIndex = (index + 1) % 6 == 0; // Har 6th position par ad (index 5, 11, 17...)
+        }
+
+        // Agar yeh position Ad ki hai, toh NativeAd return karein
+        if (isAdIndex) {
+          return const NativeAdCard();
+        }
+
+        // Agar File hai, toh asli file index nikalein
+        int fileIndex;
+        if (_pdfFiles.length < 5) {
+          fileIndex = index;
+        } else {
+          fileIndex = index - (index ~/ 6); // Ad ke index ko minus kar diya taaki list sahi chale
+        }
+
+        final file = _pdfFiles[fileIndex];
         final fileStat = file.statSync();
         final dateCategory = _getDateCategory(fileStat.modified);
 
@@ -366,34 +531,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-            // PDF File Card (Matching Screenshot)
+            // PDF File Card
             GestureDetector(
               onTap: () {
-                OpenFile.open(file.path); // Abhi ke liye open_file use kar rahe hain
+                OpenFile.open(file.path);
               },
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E), // Dark grey card
+                  color: const Color(0xFF1E1E1E),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    // Left Side: Placeholder Thumbnail
-                    // Container(
-                    //   width: 70,
-                    //   height: 90,
-                    //   decoration: BoxDecoration(
-                    //     color: Colors.grey.shade800,
-                    //     borderRadius: BorderRadius.circular(6),
-                    //     border: Border.all(color: Colors.white12),
-                    //   ),
-                    //   child: const Center(
-                    //     child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30),
-                    //   ),
-                    // ),
-
                     // Left Side: Real PDF Thumbnail
                     Container(
                       width: 70,
@@ -403,10 +554,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(color: Colors.white12),
                       ),
-                      clipBehavior: Clip.hardEdge, // Image ko border ke andar gol rakhne ke liye
-                      child: PdfThumbnailView(filePath: file.path), // Yahan Custom Widget call kiya hai
+                      clipBehavior: Clip.hardEdge,
+                      child: PdfThumbnailView(filePath: file.path),
                     ),
-
                     const SizedBox(width: 16),
 
                     // Right Side: Details
@@ -414,7 +564,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // File Name
                           Text(
                             _truncateFileName(file.path.split('/').last),
                             style: const TextStyle(
@@ -425,22 +574,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             maxLines: 1,
                           ),
                           const SizedBox(height: 6),
-
-                          // Date & Time
                           Text(
                             DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
                             style: const TextStyle(color: Colors.white54, fontSize: 13),
                           ),
                           const SizedBox(height: 2),
-
-                          // File Size
                           Text(
                             _getFileSize(fileStat.size),
                             style: const TextStyle(color: Colors.white54, fontSize: 13),
                           ),
                           const SizedBox(height: 8),
-
-                          // Actions (Share & More)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
@@ -540,6 +683,100 @@ class _PdfThumbnailViewState extends State<PdfThumbnailView> {
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
+    );
+  }
+}
+
+// Custom Widget: Native Ad Load aur Show karne ke liye
+class NativeAdCard extends StatefulWidget {
+  const NativeAdCard({super.key});
+
+  @override
+  State<NativeAdCard> createState() => _NativeAdCardState();
+}
+
+class _NativeAdCardState extends State<NativeAdCard> {
+  NativeAd? _nativeAd;
+  bool _isAdLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNativeAd();
+  }
+
+  void _loadNativeAd() {
+    _nativeAd = NativeAd(
+      adUnitId: 'ca-app-pub-3940256099942544/2247696110', // Google's Test Native Ad ID
+      request: const AdRequest(),
+      listener: NativeAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _isAdLoaded = true;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          print('Native ad failed to load: $error');
+        },
+      ),
+      // Flutter ka built-in Native Template (Android/iOS dono me bina extra code ke chalega)
+      nativeTemplateStyle: NativeTemplateStyle(
+        templateType: TemplateType.medium,
+        mainBackgroundColor: const Color(0xFF1E1E1E),
+        cornerRadius: 12.0,
+        callToActionTextStyle: NativeTemplateTextStyle(
+          textColor: Colors.white,
+          backgroundColor: Colors.blueAccent,
+          style: NativeTemplateFontStyle.bold,
+          size: 16.0,
+        ),
+        primaryTextStyle: NativeTemplateTextStyle(
+          textColor: Colors.white,
+          backgroundColor: Colors.transparent,
+          style: NativeTemplateFontStyle.bold,
+          size: 16.0,
+        ),
+        secondaryTextStyle: NativeTemplateTextStyle(
+          textColor: Colors.white70,
+          backgroundColor: Colors.transparent,
+          style: NativeTemplateFontStyle.normal,
+          size: 14.0,
+        ),
+        tertiaryTextStyle: NativeTemplateTextStyle(
+          textColor: Colors.white54,
+          backgroundColor: Colors.transparent,
+          style: NativeTemplateFontStyle.normal,
+          size: 14.0,
+        ),
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _nativeAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isAdLoaded || _nativeAd == null) {
+      return const SizedBox.shrink(); // Jab tak load na ho, kuch mat dikhao
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      height: 320, // Medium template ke liye itni height chahiye hoti hai
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white12),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: AdWidget(ad: _nativeAd!),
     );
   }
 }
