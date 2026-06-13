@@ -334,28 +334,49 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       ),
                       child: Stack(
                         children: [
+                          // Align(
+                          //   alignment: Alignment.bottomCenter,
+                          //   child: Container(
+                          //     height: 20,
+                          //     decoration: const BoxDecoration(
+                          //       gradient: LinearGradient(
+                          //         begin: Alignment.bottomCenter,
+                          //         end: Alignment.topCenter,
+                          //         colors: [Colors.black87, Colors.transparent],
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+                          // Align(
+                          //   alignment: Alignment.bottomCenter,
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.only(bottom: 2),
+                          //     child: Text(
+                          //       '${index + 1}',
+                          //       style: const TextStyle(
+                          //         color: Colors.white,
+                          //         fontSize: 13,
+                          //         fontWeight: FontWeight.bold,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+
+                          // Number with small dark background box
                           Align(
-                            alignment: Alignment.bottomCenter,
+                            alignment: Alignment.bottomCenter, // Number ko thoda right side me rakha hai jo zyada accha lagta hai
                             child: Container(
-                              height: 20,
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [Colors.black87, Colors.transparent],
-                                ),
+                              margin: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6), // Low opacity black background
+                                borderRadius: BorderRadius.circular(10), // Small rounded shape
                               ),
-                            ),
-                          ),
-                          Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
                               child: Text(
                                 '${index + 1}',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 13,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
