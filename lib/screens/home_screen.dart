@@ -750,7 +750,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
       ),
       // Flutter ka built-in Native Template (Android/iOS dono me bina extra code ke chalega)
       nativeTemplateStyle: NativeTemplateStyle(
-        templateType: TemplateType.medium,
+        templateType: TemplateType.small,
         mainBackgroundColor: const Color(0xFF1E1E1E),
         cornerRadius: 12.0,
         callToActionTextStyle: NativeTemplateTextStyle(
@@ -795,14 +795,20 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      height: 320, // Medium template ke liye itni height chahiye hoti hai
+      height: 130,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
       ),
       clipBehavior: Clip.hardEdge,
-      child: AdWidget(ad: _nativeAd!),
+      child: Center(
+        child: SizedBox(
+          height: 91, // Google Small Template ki standard height 91dp hoti hai
+          child: AdWidget(ad: _nativeAd!),
+        ),
+      ),
     );
   }
 }
