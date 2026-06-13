@@ -9,6 +9,7 @@ import 'package:flutter/services.dart'; // For locking orientation
 import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
 import 'dart:async';
 
+import 'document_editor_screen.dart';
 import 'home_screen.dart'; // For StreamSubscription
 
 class ScannerScreen extends StatefulWidget {
@@ -52,6 +53,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int capturedPhotosCount = 0; // Counter for the badge
   bool isCapturing = false; // To prevent multiple taps while capturing
   int currentCountdown = 0; // Tracks the active countdown (3, 2, 1)
+  List<File> capturedImagesList = []; // Nayi list jo saari photos store karegi
 
   @override
   void initState() {
@@ -282,10 +284,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // Capture the picture
       final XFile photo = await controller.takePicture();
 
-      // Update the state with the new photo and increment the counter
+      /// Update the state with the new photo and increment the counter
       setState(() {
         lastCapturedImage = photo;
-        capturedPhotosCount++;
+
+        // NAYI LINE: Click ki gayi photo ko list me add kar do
+        capturedImagesList.add(File(photo.path));
+
+        capturedPhotosCount = capturedImagesList.length; // Counter ko list ki length se update karo
         isCapturing = false;
       });
 
@@ -697,7 +703,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           GestureDetector(
                             onTap: () {
                               if (capturedPhotosCount > 0) {
-                                showToast("Opening Gallery with $capturedPhotosCount photos");
+                                // YAHAN NAVIGATOR ADD KIYA HAI
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DocumentEditorScreen(
+                                      imageFiles: capturedImagesList, // List pass kar di
+                                    ),
+                                  ),
+                                );
                               }
                             },
                             child: Stack(
