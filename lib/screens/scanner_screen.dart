@@ -7,7 +7,9 @@ import 'dart:io';
 import 'package:scroll_snap_list/scroll_snap_list.dart';
 import 'package:flutter/services.dart'; // For locking orientation
 import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
-import 'dart:async'; // For StreamSubscription
+import 'dart:async';
+
+import 'home_screen.dart'; // For StreamSubscription
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -524,7 +526,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           /// Home
                           IconButton(
                             onPressed: () {
-                              showToast("Home");
+                              //showToast("Home");
+                              // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const HomeScreen(),
+                                ),
+                                    (route) => false, // false matlab saari purani history clear
+                              );
                             },
                             icon: _buildRotatedIcon(
                               Icons.home_rounded,
@@ -761,6 +771,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
+  ///top bar option
   Widget _buildTopBarContent() {
     switch (activeMenu) {
       case "Flash":
