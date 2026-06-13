@@ -1,6 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:open_file/open_file.dart';
 
 class DocumentEditorScreen extends StatefulWidget {
   final List<File> imageFiles; // Real images coming from ScannerScreen
@@ -16,7 +21,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late PageController _pageController;
   int currentPage = 0;
   bool isThumbnailVisible = true; // By default thumbnails dikhenge
-
+  RewardedAd? _rewardedAd; // Ad store karne ke liye
 
   @override
   void initState() {
@@ -25,6 +30,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     // Open the latest captured photo first
     currentPage = widget.imageFiles.length - 1;
     _pageController = PageController(initialPage: currentPage);
+
+    _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
   }
 
   @override
@@ -40,7 +47,122 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       "Jan", "Feb", "Mar", "Apr", "May", "Jun",
       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
-    return "Adobe Scan ${months[now.month - 1]} ${now.day}, ${now.year}";
+    return "Scanner Pro ${months[now.month - 1]} ${now.day}, ${now.year}";
+  }
+
+  // 1. Ad load karne ka function (With Memory Management)
+  void _loadRewardedAd() {
+    print("AdMob: Loading ad...");
+
+    RewardedAd.load(
+      adUnitId: 'ca-app-pub-3940256099942544/5224354917',
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          print("AdMob: Ad loaded successfully!");
+
+          // Memory leak rokne aur agla ad ready rakhne ke liye callback
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (RewardedAd ad) {
+              ad.dispose();
+              _rewardedAd = null;
+              _loadRewardedAd(); // User ke ad close karte hi naya ad background me load kardo
+            },
+            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+              ad.dispose();
+              _rewardedAd = null;
+            },
+          );
+
+          _rewardedAd = ad;
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          print("AdMob: Ad failed to load: ${error.message}");
+          _rewardedAd = null;
+        },
+      ),
+    );
+  }
+
+  // 2. Smart Save Click Handler (With 2 Sec Wait Logic)
+  Future<void> _handleSaveClick() async {
+    // Agar ad pehle se ready hai, toh direct show kardo
+    if (_rewardedAd != null) {
+      _showRewardAd();
+      return;
+    }
+
+    // Agar ad ready nahi hai, toh Loading Dialog dikhao
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User screen touch karke band na kar paye
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Colors.blueAccent),
+      ),
+    );
+
+    // Max 2 seconds wait karna (100ms x 20 bar check karega)
+    for (int i = 0; i < 20; i++) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (_rewardedAd != null) break; // Agar wait karte time ad load ho gaya, toh loop break
+    }
+
+    // Wait khatam, Loading Dialog close karo
+    if (mounted) Navigator.pop(context);
+
+    // Check karo ad aaya ya nahi
+    if (_rewardedAd != null) {
+      _showRewardAd(); // Ad aagaya to dikhao
+    } else {
+      // 2 sec baad bhi no ad? Direct save kardo bina user ko block kiye
+      showToast("Saving PDF...");
+      _generateAndSavePdf();
+    }
+  }
+
+  // 3. Ad dikhane aur PDF save karne ka helper function
+  void _showRewardAd() {
+    _rewardedAd!.show(
+      onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+        // User ne ad dekh liya, ab PDF save kardo
+        _generateAndSavePdf();
+      },
+    );
+  }
+
+  // 3. Main PDF generate karne ka function
+  Future<void> _generateAndSavePdf() async {
+    showToast("Generating PDF...");
+
+    final pdf = pw.Document();
+
+    // Saari images ko loop karke PDF ke pages me add karna
+    for (var file in widget.imageFiles) {
+      final image = pw.MemoryImage(file.readAsBytesSync());
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context context) {
+            return pw.Center(child: pw.Image(image)); // Image ko PDF page par center me set kiya
+          },
+        ),
+      );
+    }
+
+    try {
+      // Device ki memory me save karne ka path nikalna
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File("${directory.path}/$documentName.pdf");
+
+      // PDF file save karna
+      await file.writeAsBytes(await pdf.save());
+
+      showToast("PDF Saved successfully!");
+      // TODO: Yahan se aap user ko 'Success Screen' ya 'Home Screen' par bhej sakte hain
+      await OpenFile.open(file.path);
+
+    } catch (e) {
+      showToast("Error saving PDF");
+    }
   }
 
   // Show toast notification
@@ -416,7 +538,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
           /// NAYA BOTTOM BAR: Keep Scanning & Save PDF
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             color: Colors.black, // Ekdum dark background
             child: SafeArea(
               top: false,
@@ -441,11 +563,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                   // Save PDF Button
                   ElevatedButton(
-                    onPressed: () => showToast("Save PDF clicked"),
+                    onPressed: _handleSaveClick,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent, // Adobe scan jaisa blue
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -454,7 +576,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       children: [
                         Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         SizedBox(width: 4),
-                        Icon(Icons.keyboard_arrow_up_rounded, size: 20),
+                        // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
                       ],
                     ),
                   ),
