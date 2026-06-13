@@ -256,8 +256,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       ),
                                     ),
                                     const SizedBox(width: 6),
-                                    const Icon(
-                                        Icons.keyboard_arrow_down_rounded,
+                                    Icon(
+                                        isThumbnailVisible
+                                            ? Icons.keyboard_arrow_down_rounded
+                                            : Icons.keyboard_arrow_up_rounded,
                                         color: Colors.white,
                                         size: 18
                                     ),
