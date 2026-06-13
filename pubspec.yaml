@@ -36,10 +36,12 @@ dependencies:
   lottie: ^3.3.1
   sensors_plus: ^5.0.0
   pdf: ^3.10.8              # PDF create karne ke liye
+  pdfx: ^2.5.0
   path_provider: ^2.1.2     # Device me file save karne ke liye
   google_mobile_ads: ^4.0.0 # AdMob ke liye
   open_file: ^3.3.2  # File ko open karne ke liye
   permission_handler: ^11.3.0  # Storage permission mangne ke liye
+  intl: ^0.19.0 # Date aur Time format karne ke liye
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

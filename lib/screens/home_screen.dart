@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:io';
+import 'dart:math';
+import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
+import 'package:open_file/open_file.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,11 +21,15 @@ class _HomeScreenState extends State<HomeScreen> {
   // AdMob Banner Variables
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
+  List<File> _pdfFiles = [];
+  bool _isLoadingFiles = true;
+
 
   @override
   void initState() {
     super.initState();
     _loadBannerAd();
+    _loadPdfFiles(); // Screen open hote hi files load karega
   }
 
   // Load Banner Ad
@@ -57,6 +67,69 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.white,
       textColor: Colors.black,
     );
+  }
+
+  // 1. Files ko folder se read karna aur sort karna
+  Future<void> _loadPdfFiles() async {
+    try {
+      final directory = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+      if (await directory.exists()) {
+        List<FileSystemEntity> entities = directory.listSync();
+        List<File> files = entities.whereType<File>().where((f) => f.path.endsWith('.pdf')).toList();
+
+        // Sort: Latest file sabse upar (Descending order)
+        files.sort((a, b) {
+          return b.lastModifiedSync().compareTo(a.lastModifiedSync());
+        });
+
+        setState(() {
+          _pdfFiles = files;
+          _isLoadingFiles = false;
+        });
+      } else {
+        setState(() => _isLoadingFiles = false);
+      }
+    } catch (e) {
+      setState(() => _isLoadingFiles = false);
+      print("Error loading files: $e");
+    }
+  }
+
+  // 2. File name ko truncate (short) karna: start...end.pdf
+  String _truncateFileName(String name) {
+    if (name.length <= 25) return name; // Agar chhota hai to waise hi chhod do
+
+    String extension = name.split('.').last;
+    String baseName = name.substring(0, name.lastIndexOf('.'));
+
+    if (baseName.length <= 15) return name;
+
+    // First 12 chars + ... + Last 4 chars + extension
+    return "${baseName.substring(0, 12)}...${baseName.substring(baseName.length - 4)}.$extension";
+  }
+
+  // 3. File size ko KB/MB mein convert karna
+  String _getFileSize(int bytes) {
+    if (bytes <= 0) return "0 B";
+    const suffixes = ["B", "KB", "MB", "GB"];
+    var i = (log(bytes) / log(1024)).floor();
+    return '${(bytes / pow(1024, i)).toStringAsFixed(1)} ${suffixes[i]}';
+  }
+
+  // 4. Date ko Today / Yesterday / Date mein badalna
+  String _getDateCategory(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final fileDate = DateTime(date.year, date.month, date.day);
+
+    if (fileDate == today) {
+      return "Today";
+    } else if (fileDate == yesterday) {
+      return "Yesterday";
+    } else {
+      return DateFormat('dd MMM yyyy').format(date);
+    }
   }
 
   @override
@@ -108,12 +181,15 @@ class _HomeScreenState extends State<HomeScreen> {
               index: _currentIndex,
               children: [
                 // View 0: Home Tab Content
-                const Center(
-                  child: Text(
-                    "Home View (List of PDFs will come here)",
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                ),
+                // const Center(
+                //   child: Text(
+                //     "Home View (List of PDFs will come here)",
+                //     style: TextStyle(color: Colors.white70, fontSize: 16),
+                //   ),
+                // ),
+
+                // View 0: Home Tab Content
+                _buildHomeTabContent(),
 
                 // View 1: Files Tab Content
                 const Center(
@@ -231,4 +307,157 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
+
+  // Home Tab Content Builder
+  Widget _buildHomeTabContent() {
+    if (_isLoadingFiles) {
+      return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+    }
+
+    if (_pdfFiles.isEmpty) {
+      // Empty State: Lottie Animation
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Lottie.asset(
+              "assets/lottie/no_files_animation.json",
+              height: 220,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "No PDF files yet.\nTap the camera to scan!",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white54, fontSize: 16),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // List with Date Grouping Headers
+    String? lastCategory;
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 80, top: 10), // Bottom padding floating button ke liye
+      itemCount: _pdfFiles.length,
+      itemBuilder: (context, index) {
+        final file = _pdfFiles[index];
+        final fileStat = file.statSync();
+        final dateCategory = _getDateCategory(fileStat.modified);
+
+        bool showHeader = lastCategory != dateCategory;
+        lastCategory = dateCategory;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (showHeader)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Text(
+                  dateCategory,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+            // PDF File Card (Matching Screenshot)
+            GestureDetector(
+              onTap: () {
+                OpenFile.open(file.path); // Abhi ke liye open_file use kar rahe hain
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E), // Dark grey card
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    // Left Side: Placeholder Thumbnail
+                    Container(
+                      width: 70,
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade800,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Right Side: Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // File Name
+                          Text(
+                            _truncateFileName(file.path.split('/').last),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Date & Time
+                          Text(
+                            DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
+                            style: const TextStyle(color: Colors.white54, fontSize: 13),
+                          ),
+                          const SizedBox(height: 2),
+
+                          // File Size
+                          Text(
+                            _getFileSize(fileStat.size),
+                            style: const TextStyle(color: Colors.white54, fontSize: 13),
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Actions (Share & More)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Tooltip(
+                                message: "Share",
+                                child: InkWell(
+                                  onTap: () => showToast("Share clicked"),
+                                  child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Tooltip(
+                                message: "More",
+                                child: InkWell(
+                                  onTap: () => showToast("More options"),
+                                  child: const Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+}///end main class
