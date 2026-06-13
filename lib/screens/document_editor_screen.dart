@@ -15,6 +15,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late String documentName;
   late PageController _pageController;
   int currentPage = 0;
+  bool isThumbnailVisible = true; // By default thumbnails dikhenge
+
 
   @override
   void initState() {
@@ -230,7 +232,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           Tooltip(
                             message: "Jump to page",
                             child: GestureDetector(
-                              onTap: () => showToast("Open page grid"),
+                              onTap: () {
+                                setState(() {
+                                  isThumbnailVisible = !isThumbnailVisible;
+                                });
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 decoration: BoxDecoration(
@@ -289,73 +295,74 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
 
           /// BOTTOM HORIZONTAL THUMBNAIL LIST
-          Container(
-            height: 90,
-            color: const Color(0xFF1E1E1E),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: widget.imageFiles.length,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              itemBuilder: (context, index) {
-                bool isSelected = currentPage == index;
-                return GestureDetector(
-                  onTap: () {
-                    _pageController.animateToPage(
-                      index,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  child: Container(
-                    width: 60,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: FileImage(widget.imageFiles[index]),
-                        fit: BoxFit.cover,
+          if (isThumbnailVisible)
+            Container(
+              height: 90,
+              color: const Color(0xFF1E1E1E),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: widget.imageFiles.length,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                itemBuilder: (context, index) {
+                  bool isSelected = currentPage == index;
+                  return GestureDetector(
+                    onTap: () {
+                      _pageController.animateToPage(
+                        index,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    child: Container(
+                      width: 60,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: FileImage(widget.imageFiles[index]),
+                          fit: BoxFit.cover,
+                        ),
+                        border: Border.all(
+                          color: isSelected ? Colors.blue : Colors.transparent,
+                          width: 3,
+                        ),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      border: Border.all(
-                        color: isSelected ? Colors.blue : Colors.transparent,
-                        width: 3,
-                      ),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            height: 20,
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [Colors.black87, Colors.transparent],
+                      child: Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [Colors.black87, Colors.transparent],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 2),
-                            child: Text(
-                              '${index + 1}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 2),
+                              child: Text(
+                                '${index + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
 
           /// NEW ACTION TOOLS BAR (Horizontal Scrollable)
           Container(
@@ -378,6 +385,56 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ],
             ),
           ),
+
+          /// NAYA BOTTOM BAR: Keep Scanning & Save PDF
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            color: Colors.black, // Ekdum dark background
+            child: SafeArea(
+              top: false,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Keep Scanning Text Button
+                  TextButton(
+                    onPressed: () {
+                      showToast("Keep scanning");
+                      Navigator.pop(context); // Wapas camera par le jayega
+                    },
+                    child: const Text(
+                      "Keep scanning",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  // Save PDF Button
+                  ElevatedButton(
+                    onPressed: () => showToast("Save PDF clicked"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent, // Adobe scan jaisa blue
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: const Row(
+                      children: [
+                        Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        SizedBox(width: 4),
+                        Icon(Icons.keyboard_arrow_up_rounded, size: 20),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
         ],
       ),
     );
