@@ -1,12 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'dart:io'; // File use karne ke liye zaroori hai
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-
 
 class DocumentEditorScreen extends StatefulWidget {
-  final List<File> imageFiles; // Scanner se aane wali images
+  final List<File> imageFiles; // Real images coming from ScannerScreen
 
   const DocumentEditorScreen({super.key, required this.imageFiles});
 
@@ -17,23 +14,13 @@ class DocumentEditorScreen extends StatefulWidget {
 class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late String documentName;
   late PageController _pageController;
-
-  // // Dummy data for testing (Later replaced with actual images)
-  // final List<Color> dummyPages = [
-  //   Colors.grey.shade800,
-  //   Colors.blueGrey.shade800,
-  //   Colors.brown.shade800,
-  //   Colors.teal.shade800,
-  // ];
-
   int currentPage = 0;
 
   @override
   void initState() {
     super.initState();
     documentName = _generateDefaultName();
-
-    // Latest photo ko sabse pehle dikhane ke liye index set kiya
+    // Open the latest captured photo first
     currentPage = widget.imageFiles.length - 1;
     _pageController = PageController(initialPage: currentPage);
   }
@@ -44,7 +31,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     super.dispose();
   }
 
-  // Generate default file name
+  // Generate default file name based on current date
   String _generateDefaultName() {
     final now = DateTime.now();
     final months = [
@@ -79,7 +66,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // Go to next page
   void _nextPage() {
-    // Yahan humne dummyPages ko widget.imageFiles se replace kar diya hai
     if (currentPage < widget.imageFiles.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -90,10 +76,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C), // Dark theme background
+      backgroundColor: const Color(0xFF2C2C2C),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
@@ -160,7 +147,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       currentPage = index;
                     });
                   },
-                  itemCount: widget.imageFiles.length, // Dummy hata kar real length
+                  itemCount: widget.imageFiles.length,
                   itemBuilder: (context, index) {
                     return InteractiveViewer(
                       minScale: 1.0,
@@ -168,16 +155,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       child: Container(
                         margin: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 80),
                         decoration: BoxDecoration(
-                            color: Colors.black, // Background color
+                            color: Colors.black,
                             border: Border.all(color: Colors.white24, width: 1),
                             boxShadow: const [
-                              BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(0, 5),
+                              )
                             ]
                         ),
-                        // REAL IMAGE YAHAN AAYEGI
                         child: Image.file(
                           widget.imageFiles[index],
-                          fit: BoxFit.contain, // Taaki puri photo fit ho jaye
+                          fit: BoxFit.contain,
                         ),
                       ),
                     );
@@ -249,7 +239,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    // Yahan dummyPages ko widget.imageFiles se replace kiya hai
                                     Text(
                                       "Page ${currentPage + 1} of ${widget.imageFiles.length}",
                                       style: const TextStyle(
@@ -302,19 +291,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           /// BOTTOM HORIZONTAL THUMBNAIL LIST
           Container(
             height: 90,
-            color: const Color(0xFF1E1E1E), // Slightly darker background for the strip
+            color: const Color(0xFF1E1E1E),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: widget.imageFiles.length,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               itemBuilder: (context, index) {
-
-                // Check if this thumbnail is the currently selected page
                 bool isSelected = currentPage == index;
-
                 return GestureDetector(
                   onTap: () {
-                    // Clicking thumbnail slides the main preview to this page
                     _pageController.animateToPage(
                       index,
                       duration: const Duration(milliseconds: 300),
@@ -325,7 +310,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     width: 60,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
-                      // BACKGROUND ME REAL CHHOTI IMAGE
                       image: DecorationImage(
                         image: FileImage(widget.imageFiles[index]),
                         fit: BoxFit.cover,
@@ -338,7 +322,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     ),
                     child: Stack(
                       children: [
-                        // Small dark gradient at bottom so the white text is readable
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Container(
@@ -352,8 +335,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             ),
                           ),
                         ),
-
-                        // Sequence Number (1, 2, 3...)
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Padding(
@@ -376,10 +357,64 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
           ),
 
-          /// RESERVED SPACE FOR ACTION TOOLS (Crop, Rotate, Save)
-          const SizedBox(height: 80),
+          /// NEW ACTION TOOLS BAR (Horizontal Scrollable)
+          Container(
+            height: 85,
+            color: const Color(0xFF151515), // Dark background for tools section
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              children: [
+                _buildToolItem(label: "Retake", icon: Icons.refresh_rounded, tooltipMessage: "Retake current photo"),
+                _buildToolItem(label: "Crop", icon: Icons.crop_rounded, tooltipMessage: "Crop & adjust borders"),
+                _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded, tooltipMessage: "Rotate 90 degrees"),
+                _buildToolItem(label: "Filter", icon: Icons.photo_filter_rounded, tooltipMessage: "Apply color filters"),
+                _buildToolItem(label: "Adjust", icon: Icons.tune_rounded, tooltipMessage: "Adjust brightness and contrast"),
+                _buildToolItem(label: "Markup", icon: Icons.border_color_rounded, tooltipMessage: "Draw or add text on image"),
+                _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
+                _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
+                _buildToolItem(label: "Reorder", icon: Icons.swap_horizontal_circle_outlined, tooltipMessage: "Rearrange page sequence"),
+                _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, tooltipMessage: "Delete current page"),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
-}
+
+
+  // Helper widget to build action tools with icon, text, tooltip, and toast
+  Widget _buildToolItem({
+    required String label,
+    required IconData icon,
+    required String tooltipMessage
+  }) {
+    return Tooltip(
+      message: tooltipMessage,
+      child: GestureDetector(
+        onTap: () => showToast("$label clicked"), // Placeholder toast
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.white, size: 22),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+}/// end main class
