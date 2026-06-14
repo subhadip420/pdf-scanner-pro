@@ -38,6 +38,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   double _origWidth = 1.0;
   double _origHeight = 1.0;
 
+  late List<Map<String, double>?> _savedCropPositions;
+
 
   @override
   void initState() {
@@ -46,6 +48,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     // Open the latest captured photo first
     currentPage = widget.imageFiles.length - 1;
     _pageController = PageController(initialPage: currentPage);
+
+    _savedCropPositions = List.generate(widget.imageFiles.length, (index) => null);
 
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
   }
@@ -56,9 +60,46 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     super.dispose();
   }
 
+  // Future<void> _toggleCropMode() async {
+  //   if (isCroppingMode) {
+  //     // Crop save karke normal mode me wapas aana
+  //     await _saveNewCrop();
+  //   } else {
+  //     showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
+  //
+  //     File origFile = widget.imageFiles[currentPage]['original']!;
+  //     File cropFile = widget.imageFiles[currentPage]['cropped']!;
+  //
+  //     final origBytes = await origFile.readAsBytes();
+  //     final cropBytes = await cropFile.readAsBytes();
+  //
+  //     final decodedOrig = img.decodeImage(origBytes);
+  //     final decodedCrop = img.decodeImage(cropBytes);
+  //
+  //     if (mounted) Navigator.pop(context); // Loading hatao
+  //
+  //     if (decodedOrig != null && decodedCrop != null) {
+  //       double percentW = decodedCrop.width / decodedOrig.width;
+  //       double percentH = decodedCrop.height / decodedOrig.height;
+  //
+  //       setState(() {
+  //         isCroppingMode = true;
+  //         isThumbnailVisible = false; // Thumbnail hide
+  //         _origWidth = decodedOrig.width.toDouble();
+  //         _origHeight = decodedOrig.height.toDouble();
+  //
+  //         // Auto-detect wale size ka hi box banayega
+  //         cropTopRatio = (1.0 - percentH) / 2;
+  //         cropBottomRatio = (1.0 - percentH) / 2;
+  //         cropLeftRatio = (1.0 - percentW) / 2;
+  //         cropRightRatio = (1.0 - percentW) / 2;
+  //       });
+  //     }
+  //   }
+  // }
+
   Future<void> _toggleCropMode() async {
     if (isCroppingMode) {
-      // Crop save karke normal mode me wapas aana
       await _saveNewCrop();
     } else {
       showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
@@ -75,20 +116,28 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       if (mounted) Navigator.pop(context); // Loading hatao
 
       if (decodedOrig != null && decodedCrop != null) {
-        double percentW = decodedCrop.width / decodedOrig.width;
-        double percentH = decodedCrop.height / decodedOrig.height;
-
         setState(() {
           isCroppingMode = true;
           isThumbnailVisible = false; // Thumbnail hide
           _origWidth = decodedOrig.width.toDouble();
           _origHeight = decodedOrig.height.toDouble();
 
-          // Auto-detect wale size ka hi box banayega
-          cropTopRatio = (1.0 - percentH) / 2;
-          cropBottomRatio = (1.0 - percentH) / 2;
-          cropLeftRatio = (1.0 - percentW) / 2;
-          cropRightRatio = (1.0 - percentW) / 2;
+          // FIX 3: Check karo ki kya is page ki position pehle se save hai?
+          if (_savedCropPositions[currentPage] != null) {
+            // Agar save hai toh purani exact position load karo!
+            cropTopRatio = _savedCropPositions[currentPage]!['top']!;
+            cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
+            cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
+            cropRightRatio = _savedCropPositions[currentPage]!['right']!;
+          } else {
+            // Agar pehli baar hai toh midle wala normal calculation karo
+            double percentW = decodedCrop.width / decodedOrig.width;
+            double percentH = decodedCrop.height / decodedOrig.height;
+            cropTopRatio = (1.0 - percentH) / 2;
+            cropBottomRatio = (1.0 - percentH) / 2;
+            cropLeftRatio = (1.0 - percentW) / 2;
+            cropRightRatio = (1.0 - percentW) / 2;
+          }
         });
       }
     }
@@ -1159,6 +1208,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
         setState(() {
           widget.imageFiles[currentPage]['cropped'] = newFile;
+
+          // FIX 4: Crop complete hone par is page ka box position memory me Save kar lo
+          _savedCropPositions[currentPage] = {
+            'top': cropTopRatio,
+            'bottom': cropBottomRatio,
+            'left': cropLeftRatio,
+            'right': cropRightRatio,
+          };
+
           isCroppingMode = false;
           isThumbnailVisible = true;
         });
