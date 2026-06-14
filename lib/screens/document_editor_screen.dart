@@ -142,10 +142,24 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     for (var file in widget.imageFiles) {
       final image = pw.MemoryImage(file.readAsBytesSync());
+      // pdf.addPage(
+      //   pw.Page(
+      //     build: (pw.Context context) {
+      //       return pw.Center(child: pw.Image(image));
+      //     },
+      //   ),
+      // );
       pdf.addPage(
         pw.Page(
-          build: (pw.Context context) {
-            return pw.Center(child: pw.Image(image));
+          margin: pw.EdgeInsets.zero,
+          pageFormat: PdfPageFormat.a4,
+          build: (context) {
+            return pw.Center(
+              child: pw.Image(
+                image,
+                fit: pw.BoxFit.contain,
+              ),
+            );
           },
         ),
       );
@@ -306,6 +320,43 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             child: Stack(
               children: [
                 // Swipeable & Zoomable Images
+                // PageView.builder(
+                //   controller: _pageController,
+                //   onPageChanged: (index) {
+                //     setState(() {
+                //       currentPage = index;
+                //     });
+                //   },
+                //   itemCount: widget.imageFiles.length,
+                //   itemBuilder: (context, index) {
+                //     return InteractiveViewer(
+                //       minScale: 1.0,
+                //       maxScale: 4.0,
+                //       child: Container(
+                //         margin: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 80),
+                //         decoration: BoxDecoration(
+                //             color: Colors.black,
+                //             border: Border.all(color: Colors.white24, width: 1),
+                //             boxShadow: const [
+                //               BoxShadow(
+                //                 color: Colors.black26,
+                //                 blurRadius: 10,
+                //                 offset: Offset(0, 5),
+                //               )
+                //             ]
+                //         ),
+                //         child: Image.file(
+                //           widget.imageFiles[index],
+                //           fit: BoxFit.cover,
+                //           width: double.infinity,
+                //           height: double.infinity,
+                //         ),
+                //       ),
+                //     );
+                //   },
+                // ),
+
+                // Swipeable & Zoomable Images
                 PageView.builder(
                   controller: _pageController,
                   onPageChanged: (index) {
@@ -318,22 +369,28 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     return InteractiveViewer(
                       minScale: 1.0,
                       maxScale: 4.0,
-                      child: Container(
-                        margin: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 80),
-                        decoration: BoxDecoration(
-                            color: Colors.black,
-                            border: Border.all(color: Colors.white24, width: 1),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 10,
-                                offset: Offset(0, 5),
-                              )
-                            ]
-                        ),
-                        child: Image.file(
-                          widget.imageFiles[index],
-                          fit: BoxFit.contain,
+                      // FIX 1: Center use kiya taaki layout extend hone par ratio barkarar rahe
+                      child: Center(
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 80),
+                          decoration: BoxDecoration(
+                              color: Colors.black, // Image background ko black rakha hai
+                              border: Border.all(color: Colors.white24, width: 1),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 5),
+                                )
+                              ]
+                          ),
+                          clipBehavior: Clip.hardEdge, // Image ko border ke andar lock rakhne ke liye
+                          child: Image.file(
+                            widget.imageFiles[index],
+                            // FIX 2: BoxFit.contain se height aur width dono hamesha same ratio me bade/chote honge
+                            fit: BoxFit.contain,
+                            // FIX 3: width aur height (double.infinity) hata diya, ab ye aspect ratio ke hisab se auto-size lega
+                          ),
                         ),
                       ),
                     );

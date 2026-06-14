@@ -8,7 +8,7 @@ import 'package:scroll_snap_list/scroll_snap_list.dart';
 import 'package:flutter/services.dart'; // For locking orientation
 import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
 import 'dart:async';
-
+import 'package:image/image.dart' as img;
 import 'document_editor_screen.dart';
 import 'home_screen.dart'; // For StreamSubscription
 
@@ -284,6 +284,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // Capture the picture
       final XFile photo = await controller.takePicture();
 
+      // NAYI LINE: Photo save hone se pehle usko explicitly 4:3 me crop kar do
+      await _cropTo43(photo.path);
+
       /// Update the state with the new photo and increment the counter
       setState(() {
         lastCapturedImage = photo;
@@ -304,6 +307,48 @@ class _ScannerScreenState extends State<ScannerScreen> {
       showToast("Error capturing photo");
     }
   }
+
+  // Image ko perfect 4:3 document ratio me crop karne ke liye
+  Future<void> _cropTo43(String filePath) async {
+    final file = File(filePath);
+    final bytes = await file.readAsBytes();
+    img.Image? originalImage = img.decodeImage(bytes);
+
+    if (originalImage == null) return;
+
+    int origW = originalImage.width;
+    int origH = originalImage.height;
+    double origRatio = origW / origH;
+    double targetRatio = 3 / 4; // 4:3 portrait ratio
+
+    // Agar image pehle se lagbhag 4:3 hai, toh processing time bachane ke liye skip karo
+    if ((origRatio - targetRatio).abs() < 0.05) return;
+
+    int cropW = origW;
+    int cropH = origH;
+    int x = 0;
+    int y = 0;
+
+    if (origRatio > targetRatio) {
+      cropW = (origH * targetRatio).toInt();
+      x = (origW - cropW) ~/ 2;
+    } else {
+      cropH = (origW / targetRatio).toInt();
+      y = (origH - cropH) ~/ 2;
+    }
+
+    img.Image croppedImage = img.copyCrop(
+      originalImage,
+      x: x,
+      y: y,
+      width: cropW,
+      height: cropH,
+    );
+
+    // Image wapas save karo (Quality 85 rakhi hai taaki processing fast ho)
+    await file.writeAsBytes(img.encodeJpg(croppedImage, quality: 85));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -818,38 +863,38 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         );
 
-      case "Ratio":
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.35),
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Aspect ratio",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Row(
-                children: [
-                  _buildRatioOption("1:1"),
-                  const SizedBox(width: 8),
-                  _buildRatioOption("4:3"),
-                  const SizedBox(width: 8),
-                  _buildRatioOption("16:9"),
-                  const SizedBox(width: 8),
-                  _buildRatioOption("Full"),
-                ],
-              ),
-            ],
-          ),
-        );
+      // case "Ratio":
+      //   return Container(
+      //     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+      //     decoration: BoxDecoration(
+      //       color: Colors.black.withOpacity(0.35),
+      //       borderRadius: BorderRadius.circular(30),
+      //     ),
+      //     child: Row(
+      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //       children: [
+      //         const Text(
+      //           "Aspect ratio",
+      //           style: TextStyle(
+      //             color: Colors.white,
+      //             fontSize: 14,
+      //             fontWeight: FontWeight.w500,
+      //           ),
+      //         ),
+      //         Row(
+      //           children: [
+      //             _buildRatioOption("1:1"),
+      //             const SizedBox(width: 8),
+      //             _buildRatioOption("4:3"),
+      //             const SizedBox(width: 8),
+      //             _buildRatioOption("16:9"),
+      //             const SizedBox(width: 8),
+      //             _buildRatioOption("Full"),
+      //           ],
+      //         ),
+      //       ],
+      //     ),
+      //   );
 
       case "Timer":
         return Container(
@@ -909,14 +954,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   size: 26,
                 ),
               ),
-              IconButton(
-                onPressed: () => setState(() => activeMenu = "Ratio"),
-                icon: _buildRotatedIcon(
-                  _getRatioIcon(),
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
+              // IconButton(
+              //   onPressed: () => setState(() => activeMenu = "Ratio"),
+              //   icon: _buildRotatedIcon(
+              //     _getRatioIcon(),
+              //     color: Colors.white,
+              //     size: 26,
+              //   ),
+              // ),
               IconButton(
                 onPressed: _flipCamera,
                 icon: _buildRotatedIcon(
