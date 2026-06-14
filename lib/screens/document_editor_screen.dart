@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:image/image.dart' as img;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -26,6 +27,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool isThumbnailVisible = true; // By default thumbnails dikhenge
   RewardedAd? _rewardedAd; // Ad store karne ke liye
 
+// --- CROP TOOL VARIABLES ---
+  bool isCroppingMode = false;
+  double cropTopRatio = 0.0;
+  double cropBottomRatio = 0.0;
+  double cropLeftRatio = 0.0;
+  double cropRightRatio = 0.0;
+  double _cropAreaWidth = 1.0;
+  double _cropAreaHeight = 1.0;
+  double _origWidth = 1.0;
+  double _origHeight = 1.0;
+
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +54,44 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleCropMode() async {
+    if (isCroppingMode) {
+      // Crop save karke normal mode me wapas aana
+      await _saveNewCrop();
+    } else {
+      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
+
+      File origFile = widget.imageFiles[currentPage]['original']!;
+      File cropFile = widget.imageFiles[currentPage]['cropped']!;
+
+      final origBytes = await origFile.readAsBytes();
+      final cropBytes = await cropFile.readAsBytes();
+
+      final decodedOrig = img.decodeImage(origBytes);
+      final decodedCrop = img.decodeImage(cropBytes);
+
+      if (mounted) Navigator.pop(context); // Loading hatao
+
+      if (decodedOrig != null && decodedCrop != null) {
+        double percentW = decodedCrop.width / decodedOrig.width;
+        double percentH = decodedCrop.height / decodedOrig.height;
+
+        setState(() {
+          isCroppingMode = true;
+          isThumbnailVisible = false; // Thumbnail hide
+          _origWidth = decodedOrig.width.toDouble();
+          _origHeight = decodedOrig.height.toDouble();
+
+          // Auto-detect wale size ka hi box banayega
+          cropTopRatio = (1.0 - percentH) / 2;
+          cropBottomRatio = (1.0 - percentH) / 2;
+          cropLeftRatio = (1.0 - percentW) / 2;
+          cropRightRatio = (1.0 - percentW) / 2;
+        });
+      }
+    }
   }
 
   // Generate default file name based on current date
@@ -349,6 +400,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             child: Stack(
               children: [
 
+          // Expanded(
+          //   child: isCroppingMode
+          //       ? _buildCroppingView()
+          //       : Stack(
+          //     children: [
+
                 // Swipeable & Zoomable Images
                 // PageView.builder(
                 //   controller: _pageController,
@@ -392,8 +449,33 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 // ),
 
                 // Swipeable & Zoomable Images
+                // PageView.builder(
+                //   controller: _pageController,
+                //   onPageChanged: (index) {
+                //     setState(() {
+                //       currentPage = index;
+                //     });
+                //   },
+                //   itemCount: widget.imageFiles.length,
+                //   itemBuilder: (context, index) {
+                //     return Center(
+                //       child: Padding(
+                //         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                //         child: Image.file(
+                //           widget.imageFiles[index]['cropped']!,
+                //           // BoxFit.contain sabse important hai, yeh image ko exact uske apne free-size me dikhayega
+                //           fit: BoxFit.contain,
+                //         ),
+                //       ),
+                //     );
+                //   },
+                // ),
+
+                // Swipeable & Zoomable Images
                 PageView.builder(
                   controller: _pageController,
+                  // Jab crop chal raha ho toh page swipe disable kar denge
+                  physics: isCroppingMode ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
                   onPageChanged: (index) {
                     setState(() {
                       currentPage = index;
@@ -401,12 +483,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   },
                   itemCount: widget.imageFiles.length,
                   itemBuilder: (context, index) {
+                    // Agar crop mode ON hai aur yehi current page hai, toh Crop UI dikhao
+                    if (isCroppingMode && index == currentPage) {
+                      return _buildInPlaceCropView();
+                    }
+
+                    // Warna normal image preview dikhao
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
                         child: Image.file(
                           widget.imageFiles[index]['cropped']!,
-                          // BoxFit.contain sabse important hai, yeh image ko exact uske apne free-size me dikhayega
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -633,22 +720,50 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
           /// NEW ACTION TOOLS BAR (Horizontal Scrollable)
           Container(
-            height: 85,
+            height: 75,
             color: const Color(0xFF151515), // Dark background for tools section
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
               children: [
-                _buildToolItem(label: "Retake", icon: Icons.refresh_rounded, tooltipMessage: "Retake current photo"),
-                _buildToolItem(label: "Crop", icon: Icons.crop_rounded, tooltipMessage: "Crop & adjust borders"),
-                _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded, tooltipMessage: "Rotate 90 degrees"),
-                _buildToolItem(label: "Filter", icon: Icons.photo_filter_rounded, tooltipMessage: "Apply color filters"),
-                _buildToolItem(label: "Adjust", icon: Icons.tune_rounded, tooltipMessage: "Adjust brightness and contrast"),
-                _buildToolItem(label: "Markup", icon: Icons.border_color_rounded, tooltipMessage: "Draw or add text on image"),
-                _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
-                _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
-                _buildToolItem(label: "Reorder", icon: Icons.swap_horizontal_circle_outlined, tooltipMessage: "Rearrange page sequence"),
-                _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, tooltipMessage: "Delete current page"),
+                _buildToolItem(label: "Retake",
+                    icon: Icons.refresh_rounded,
+                    tooltipMessage: "Retake current photo"),
+                // _buildToolItem(label: "Crop",
+                //     icon: Icons.crop_rounded,
+                //     tooltipMessage: "Crop & adjust borders"),
+
+                _buildToolItem(
+                  label: "Crop",
+                  icon: Icons.crop_rounded,
+                  tooltipMessage: "Crop & adjust borders",
+                  isSelected: isCroppingMode, // Mode ON hone par blue hoga
+                  onTap: _toggleCropMode,     // Naya function call hoga
+                ),
+                _buildToolItem(label: "Rotate",
+                    icon: Icons.rotate_right_rounded,
+                    tooltipMessage: "Rotate 90 degrees"),
+                _buildToolItem(label: "Filter",
+                    icon: Icons.photo_filter_rounded,
+                    tooltipMessage: "Apply color filters"),
+                _buildToolItem(label: "Adjust",
+                    icon: Icons.tune_rounded,
+                    tooltipMessage: "Adjust brightness and contrast"),
+                _buildToolItem(label: "Markup",
+                    icon: Icons.border_color_rounded,
+                    tooltipMessage: "Draw or add text on image"),
+                _buildToolItem(label: "Cleanup",
+                    icon: Icons.auto_fix_high_rounded,
+                    tooltipMessage: "Erase unwanted areas"),
+                _buildToolItem(label: "Resize",
+                    icon: Icons.aspect_ratio_rounded,
+                    tooltipMessage: "Change page layout size"),
+                _buildToolItem(label: "Reorder",
+                    icon: Icons.swap_horizontal_circle_outlined,
+                    tooltipMessage: "Rearrange page sequence"),
+                _buildToolItem(label: "Delete",
+                    icon: Icons.delete_outline_rounded,
+                    tooltipMessage: "Delete current page"),
               ],
             ),
           ),
@@ -709,32 +824,450 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
 
   // Helper widget to build action tools with icon, text, tooltip, and toast
+  // Widget _buildToolItem({
+  //   required String label,
+  //   required IconData icon,
+  //   required String tooltipMessage
+  // }) {
+  //   return Tooltip(
+  //     message: tooltipMessage,
+  //     child: GestureDetector(
+  //       onTap: () => showToast("$label clicked"), // Placeholder toast
+  //       child: Padding(
+  //         padding: const EdgeInsets.symmetric(horizontal: 14),
+  //         child: Column(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Icon(icon, color: Colors.white, size: 22),
+  //             const SizedBox(height: 6),
+  //             Text(
+  //               label,
+  //               style: const TextStyle(
+  //                 color: Colors.white70,
+  //                 fontSize: 11,
+  //                 fontWeight: FontWeight.w400,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // Widget _buildToolItem({
+  //   required String label,
+  //   required IconData icon,
+  //   required String tooltipMessage,
+  //   VoidCallback? onTap,
+  //   bool isSelected = false, // Yeh naya flag lagaya
+  // }) {
+  //   return Tooltip(
+  //     message: tooltipMessage,
+  //     child: GestureDetector(
+  //       onTap: onTap ?? () => showToast("$label clicked"),
+  //       child: Padding(
+  //         padding: const EdgeInsets.symmetric(horizontal: 14),
+  //         child: Column(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             // Blue Selection Box
+  //             Container(
+  //               padding: const EdgeInsets.all(8),
+  //               decoration: BoxDecoration(
+  //                 color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+  //                 borderRadius: BorderRadius.circular(8),
+  //               ),
+  //               child: Icon(icon, color: isSelected ? Colors.blueAccent : Colors.white, size: 22),
+  //             ),
+  //             const SizedBox(height: 4),
+  //             Text(
+  //               label,
+  //               style: TextStyle(
+  //                 color: isSelected ? Colors.blueAccent : Colors.white70,
+  //                 fontSize: 11,
+  //                 fontWeight: FontWeight.w400,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildToolItem({
     required String label,
     required IconData icon,
-    required String tooltipMessage
+    required String tooltipMessage,
+    VoidCallback? onTap,
+    bool isSelected = false,
   }) {
     return Tooltip(
       message: tooltipMessage,
       child: GestureDetector(
-        onTap: () => showToast("$label clicked"), // Placeholder toast
+        onTap: onTap ?? () => showToast("$label clicked"),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: Colors.white, size: 22),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Container(
+            // Agar selected hai toh Adobe Scan jaisa solid blue color aayega
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.blueAccent : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 22),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- CROP UI & MATH FUNCTIONS ---
+
+  // void _updateCropBounds(double dt, double db, double dl, double dr) {
+  //   setState(() {
+  //     double currentTop = cropTopRatio * _cropAreaHeight;
+  //     double currentBottom = cropBottomRatio * _cropAreaHeight;
+  //     double currentLeft = cropLeftRatio * _cropAreaWidth;
+  //     double currentRight = cropRightRatio * _cropAreaWidth;
+  //
+  //     currentTop = (currentTop + dt).clamp(0.0, _cropAreaHeight - currentBottom - 50.0);
+  //     currentBottom = (currentBottom + db).clamp(0.0, _cropAreaHeight - currentTop - 50.0);
+  //     currentLeft = (currentLeft + dl).clamp(0.0, _cropAreaWidth - currentRight - 50.0);
+  //     currentRight = (currentRight + dr).clamp(0.0, _cropAreaWidth - currentLeft - 50.0);
+  //
+  //     cropTopRatio = currentTop / _cropAreaHeight;
+  //     cropBottomRatio = currentBottom / _cropAreaHeight;
+  //     cropLeftRatio = currentLeft / _cropAreaWidth;
+  //     cropRightRatio = currentRight / _cropAreaWidth;
+  //   });
+  // }
+  //
+  //
+  // Future<void> _saveNewCrop() async {
+  //   showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
+  //
+  //   try {
+  //     File originalFile = widget.imageFiles[currentPage]['original']!;
+  //     final bytes = await originalFile.readAsBytes();
+  //     img.Image? originalImage = img.decodeImage(bytes);
+  //
+  //     if (originalImage != null) {
+  //       int x = (cropLeftRatio * originalImage.width).toInt();
+  //       int y = (cropTopRatio * originalImage.height).toInt();
+  //       int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width).toInt();
+  //       int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height).toInt();
+  //
+  //       x = x.clamp(0, originalImage.width);
+  //       y = y.clamp(0, originalImage.height);
+  //       w = w.clamp(10, originalImage.width - x);
+  //       h = h.clamp(10, originalImage.height - y);
+  //
+  //       img.Image newlyCropped = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
+  //
+  //       final String newPath = originalFile.path.replaceAll('.jpg', '_recropped_${DateTime.now().millisecondsSinceEpoch}.jpg');
+  //       final newFile = File(newPath);
+  //       await newFile.writeAsBytes(img.encodeJpg(newlyCropped, quality: 100));
+  //
+  //       setState(() {
+  //         widget.imageFiles[currentPage]['cropped'] = newFile;
+  //         isCroppingMode = false;
+  //         isThumbnailVisible = true;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     showToast("Error saving crop");
+  //   }
+  //   if (mounted) Navigator.pop(context); // Loading hide karo
+  // }
+
+  // Widget _buildCroppingView() {
+  //   File originalFile = widget.imageFiles[currentPage]['original']!;
+  //
+  //   return Container(
+  //     margin: const EdgeInsets.all(20),
+  //     child: LayoutBuilder(
+  //       builder: (context, constraints) {
+  //         _cropAreaWidth = constraints.maxWidth;
+  //         _cropAreaHeight = constraints.maxHeight;
+  //
+  //         double cropTop = cropTopRatio * _cropAreaHeight;
+  //         double cropBottom = cropBottomRatio * _cropAreaHeight;
+  //         double cropLeft = cropLeftRatio * _cropAreaWidth;
+  //         double cropRight = cropRightRatio * _cropAreaWidth;
+  //
+  //         return Stack(
+  //           children: [
+  //             // Original Pura Image
+  //             SizedBox(
+  //               width: _cropAreaWidth, height: _cropAreaHeight,
+  //               child: Image.file(originalFile, fit: BoxFit.fill),
+  //             ),
+  //             // Dark Overlay
+  //             Container(color: Colors.black.withOpacity(0.6)),
+  //             // Crop Box
+  //             Positioned(
+  //               top: cropTop, bottom: cropBottom, left: cropLeft, right: cropRight,
+  //               child: Stack(
+  //                 clipBehavior: Clip.none,
+  //                 children: [
+  //                   // Box ke andar saaf original photo
+  //                   Positioned(
+  //                     top: -cropTop, bottom: -cropBottom, left: -cropLeft, right: -cropRight,
+  //                     child: SizedBox(
+  //                       width: _cropAreaWidth, height: _cropAreaHeight,
+  //                       child: Image.file(originalFile, fit: BoxFit.fill),
+  //                     ),
+  //                   ),
+  //                   // Border
+  //                   Container(decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 2))),
+  //
+  //                   // Screenshot 4-5 jaise Middle Handles (Rectangle lines)
+  //                   _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
+  //                   _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
+  //                   _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
+  //                   _buildEdgeHandle(Alignment.centerRight, (d) => _updateCropBounds(0, 0, 0, -d.delta.dx)),
+  //
+  //                   // Screenshot jaise 4 Corner Points (Grey circle + Blue border)
+  //                   _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
+  //                   _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
+  //                   _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
+  //                   _buildDragCorner(Alignment.bottomRight, (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx)),
+  //                 ],
+  //               ),
+  //             ),
+  //           ],
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
+
+  // Edge Rectangle Line Design
+  // Widget _buildEdgeHandle(Alignment alignment, Function(DragUpdateDetails) onPan) {
+  //   bool isVertical = alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
+  //   return Align(
+  //     alignment: alignment,
+  //     child: GestureDetector(
+  //       onPanUpdate: onPan,
+  //       child: Transform.translate(
+  //         offset: Offset(alignment.x * 12, alignment.y * 12), // Line ko exact border par set karne ke liye
+  //         child: Container(
+  //           width: isVertical ? 30 : 50, height: isVertical ? 50 : 30, // Touch area bada rakha hai
+  //           color: Colors.transparent,
+  //           alignment: Alignment.center,
+  //           child: Container(
+  //             width: isVertical ? 6 : 24, height: isVertical ? 24 : 6,
+  //             decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(2)),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // Corner Circle Design
+  // Widget _buildDragCorner(Alignment alignment, Function(DragUpdateDetails) onPan) {
+  //   return Align(
+  //     alignment: alignment,
+  //     child: GestureDetector(
+  //       onPanUpdate: onPan,
+  //       child: Transform.translate(
+  //         offset: Offset(alignment.x * 15, alignment.y * 15),
+  //         child: Container(
+  //           width: 40, height: 40,
+  //           color: Colors.transparent,
+  //           alignment: Alignment.center,
+  //           child: Container(
+  //             width: 20, height: 20,
+  //             decoration: BoxDecoration(
+  //               color: Colors.grey.shade400, // Adobe scan jaisa grey
+  //               shape: BoxShape.circle,
+  //               border: Border.all(color: Colors.blueAccent, width: 2),
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
+  // --- REAL-TIME MAIN PREVIEW CROP UI & MATH ---
+
+  void _updateCropBounds(double dt, double db, double dl, double dr) {
+    setState(() {
+      double currentTop = cropTopRatio * _cropAreaHeight;
+      double currentBottom = cropBottomRatio * _cropAreaHeight;
+      double currentLeft = cropLeftRatio * _cropAreaWidth;
+      double currentRight = cropRightRatio * _cropAreaWidth;
+
+      currentTop = (currentTop + dt).clamp(0.0, _cropAreaHeight - currentBottom - 40.0);
+      currentBottom = (currentBottom + db).clamp(0.0, _cropAreaHeight - currentTop - 40.0);
+      currentLeft = (currentLeft + dl).clamp(0.0, _cropAreaWidth - currentRight - 40.0);
+      currentRight = (currentRight + dr).clamp(0.0, _cropAreaWidth - currentLeft - 40.0);
+
+      cropTopRatio = currentTop / _cropAreaHeight;
+      cropBottomRatio = currentBottom / _cropAreaHeight;
+      cropLeftRatio = currentLeft / _cropAreaWidth;
+      cropRightRatio = currentRight / _cropAreaWidth;
+    });
+  }
+
+  Future<void> _saveNewCrop() async {
+    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
+    try {
+      File originalFile = widget.imageFiles[currentPage]['original']!;
+      final bytes = await originalFile.readAsBytes();
+      img.Image? originalImage = img.decodeImage(bytes);
+
+      if (originalImage != null) {
+        int x = (cropLeftRatio * originalImage.width).toInt();
+        int y = (cropTopRatio * originalImage.height).toInt();
+        int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width).toInt();
+        int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height).toInt();
+
+        x = x.clamp(0, originalImage.width);
+        y = y.clamp(0, originalImage.height);
+        w = w.clamp(10, originalImage.width - x);
+        h = h.clamp(10, originalImage.height - y);
+
+        img.Image newlyCropped = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
+
+        final String newPath = originalFile.path.replaceAll('.jpg', '_recropped_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final newFile = File(newPath);
+        await newFile.writeAsBytes(img.encodeJpg(newlyCropped, quality: 100));
+
+        setState(() {
+          widget.imageFiles[currentPage]['cropped'] = newFile;
+          isCroppingMode = false;
+          isThumbnailVisible = true;
+        });
+      }
+    } catch (e) {
+      showToast("Error saving crop");
+    }
+    if (mounted) Navigator.pop(context);
+  }
+
+  Widget _buildInPlaceCropView() {
+    File originalFile = widget.imageFiles[currentPage]['original']!;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+        // AspectRatio lagane se box screen par exactly main photo ke upar perfectly lock ho jayega
+        child: AspectRatio(
+          aspectRatio: _origWidth / _origHeight,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              _cropAreaWidth = constraints.maxWidth;
+              _cropAreaHeight = constraints.maxHeight;
+
+              double cropTop = cropTopRatio * _cropAreaHeight;
+              double cropBottom = cropBottomRatio * _cropAreaHeight;
+              double cropLeft = cropLeftRatio * _cropAreaWidth;
+              double cropRight = cropRightRatio * _cropAreaWidth;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // 1. Original Blur Image background
+                  SizedBox(width: _cropAreaWidth, height: _cropAreaHeight, child: Image.file(originalFile, fit: BoxFit.fill)),
+                  // 2. Dark Overlay
+                  Container(color: Colors.black.withOpacity(0.6)),
+                  // 3. Main Crop Box
+                  Positioned(
+                    top: cropTop, bottom: cropBottom, left: cropLeft, right: cropRight,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Clear Crop Area
+                        Positioned(
+                          top: -cropTop, bottom: -cropBottom, left: -cropLeft, right: -cropRight,
+                          child: SizedBox(width: _cropAreaWidth, height: _cropAreaHeight, child: Image.file(originalFile, fit: BoxFit.fill)),
+                        ),
+                        // Border
+                        Container(decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 2.5))),
+
+                        // Edge lines
+                        _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
+                        _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
+                        _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
+                        _buildEdgeHandle(Alignment.centerRight, (d) => _updateCropBounds(0, 0, 0, -d.delta.dx)),
+
+                        // Corner Circles
+                        _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
+                        _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
+                        _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
+                        _buildDragCorner(Alignment.bottomRight, (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx)),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEdgeHandle(Alignment alignment, Function(DragUpdateDetails) onPan) {
+    bool isVertical = alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
+    return Align(
+      alignment: alignment,
+      child: GestureDetector(
+        onPanUpdate: onPan,
+        child: Transform.translate(
+          offset: Offset(alignment.x * 12, alignment.y * 12),
+          child: Container(
+            width: isVertical ? 30 : 50, height: isVertical ? 50 : 30,
+            color: Colors.transparent,
+            alignment: Alignment.center,
+            child: Container(
+              width: isVertical ? 6 : 24, height: isVertical ? 24 : 6,
+              decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(3)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDragCorner(Alignment alignment, Function(DragUpdateDetails) onPan) {
+    return Align(
+      alignment: alignment,
+      child: GestureDetector(
+        onPanUpdate: onPan,
+        child: Transform.translate(
+          offset: Offset(alignment.x * 15, alignment.y * 15),
+          child: Container(
+            width: 40, height: 40,
+            color: Colors.transparent,
+            alignment: Alignment.center,
+            child: Container(
+              width: 22, height: 22,
+              decoration: BoxDecoration(color: Colors.grey.shade400, shape: BoxShape.circle, border: Border.all(color: Colors.blueAccent, width: 2.5)),
+            ),
           ),
         ),
       ),
