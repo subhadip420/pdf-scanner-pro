@@ -502,126 +502,127 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 ),
 
                 // Overlay Controls (Arrows and Page Count)
-                Positioned(
-                  bottom: 20,
-                  left: 16,
-                  right: 16,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      /// Left Arrow
-                      Tooltip(
-                        message: "Previous Page",
-                        child: GestureDetector(
-                          // Agar first page hai (0), to null (disable), warna _previousPage call hoga
-                          onTap: currentPage > 0 ? _previousPage : null,
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              // First page par background halka (black38) ho jayega
-                              color: currentPage > 0 ? Colors.black87 : Colors.black38,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                                Icons.arrow_back_ios_new_rounded,
-                                // First page par icon ka color fade (white30) ho jayega
-                                color: currentPage > 0 ? Colors.white : Colors.white30,
-                                size: 18
-                            ),
-                          ),
-                        ),
-                      ),
-                      /// Middle Controls (Add Icon + Page Count)
-                      Row(
-                        children: [
-                          Tooltip(
-                            message: "Add New Page",
-                            child: GestureDetector(
-                              onTap: () => showToast("Add new page"),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: const BoxDecoration(
-                                  color: Colors.black87,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                    Icons.post_add_rounded,
-                                    color: Colors.white,
-                                    size: 20
-                                ),
+                if (!isCroppingMode)
+                  Positioned(
+                    bottom: 20,
+                    left: 16,
+                    right: 16,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        /// Left Arrow
+                        Tooltip(
+                          message: "Previous Page",
+                          child: GestureDetector(
+                            // Agar first page hai (0), to null (disable), warna _previousPage call hoga
+                            onTap: currentPage > 0 ? _previousPage : null,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                // First page par background halka (black38) ho jayega
+                                color: currentPage > 0 ? Colors.black87 : Colors.black38,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  // First page par icon ka color fade (white30) ho jayega
+                                  color: currentPage > 0 ? Colors.white : Colors.white30,
+                                  size: 18
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-
-                          Tooltip(
-                            message: "Jump to page",
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isThumbnailVisible = !isThumbnailVisible;
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(20),
+                        ),
+                        /// Middle Controls (Add Icon + Page Count)
+                        Row(
+                          children: [
+                            Tooltip(
+                              message: "Add New Page",
+                              child: GestureDetector(
+                                onTap: () => showToast("Add new page"),
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black87,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                      Icons.post_add_rounded,
+                                      color: Colors.white,
+                                      size: 20
+                                  ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      "Page ${currentPage + 1} of ${widget.imageFiles.length}",
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            Tooltip(
+                              message: "Jump to page",
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    isThumbnailVisible = !isThumbnailVisible;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black87,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "Page ${currentPage + 1} of ${widget.imageFiles.length}",
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Icon(
-                                        isThumbnailVisible
-                                            ? Icons.keyboard_arrow_down_rounded
-                                            : Icons.keyboard_arrow_up_rounded,
-                                        color: Colors.white,
-                                        size: 18
-                                    ),
-                                  ],
+                                      const SizedBox(width: 6),
+                                      Icon(
+                                          isThumbnailVisible
+                                              ? Icons.keyboard_arrow_down_rounded
+                                              : Icons.keyboard_arrow_up_rounded,
+                                          color: Colors.white,
+                                          size: 18
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
 
-                      /// Right Arrow
-                      Tooltip(
-                        message: "Next Page",
-                        child: GestureDetector(
-                          // Agar last page hai, to null (disable), warna _nextPage call hoga
-                          onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              // Last page par background halka ho jayega
-                              color: currentPage < widget.imageFiles.length - 1 ? Colors.black87 : Colors.black38,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                // Last page par icon fade ho jayega
-                                color: currentPage < widget.imageFiles.length - 1 ? Colors.white : Colors.white30,
-                                size: 18
+                        /// Right Arrow
+                        Tooltip(
+                          message: "Next Page",
+                          child: GestureDetector(
+                            // Agar last page hai, to null (disable), warna _nextPage call hoga
+                            onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                // Last page par background halka ho jayega
+                                color: currentPage < widget.imageFiles.length - 1 ? Colors.black87 : Colors.black38,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  // Last page par icon fade ho jayega
+                                  color: currentPage < widget.imageFiles.length - 1 ? Colors.white : Colors.white30,
+                                  size: 18
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),
