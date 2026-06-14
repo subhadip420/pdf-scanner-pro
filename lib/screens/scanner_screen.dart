@@ -54,6 +54,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool isCapturing = false; // To prevent multiple taps while capturing
   int currentCountdown = 0; // Tracks the active countdown (3, 2, 1)
   List<File> capturedImagesList = []; // Nayi list jo saari photos store karegi
+// Focus ke liye variables
+  Offset? _focusPointPosition;
+  bool _showFocusIndicator = false;
+  Timer? _focusTimer;
+
 
   @override
   void initState() {
@@ -350,6 +355,78 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
 
+  // 1. Optimized Focus Function (Parallel execution se time kam lagega)
+  Future<void> _setFocusPoint(TapUpDetails details, BoxConstraints constraints) async {
+    if (!controller.value.isInitialized) return;
+
+    final double x = details.localPosition.dx / constraints.maxWidth;
+    final double y = details.localPosition.dy / constraints.maxHeight;
+    final Offset focusPoint = Offset(x, y);
+
+    try {
+      // Box ko turant screen par dikhane ke liye pehle setState kiya
+      if (mounted) {
+        setState(() {
+          _focusPointPosition = details.localPosition;
+          _showFocusIndicator = true;
+        });
+      }
+
+      // FIX: Future.wait use karne se Focus aur Exposure ek saath trigger honge, jisse speed fast ho jayegi
+      await Future.wait([
+        if (controller.value.focusPointSupported) controller.setFocusPoint(focusPoint),
+        if (controller.value.exposurePointSupported) controller.setExposurePoint(focusPoint),
+      ]);
+
+      _focusTimer?.cancel();
+      _focusTimer = Timer(const Duration(milliseconds: 1200), () { // Time 1.5s se 1.2s kiya for fast response
+        if (mounted) {
+          setState(() => _showFocusIndicator = false);
+        }
+      });
+    } catch (e) {
+      print("Error setting focus: $e");
+    }
+  }
+
+  // 2. Camera Preview Helper with Bigger Focus Box
+  Widget _buildCameraPreviewWithFocus() {
+    return SizedBox(
+      width: controller.value.previewSize?.height ?? 1,
+      height: controller.value.previewSize?.width ?? 1,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return GestureDetector(
+            onTapUp: (details) => _setFocusPoint(details, constraints),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CameraPreview(controller),
+                if (_showFocusIndicator && _focusPointPosition != null)
+                  Positioned(
+                    // FIX: Size 80 kiya hai, toh center karne ke liye 40 minus kiya (80 / 2)
+                    left: _focusPointPosition!.dx - 40,
+                    top: _focusPointPosition!.dy - 40,
+                    child: Container(
+                      width: 80,  // Size 50 se badhakar 80 kar diya
+                      height: 80, // Size 50 se badhakar 80 kar diya
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.amber,
+                          width: 2.0, // Border ko thoda aur sharp aur mota kiya
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     //final screenWidth = MediaQuery.of(context).size.width;
@@ -378,64 +455,51 @@ class _ScannerScreenState extends State<ScannerScreen> {
               /// Camera Preview
               selectedRatio == "Full"
                   ? Positioned.fill(
-                      child: ClipRect(
-                        child: FittedBox(
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            width: controller.value.previewSize?.height ?? 1,
-                            height: controller.value.previewSize?.width ?? 1,
-                            child: CameraPreview(controller),
-                          ),
-                        ),
-                      ),
-                    )
+                child: ClipRect(
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    // YAHAN HELPER WIDGET CALL KIYA HAI
+                    child: _buildCameraPreviewWithFocus(),
+                  ),
+                ),
+              )
                   : selectedRatio == "1:1"
                   ? Positioned(
-                      top: 90,
-                      bottom: 180,
-                      // Sirf 1:1 ke liye bottom boundary hai taaki center ho sake
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: AspectRatio(
-                          aspectRatio: 1.0,
-                          child: ClipRect(
-                            child: FittedBox(
-                              fit: BoxFit.cover,
-                              alignment: Alignment.center,
-                              child: SizedBox(
-                                width:
-                                    controller.value.previewSize?.height ?? 1,
-                                height:
-                                    controller.value.previewSize?.width ?? 1,
-                                child: CameraPreview(controller),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  : Positioned(
-                      top: 115,
-                      left: 0,
-                      right: 0,
-                      // 4:3 aur 16:9 ke liye no 'bottom', bilkul pehle jaisa perfect width cover karega
-                      child: AspectRatio(
-                        aspectRatio: _getAspectRatio(),
-                        child: ClipRect(
-                          child: FittedBox(
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                            child: SizedBox(
-                              width: controller.value.previewSize?.height ?? 1,
-                              height: controller.value.previewSize?.width ?? 1,
-                              child: CameraPreview(controller),
-                            ),
-                          ),
-                        ),
+                top: 90,
+                bottom: 180,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: ClipRect(
+                      child: FittedBox(
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        // YAHAN HELPER WIDGET CALL KIYA HAI
+                        child: _buildCameraPreviewWithFocus(),
                       ),
                     ),
+                  ),
+                ),
+              )
+                  : Positioned(
+                top: 115,
+                left: 0,
+                right: 0,
+                child: AspectRatio(
+                  aspectRatio: _getAspectRatio(),
+                  child: ClipRect(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      // YAHAN HELPER WIDGET CALL KIYA HAI
+                      child: _buildCameraPreviewWithFocus(),
+                    ),
+                  ),
+                ),
+              ),
 
               /// Top Controls
               Positioned(
@@ -984,36 +1048,36 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  // Ratio menu ke options banane ke liye
-  Widget _buildRatioOption(String label) {
-    final bool isSelected = selectedRatio == label;
-    final Color color = isSelected ? Colors.amber : Colors.white;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedRatio = label;
-          activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
-        });
-        //showToast("$label Ratio Selected");
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        decoration: BoxDecoration(
-          border: Border.all(color: color, width: 1.5),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: color,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
+  // // Ratio menu ke options banane ke liye
+  // Widget _buildRatioOption(String label) {
+  //   final bool isSelected = selectedRatio == label;
+  //   final Color color = isSelected ? Colors.amber : Colors.white;
+  //
+  //   return GestureDetector(
+  //     onTap: () {
+  //       setState(() {
+  //         selectedRatio = label;
+  //         activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
+  //       });
+  //       //showToast("$label Ratio Selected");
+  //     },
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+  //       decoration: BoxDecoration(
+  //         border: Border.all(color: color, width: 1.5),
+  //         borderRadius: BorderRadius.circular(6),
+  //       ),
+  //       child: Text(
+  //         label,
+  //         style: TextStyle(
+  //           color: color,
+  //           fontSize: 12,
+  //           fontWeight: FontWeight.bold,
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Flash menu ke icons banane ke liye
   Widget _buildFlashOption(String mode) {

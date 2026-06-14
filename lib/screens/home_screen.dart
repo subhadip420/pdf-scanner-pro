@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
+import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:pdfx/pdfx.dart';
 import 'dart:typed_data';
 
@@ -26,6 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isBannerAdLoaded = false;
   List<File> _pdfFiles = [];
   bool _isLoadingFiles = true;
+  bool _isFabMenuOpen = false;
+
 
   @override
   void initState() {
@@ -179,69 +182,175 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       /// BODY: Banner Ad + Tab View
-      body: Column(
+      // body: Column(
+      //   children: [
+      //     /// 2. BANNER AD (Top Bar ke niche)
+      //     if (_isBannerAdLoaded && _bannerAd != null)
+      //       Container(
+      //         alignment: Alignment.center,
+      //         width: _bannerAd!.size.width.toDouble(),
+      //         height: _bannerAd!.size.height.toDouble(),
+      //         color: Colors.black,
+      //         // Background so it blends in
+      //         child: AdWidget(ad: _bannerAd!),
+      //       ),
+      //
+      //     /// 3. TAB VIEW (Ads ke niche content)
+      //     Expanded(
+      //       child: IndexedStack(
+      //         index: _currentIndex,
+      //         children: [
+      //           // View 0: Home Tab Content
+      //           _buildHomeTabContent(),
+      //
+      //           // View 1: Files Tab Content
+      //           const Center(
+      //             child: Text(
+      //               "Files View (Folders will come here)",
+      //               style: TextStyle(color: Colors.white70, fontSize: 16),
+      //             ),
+      //           ),
+      //         ],
+      //       ),
+      //     ),
+      //   ],
+      // ),
+
+      /// BODY: Banner Ad + Tab View + Dark Overlay
+      body: Stack(
         children: [
-          /// 2. BANNER AD (Top Bar ke niche)
-          if (_isBannerAdLoaded && _bannerAd != null)
-            Container(
-              alignment: Alignment.center,
-              width: _bannerAd!.size.width.toDouble(),
-              height: _bannerAd!.size.height.toDouble(),
-              color: Colors.black,
-              // Background so it blends in
-              child: AdWidget(ad: _bannerAd!),
-            ),
-
-          /// 3. TAB VIEW (Ads ke niche content)
-          Expanded(
-            child: IndexedStack(
-              index: _currentIndex,
-              children: [
-                // View 0: Home Tab Content
-                _buildHomeTabContent(),
-
-                // View 1: Files Tab Content
-                const Center(
-                  child: Text(
-                    "Files View (Folders will come here)",
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
+          // 1. Tumhara Purana Main Content (Banner Ad + Tabs)
+          Column(
+            children: [
+              if (_isBannerAdLoaded && _bannerAd != null)
+                Container(
+                  alignment: Alignment.center,
+                  width: _bannerAd!.size.width.toDouble(),
+                  height: _bannerAd!.size.height.toDouble(),
+                  color: Colors.black,
+                  child: AdWidget(ad: _bannerAd!),
                 ),
-              ],
-            ),
+              Expanded(
+                child: IndexedStack(
+                  index: _currentIndex,
+                  children: [
+                    _buildHomeTabContent(),
+                    const Center(child: Text("Files View", style: TextStyle(color: Colors.white70))),
+                  ],
+                ),
+              ),
+            ],
           ),
+
+          // 2. Dark Overlay (Jab button click ho)
+          if (_isFabMenuOpen)
+            GestureDetector(
+              onTap: () {
+                // Blank jagah par click karne se close ho jayega
+                setState(() => _isFabMenuOpen = false);
+              },
+              child: Container(
+                color: Colors.black.withOpacity(0.85), // Background ko dark kar dega
+                width: double.infinity,
+                height: double.infinity,
+              ),
+            ),
+
+          // 3. Menu Options (Floating list)
+          if (_isFabMenuOpen)
+            Positioned(
+              bottom: 90, // X button ke thik upar
+              left: 0,
+              right: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildMenuPill(
+                    "Create from photos",
+                    Icons.photo_library_outlined,
+                        () {
+                      showToast("Gallery opening...");
+                      setState(() => _isFabMenuOpen = false); // Click ke baad menu close
+                    },
+                  ),
+                  const SizedBox(height: 12), // Dono button ke beech ka gap
+                  _buildMenuPill(
+                    "Create scan",
+                    Icons.add_a_photo_outlined,
+                        () {
+                      setState(() => _isFabMenuOpen = false);
+                      // TODO: Yahan par aapka ScannerScreen() open hoga
+                       Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
+                    },
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
 
-      /// 5. CENTER CAMERA BUTTON (Floating)
+      // /// 5. CENTER CAMERA BUTTON (Floating)
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     showToast("Opening Camera...");
+      //     // TODO: Yahan par aapka ScannerScreen() open hoga
+      //     // Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
+      //   },
+      //   backgroundColor: Colors.lightBlueAccent,
+      //   // Matching the blue in screenshot
+      //   shape: const CircleBorder(),
+      //   elevation: 4,
+      //   child: const Icon(
+      //     Icons.add_a_photo,
+      //     color: Colors.black,
+      //     size: 28,
+      //   ),
+      // ),
+      //
+      // // Floating button ko bottom bar ke middle me set karne ke liye
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      //
+      // /// 4. BOTTOM TAB BAR
+      // bottomNavigationBar: BottomAppBar(
+      //   color: const Color(0xFF1E1E1E),
+      //   shape: const CircularNotchedRectangle(),
+      //   // Camera button ke liye curve banayega
+      //   notchMargin: 8.0,
+      //   child: SizedBox(
+      //     height: 60,
+
+      /// 5. CENTER CAMERA BUTTON (Dynamic X or Camera)
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showToast("Opening Camera...");
-          // TODO: Yahan par aapka ScannerScreen() open hoga
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
+          setState(() {
+            _isFabMenuOpen = !_isFabMenuOpen; // Toggle Open/Close
+          });
         },
         backgroundColor: Colors.lightBlueAccent,
-        // Matching the blue in screenshot
         shape: const CircleBorder(),
         elevation: 4,
-        child: const Icon(
-          Icons.camera_enhance_rounded,
-          color: Colors.black,
-          size: 28,
+        child: Icon(
+            _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded, // Icon change hoga
+            color: Colors.black,
+            size: 28
         ),
       ),
 
-      // Floating button ko bottom bar ke middle me set karne ke liye
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      // Floating button ki position dynamic kar di
+      floatingActionButtonLocation: _isFabMenuOpen
+          ? FloatingActionButtonLocation.centerFloat // Menu open hone par center me float karega
+          : FloatingActionButtonLocation.centerDocked, // Normal rehne par notch me
 
-      /// 4. BOTTOM TAB BAR
-      bottomNavigationBar: BottomAppBar(
+      /// 4. BOTTOM TAB BAR (Hidden when menu is open)
+      bottomNavigationBar: _isFabMenuOpen
+          ? const SizedBox.shrink() // Menu open hone par bottom bar gayab!
+          : BottomAppBar(
         color: const Color(0xFF1E1E1E),
         shape: const CircularNotchedRectangle(),
-        // Camera button ke liye curve banayega
         notchMargin: 8.0,
         child: SizedBox(
           height: 60,
+          // ... (Tumhara bacha hua BottomAppBar ka Row() wala code bilkul same rahega) ...
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -329,6 +438,36 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+
+  // Floating Menu ke options banane ke liye helper widget
+  Widget _buildMenuPill(String title, IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 260, // Button ki fixed width taaki sab barabar dikhein
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF333333), // Dark grey Adobe Scan jaisa
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
