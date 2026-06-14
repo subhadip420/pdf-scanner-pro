@@ -11,10 +11,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'home_screen.dart';
 
 class DocumentEditorScreen extends StatefulWidget {
-  final List<File> imageFiles; // Real images coming from ScannerScreen
-
-  const DocumentEditorScreen({super.key, required this.imageFiles});
-
+  //final List<File> imageFiles; // Real images coming from ScannerScreen
+  final List<Map<String, File>> imageFiles;
+  //const DocumentEditorScreen({super.key, required this.imageFiles});
+  const DocumentEditorScreen({Key? key, required this.imageFiles}) : super(key: key);
   @override
   State<DocumentEditorScreen> createState() => _DocumentEditorScreenState();
 }
@@ -140,15 +140,44 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     final pdf = pw.Document();
 
-    for (var file in widget.imageFiles) {
+    // for (var file in widget.imageFiles) {
+    //   //final image = pw.MemoryImage(file.readAsBytesSync());
+    //   // Pehle map me se 'cropped' file nikalo
+    //   final File file = item['cropped']!;
+    //
+    //   // Fir usko read karo
+    //   final image = pw.MemoryImage(file.readAsBytesSync());
+    //
+    //   // pdf.addPage(
+    //   //   pw.Page(
+    //   //     build: (pw.Context context) {
+    //   //       return pw.Center(child: pw.Image(image));
+    //   //     },
+    //   //   ),
+    //   // );
+    //   pdf.addPage(
+    //     pw.Page(
+    //       margin: pw.EdgeInsets.zero,
+    //       pageFormat: PdfPageFormat.a4,
+    //       build: (context) {
+    //         return pw.Center(
+    //           child: pw.Image(
+    //             image,
+    //             fit: pw.BoxFit.contain,
+    //           ),
+    //         );
+    //       },
+    //     ),
+    //   );
+    // }
+
+    for (var map in widget.imageFiles) {
+      // 1. Map me se cropped file ko nikala
+      final File file = map['cropped']!;
+
+      // 2. Us file ke bytes ko read kiya
       final image = pw.MemoryImage(file.readAsBytesSync());
-      // pdf.addPage(
-      //   pw.Page(
-      //     build: (pw.Context context) {
-      //       return pw.Center(child: pw.Image(image));
-      //     },
-      //   ),
-      // );
+
       pdf.addPage(
         pw.Page(
           margin: pw.EdgeInsets.zero,
@@ -319,6 +348,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           Expanded(
             child: Stack(
               children: [
+
                 // Swipeable & Zoomable Images
                 // PageView.builder(
                 //   controller: _pageController,
@@ -332,24 +362,29 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 //     return InteractiveViewer(
                 //       minScale: 1.0,
                 //       maxScale: 4.0,
-                //       child: Container(
-                //         margin: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 80),
-                //         decoration: BoxDecoration(
-                //             color: Colors.black,
-                //             border: Border.all(color: Colors.white24, width: 1),
-                //             boxShadow: const [
-                //               BoxShadow(
-                //                 color: Colors.black26,
-                //                 blurRadius: 10,
-                //                 offset: Offset(0, 5),
-                //               )
-                //             ]
-                //         ),
-                //         child: Image.file(
-                //           widget.imageFiles[index],
-                //           fit: BoxFit.cover,
-                //           width: double.infinity,
-                //           height: double.infinity,
+                //       // FIX 1: Center use kiya taaki layout extend hone par ratio barkarar rahe
+                //       child: Center(
+                //         child: Container(
+                //           margin: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 80),
+                //           decoration: BoxDecoration(
+                //               color: Colors.black, // Image background ko black rakha hai
+                //               border: Border.all(color: Colors.white24, width: 1),
+                //               boxShadow: const [
+                //                 BoxShadow(
+                //                   color: Colors.black26,
+                //                   blurRadius: 10,
+                //                   offset: Offset(0, 5),
+                //                 )
+                //               ]
+                //           ),
+                //           clipBehavior: Clip.hardEdge, // Image ko border ke andar lock rakhne ke liye
+                //           child: Image.file(
+                //             //widget.imageFiles[index],
+                //             widget.imageFiles[index]['cropped']!,
+                //             // FIX 2: BoxFit.contain se height aur width dono hamesha same ratio me bade/chote honge
+                //             fit: BoxFit.contain,
+                //             // FIX 3: width aur height (double.infinity) hata diya, ab ye aspect ratio ke hisab se auto-size lega
+                //           ),
                 //         ),
                 //       ),
                 //     );
@@ -366,31 +401,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   },
                   itemCount: widget.imageFiles.length,
                   itemBuilder: (context, index) {
-                    return InteractiveViewer(
-                      minScale: 1.0,
-                      maxScale: 4.0,
-                      // FIX 1: Center use kiya taaki layout extend hone par ratio barkarar rahe
-                      child: Center(
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 30, right: 30, top: 20, bottom: 80),
-                          decoration: BoxDecoration(
-                              color: Colors.black, // Image background ko black rakha hai
-                              border: Border.all(color: Colors.white24, width: 1),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 5),
-                                )
-                              ]
-                          ),
-                          clipBehavior: Clip.hardEdge, // Image ko border ke andar lock rakhne ke liye
-                          child: Image.file(
-                            widget.imageFiles[index],
-                            // FIX 2: BoxFit.contain se height aur width dono hamesha same ratio me bade/chote honge
-                            fit: BoxFit.contain,
-                            // FIX 3: width aur height (double.infinity) hata diya, ab ye aspect ratio ke hisab se auto-size lega
-                          ),
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                        child: Image.file(
+                          widget.imageFiles[index]['cropped']!,
+                          // BoxFit.contain sabse important hai, yeh image ko exact uske apne free-size me dikhayega
+                          fit: BoxFit.contain,
                         ),
                       ),
                     );
@@ -546,7 +563,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       margin: const EdgeInsets.only(right: 12),
                       decoration: BoxDecoration(
                         image: DecorationImage(
-                          image: FileImage(widget.imageFiles[index]),
+                          //image: FileImage(widget.imageFiles[index]),
+                          image: FileImage(widget.imageFiles[index]['cropped']!),
                           fit: BoxFit.cover,
                         ),
                         border: Border.all(

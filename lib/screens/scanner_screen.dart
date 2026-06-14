@@ -11,6 +11,10 @@ import 'dart:async';
 import 'package:image/image.dart' as img;
 import 'document_editor_screen.dart';
 import 'home_screen.dart'; // For StreamSubscription
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:flutter/foundation.dart'; // WriteBuffer ke liye
+
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -53,29 +57,47 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int capturedPhotosCount = 0; // Counter for the badge
   bool isCapturing = false; // To prevent multiple taps while capturing
   int currentCountdown = 0; // Tracks the active countdown (3, 2, 1)
-  List<File> capturedImagesList = []; // Nayi list jo saari photos store karegi
+  //List<File> capturedImagesList = []; // Nayi list jo saari photos store karegi
+  // NAYI LINE:
+  List<Map<String, File>> capturedImagesList = [];
 // Focus ke liye variables
   Offset? _focusPointPosition;
   bool _showFocusIndicator = false;
   Timer? _focusTimer;
+// Real ML Auto-Detect Variables
+  bool isAutoDetectOn = true;
+  String autoScanStatus = "Looking for document...";
+  bool isHoldingSteady = false;
+
+  final TextRecognizer _textRecognizer = TextRecognizer();
+  bool _isProcessingImage = false;
+  Rect? _detectedDocumentBox; // Screen par blue border draw karne ke liye
+  int _stableFrames = 0; // Document kitni der stable raha
+
+  // Auto-Detect Popup Variables
+  bool _showAutoDetectPopup = false;
+  String _autoDetectPopupTitle = "";
+  String _autoDetectPopupSubtitle = "";
+  Timer? _popupTimer;
 
 
   @override
   void initState() {
     super.initState();
-
-    // Lock screen to Portrait mode only so layout doesn't break
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     controller = CameraController(
       cameras.first,
       ResolutionPreset.high,
       enableAudio: false,
+      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
     );
 
     controller.initialize().then((_) {
       if (mounted) {
         setState(() {});
+        // FIX 1: Screen khulte hi auto-detect start karna zaroori hai
+        if (isAutoDetectOn) _startMLAutoDetect();
       }
     });
 
@@ -83,33 +105,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
       scrollToDocument();
     });
 
-    // Listen to accelerometer to detect physical phone rotation
-    _sensorSubscription = accelerometerEventStream().listen((
-      AccelerometerEvent event,
-    ) {
+    _sensorSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
       if (!mounted) return;
-
       setState(() {
-        if (event.x > 6) {
-          // Phone rotated left -> Rotate icons clockwise to keep them upright
-          _iconTurns = 0.25;
-        } else if (event.x < -6) {
-          // Phone rotated right -> Rotate icons counter-clockwise
-          _iconTurns = -0.25;
-        } else if (event.y > 6) {
-          // Phone is upright -> Reset to normal
-          _iconTurns = 0.0;
-        }
+        if (event.x > 6) _iconTurns = 0.25;
+        else if (event.x < -6) _iconTurns = -0.25;
+        else if (event.y > 6) _iconTurns = 0.0;
       });
     });
   }
 
   @override
   void dispose() {
-    // Cancel subscription to save battery
     _sensorSubscription?.cancel();
+    _popupTimer?.cancel();
 
-    // Reset orientation settings when leaving this screen
+    // FIX 2: ML Recognizer ko memory se clear karna zaroori hai warna app crash hoga
+    _textRecognizer.close();
+
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -134,21 +147,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  // Selected ratio ke hisaab se dynamic icon
-  IconData _getRatioIcon() {
-    switch (selectedRatio) {
-      case "1:1":
-        return Symbols.crop_square_sharp;
-      case "16:9":
-        return Symbols.crop_16_9_sharp;
-      case "Full":
-        return Symbols.fullscreen_sharp;
-      case "4:3":
-      default:
-        return Symbols
-            .crop_5_4_sharp; // 4:3 ke liye sabse best aur similar icon
-    }
-  }
+  // // Selected ratio ke hisaab se dynamic icon
+  // IconData _getRatioIcon() {
+  //   switch (selectedRatio) {
+  //     case "1:1":
+  //       return Symbols.crop_square_sharp;
+  //     case "16:9":
+  //       return Symbols.crop_16_9_sharp;
+  //     case "Full":
+  //       return Symbols.fullscreen_sharp;
+  //     case "4:3":
+  //     default:
+  //       return Symbols
+  //           .crop_5_4_sharp; // 4:3 ke liye sabse best aur similar icon
+  //   }
+  // }
 
   // Selected flash mode ke hisaab se icon return karega
   IconData _getFlashIcon([String? mode]) {
@@ -199,6 +212,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       newCamera,
       ResolutionPreset.high,
       enableAudio: false,
+      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
     );
 
     // Naye controller ko initialize karke UI update karein
@@ -297,8 +311,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
         lastCapturedImage = photo;
 
         // NAYI LINE: Click ki gayi photo ko list me add kar do
-        capturedImagesList.add(File(photo.path));
-
+        //capturedImagesList.add(File(photo.path));
+        capturedImagesList.add({
+          'original': File(photo.path),
+          'cropped': File(photo.path),
+        });
         capturedPhotosCount = capturedImagesList.length; // Counter ko list ki length se update karo
         isCapturing = false;
       });
@@ -402,6 +419,27 @@ class _ScannerScreenState extends State<ScannerScreen> {
               fit: StackFit.expand,
               children: [
                 CameraPreview(controller),
+
+                // // YEH NAYI LINE: Real-time Blue Overlay
+                // if (_detectedDocumentBox != null && isAutoDetectOn)
+                //   CustomPaint(
+                //     painter: DocumentOverlayPainter(
+                //       _detectedDocumentBox,
+                //       Size(controller.value.previewSize!.width, controller.value.previewSize!.height),
+                //     ),
+                //   ),
+
+                // YEH NAYI LINE: Real-time Blue Overlay
+                if (_detectedDocumentBox != null && isAutoDetectOn)
+                  Positioned.fill(  // FIX 4: Isko Positioned.fill me wrap kiya
+                    child: CustomPaint(
+                      painter: DocumentOverlayPainter(
+                        _detectedDocumentBox,
+                        Size(controller.value.previewSize!.width, controller.value.previewSize!.height),
+                      ),
+                    ),
+                  ),
+
                 if (_showFocusIndicator && _focusPointPosition != null)
                   Positioned(
                     // FIX: Size 80 kiya hai, toh center karne ke liye 40 minus kiya (80 / 2)
@@ -424,6 +462,231 @@ class _ScannerScreenState extends State<ScannerScreen> {
         },
       ),
     );
+  }
+
+  void _startMLAutoDetect() {
+    if (!isAutoDetectOn || !controller.value.isInitialized) return;
+
+    // FIX 2: Agar pehle se stream chal rahi hai, toh naya start na kare (crash rokne ke liye)
+    if (controller.value.isStreamingImages) return;
+
+    setState(() {
+      autoScanStatus = "Looking for document...";
+      isHoldingSteady = false;
+      _stableFrames = 0;
+    });
+
+    controller.startImageStream((CameraImage image) async {
+      if (_isProcessingImage || !isAutoDetectOn || isCapturing) return;
+      _isProcessingImage = true;
+
+      try {
+        final WriteBuffer allBytes = WriteBuffer();
+        for (final Plane plane in image.planes) {
+          allBytes.putUint8List(plane.bytes);
+        }
+        final bytes = allBytes.done().buffer.asUint8List();
+
+        final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+        final camera = cameras[currentCameraIndex];
+        final imageRotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation90deg;
+
+        // FIX 3: Strict format define kiya Platform ke hisab se, taaki ML Kit block na ho
+        final inputImageFormat = Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888;
+
+        final inputImageData = InputImageMetadata(
+          size: imageSize,
+          rotation: imageRotation,
+          format: inputImageFormat,
+          bytesPerRow: image.planes[0].bytesPerRow,
+        );
+
+        final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
+        final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+
+        // Agar text/document mil gaya!
+        if (recognizedText.blocks.isNotEmpty) {
+          double minX = double.infinity, minY = double.infinity;
+          double maxX = 0, maxY = 0;
+
+          for (TextBlock block in recognizedText.blocks) {
+            if (block.boundingBox.left < minX) minX = block.boundingBox.left;
+            if (block.boundingBox.top < minY) minY = block.boundingBox.top;
+            if (block.boundingBox.right > maxX) maxX = block.boundingBox.right;
+            if (block.boundingBox.bottom > maxY) maxY = block.boundingBox.bottom;
+          }
+
+          if (mounted) {
+            setState(() {
+              _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
+              _stableFrames++;
+
+              if (_stableFrames > 3) {
+                autoScanStatus = "Capturing... hold steady";
+                isHoldingSteady = true;
+              }
+            });
+
+            if (_stableFrames > 10) {
+              await controller.stopImageStream();
+              _autoCaptureAndNavigate();
+            }
+          }
+        } else {
+          // Document screen se hat gaya
+          if (mounted) {
+            setState(() {
+              _detectedDocumentBox = null;
+              _stableFrames = 0;
+              autoScanStatus = "Looking for document...";
+              isHoldingSteady = false;
+            });
+          }
+        }
+      } catch (e) {
+        print("ML Error: $e");
+      } finally {
+        _isProcessingImage = false;
+      }
+    });
+  }
+
+  Future<void> _autoCaptureAndNavigate() async {
+    if (!controller.value.isInitialized || isCapturing) return;
+    setState(() => isCapturing = true);
+
+    try {
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+      }
+
+      // Photo capture
+      Rect? boxToCrop = _detectedDocumentBox;
+      final XFile photo = await controller.takePicture();
+
+      // 🚨 YAHAN SE _cropTo43() KO HATA DIYA HAI 🚨
+      // Kyunki wo original photo ko bigad raha tha.
+
+      // Asli raw photo par AI ka auto-crop chalao
+      File? croppedFile = await _autoCropImage(photo.path, boxToCrop);
+
+      capturedImagesList.add({
+        'original': File(photo.path),
+        'cropped': croppedFile ?? File(photo.path),
+      });
+      capturedPhotosCount = capturedImagesList.length;
+
+      setState(() {
+        isCapturing = false;
+        isHoldingSteady = false;
+        _stableFrames = 0;
+        _detectedDocumentBox = null;
+      });
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList)),
+        ).then((_) {
+          if (isAutoDetectOn && !controller.value.isStreamingImages) {
+            _startMLAutoDetect();
+          }
+        });
+      }
+    } catch (e) {
+      setState(() => isCapturing = false);
+    }
+  }
+
+
+  Future<void> _toggleAutoDetect() async {
+    setState(() {
+      isAutoDetectOn = !isAutoDetectOn; // ON ko OFF, OFF ko ON karega
+      _showAutoDetectPopup = true; // Popup dikhana shuru karega
+
+      if (isAutoDetectOn) {
+        _autoDetectPopupTitle = "Auto-capture on";
+        _autoDetectPopupSubtitle = "We'll find the borders and take the photo for you. You can adjust or take other quick actions.";
+      } else {
+        _autoDetectPopupTitle = "Auto-capture off";
+        _autoDetectPopupSubtitle = "Scan multiple pages faster. Just tap the photo button, and adjust borders later.";
+
+        // OFF hone par ML variables ko reset kar do
+        isHoldingSteady = false;
+        autoScanStatus = "Looking for document...";
+        _detectedDocumentBox = null;
+        _stableFrames = 0;
+      }
+
+      // 3 Second baad popup automatically hide ho jayega
+      _popupTimer?.cancel();
+      _popupTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _showAutoDetectPopup = false;
+          });
+        }
+      });
+    });
+
+    // ML Kit stream start/stop logic (setState ke bahar)
+    if (isAutoDetectOn) {
+      _startMLAutoDetect();
+    } else {
+      // Agar stream chal rahi hai aur user ne OFF kar diya, toh stream rok do
+      if (controller.value.isStreamingImages) {
+        try {
+          await controller.stopImageStream();
+        } catch (e) {
+          print("Error stopping stream: $e");
+        }
+      }
+    }
+  }
+
+  // Naya Helper Function: ML Box coordinates se asli image ko crop karna
+  Future<File?> _autoCropImage(String originalPath, Rect? detectionBox) async {
+    if (detectionBox == null || !controller.value.isInitialized) return null;
+
+    try {
+      final file = File(originalPath);
+      final bytes = await file.readAsBytes();
+      img.Image? originalImage = img.decodeImage(bytes);
+      if (originalImage == null) return null;
+
+      // Photo ko perfect seedha (portrait) karo
+      originalImage = img.bakeOrientation(originalImage);
+
+      // Scale calculations
+      final double streamWidth = controller.value.previewSize!.height;
+      final double streamHeight = controller.value.previewSize!.width;
+
+      final double scaleX = originalImage.width / streamWidth;
+      final double scaleY = originalImage.height / streamHeight;
+
+      // Exact pixel coordinates nikalna
+      int x = (detectionBox.left * scaleX).toInt();
+      int y = (detectionBox.top * scaleY).toInt();
+      int w = (detectionBox.width * scaleX).toInt();
+      int h = (detectionBox.height * scaleY).toInt();
+
+      x = x.clamp(0, originalImage.width);
+      y = y.clamp(0, originalImage.height);
+      w = w.clamp(1, originalImage.width - x);
+      h = h.clamp(1, originalImage.height - y);
+
+      // Original photo se strict box ko kaatna
+      img.Image croppedImage = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
+
+      final String croppedPath = originalPath.replaceAll('.jpg', '_autocrop.jpg');
+      final croppedFile = File(croppedPath);
+      await croppedFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 100));
+
+      return croppedFile;
+    } catch (e) {
+      print("Auto Crop Error: $e");
+      return null;
+    }
   }
 
 
@@ -518,31 +781,31 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
               ),
 
-              // /// Center Text
-              // const Center(
-              //   child: Column(
-              //     mainAxisSize: MainAxisSize.min,
-              //     children: [
-              //
-              //       Icon(
-              //         Icons.document_scanner_outlined,
-              //         color: Colors.white70,
-              //         size: 50,
-              //       ),
-              //
-              //       SizedBox(height: 12),
-              //
-              //       Text(
-              //         "Looking for document...",
-              //         style: TextStyle(
-              //           color: Colors.white,
-              //           fontSize: 18,
-              //           fontWeight: FontWeight.w600,
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
+              /// Status Text (Looking for document / Hold steady)
+              if (isAutoDetectOn)
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.45,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.65),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        autoScanStatus,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
 
               /// Scan Modes
               Positioned(
@@ -773,13 +1036,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             ),
                           ),
                           /// Auto Detect
+                          /// Auto Detect Button
                           IconButton(
-                            onPressed: () {
-                              showToast("Auto Detect");
-                            },
+                            onPressed: _toggleAutoDetect, // Yeh naya function call karega
                             icon: _buildRotatedIcon(
-                              Icons.document_scanner_outlined,
-                              color: Colors.white,
+                              Icons.document_scanner_outlined, // Aap chahein toh Icons.auto_awesome use kar sakte hain
+                              color: isAutoDetectOn ? Colors.blueAccent : Colors.white, // ON hone par Blue
                               size: 24,
                             ),
                           ),
@@ -874,8 +1136,48 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   ),
                 ),
               ),
+
+              /// Auto-Detect Toggle Popup (Center of screen)
+              if (_showAutoDetectPopup)
+                Positioned.fill(
+                  child: Center(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.75), // Dark translucent background
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min, // Jitna text utna hi bada box
+                        children: [
+                          Text(
+                            _autoDetectPopupTitle,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _autoDetectPopupSubtitle,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                              height: 1.4, // Line spacing
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
+
         ),
       ),
     );
@@ -1122,3 +1424,62 @@ class _ScannerScreenState extends State<ScannerScreen> {
 }
 
 ///end main class
+
+
+class DocumentOverlayPainter extends CustomPainter {
+  final Rect? documentRect;
+  final Size imageSize;
+
+  DocumentOverlayPainter(this.documentRect, this.imageSize);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (documentRect == null) return;
+
+    final double scaleX = size.width / imageSize.height;
+    final double scaleY = size.height / imageSize.width;
+
+    final Rect scaledRect = Rect.fromLTRB(
+      documentRect!.left * scaleX,
+      documentRect!.top * scaleY,
+      documentRect!.right * scaleX,
+      documentRect!.bottom * scaleY,
+    );
+
+    // Box ke andar ka halka blue color
+    final Paint fillPaint = Paint()
+      ..color = Colors.lightBlueAccent.withOpacity(0.2)
+      ..style = PaintingStyle.fill;
+
+    // Box ka border
+    final Paint borderPaint = Paint()
+      ..color = Colors.lightBlueAccent
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+
+    canvas.drawRect(scaledRect, fillPaint);
+    canvas.drawRect(scaledRect, borderPaint);
+
+    // FIX 4: Adobe Scan jaise 4 Corners par Blue Dots (Points)
+    final Paint dotPaint = Paint()..color = Colors.blueAccent..style = PaintingStyle.fill;
+    final Paint dotBorder = Paint()..color = Colors.white..style = PaintingStyle.stroke..strokeWidth = 2.0;
+    final double radius = 8.0; // Point ka size
+
+    // Charo corners ke coordinates nikal liye
+    final List<Offset> corners = [
+      scaledRect.topLeft,
+      scaledRect.topRight,
+      scaledRect.bottomLeft,
+      scaledRect.bottomRight,
+    ];
+
+    // Har corner par pehle blue dot, fir uspe white border bana do
+    for (Offset corner in corners) {
+      canvas.drawCircle(corner, radius, dotPaint);
+      canvas.drawCircle(corner, radius, dotBorder);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
