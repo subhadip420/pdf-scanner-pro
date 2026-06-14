@@ -27,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<File> _pdfFiles = [];
   bool _isLoadingFiles = true;
 
-
   @override
   void initState() {
     super.initState();
@@ -79,7 +78,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (await Permission.manageExternalStorage.isDenied) {
         await Permission.manageExternalStorage.request();
       }
-      final directory = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+      final directory = Directory(
+        '/storage/emulated/0/Documents/PDF Scanner Pro',
+      );
       if (await directory.exists()) {
         List<FileSystemEntity> entities = directory.listSync();
 
@@ -149,7 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Dark theme matching screenshot
+      backgroundColor: const Color(0xFF121212),
+      // Dark theme matching screenshot
 
       /// 1. APP BAR
       appBar: AppBar(
@@ -185,7 +187,8 @@ class _HomeScreenState extends State<HomeScreen> {
               alignment: Alignment.center,
               width: _bannerAd!.size.width.toDouble(),
               height: _bannerAd!.size.height.toDouble(),
-              color: Colors.black, // Background so it blends in
+              color: Colors.black,
+              // Background so it blends in
               child: AdWidget(ad: _bannerAd!),
             ),
 
@@ -217,10 +220,15 @@ class _HomeScreenState extends State<HomeScreen> {
           // TODO: Yahan par aapka ScannerScreen() open hoga
           // Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
         },
-        backgroundColor: Colors.lightBlueAccent, // Matching the blue in screenshot
+        backgroundColor: Colors.lightBlueAccent,
+        // Matching the blue in screenshot
         shape: const CircleBorder(),
         elevation: 4,
-        child: const Icon(Icons.camera_enhance_rounded, color: Colors.black, size: 28),
+        child: const Icon(
+          Icons.camera_enhance_rounded,
+          color: Colors.black,
+          size: 28,
+        ),
       ),
 
       // Floating button ko bottom bar ke middle me set karne ke liye
@@ -229,7 +237,8 @@ class _HomeScreenState extends State<HomeScreen> {
       /// 4. BOTTOM TAB BAR
       bottomNavigationBar: BottomAppBar(
         color: const Color(0xFF1E1E1E),
-        shape: const CircularNotchedRectangle(), // Camera button ke liye curve banayega
+        shape: const CircularNotchedRectangle(),
+        // Camera button ke liye curve banayega
         notchMargin: 8.0,
         child: SizedBox(
           height: 60,
@@ -254,15 +263,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(
                           Icons.home_filled,
-                          color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                          color: _currentIndex == 0
+                              ? Colors.lightBlueAccent
+                              : Colors.white54,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           "Home",
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
-                            color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                            fontWeight: _currentIndex == 0
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _currentIndex == 0
+                                ? Colors.lightBlueAccent
+                                : Colors.white54,
                           ),
                         ),
                       ],
@@ -272,7 +287,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
               const SizedBox(width: 40), // Beech me Camera button ke liye space
-
               // FILES OPTION
               Tooltip(
                 message: "Files",
@@ -291,15 +305,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Icon(
                           Icons.insert_drive_file_outlined,
-                          color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                          color: _currentIndex == 1
+                              ? Colors.lightBlueAccent
+                              : Colors.white54,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           "Files",
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
-                            color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                            fontWeight: _currentIndex == 1
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: _currentIndex == 1
+                                ? Colors.lightBlueAccent
+                                : Colors.white54,
                           ),
                         ),
                       ],
@@ -317,7 +337,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // Home Tab Content Builder
   Widget _buildHomeTabContent() {
     if (_isLoadingFiles) {
-      return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.blueAccent),
+      );
     }
 
     if (_pdfFiles.isEmpty) {
@@ -326,10 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Lottie.asset(
-              "assets/lottie/no_files_animation.json",
-              height: 220,
-            ),
+            Lottie.asset("assets/lottie/no_files_animation.json", height: 220),
             const SizedBox(height: 16),
             const Text(
               "No PDF files yet.\nTap the camera to scan!",
@@ -354,156 +373,181 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return RefreshIndicator(
-        onRefresh: _loadPdfFiles, // Niche swipe karne par list refresh hogi
-        color: Colors.blueAccent,
-        backgroundColor: const Color(0xFF1E1E1E),
-        child: ListView.builder(
+      onRefresh: _loadPdfFiles, // Niche swipe karne par list refresh hogi
+      color: Colors.blueAccent,
+      backgroundColor: const Color(0xFF1E1E1E),
+      child: ListView.builder(
         // 'AlwaysScrollableScrollPhysics' add kiya taaki list chhoti hone par bhi refresh ho sake
         physics: const AlwaysScrollableScrollPhysics(),
-    padding: const EdgeInsets.only(bottom: 80, top: 10),
-    itemCount: totalItemCount,
-    itemBuilder: (context, index) {
+        padding: const EdgeInsets.only(bottom: 80, top: 10),
+        itemCount: totalItemCount,
+        itemBuilder: (context, index) {
+          // Logic: Decide karein ki yeh index Ad ka hai ya File ka
+          bool isAdIndex;
+          if (_pdfFiles.length < 5) {
+            isAdIndex = (index == _pdfFiles.length); // Sabse last index ad hoga
+          } else {
+            isAdIndex =
+                (index + 1) % 6 ==
+                0; // Har 6th position par ad (index 5, 11, 17...)
+          }
 
+          // Agar yeh position Ad ki hai, toh NativeAd return karein
+          if (isAdIndex) {
+            return const NativeAdCard();
+          }
 
-        // Logic: Decide karein ki yeh index Ad ka hai ya File ka
-        bool isAdIndex;
-        if (_pdfFiles.length < 5) {
-          isAdIndex = (index == _pdfFiles.length); // Sabse last index ad hoga
-        } else {
-          isAdIndex = (index + 1) % 6 == 0; // Har 6th position par ad (index 5, 11, 17...)
-        }
+          // Agar File hai, toh asli file index nikalein
+          int fileIndex;
+          if (_pdfFiles.length < 5) {
+            fileIndex = index;
+          } else {
+            fileIndex =
+                index -
+                (index ~/
+                    6); // Ad ke index ko minus kar diya taaki list sahi chale
+          }
 
-        // Agar yeh position Ad ki hai, toh NativeAd return karein
-        if (isAdIndex) {
-          return const NativeAdCard();
-        }
+          final file = _pdfFiles[fileIndex];
+          final fileStat = file.statSync();
+          final dateCategory = _getDateCategory(fileStat.modified);
 
-        // Agar File hai, toh asli file index nikalein
-        int fileIndex;
-        if (_pdfFiles.length < 5) {
-          fileIndex = index;
-        } else {
-          fileIndex = index - (index ~/ 6); // Ad ke index ko minus kar diya taaki list sahi chale
-        }
+          bool showHeader = lastCategory != dateCategory;
+          lastCategory = dateCategory;
 
-        final file = _pdfFiles[fileIndex];
-        final fileStat = file.statSync();
-        final dateCategory = _getDateCategory(fileStat.modified);
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (showHeader)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Text(
+                    dateCategory,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
 
-        bool showHeader = lastCategory != dateCategory;
-        lastCategory = dateCategory;
+              // PDF File Card
+              GestureDetector(
+                onTap: () {
+                  OpenFile.open(file.path);
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      // Left Side: Real PDF Thumbnail
+                      Container(
+                        width: 70,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade800,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: PdfThumbnailView(filePath: file.path),
+                      ),
+                      const SizedBox(width: 16),
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (showHeader)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Text(
-                  dateCategory,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
+                      // Right Side: Details
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _truncateFileName(file.path.split('/').last),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              DateFormat(
+                                'MM/dd/yy  •  hh:mm a',
+                              ).format(fileStat.modified),
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _getFileSize(fileStat.size),
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Tooltip(
+                                  message: "Share",
+                                  child: InkWell(
+                                    onTap: () => showToast("Share clicked"),
+                                    child: const Icon(
+                                      Icons.share_outlined,
+                                      color: Colors.white70,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Tooltip(
+                                  message: "More",
+                                  child: InkWell(
+                                    onTap: () => showToast("More options"),
+                                    child: const Icon(
+                                      Icons.more_vert_rounded,
+                                      color: Colors.white70,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-
-            // PDF File Card
-            GestureDetector(
-              onTap: () {
-                OpenFile.open(file.path);
-              },
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    // Left Side: Real PDF Thumbnail
-                    Container(
-                      width: 70,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade800,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.white12),
-                      ),
-                      clipBehavior: Clip.hardEdge,
-                      child: PdfThumbnailView(filePath: file.path),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Right Side: Details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _truncateFileName(file.path.split('/').last),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
-                            style: const TextStyle(color: Colors.white54, fontSize: 13),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _getFileSize(fileStat.size),
-                            style: const TextStyle(color: Colors.white54, fontSize: 13),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Tooltip(
-                                message: "Share",
-                                child: InkWell(
-                                  onTap: () => showToast("Share clicked"),
-                                  child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Tooltip(
-                                message: "More",
-                                child: InkWell(
-                                  onTap: () => showToast("More options"),
-                                  child: const Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-        ),
+            ],
+          );
+        },
+      ),
     );
-
   }
+}
 
-
-}///end main class
+///end main class
 ///
 
 // Custom Widget: PDF ka first page as Image render karne ke liye
 class PdfThumbnailView extends StatefulWidget {
   final String filePath;
+
   const PdfThumbnailView({super.key, required this.filePath});
 
   @override
@@ -551,11 +595,19 @@ class _PdfThumbnailViewState extends State<PdfThumbnailView> {
   Widget build(BuildContext context) {
     // Agar error aayi to purana PDF icon dikhao
     if (_hasError) {
-      return const Center(child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30));
+      return const Center(
+        child: Icon(
+          Icons.picture_as_pdf_rounded,
+          color: Colors.white54,
+          size: 30,
+        ),
+      );
     }
     // Jab tak load ho raha hai, loader dikhao
     if (_imageBytes == null) {
-      return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30));
+      return const Center(
+        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30),
+      );
     }
     // Load hone ke baad real image dikhao
     return Image.memory(
@@ -587,7 +639,8 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
   void _loadNativeAd() {
     _nativeAd = NativeAd(
-      adUnitId: 'ca-app-pub-3940256099942544/2247696110', // Google's Test Native Ad ID
+      adUnitId: 'ca-app-pub-3940256099942544/2247696110',
+      // Google's Test Native Ad ID
       request: const AdRequest(),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
