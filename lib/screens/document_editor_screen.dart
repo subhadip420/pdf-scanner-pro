@@ -718,7 +718,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       child: GestureDetector(
         onTap: onTap ?? () => showToast("$label clicked"),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Container(
             // Agar selected hai toh Adobe Scan jaisa solid blue color aayega
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
