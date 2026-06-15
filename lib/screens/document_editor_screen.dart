@@ -39,7 +39,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   double _origHeight = 1.0;
 
   late List<Map<String, double>?> _savedCropPositions;
-
+// FIX 1: Har image ka original AI (Auto) crop save rakhne ke liye
+  late List<Map<String, double>?> _autoCropPositions;
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageController = PageController(initialPage: currentPage);
 
     _savedCropPositions = List.generate(widget.imageFiles.length, (index) => null);
+    _autoCropPositions = List.generate(widget.imageFiles.length, (index) => null); // Auto memory init
 
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
   }
@@ -60,10 +62,69 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     super.dispose();
   }
 
+  // Future<void> _toggleCropMode() async {
+  //   if (isCroppingMode) {
+  //     await _saveNewCrop();
+  //   } else {
+  //     showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
+  //
+  //     File origFile = widget.imageFiles[currentPage]['original']!;
+  //     File cropFile = widget.imageFiles[currentPage]['cropped']!;
+  //
+  //     final origBytes = await origFile.readAsBytes();
+  //     final cropBytes = await cropFile.readAsBytes();
+  //
+  //     final decodedOrig = img.decodeImage(origBytes);
+  //     final decodedCrop = img.decodeImage(cropBytes);
+  //
+  //     if (mounted) Navigator.pop(context); // Loading hatao
+  //
+  //     if (decodedOrig != null && decodedCrop != null) {
+  //       setState(() {
+  //         isCroppingMode = true;
+  //         isThumbnailVisible = false; // Thumbnail hide
+  //         _origWidth = decodedOrig.width.toDouble();
+  //         _origHeight = decodedOrig.height.toDouble();
+  //
+  //         // FIX 3: Check karo ki kya is page ki position pehle se save hai?
+  //         if (_savedCropPositions[currentPage] != null) {
+  //           // Agar save hai toh purani exact position load karo!
+  //           cropTopRatio = _savedCropPositions[currentPage]!['top']!;
+  //           cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
+  //           cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
+  //           cropRightRatio = _savedCropPositions[currentPage]!['right']!;
+  //         } else {
+  //           // Agar pehli baar hai toh midle wala normal calculation karo
+  //           double percentW = decodedCrop.width / decodedOrig.width;
+  //           double percentH = decodedCrop.height / decodedOrig.height;
+  //           cropTopRatio = (1.0 - percentH) / 2;
+  //           cropBottomRatio = (1.0 - percentH) / 2;
+  //           cropLeftRatio = (1.0 - percentW) / 2;
+  //           cropRightRatio = (1.0 - percentW) / 2;
+  //         }
+  //       });
+  //     }
+  //   }
+  // }
+
+  // --- CROP TOOL FUNCTIONS ---
+
+  // --- CROP TOOL FUNCTIONS ---
+
   Future<void> _toggleCropMode() async {
     if (isCroppingMode) {
       await _saveNewCrop();
     } else {
+      // 1. STATE CHANGE: Isse immediately slide animation shuru ho jayega
+      setState(() {
+        isCroppingMode = true;
+        isThumbnailVisible = false; // Thumbnails hide
+      });
+
+      // 2. WAIT: Animation poora hone ke liye 350ms ka waqt (taaki UI freeze na ho)
+      await Future.delayed(const Duration(milliseconds: 350));
+
+      // 3. HEAVY WORK: Ab image reading aur decoding shuru karo (Loading spinner ke sath)
       showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
 
       File origFile = widget.imageFiles[currentPage]['original']!;
@@ -75,34 +136,58 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       final decodedOrig = img.decodeImage(origBytes);
       final decodedCrop = img.decodeImage(cropBytes);
 
-      if (mounted) Navigator.pop(context); // Loading hatao
+      if (mounted) Navigator.pop(context); // Loading hatayo
 
       if (decodedOrig != null && decodedCrop != null) {
         setState(() {
-          isCroppingMode = true;
-          isThumbnailVisible = false; // Thumbnail hide
           _origWidth = decodedOrig.width.toDouble();
           _origHeight = decodedOrig.height.toDouble();
 
-          // FIX 3: Check karo ki kya is page ki position pehle se save hai?
+          double percentW = decodedCrop.width / decodedOrig.width;
+          double percentH = decodedCrop.height / decodedOrig.height;
+          double autoTop = (1.0 - percentH) / 2;
+          double autoBottom = (1.0 - percentH) / 2;
+          double autoLeft = (1.0 - percentW) / 2;
+          double autoRight = (1.0 - percentW) / 2;
+
+          _autoCropPositions[currentPage] ??= {
+            'top': autoTop, 'bottom': autoBottom, 'left': autoLeft, 'right': autoRight,
+          };
+
           if (_savedCropPositions[currentPage] != null) {
-            // Agar save hai toh purani exact position load karo!
             cropTopRatio = _savedCropPositions[currentPage]!['top']!;
             cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
             cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
             cropRightRatio = _savedCropPositions[currentPage]!['right']!;
           } else {
-            // Agar pehli baar hai toh midle wala normal calculation karo
-            double percentW = decodedCrop.width / decodedOrig.width;
-            double percentH = decodedCrop.height / decodedOrig.height;
-            cropTopRatio = (1.0 - percentH) / 2;
-            cropBottomRatio = (1.0 - percentH) / 2;
-            cropLeftRatio = (1.0 - percentW) / 2;
-            cropRightRatio = (1.0 - percentW) / 2;
+            cropTopRatio = autoTop;
+            cropBottomRatio = autoBottom;
+            cropLeftRatio = autoLeft;
+            cropRightRatio = autoRight;
           }
         });
       }
     }
+  }
+
+  // FIX 2: Crop Cancel karna bina save kiye
+  void _cancelCrop() {
+    setState(() {
+      isCroppingMode = false;
+      isThumbnailVisible = true;
+    });
+  }
+
+  // FIX 3: Wapas Auto-Crop wali AI position par reset karna
+  void _resetToAutoCrop() {
+    setState(() {
+      if (_autoCropPositions[currentPage] != null) {
+        cropTopRatio = _autoCropPositions[currentPage]!['top']!;
+        cropBottomRatio = _autoCropPositions[currentPage]!['bottom']!;
+        cropLeftRatio = _autoCropPositions[currentPage]!['left']!;
+        cropRightRatio = _autoCropPositions[currentPage]!['right']!;
+      }
+    });
   }
 
   // Generate default file name based on current date
@@ -602,52 +687,79 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
 
           /// NEW ACTION TOOLS BAR (Horizontal Scrollable)
+          // Container(
+          //   height: 75,
+          //   color: const Color(0xFF151515), // Dark background for tools section
+          //   child: ListView(
+          //     scrollDirection: Axis.horizontal,
+          //     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+          //     children: [
+          //       _buildToolItem(label: "Retake",
+          //           icon: Icons.refresh_rounded,
+          //           tooltipMessage: "Retake current photo"),
+          //       // _buildToolItem(label: "Crop",
+          //       //     icon: Icons.crop_rounded,
+          //       //     tooltipMessage: "Crop & adjust borders"),
+          //
+          //       _buildToolItem(
+          //         label: "Crop",
+          //         icon: Icons.crop_rounded,
+          //         tooltipMessage: "Crop & adjust borders",
+          //         isSelected: isCroppingMode, // Mode ON hone par blue hoga
+          //         onTap: _toggleCropMode,     // Naya function call hoga
+          //       ),
+          //       _buildToolItem(label: "Rotate",
+          //           icon: Icons.rotate_right_rounded,
+          //           tooltipMessage: "Rotate 90 degrees"),
+          //       _buildToolItem(label: "Filter",
+          //           icon: Icons.photo_filter_rounded,
+          //           tooltipMessage: "Apply color filters"),
+          //       _buildToolItem(label: "Adjust",
+          //           icon: Icons.tune_rounded,
+          //           tooltipMessage: "Adjust brightness and contrast"),
+          //       _buildToolItem(label: "Markup",
+          //           icon: Icons.border_color_rounded,
+          //           tooltipMessage: "Draw or add text on image"),
+          //       _buildToolItem(label: "Cleanup",
+          //           icon: Icons.auto_fix_high_rounded,
+          //           tooltipMessage: "Erase unwanted areas"),
+          //       _buildToolItem(label: "Resize",
+          //           icon: Icons.aspect_ratio_rounded,
+          //           tooltipMessage: "Change page layout size"),
+          //       _buildToolItem(label: "Reorder",
+          //           icon: Icons.swap_horizontal_circle_outlined,
+          //           tooltipMessage: "Rearrange page sequence"),
+          //       _buildToolItem(label: "Delete",
+          //           icon: Icons.delete_outline_rounded,
+          //           tooltipMessage: "Delete current page"),
+          //     ],
+          //   ),
+          // ),
+
+          /// NEW ACTION TOOLS BAR (With Slide Animation)
+          /// NEW ACTION TOOLS BAR (With Smooth Slide Animation)
           Container(
             height: 75,
-            color: const Color(0xFF151515), // Dark background for tools section
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-              children: [
-                _buildToolItem(label: "Retake",
-                    icon: Icons.refresh_rounded,
-                    tooltipMessage: "Retake current photo"),
-                // _buildToolItem(label: "Crop",
-                //     icon: Icons.crop_rounded,
-                //     tooltipMessage: "Crop & adjust borders"),
-
-                _buildToolItem(
-                  label: "Crop",
-                  icon: Icons.crop_rounded,
-                  tooltipMessage: "Crop & adjust borders",
-                  isSelected: isCroppingMode, // Mode ON hone par blue hoga
-                  onTap: _toggleCropMode,     // Naya function call hoga
-                ),
-                _buildToolItem(label: "Rotate",
-                    icon: Icons.rotate_right_rounded,
-                    tooltipMessage: "Rotate 90 degrees"),
-                _buildToolItem(label: "Filter",
-                    icon: Icons.photo_filter_rounded,
-                    tooltipMessage: "Apply color filters"),
-                _buildToolItem(label: "Adjust",
-                    icon: Icons.tune_rounded,
-                    tooltipMessage: "Adjust brightness and contrast"),
-                _buildToolItem(label: "Markup",
-                    icon: Icons.border_color_rounded,
-                    tooltipMessage: "Draw or add text on image"),
-                _buildToolItem(label: "Cleanup",
-                    icon: Icons.auto_fix_high_rounded,
-                    tooltipMessage: "Erase unwanted areas"),
-                _buildToolItem(label: "Resize",
-                    icon: Icons.aspect_ratio_rounded,
-                    tooltipMessage: "Change page layout size"),
-                _buildToolItem(label: "Reorder",
-                    icon: Icons.swap_horizontal_circle_outlined,
-                    tooltipMessage: "Rearrange page sequence"),
-                _buildToolItem(label: "Delete",
-                    icon: Icons.delete_outline_rounded,
-                    tooltipMessage: "Delete current page"),
-              ],
+            color: const Color(0xFF151515),
+            // FIX: ClipRect lagaya hai taaki animation frame ke bahar over-flow na kare
+            child: ClipRect(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                switchInCurve: Curves.easeOutCubic, // Ekdum smooth aur premium slide
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.0, 1.0), // Niche se upar aayega
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child, // Fade hata diya taaki sirf solid slide dikhe
+                  );
+                },
+                child: isCroppingMode
+                    ? _buildCropSubTools()
+                    : _buildNormalTools(),
+              ),
             ),
           ),
 
@@ -705,6 +817,76 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+
+  // --- TOOLBAR WIDGETS ---
+
+  // --- TOOLBAR WIDGETS ---
+
+  Widget _buildNormalTools() {
+    // FIX: SizedBox lagana zaroori hai taaki sliding ke time height collapse na ho
+    return SizedBox(
+      key: const ValueKey("NormalTools"), // Animation Engine ko pata chalega ki ye alag widget hai
+      height: 75,
+      width: double.infinity,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+        children: [
+          _buildToolItem(label: "Retake", icon: Icons.refresh_rounded, tooltipMessage: "Retake current photo"),
+          _buildToolItem(
+            label: "Crop",
+            icon: Icons.crop_rounded,
+            tooltipMessage: "Crop & adjust borders",
+            isSelected: isCroppingMode,
+            onTap: _toggleCropMode,
+          ),
+          _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded, tooltipMessage: "Rotate 90 degrees"),
+          _buildToolItem(label: "Filter", icon: Icons.photo_filter_rounded, tooltipMessage: "Apply color filters"),
+          _buildToolItem(label: "Adjust", icon: Icons.tune_rounded, tooltipMessage: "Adjust brightness and contrast"),
+          _buildToolItem(label: "Markup", icon: Icons.border_color_rounded, tooltipMessage: "Draw or add text on image"),
+          _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
+          _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
+          _buildToolItem(label: "Reorder", icon: Icons.swap_horizontal_circle_outlined, tooltipMessage: "Rearrange page sequence"),
+          _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, tooltipMessage: "Delete current page"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCropSubTools() {
+    // FIX: Same size ka SizedBox taaki switcher me smooth transition ho
+    return SizedBox(
+      key: const ValueKey("CropSubTools"),
+      height: 75,
+      width: double.infinity,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildToolItem(
+            label: "Cancel",
+            icon: Icons.close_rounded,
+            tooltipMessage: "Cancel Crop",
+            onTap: _cancelCrop,
+          ),
+          _buildToolItem(
+            label: "Auto",
+            icon: Icons.auto_awesome_mosaic_rounded,
+            tooltipMessage: "Reset to auto detect",
+            onTap: _resetToAutoCrop,
+          ),
+          _buildToolItem(
+            label: "Done",
+            icon: Icons.check_rounded,
+            tooltipMessage: "Save crop",
+            isSelected: true,
+            onTap: () async {
+              await _saveNewCrop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildToolItem({
     required String label,
