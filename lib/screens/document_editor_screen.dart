@@ -111,22 +111,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // --- CROP TOOL FUNCTIONS ---
 
+  // --- CROP TOOL FUNCTIONS ---
+
   Future<void> _toggleCropMode() async {
     if (isCroppingMode) {
       await _saveNewCrop();
     } else {
-      // 1. STATE CHANGE: Isse immediately slide animation shuru ho jayega
+      // 1. STATE CHANGE: Toolbar ko "Hide Down" aur Crop Option ko "Hide Up" karega
       setState(() {
         isCroppingMode = true;
-        isThumbnailVisible = false; // Thumbnails hide
+        isThumbnailVisible = false;
       });
 
-      // 2. WAIT: Animation poora hone ke liye 350ms ka waqt (taaki UI freeze na ho)
-      await Future.delayed(const Duration(milliseconds: 350));
+      // 2. WAIT: Animation poora hone ke liye exactly 300ms rukenge
+      await Future.delayed(const Duration(milliseconds: 300));
 
-      // 3. HEAVY WORK: Ab image reading aur decoding shuru karo (Loading spinner ke sath)
-      showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
-
+      // 3. HEAVY WORK: Ab photo read aur decode hogi (UI freeze nahi hoga)
       File origFile = widget.imageFiles[currentPage]['original']!;
       File cropFile = widget.imageFiles[currentPage]['cropped']!;
 
@@ -135,8 +135,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
       final decodedOrig = img.decodeImage(origBytes);
       final decodedCrop = img.decodeImage(cropBytes);
-
-      if (mounted) Navigator.pop(context); // Loading hatayo
 
       if (decodedOrig != null && decodedCrop != null) {
         setState(() {
@@ -170,13 +168,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // FIX 2: Crop Cancel karna bina save kiye
-  void _cancelCrop() {
-    setState(() {
-      isCroppingMode = false;
-      isThumbnailVisible = true;
-    });
-  }
 
   // FIX 3: Wapas Auto-Crop wali AI position par reset karna
   void _resetToAutoCrop() {
@@ -622,69 +613,137 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
 
           /// BOTTOM HORIZONTAL THUMBNAIL LIST
-          if (isThumbnailVisible)
-            Container(
-              height: 90,
-              color: const Color(0xFF1E1E1E),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: widget.imageFiles.length,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                itemBuilder: (context, index) {
-                  bool isSelected = currentPage == index;
-                  return GestureDetector(
-                    onTap: () {
-                      _pageController.animateToPage(
-                        index,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Container(
-                      width: 60,
-                      margin: const EdgeInsets.only(right: 12),
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          //image: FileImage(widget.imageFiles[index]),
-                          image: FileImage(widget.imageFiles[index]['cropped']!),
-                          fit: BoxFit.cover,
-                        ),
-                        border: Border.all(
-                          color: isSelected ? Colors.blue : Colors.transparent,
-                          width: 3,
-                        ),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Stack(
-                        children: [
+          // if (isThumbnailVisible)
+          //   Container(
+          //     height: 90,
+          //     color: const Color(0xFF1E1E1E),
+          //     child: ListView.builder(
+          //       scrollDirection: Axis.horizontal,
+          //       itemCount: widget.imageFiles.length,
+          //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          //       itemBuilder: (context, index) {
+          //         bool isSelected = currentPage == index;
+          //         return GestureDetector(
+          //           onTap: () {
+          //             _pageController.animateToPage(
+          //               index,
+          //               duration: const Duration(milliseconds: 300),
+          //               curve: Curves.easeInOut,
+          //             );
+          //           },
+          //           child: Container(
+          //             width: 60,
+          //             margin: const EdgeInsets.only(right: 12),
+          //             decoration: BoxDecoration(
+          //               image: DecorationImage(
+          //                 //image: FileImage(widget.imageFiles[index]),
+          //                 image: FileImage(widget.imageFiles[index]['cropped']!),
+          //                 fit: BoxFit.cover,
+          //               ),
+          //               border: Border.all(
+          //                 color: isSelected ? Colors.blue : Colors.transparent,
+          //                 width: 3,
+          //               ),
+          //               borderRadius: BorderRadius.circular(4),
+          //             ),
+          //             child: Stack(
+          //               children: [
+          //
+          //                 // Number with small dark background box
+          //                 Align(
+          //                   alignment: Alignment.bottomCenter, // Number ko thoda right side me rakha hai jo zyada accha lagta hai
+          //                   child: Container(
+          //                     margin: const EdgeInsets.all(4),
+          //                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          //                     decoration: BoxDecoration(
+          //                       color: Colors.black.withOpacity(0.6), // Low opacity black background
+          //                       borderRadius: BorderRadius.circular(10), // Small rounded shape
+          //                     ),
+          //                     child: Text(
+          //                       '${index + 1}',
+          //                       style: const TextStyle(
+          //                         color: Colors.white,
+          //                         fontSize: 11,
+          //                         fontWeight: FontWeight.bold,
+          //                       ),
+          //                     ),
+          //                   ),
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         );
+          //       },
+          //     ),
+          //   ),
 
-                          // Number with small dark background box
-                          Align(
-                            alignment: Alignment.bottomCenter, // Number ko thoda right side me rakha hai jo zyada accha lagta hai
-                            child: Container(
-                              margin: const EdgeInsets.all(4),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.6), // Low opacity black background
-                                borderRadius: BorderRadius.circular(10), // Small rounded shape
-                              ),
-                              child: Text(
-                                '${index + 1}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
+          /// BOTTOM HORIZONTAL THUMBNAIL LIST (Smooth Hide/Show Animation)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300), // Same duration as Toolbar animation
+            curve: Curves.easeInOut,
+            height: isThumbnailVisible ? 90.0 : 0.0, // Achanak gayab hone ke bajaye shrink hoga
+            child: ClipRect( // ClipRect zaroori hai taaki shrink hote waqt image bahar na nikle
+              child: Container(
+                height: 90,
+                color: const Color(0xFF1E1E1E),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.imageFiles.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  itemBuilder: (context, index) {
+                    bool isSelected = currentPage == index;
+                    return GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: Container(
+                        width: 60,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: FileImage(widget.imageFiles[index]['cropped']!),
+                            fit: BoxFit.cover,
+                          ),
+                          border: Border.all(
+                            color: isSelected ? Colors.blue : Colors.transparent,
+                            width: 3,
+                          ),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Stack(
+                          children: [
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                margin: const EdgeInsets.all(4),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '${index + 1}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
+          ),
 
           /// NEW ACTION TOOLS BAR (Horizontal Scrollable)
           // Container(
@@ -737,31 +796,39 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           // ),
 
           /// NEW ACTION TOOLS BAR (With Slide Animation)
-          /// NEW ACTION TOOLS BAR (With Smooth Slide Animation)
+          /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
           Container(
             height: 75,
             color: const Color(0xFF151515),
-            // FIX: ClipRect lagaya hai taaki animation frame ke bahar over-flow na kare
             child: ClipRect(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                switchInCurve: Curves.easeOutCubic, // Ekdum smooth aur premium slide
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.0, 1.0), // Niche se upar aayega
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child, // Fade hata diya taaki sirf solid slide dikhe
-                  );
-                },
-                child: isCroppingMode
-                    ? _buildCropSubTools()
-                    : _buildNormalTools(),
+              child: Stack(
+                children: [
+                  // NORMAL TOOLS:
+                  // Jab crop chalega, toh yeh (0, 1.0) matlab 100% niche jayega
+                  // Jab crop band hoga, toh (0, 0) matlab wapas original position par aayega
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: isCroppingMode ? const Offset(0, 1.0) : Offset.zero,
+                    child: _buildNormalTools(),
+                  ),
+
+                  // CROP OPTIONS:
+                  // Jab crop chalega, toh yeh (0, 0) matlab upar original position par aayega
+                  // Jab crop band hoga, toh (0, 1.0) matlab wapas niche chhip jayega
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: isCroppingMode ? Offset.zero : const Offset(0, 1.0),
+                    child: _buildCropSubTools(),
+                  ),
+                ],
               ),
             ),
           ),
+
+
+
 
           /// NAYA BOTTOM BAR: Keep Scanning & Save PDF
           Container(
@@ -953,7 +1020,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   Future<void> _saveNewCrop() async {
-    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
+    // 1. STATE CHANGE: Crop options "Hide Down" aur Normal tools "Hide Up" honge
+    setState(() {
+      isCroppingMode = false;
+      isThumbnailVisible = true;
+    });
+
+    // 2. WAIT: Animation poora hone do 300ms
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // 3. HEAVY WORK: Crop save logic chalega
     try {
       File originalFile = widget.imageFiles[currentPage]['original']!;
       final bytes = await originalFile.readAsBytes();
@@ -978,23 +1054,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
         setState(() {
           widget.imageFiles[currentPage]['cropped'] = newFile;
-
-          // FIX 4: Crop complete hone par is page ka box position memory me Save kar lo
+          // Crop position save hogi agle baar ke liye
           _savedCropPositions[currentPage] = {
-            'top': cropTopRatio,
-            'bottom': cropBottomRatio,
-            'left': cropLeftRatio,
-            'right': cropRightRatio,
+            'top': cropTopRatio, 'bottom': cropBottomRatio, 'left': cropLeftRatio, 'right': cropRightRatio,
           };
-
-          isCroppingMode = false;
-          isThumbnailVisible = true;
         });
       }
     } catch (e) {
       showToast("Error saving crop");
     }
-    if (mounted) Navigator.pop(context);
+  }
+
+  // Cancel logic bhi perfect slide down dega
+  void _cancelCrop() {
+    setState(() {
+      isCroppingMode = false;
+      isThumbnailVisible = true;
+    });
   }
 
   Widget _buildInPlaceCropView() {
