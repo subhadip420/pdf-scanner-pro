@@ -474,9 +474,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     }
 
                     // Warna normal image preview dikhao
+                    // return Center(
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                    //     child: Image.file(
+                    //       widget.imageFiles[index]['cropped']!,
+                    //       fit: BoxFit.contain,
+                    //     ),
+                    //   ),
+                    // );
+
+                    // Warna normal image preview dikhao
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+                        // FIX: symmetric hata kar only lagaya aur bottom padding ko 90 kar diya
+                        // Isse photo niche se upar chali jayegi aur controls se nahi takrayegi
+                        padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
                         child: Image.file(
                           widget.imageFiles[index]['cropped']!,
                           fit: BoxFit.contain,
