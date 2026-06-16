@@ -811,7 +811,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           /// NEW ACTION TOOLS BAR (With Slide Animation)
           /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
           Container(
-            height: 75,
+            height: 68,
             color: const Color(0xFF151515),
             child: ClipRect(
               child: Stack(
@@ -910,7 +910,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       width: double.infinity,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
         children: [
           _buildToolItem(label: "Retake", icon: Icons.refresh_rounded, tooltipMessage: "Retake current photo"),
           _buildToolItem(
