@@ -315,19 +315,56 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                 }
               });
             },
+            // child: Stack(
+            //   fit: StackFit.expand,
+            //   children: [
+            //     // Image Thumbnail load karna
+            //     FutureBuilder<Uint8List?>(
+            //       future: asset.thumbnailDataWithSize(const ThumbnailSize.square(250)),
+            //       builder: (_, snapshot) {
+            //         if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) {
+            //           return Image.memory(snapshot.data!, fit: BoxFit.cover);
+            //         }
+            //         return Container(color: Colors.grey.shade900); // Placeholder
+            //       },
+            //     ),
+            //
+            //     // SELECTED PHOTO PAR BLUE BORDER aur halka blackish overlay
+            //     if (isSelected)
+            //       Container(
+            //         decoration: BoxDecoration(
+            //           color: Colors.black.withOpacity(0.3),
+            //           border: Border.all(color: Colors.blueAccent, width: 3),
+            //         ),
+            //       ),
+            //
+            //     // SELECTED PHOTO MEIN SIRF NUMBER (Blue Circle mein)
+            //     if (isSelected)
+            //       Positioned(
+            //         top: 6,
+            //         left: 6,
+            //         child: Container(
+            //           width: 24,
+            //           height: 24,
+            //           decoration: const BoxDecoration(
+            //             color: Colors.blueAccent,
+            //             shape: BoxShape.circle,
+            //           ),
+            //           alignment: Alignment.center,
+            //           child: Text(
+            //             '$selectedIndex',
+            //             style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+            //           ),
+            //         ),
+            //       )
+            //   ],
+            // ),
+
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Image Thumbnail load karna
-                FutureBuilder<Uint8List?>(
-                  future: asset.thumbnailDataWithSize(const ThumbnailSize.square(250)),
-                  builder: (_, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) {
-                      return Image.memory(snapshot.data!, fit: BoxFit.cover);
-                    }
-                    return Container(color: Colors.grey.shade900); // Placeholder
-                  },
-                ),
+                // 🚨 FIX: Purana FutureBuilder hata kar naya stable widget lagaya
+                _AssetThumbnail(asset: asset),
 
                 // SELECTED PHOTO PAR BLUE BORDER aur halka blackish overlay
                 if (isSelected)
@@ -384,6 +421,49 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+// Ekdum solid aur stable thumbnail widget jo flicker nahi karega
+class _AssetThumbnail extends StatefulWidget {
+  final AssetEntity asset;
+  const _AssetThumbnail({Key? key, required this.asset}) : super(key: key);
+
+  @override
+  State<_AssetThumbnail> createState() => _AssetThumbnailState();
+}
+
+class _AssetThumbnailState extends State<_AssetThumbnail> {
+  Future<Uint8List?>? _future;
+
+  @override
+  void initState() {
+    super.initState();
+    // Image data sirf ek baar load hoga jab widget pehli baar banega
+    _future = widget.asset.thumbnailDataWithSize(const ThumbnailSize.square(250));
+  }
+
+  @override
+  void didUpdateWidget(covariant _AssetThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Agar scroll karne par naya asset aata hai, tabhi data wapas load hoga
+    if (oldWidget.asset.id != widget.asset.id) {
+      _future = widget.asset.thumbnailDataWithSize(const ThumbnailSize.square(250));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Uint8List?>(
+      future: _future,
+      builder: (_, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) {
+          return Image.memory(snapshot.data!, fit: BoxFit.cover);
+        }
+        return Container(color: Colors.grey.shade900); // Placeholder
+      },
     );
   }
 }
