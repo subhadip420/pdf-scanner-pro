@@ -2,6 +2,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import '../../main.dart';
 import 'dart:io';
 import 'package:scroll_snap_list/scroll_snap_list.dart';
@@ -9,6 +11,7 @@ import 'package:flutter/services.dart'; // For locking orientation
 import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
 import 'dart:async';
 import 'package:image/image.dart' as img;
+import 'custom_gallery_screen.dart';
 import 'document_editor_screen.dart';
 import 'home_screen.dart'; // For StreamSubscription
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -689,6 +692,172 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
+///default media picker
+  // Future<void> _pickImagesFromGallery() async {
+  //   try {
+  //     // 🚨 FIX: PhotoManager ke version ke jhanjhat ko chhodo,
+  //     // permission_handler use karo jo tumhari file me pehle se imported hai!
+  //     // 🚨 SMART PERMISSION BLOCK 🚨
+  //     PermissionStatus status;
+  //
+  //     if (Platform.isAndroid) {
+  //       // Pehle Android 13+ ke hisab se photos permission mangega
+  //       status = await Permission.photos.request();
+  //
+  //       // Agar phone purana (Android 12 ya niche) hoga toh photos permission fail ho jayegi
+  //       // Tab hum purane storage permission ko mangenge
+  //       if (status.isDenied || status.isPermanentlyDenied) {
+  //         PermissionStatus storageStatus = await Permission.storage.request();
+  //         status = storageStatus; // Final status update kar diya
+  //       }
+  //     } else {
+  //       // iOS ke liye
+  //       status = await Permission.photos.request();
+  //     }
+  //
+  //     // Agar user ne 'Don't ask again' kar diya hai, toh seedhe Settings me bhejo
+  //     if (status.isPermanentlyDenied) {
+  //       showToast("Please allow gallery access from Settings");
+  //       await openAppSettings();
+  //       return;
+  //     }
+  //
+  //     // Final check
+  //     if (!status.isGranted && !status.isLimited) {
+  //       showToast("Gallery permission required to pick images.");
+  //       return;
+  //     }
+  //
+  //     // Iske niche tumhara AssetPicker.pickAssets() wala code chalega...
+  //
+  //     // Agar user ne permission nahi di, toh return ho jao
+  //     if (!status.isGranted && !status.isLimited) {
+  //       showToast("Gallery permission denied. Please enable it from settings.");
+  //       return;
+  //     }
+  //
+  //     // 🚨 Ab jab system level par permission mil gayi hai, picker bina kisi crash ke khulega
+  //     final List<AssetEntity>? selectedAssets = await AssetPicker.pickAssets(
+  //       context,
+  //       pickerConfig: const AssetPickerConfig(
+  //         requestType: RequestType.image,
+  //         maxAssets: 50, // Max 50 images ek baar mein pick ho sakti hain
+  //       ),
+  //     );
+  //
+  //     if (selectedAssets == null || selectedAssets.isEmpty) return;
+  //
+  //     // Loading screen dikhao jab tak assets file me convert ho rahe hon
+  //     showDialog(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+  //     );
+  //
+  //     List<Map<String, File>> tempList = [];
+  //
+  //     for (var asset in selectedAssets) {
+  //       final File? file = await asset.file;
+  //       if (file != null) {
+  //         tempList.add({
+  //           'original': file,
+  //           'cropped': file,
+  //         });
+  //       }
+  //     }
+  //
+  //     if (mounted) Navigator.pop(context); // Loading close karo
+  //
+  //     setState(() {
+  //       capturedImagesList.addAll(tempList);
+  //       capturedPhotosCount = capturedImagesList.length; // Counter badge update
+  //     });
+  //
+  //     showToast("${selectedAssets.length} images imported serial wise");
+  //
+  //     if (mounted) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList),
+  //         ),
+  //       ).then((_) {
+  //         if (isAutoDetectOn && !controller.value.isStreamingImages) {
+  //           _startMLAutoDetect();
+  //         }
+  //       });
+  //     }
+  //   } catch (e) {
+  //     if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+  //     print("Gallery Pick Error: $e");
+  //     showToast("Error importing images");
+  //   }
+  // }
+
+  /// custom media picker:
+  Future<void> _pickImagesFromGallery() async {
+    try {
+      // Permission Handling (Pehle jaise tha)
+      PermissionStatus status = PermissionStatus.denied;
+      if (Platform.isAndroid) {
+        status = await Permission.photos.status;
+        if (status.isDenied) status = await Permission.photos.request();
+        if (status.isDenied || status.isRestricted) {
+          status = await Permission.storage.status;
+          if (status.isDenied) status = await Permission.storage.request();
+        }
+      } else {
+        status = await Permission.photos.request();
+      }
+
+      if (status.isPermanentlyDenied) {
+        showToast("Please enable Gallery permission from settings.");
+        await openAppSettings();
+        return;
+      }
+      if (!status.isGranted && !status.isLimited) {
+        showToast("Gallery permission required.");
+        return;
+      }
+
+      // 🚨 Puraane AssetPicker.pickAssets() ki jagah hum apni custom screen call karenge
+      final List<File>? selectedFiles = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CustomGalleryScreen()),
+      );
+
+      // Agar user ne bina select kiye close kar diya
+      if (selectedFiles == null || selectedFiles.isEmpty) return;
+
+      setState(() {
+        for (var file in selectedFiles) {
+          capturedImagesList.add({
+            'original': file,
+            'cropped': file,
+          });
+        }
+        capturedPhotosCount = capturedImagesList.length;
+      });
+
+      showToast("${selectedFiles.length} images imported serial wise");
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList),
+          ),
+        ).then((_) {
+          if (isAutoDetectOn && !controller.value.isStreamingImages) {
+            _startMLAutoDetect();
+          }
+        });
+      }
+    } catch (e) {
+      print("Gallery Error: $e");
+      showToast("Error importing images");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -922,10 +1091,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
 
                           /// Gallery
+                          /// Gallery Button
                           IconButton(
-                            onPressed: () {
-                              showToast("Gallery");
-                            },
+                            onPressed: _pickImagesFromGallery, // Alag function yahan call ho gaya
                             icon: _buildRotatedIcon(
                               Icons.photo_library_rounded,
                               color: Colors.white,
