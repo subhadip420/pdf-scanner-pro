@@ -507,7 +507,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                 SizedBox(width: 8),
                 Text(
                   "Show all photos...",
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                  style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
