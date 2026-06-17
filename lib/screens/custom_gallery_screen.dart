@@ -145,6 +145,75 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
   }
 
   // 2. Click karne par Album List kholne ka design (Screenshot 2 jaisa)
+  // void _showAlbumListModal() {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: const Color(0xFF1E1E1E), // Dark theme
+  //     isScrollControlled: true, // Screen height control karne ke liye
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)), // Upar se round
+  //     ),
+  //     builder: (BuildContext context) {
+  //       return SizedBox(
+  //         height: MediaQuery.of(context).size.height * 0.75, // Screen ka 75% height lega
+  //         child: Column(
+  //           children: [
+  //             const SizedBox(height: 10),
+  //             // Top ka chhota sa handle bar
+  //             Container(
+  //               width: 40,
+  //               height: 4,
+  //               decoration: BoxDecoration(
+  //                 color: Colors.grey.shade600,
+  //                 borderRadius: BorderRadius.circular(2),
+  //               ),
+  //             ),
+  //             const SizedBox(height: 10),
+  //             // Main Albums ki list
+  //             Expanded(
+  //               child: ListView.separated(
+  //                 itemCount: _albums.length,
+  //                 separatorBuilder: (context, index) => const Divider(color: Colors.white12, height: 1),
+  //                 itemBuilder: (context, index) {
+  //                   final album = _albums[index];
+  //                   final isSelected = album == _selectedAlbum;
+  //
+  //                   // Photo count laane ke liye FutureBuilder
+  //                   return FutureBuilder<int>(
+  //                     future: album.assetCountAsync,
+  //                     builder: (context, snapshot) {
+  //                       final count = snapshot.data ?? 0;
+  //                       return ListTile(
+  //                         contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+  //                         title: Text(
+  //                           "${album.name == "Recent" ? "Recent" : album.name} ($count)",
+  //                           style: const TextStyle(color: Colors.white, fontSize: 16),
+  //                         ),
+  //                         // Agar select hai toh Green Tick dikhao
+  //                         trailing: isSelected ? const Icon(Icons.check, color: Colors.greenAccent) : null,
+  //                         onTap: () {
+  //                           Navigator.pop(context); // List close karo
+  //                           if (!isSelected) {
+  //                             setState(() {
+  //                               _selectedAlbum = album; // Naya album set karo
+  //                             });
+  //                             _fetchAssetsFromAlbum(album); // Nayi photos load karo
+  //                           }
+  //                         },
+  //                       );
+  //                     },
+  //                   );
+  //                 },
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
+  // 2. Click karne par Album List kholne ka design (With Thumbnails)
   void _showAlbumListModal() {
     showModalBottomSheet(
       context: context,
@@ -178,27 +247,51 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                     final album = _albums[index];
                     final isSelected = album == _selectedAlbum;
 
-                    // Photo count laane ke liye FutureBuilder
-                    return FutureBuilder<int>(
-                      future: album.assetCountAsync,
-                      builder: (context, snapshot) {
-                        final count = snapshot.data ?? 0;
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                          title: Text(
-                            "${album.name == "Recent" ? "Recent" : album.name} ($count)",
-                            style: const TextStyle(color: Colors.white, fontSize: 16),
-                          ),
-                          // Agar select hai toh Green Tick dikhao
-                          trailing: isSelected ? const Icon(Icons.check, color: Colors.greenAccent) : null,
-                          onTap: () {
-                            Navigator.pop(context); // List close karo
-                            if (!isSelected) {
-                              setState(() {
-                                _selectedAlbum = album; // Naya album set karo
-                              });
-                              _fetchAssetsFromAlbum(album); // Nayi photos load karo
-                            }
+                    // 🚨 NEW: Album ki pehli photo (cover) laane ke liye FutureBuilder
+                    return FutureBuilder<List<AssetEntity>>(
+                      future: album.getAssetListPaged(page: 0, size: 1), // Sirf 1 photo fetch karenge cover ke liye
+                      builder: (context, assetSnapshot) {
+                        final firstAsset = (assetSnapshot.hasData && assetSnapshot.data!.isNotEmpty)
+                            ? assetSnapshot.data!.first
+                            : null;
+
+                        return FutureBuilder<int>(
+                          future: album.assetCountAsync,
+                          builder: (context, countSnapshot) {
+                            final count = countSnapshot.data ?? 0;
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+
+                              // 🚨 NEW: Leading Thumbnail Image
+                              leading: Container(
+                                width: 55,
+                                height: 55,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade800,
+                                  borderRadius: BorderRadius.circular(4), // Halka sa rounded corner
+                                ),
+                                clipBehavior: Clip.hardEdge,
+                                child: firstAsset != null
+                                    ? _AssetThumbnail(asset: firstAsset) // Apni flicker-free class use ki
+                                    : const Icon(Icons.photo_album, color: Colors.white54), // Agar folder khali ho
+                              ),
+
+                              title: Text(
+                                "${album.name == "Recent" ? "Recent" : album.name} ($count)",
+                                style: const TextStyle(color: Colors.white, fontSize: 16),
+                              ),
+                              // Agar select hai toh Green Tick dikhao
+                              trailing: isSelected ? const Icon(Icons.check, color: Colors.greenAccent) : null,
+                              onTap: () {
+                                Navigator.pop(context); // List close karo
+                                if (!isSelected) {
+                                  setState(() {
+                                    _selectedAlbum = album; // Naya album set karo
+                                  });
+                                  _fetchAssetsFromAlbum(album); // Nayi photos load karo
+                                }
+                              },
+                            );
                           },
                         );
                       },
