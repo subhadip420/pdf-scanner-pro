@@ -14,8 +14,11 @@ import 'home_screen.dart';
 class DocumentEditorScreen extends StatefulWidget {
   //final List<File> imageFiles; // Real images coming from ScannerScreen
   final List<Map<String, File>> imageFiles;
+
   //const DocumentEditorScreen({super.key, required this.imageFiles});
-  const DocumentEditorScreen({Key? key, required this.imageFiles}) : super(key: key);
+  const DocumentEditorScreen({Key? key, required this.imageFiles})
+    : super(key: key);
+
   @override
   State<DocumentEditorScreen> createState() => _DocumentEditorScreenState();
 }
@@ -27,7 +30,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool isThumbnailVisible = true; // By default thumbnails dikhenge
   RewardedAd? _rewardedAd; // Ad store karne ke liye
 
-// --- CROP TOOL VARIABLES ---
+  // --- CROP TOOL VARIABLES ---
   bool isCroppingMode = false;
   double cropTopRatio = 0.0;
   double cropBottomRatio = 0.0;
@@ -39,7 +42,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   double _origHeight = 1.0;
 
   late List<Map<String, double>?> _savedCropPositions;
-// FIX 1: Har image ka original AI (Auto) crop save rakhne ke liye
+
+  // FIX 1: Har image ka original AI (Auto) crop save rakhne ke liye
   late List<Map<String, double>?> _autoCropPositions;
 
   @override
@@ -50,8 +54,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     currentPage = widget.imageFiles.length - 1;
     _pageController = PageController(initialPage: currentPage);
 
-    _savedCropPositions = List.generate(widget.imageFiles.length, (index) => null);
-    _autoCropPositions = List.generate(widget.imageFiles.length, (index) => null); // Auto memory init
+    _savedCropPositions = List.generate(
+      widget.imageFiles.length,
+      (index) => null,
+    );
+    _autoCropPositions = List.generate(
+      widget.imageFiles.length,
+      (index) => null,
+    ); // Auto memory init
 
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
   }
@@ -149,7 +159,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           double autoRight = (1.0 - percentW) / 2;
 
           _autoCropPositions[currentPage] ??= {
-            'top': autoTop, 'bottom': autoBottom, 'left': autoLeft, 'right': autoRight,
+            'top': autoTop,
+            'bottom': autoBottom,
+            'left': autoLeft,
+            'right': autoRight,
           };
 
           if (_savedCropPositions[currentPage] != null) {
@@ -168,7 +181,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-
   // FIX 3: Wapas Auto-Crop wali AI position par reset karna
   void _resetToAutoCrop() {
     setState(() {
@@ -185,8 +197,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   String _generateDefaultName() {
     final now = DateTime.now();
     final months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
     return "Scanner Pro ${months[now.month - 1]} ${now.day}, ${now.year}";
   }
@@ -245,7 +267,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     // Max 2 seconds wait karna (100ms x 20 bar check karega)
     for (int i = 0; i < 20; i++) {
       await Future.delayed(const Duration(milliseconds: 100));
-      if (_rewardedAd != null) break; // Agar wait karte time ad load ho gaya, toh loop break
+      if (_rewardedAd != null)
+        break; // Agar wait karte time ad load ho gaya, toh loop break
     }
 
     // Wait khatam, Loading Dialog close karo
@@ -290,12 +313,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           margin: pw.EdgeInsets.zero,
           pageFormat: PdfPageFormat.a4,
           build: (context) {
-            return pw.Center(
-              child: pw.Image(
-                image,
-                fit: pw.BoxFit.contain,
-              ),
-            );
+            return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
           },
         ),
       );
@@ -315,7 +333,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
 
       // 2. Public Documents folder ka path set karein
-      final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+      final Directory publicDir = Directory(
+        '/storage/emulated/0/Documents/PDF Scanner Pro',
+      );
 
       // 3. Agar folder nahi hai, toh naya banao
       if (!await publicDir.exists()) {
@@ -348,7 +368,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false, // Yeh condition purane saare pages (Camera, Edit) ko stack se hata degi
+          (Route<dynamic> route) =>
+              false, // Yeh condition purane saare pages (Camera, Edit) ko stack se hata degi
         );
       }
     } catch (e) {
@@ -391,7 +412,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       showToast("Last page");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -439,7 +459,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           Tooltip(
             message: "Document Options",
             child: IconButton(
-              icon: const Icon(Icons.edit_document, color: Colors.white, size: 24),
+              icon: const Icon(
+                Icons.edit_document,
+                color: Colors.white,
+                size: 24,
+              ),
               onPressed: () {
                 showToast("Options tapped");
               },
@@ -455,12 +479,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           Expanded(
             child: Stack(
               children: [
-
                 // Swipeable & Zoomable Images
                 PageView.builder(
                   controller: _pageController,
                   // Jab crop chal raha ho toh page swipe disable kar denge
-                  physics: isCroppingMode ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+                  physics: isCroppingMode
+                      ? const NeverScrollableScrollPhysics()
+                      : const BouncingScrollPhysics(),
                   onPageChanged: (index) {
                     setState(() {
                       currentPage = index;
@@ -489,7 +514,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       child: Padding(
                         // FIX: symmetric hata kar only lagaya aur bottom padding ko 90 kar diya
                         // Isse photo niche se upar chali jayegi aur controls se nahi takrayegi
-                        padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                        padding: const EdgeInsets.only(
+                          left: 24,
+                          right: 24,
+                          top: 20,
+                          bottom: 80,
+                        ),
                         child: Image.file(
                           widget.imageFiles[index]['cropped']!,
                           fit: BoxFit.contain,
@@ -519,18 +549,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               height: 40,
                               decoration: BoxDecoration(
                                 // First page par background halka (black38) ho jayega
-                                color: currentPage > 0 ? Colors.black87 : Colors.black38,
+                                color: currentPage > 0
+                                    ? Colors.black87
+                                    : Colors.black38,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                  Icons.arrow_back_ios_new_rounded,
-                                  // First page par icon ka color fade (white30) ho jayega
-                                  color: currentPage > 0 ? Colors.white : Colors.white30,
-                                  size: 18
+                                Icons.arrow_back_ios_new_rounded,
+                                // First page par icon ka color fade (white30) ho jayega
+                                color: currentPage > 0
+                                    ? Colors.white
+                                    : Colors.white30,
+                                size: 18,
                               ),
                             ),
                           ),
                         ),
+
                         /// Middle Controls (Add Icon + Page Count)
                         Row(
                           children: [
@@ -546,9 +581,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
-                                      Icons.post_add_rounded,
-                                      color: Colors.white,
-                                      size: 20
+                                    Icons.post_add_rounded,
+                                    color: Colors.white,
+                                    size: 20,
                                   ),
                                 ),
                               ),
@@ -564,7 +599,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   });
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.black87,
                                     borderRadius: BorderRadius.circular(20),
@@ -581,11 +619,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       ),
                                       const SizedBox(width: 6),
                                       Icon(
-                                          isThumbnailVisible
-                                              ? Icons.keyboard_arrow_down_rounded
-                                              : Icons.keyboard_arrow_up_rounded,
-                                          color: Colors.white,
-                                          size: 18
+                                        isThumbnailVisible
+                                            ? Icons.keyboard_arrow_down_rounded
+                                            : Icons.keyboard_arrow_up_rounded,
+                                        color: Colors.white,
+                                        size: 18,
                                       ),
                                     ],
                                   ),
@@ -600,20 +638,28 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           message: "Next Page",
                           child: GestureDetector(
                             // Agar last page hai, to null (disable), warna _nextPage call hoga
-                            onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
+                            onTap: currentPage < widget.imageFiles.length - 1
+                                ? _nextPage
+                                : null,
                             child: Container(
                               width: 40,
                               height: 40,
                               decoration: BoxDecoration(
                                 // Last page par background halka ho jayega
-                                color: currentPage < widget.imageFiles.length - 1 ? Colors.black87 : Colors.black38,
+                                color:
+                                    currentPage < widget.imageFiles.length - 1
+                                    ? Colors.black87
+                                    : Colors.black38,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
-                                  Icons.arrow_forward_ios_rounded,
-                                  // Last page par icon fade ho jayega
-                                  color: currentPage < widget.imageFiles.length - 1 ? Colors.white : Colors.white30,
-                                  size: 18
+                                Icons.arrow_forward_ios_rounded,
+                                // Last page par icon fade ho jayega
+                                color:
+                                    currentPage < widget.imageFiles.length - 1
+                                    ? Colors.white
+                                    : Colors.white30,
+                                size: 18,
                               ),
                             ),
                           ),
@@ -692,17 +738,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
           /// BOTTOM HORIZONTAL THUMBNAIL LIST (Smooth Hide/Show Animation)
           AnimatedContainer(
-            duration: const Duration(milliseconds: 300), // Same duration as Toolbar animation
+            duration: const Duration(milliseconds: 300),
+            // Same duration as Toolbar animation
             curve: Curves.easeInOut,
-            height: isThumbnailVisible ? 90.0 : 0.0, // Achanak gayab hone ke bajaye shrink hoga
-            child: ClipRect( // ClipRect zaroori hai taaki shrink hote waqt image bahar na nikle
+            height: isThumbnailVisible ? 90.0 : 0.0,
+            // Achanak gayab hone ke bajaye shrink hoga
+            child: ClipRect(
+              // ClipRect zaroori hai taaki shrink hote waqt image bahar na nikle
               child: Container(
                 height: 90,
                 color: const Color(0xFF1E1E1E),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: widget.imageFiles.length,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   itemBuilder: (context, index) {
                     bool isSelected = currentPage == index;
                     return GestureDetector(
@@ -718,11 +770,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         margin: const EdgeInsets.only(right: 12),
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: FileImage(widget.imageFiles[index]['cropped']!),
+                            image: FileImage(
+                              widget.imageFiles[index]['cropped']!,
+                            ),
                             fit: BoxFit.cover,
                           ),
                           border: Border.all(
-                            color: isSelected ? Colors.blue : Colors.transparent,
+                            color: isSelected
+                                ? Colors.blue
+                                : Colors.transparent,
                             width: 3,
                           ),
                           borderRadius: BorderRadius.circular(4),
@@ -733,7 +789,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               alignment: Alignment.bottomCenter,
                               child: Container(
                                 margin: const EdgeInsets.all(4),
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withOpacity(0.6),
                                   borderRadius: BorderRadius.circular(10),
@@ -840,9 +899,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
           ),
 
-
-
-
           /// NAYA BOTTOM BAR: Keep Scanning & Save PDF
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -872,16 +928,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   ElevatedButton(
                     onPressed: _handleSaveClick,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent, // Adobe scan jaisa blue
+                      backgroundColor: Colors.blueAccent,
+                      // Adobe scan jaisa blue
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
                     child: const Row(
                       children: [
-                        Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text(
+                          "Save PDF",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         SizedBox(width: 4),
                         // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
                       ],
@@ -891,12 +957,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ),
             ),
           ),
-
         ],
       ),
     );
   }
-
 
   // --- TOOLBAR WIDGETS ---
 
@@ -905,14 +969,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   Widget _buildNormalTools() {
     // FIX: SizedBox lagana zaroori hai taaki sliding ke time height collapse na ho
     return SizedBox(
-      key: const ValueKey("NormalTools"), // Animation Engine ko pata chalega ki ye alag widget hai
+      key: const ValueKey("NormalTools"),
+      // Animation Engine ko pata chalega ki ye alag widget hai
       height: 75,
       width: double.infinity,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
         children: [
-          _buildToolItem(label: "Retake", icon: Icons.refresh_rounded, tooltipMessage: "Retake current photo"),
+          _buildToolItem(
+            label: "Retake",
+            icon: Icons.refresh_rounded,
+            tooltipMessage: "Retake current photo",
+          ),
           _buildToolItem(
             label: "Crop",
             icon: Icons.crop_rounded,
@@ -920,14 +989,46 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isSelected: isCroppingMode,
             onTap: _toggleCropMode,
           ),
-          _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded, tooltipMessage: "Rotate 90 degrees"),
-          _buildToolItem(label: "Filter", icon: Icons.photo_filter_rounded, tooltipMessage: "Apply color filters"),
-          _buildToolItem(label: "Adjust", icon: Icons.tune_rounded, tooltipMessage: "Adjust brightness and contrast"),
-          _buildToolItem(label: "Markup", icon: Icons.border_color_rounded, tooltipMessage: "Draw or add text on image"),
-          _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
-          _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
-          _buildToolItem(label: "Reorder", icon: Icons.swap_horizontal_circle_outlined, tooltipMessage: "Rearrange page sequence"),
-          _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, tooltipMessage: "Delete current page"),
+          _buildToolItem(
+            label: "Rotate",
+            icon: Icons.rotate_right_rounded,
+            tooltipMessage: "Rotate 90 degrees",
+          ),
+          _buildToolItem(
+            label: "Filter",
+            icon: Icons.photo_filter_rounded,
+            tooltipMessage: "Apply color filters",
+          ),
+          _buildToolItem(
+            label: "Adjust",
+            icon: Icons.tune_rounded,
+            tooltipMessage: "Adjust brightness and contrast",
+          ),
+          _buildToolItem(
+            label: "Markup",
+            icon: Icons.border_color_rounded,
+            tooltipMessage: "Draw or add text on image",
+          ),
+          _buildToolItem(
+            label: "Cleanup",
+            icon: Icons.auto_fix_high_rounded,
+            tooltipMessage: "Erase unwanted areas",
+          ),
+          _buildToolItem(
+            label: "Resize",
+            icon: Icons.aspect_ratio_rounded,
+            tooltipMessage: "Change page layout size",
+          ),
+          _buildToolItem(
+            label: "Reorder",
+            icon: Icons.swap_horizontal_circle_outlined,
+            tooltipMessage: "Rearrange page sequence",
+          ),
+          _buildToolItem(
+            label: "Delete",
+            icon: Icons.delete_outline_rounded,
+            tooltipMessage: "Delete current page",
+          ),
         ],
       ),
     );
@@ -1010,7 +1111,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-
   // --- REAL-TIME MAIN PREVIEW CROP UI & MATH ---
 
   void _updateCropBounds(double dt, double db, double dl, double dr) {
@@ -1020,10 +1120,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       double currentLeft = cropLeftRatio * _cropAreaWidth;
       double currentRight = cropRightRatio * _cropAreaWidth;
 
-      currentTop = (currentTop + dt).clamp(0.0, _cropAreaHeight - currentBottom - 40.0);
-      currentBottom = (currentBottom + db).clamp(0.0, _cropAreaHeight - currentTop - 40.0);
-      currentLeft = (currentLeft + dl).clamp(0.0, _cropAreaWidth - currentRight - 40.0);
-      currentRight = (currentRight + dr).clamp(0.0, _cropAreaWidth - currentLeft - 40.0);
+      currentTop = (currentTop + dt).clamp(
+        0.0,
+        _cropAreaHeight - currentBottom - 40.0,
+      );
+      currentBottom = (currentBottom + db).clamp(
+        0.0,
+        _cropAreaHeight - currentTop - 40.0,
+      );
+      currentLeft = (currentLeft + dl).clamp(
+        0.0,
+        _cropAreaWidth - currentRight - 40.0,
+      );
+      currentRight = (currentRight + dr).clamp(
+        0.0,
+        _cropAreaWidth - currentLeft - 40.0,
+      );
 
       cropTopRatio = currentTop / _cropAreaHeight;
       cropBottomRatio = currentBottom / _cropAreaHeight;
@@ -1051,17 +1163,28 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       if (originalImage != null) {
         int x = (cropLeftRatio * originalImage.width).toInt();
         int y = (cropTopRatio * originalImage.height).toInt();
-        int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width).toInt();
-        int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height).toInt();
+        int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width)
+            .toInt();
+        int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height)
+            .toInt();
 
         x = x.clamp(0, originalImage.width);
         y = y.clamp(0, originalImage.height);
         w = w.clamp(10, originalImage.width - x);
         h = h.clamp(10, originalImage.height - y);
 
-        img.Image newlyCropped = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
+        img.Image newlyCropped = img.copyCrop(
+          originalImage,
+          x: x,
+          y: y,
+          width: w,
+          height: h,
+        );
 
-        final String newPath = originalFile.path.replaceAll('.jpg', '_recropped_${DateTime.now().millisecondsSinceEpoch}.jpg');
+        final String newPath = originalFile.path.replaceAll(
+          '.jpg',
+          '_recropped_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
         final newFile = File(newPath);
         await newFile.writeAsBytes(img.encodeJpg(newlyCropped, quality: 100));
 
@@ -1069,7 +1192,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           widget.imageFiles[currentPage]['cropped'] = newFile;
           // Crop position save hogi agle baar ke liye
           _savedCropPositions[currentPage] = {
-            'top': cropTopRatio, 'bottom': cropBottomRatio, 'left': cropLeftRatio, 'right': cropRightRatio,
+            'top': cropTopRatio,
+            'bottom': cropBottomRatio,
+            'left': cropLeftRatio,
+            'right': cropRightRatio,
           };
         });
       }
@@ -1109,34 +1235,83 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 clipBehavior: Clip.none,
                 children: [
                   // 1. Original Blur Image background
-                  SizedBox(width: _cropAreaWidth, height: _cropAreaHeight, child: Image.file(originalFile, fit: BoxFit.fill)),
+                  SizedBox(
+                    width: _cropAreaWidth,
+                    height: _cropAreaHeight,
+                    child: Image.file(originalFile, fit: BoxFit.fill),
+                  ),
                   // 2. Dark Overlay
                   Container(color: Colors.black.withOpacity(0.6)),
                   // 3. Main Crop Box
                   Positioned(
-                    top: cropTop, bottom: cropBottom, left: cropLeft, right: cropRight,
+                    top: cropTop,
+                    bottom: cropBottom,
+                    left: cropLeft,
+                    right: cropRight,
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
                         // Clear Crop Area
                         Positioned(
-                          top: -cropTop, bottom: -cropBottom, left: -cropLeft, right: -cropRight,
-                          child: SizedBox(width: _cropAreaWidth, height: _cropAreaHeight, child: Image.file(originalFile, fit: BoxFit.fill)),
+                          top: -cropTop,
+                          bottom: -cropBottom,
+                          left: -cropLeft,
+                          right: -cropRight,
+                          child: SizedBox(
+                            width: _cropAreaWidth,
+                            height: _cropAreaHeight,
+                            child: Image.file(originalFile, fit: BoxFit.fill),
+                          ),
                         ),
                         // Border
-                        Container(decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 2.5))),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.blueAccent,
+                              width: 2.5,
+                            ),
+                          ),
+                        ),
 
                         // Edge lines
-                        _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
-                        _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
-                        _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
-                        _buildEdgeHandle(Alignment.centerRight, (d) => _updateCropBounds(0, 0, 0, -d.delta.dx)),
+                        _buildEdgeHandle(
+                          Alignment.topCenter,
+                          (d) => _updateCropBounds(d.delta.dy, 0, 0, 0),
+                        ),
+                        _buildEdgeHandle(
+                          Alignment.bottomCenter,
+                          (d) => _updateCropBounds(0, -d.delta.dy, 0, 0),
+                        ),
+                        _buildEdgeHandle(
+                          Alignment.centerLeft,
+                          (d) => _updateCropBounds(0, 0, d.delta.dx, 0),
+                        ),
+                        _buildEdgeHandle(
+                          Alignment.centerRight,
+                          (d) => _updateCropBounds(0, 0, 0, -d.delta.dx),
+                        ),
 
                         // Corner Circles
-                        _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
-                        _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
-                        _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
-                        _buildDragCorner(Alignment.bottomRight, (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx)),
+                        _buildDragCorner(
+                          Alignment.topLeft,
+                          (d) =>
+                              _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0),
+                        ),
+                        _buildDragCorner(
+                          Alignment.topRight,
+                          (d) =>
+                              _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx),
+                        ),
+                        _buildDragCorner(
+                          Alignment.bottomLeft,
+                          (d) =>
+                              _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0),
+                        ),
+                        _buildDragCorner(
+                          Alignment.bottomRight,
+                          (d) =>
+                              _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx),
+                        ),
                       ],
                     ),
                   ),
@@ -1149,8 +1324,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  Widget _buildEdgeHandle(Alignment alignment, Function(DragUpdateDetails) onPan) {
-    bool isVertical = alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
+  Widget _buildEdgeHandle(
+    Alignment alignment,
+    Function(DragUpdateDetails) onPan,
+  ) {
+    bool isVertical =
+        alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
     return Align(
       alignment: alignment,
       child: GestureDetector(
@@ -1158,12 +1337,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         child: Transform.translate(
           offset: Offset(alignment.x * 12, alignment.y * 12),
           child: Container(
-            width: isVertical ? 30 : 50, height: isVertical ? 50 : 30,
+            width: isVertical ? 30 : 50,
+            height: isVertical ? 50 : 30,
             color: Colors.transparent,
             alignment: Alignment.center,
             child: Container(
-              width: isVertical ? 6 : 24, height: isVertical ? 24 : 6,
-              decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(3)),
+              width: isVertical ? 6 : 24,
+              height: isVertical ? 24 : 6,
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
           ),
         ),
@@ -1171,7 +1355,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  Widget _buildDragCorner(Alignment alignment, Function(DragUpdateDetails) onPan) {
+  Widget _buildDragCorner(
+    Alignment alignment,
+    Function(DragUpdateDetails) onPan,
+  ) {
     return Align(
       alignment: alignment,
       child: GestureDetector(
@@ -1179,17 +1366,24 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         child: Transform.translate(
           offset: Offset(alignment.x * 15, alignment.y * 15),
           child: Container(
-            width: 40, height: 40,
+            width: 40,
+            height: 40,
             color: Colors.transparent,
             alignment: Alignment.center,
             child: Container(
-              width: 22, height: 22,
-              decoration: BoxDecoration(color: Colors.grey.shade400, shape: BoxShape.circle, border: Border.all(color: Colors.blueAccent, width: 2.5)),
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade400,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.blueAccent, width: 2.5),
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
 
-}/// end main class
+/// end main class
