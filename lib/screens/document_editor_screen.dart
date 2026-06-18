@@ -46,6 +46,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // FIX 1: Har image ka original AI (Auto) crop save rakhne ke liye
   late List<Map<String, double>?> _autoCropPositions;
 
+  // Icon ki animation track karne ke liye (0.25 matlab 90 degree)
+  double _iconRotationTurns = 0.0;
+
+  // Har image kitni baar rotate hui hai (0, 1, 2, ya 3) uski list
+  late List<int> _imageQuarterTurns;
+
+  // PageView ka current index (Agar tumhare paas pehle se 'currentIndex' ya 'currentPage' name ka variable hai, toh use hi use karna)
+  int _currentPageIndex = 0;
+
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +74,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     ); // Auto memory init
 
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
+
+    _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
   }
 
   @override
@@ -296,17 +308,118 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // 3. Main PDF generate karne ka function
   // 3. Main PDF generate karne ka function (Public Folder Logic)
+  // Future<void> _generateAndSavePdf() async {
+  //   showToast("Generating PDF...");
+  //
+  //   final pdf = pw.Document();
+  //
+  //   for (var map in widget.imageFiles) {
+  //     // 1. Map me se cropped file ko nikala
+  //     final File file = map['cropped']!;
+  //
+  //     // 2. Us file ke bytes ko read kiya
+  //     final image = pw.MemoryImage(file.readAsBytesSync());
+  //
+  //     pdf.addPage(
+  //       pw.Page(
+  //         margin: pw.EdgeInsets.zero,
+  //         pageFormat: PdfPageFormat.a4,
+  //         build: (context) {
+  //           return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+  //         },
+  //       ),
+  //     );
+  //   }
+  //
+  //   try {
+  //     // 1. Storage Permission Manage Karo (Android 11+ ke liye ekdum sahi tarika)
+  //     if (await Permission.manageExternalStorage.isDenied) {
+  //       // Yeh user ke samne system setting page open karega permission dene ke liye
+  //       await Permission.manageExternalStorage.request();
+  //     }
+  //
+  //     // Agar user ne setting se permission nahi di, toh check karke block karo
+  //     if (!await Permission.manageExternalStorage.isGranted) {
+  //       showToast("Storage permission is required to save PDF");
+  //       return; // Aage ka code nahi chalega jab tak permission na mile
+  //     }
+  //
+  //     // 2. Public Documents folder ka path set karein
+  //     final Directory publicDir = Directory(
+  //       '/storage/emulated/0/Documents/PDF Scanner Pro',
+  //     );
+  //
+  //     // 3. Agar folder nahi hai, toh naya banao
+  //     if (!await publicDir.exists()) {
+  //       await publicDir.create(recursive: true);
+  //     }
+  //
+  //     // 4. File save karein
+  //     // 4. Unique File Name Generator
+  //     String baseFilePath = "${publicDir.path}/$documentName";
+  //     String finalFilePath = "$baseFilePath.pdf";
+  //     File file = File(finalFilePath);
+  //
+  //     int counter = 1;
+  //     // Jab tak is naam ki file milti rahegi, counter badhta jayega (1), (2)...
+  //     while (await file.exists()) {
+  //       finalFilePath = "$baseFilePath ($counter).pdf";
+  //       file = File(finalFilePath);
+  //       counter++;
+  //     }
+  //
+  //     // Ab safely save karein naye unique naam ke sath
+  //     await file.writeAsBytes(await pdf.save());
+  //
+  //     showToast("Saved in Documents/PDF Scanner Pro");
+  //
+  //     // 5. UPDATE: File open karne ka code hata diya hai
+  //     // Aur seedhe Home Screen par redirect kar diya (Sare purane pages pop ho jayenge)
+  //     // 5. UPDATE: Seedhe Home Screen par redirect aur baaki sab close
+  //     if (mounted) {
+  //       Navigator.pushAndRemoveUntil(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //         (Route<dynamic> route) =>
+  //             false, // Yeh condition purane saare pages (Camera, Edit) ko stack se hata degi
+  //       );
+  //     }
+  //   } catch (e) {
+  //     showToast("Error saving PDF: $e");
+  //     print("Save Error: $e");
+  //   }
+  // }
+
+  // 3. Main PDF generate karne ka function (With Real Image Rotation)
   Future<void> _generateAndSavePdf() async {
     showToast("Generating PDF...");
 
     final pdf = pw.Document();
 
-    for (var map in widget.imageFiles) {
-      // 1. Map me se cropped file ko nikala
+    // 🚨 FIX: Yahan 'for in' loop ki jagah index (i) wala loop use kiya
+    // taaki hum check kar sakein ki kis photo ko kitna rotate karna hai
+    for (int i = 0; i < widget.imageFiles.length; i++) {
+      var map = widget.imageFiles[i];
       final File file = map['cropped']!;
 
-      // 2. Us file ke bytes ko read kiya
-      final image = pw.MemoryImage(file.readAsBytesSync());
+      // 1. Pehle image ki file ko bytes mein read karo
+      var imageBytes = await file.readAsBytes();
+
+      // 2. 🚨 REAL ROTATION LOGIC: Check karo ki kya is page ka rotate icon click hua tha?
+      int turns = _imageQuarterTurns[i];
+      if (turns != 0) {
+        // Agar photo rotate hui hai, toh real mein usko ghumao
+        img.Image? decodedImage = img.decodeImage(imageBytes);
+        if (decodedImage != null) {
+          // 1 turn = 90 degrees, 2 turns = 180 degrees
+          img.Image rotatedImage = img.copyRotate(decodedImage, angle: turns * 90);
+          // Ghumi hui photo ko wapas bytes mein convert karo
+          imageBytes = img.encodeJpg(rotatedImage, quality: 90);
+        }
+      }
+
+      // 3. Ab in final (ghumi hui) bytes ko PDF me dalo
+      final image = pw.MemoryImage(imageBytes);
 
       pdf.addPage(
         pw.Page(
@@ -320,16 +433,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
 
     try {
-      // 1. Storage Permission Manage Karo (Android 11+ ke liye ekdum sahi tarika)
+      // 1. Storage Permission Manage Karo
       if (await Permission.manageExternalStorage.isDenied) {
-        // Yeh user ke samne system setting page open karega permission dene ke liye
         await Permission.manageExternalStorage.request();
       }
 
-      // Agar user ne setting se permission nahi di, toh check karke block karo
       if (!await Permission.manageExternalStorage.isGranted) {
         showToast("Storage permission is required to save PDF");
-        return; // Aage ka code nahi chalega jab tak permission na mile
+        return;
       }
 
       // 2. Public Documents folder ka path set karein
@@ -342,34 +453,29 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         await publicDir.create(recursive: true);
       }
 
-      // 4. File save karein
       // 4. Unique File Name Generator
       String baseFilePath = "${publicDir.path}/$documentName";
       String finalFilePath = "$baseFilePath.pdf";
       File file = File(finalFilePath);
 
       int counter = 1;
-      // Jab tak is naam ki file milti rahegi, counter badhta jayega (1), (2)...
       while (await file.exists()) {
         finalFilePath = "$baseFilePath ($counter).pdf";
         file = File(finalFilePath);
         counter++;
       }
 
-      // Ab safely save karein naye unique naam ke sath
+      // Safely save karein naye unique naam ke sath
       await file.writeAsBytes(await pdf.save());
 
       showToast("Saved in Documents/PDF Scanner Pro");
 
-      // 5. UPDATE: File open karne ka code hata diya hai
-      // Aur seedhe Home Screen par redirect kar diya (Sare purane pages pop ho jayenge)
-      // 5. UPDATE: Seedhe Home Screen par redirect aur baaki sab close
+      // 5. Seedhe Home Screen par redirect aur baaki sab close
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (Route<dynamic> route) =>
-              false, // Yeh condition purane saare pages (Camera, Edit) ko stack se hata degi
+              (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
@@ -411,6 +517,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     } else {
       showToast("Last page");
     }
+  }
+
+  void _rotateImage() {
+    setState(() {
+      // 1. Icon ko smoothly 90 degree ghumane ke liye (0.25 turns)
+      _iconRotationTurns += 0.25;
+
+      // 2. Jo page abhi screen par hai, uska rotation 1 step badha do
+      // % 4 isliye lagaya taaki 4 baar ghumne par wapas 0 (normal) ho jaye
+      //_imageQuarterTurns[_currentPageIndex] = (_imageQuarterTurns[_currentPageIndex] + 1) % 4;
+      _imageQuarterTurns[currentPage] = (_imageQuarterTurns[currentPage] + 1) % 4;
+    });
   }
 
   @override
@@ -510,22 +628,45 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     // );
 
                     // Warna normal image preview dikhao
+                    // return Center(
+                    //   child: Padding(
+                    //     // FIX: symmetric hata kar only lagaya aur bottom padding ko 90 kar diya
+                    //     // Isse photo niche se upar chali jayegi aur controls se nahi takrayegi
+                    //     padding: const EdgeInsets.only(
+                    //       left: 24,
+                    //       right: 24,
+                    //       top: 20,
+                    //       bottom: 80,
+                    //     ),
+                    //     child: Image.file(
+                    //       widget.imageFiles[index]['cropped']!,
+                    //       fit: BoxFit.contain,
+                    //     ),
+                    //   ),
+                    // );
+
                     return Center(
                       child: Padding(
-                        // FIX: symmetric hata kar only lagaya aur bottom padding ko 90 kar diya
-                        // Isse photo niche se upar chali jayegi aur controls se nahi takrayegi
                         padding: const EdgeInsets.only(
                           left: 24,
                           right: 24,
                           top: 20,
                           bottom: 80,
                         ),
-                        child: Image.file(
-                          widget.imageFiles[index]['cropped']!,
-                          fit: BoxFit.contain,
+                        // 🚨 FIX: Image.file ko RotatedBox ke andar daal diya
+                        child: RotatedBox(
+                          quarterTurns: _imageQuarterTurns[index], // Har image ka rotate state check karega
+                          child: Image.file(
+                            widget.imageFiles[index]['cropped']!,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     );
+
+
+
+
                   },
                 ),
 
@@ -962,6 +1103,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+
   // --- TOOLBAR WIDGETS ---
 
   // --- TOOLBAR WIDGETS ---
@@ -989,10 +1131,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isSelected: isCroppingMode,
             onTap: _toggleCropMode,
           ),
+          // _buildToolItem(
+          //   label: "Rotate",
+          //   icon: Icons.rotate_right_rounded,
+          //   tooltipMessage: "Rotate 90 degrees",
+          // ),
+
           _buildToolItem(
             label: "Rotate",
             icon: Icons.rotate_right_rounded,
             tooltipMessage: "Rotate 90 degrees",
+            onTap: _rotateImage, // Tumhara upar banaya function
+            isRotate: true,      // 🚨 Isko true pass karna zaroori hai tabhi ghumega
           ),
           _buildToolItem(
             label: "Filter",
@@ -1069,12 +1219,55 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+  // Widget _buildToolItem({
+  //   required String label,
+  //   required IconData icon,
+  //   required String tooltipMessage,
+  //   VoidCallback? onTap,
+  //   bool isSelected = false,
+  // }) {
+  //   return Tooltip(
+  //     message: tooltipMessage,
+  //     child: GestureDetector(
+  //       onTap: onTap ?? () => showToast("$label clicked"),
+  //       child: Padding(
+  //         padding: const EdgeInsets.symmetric(horizontal: 5),
+  //         child: Container(
+  //           // Agar selected hai toh Adobe Scan jaisa solid blue color aayega
+  //           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+  //           decoration: BoxDecoration(
+  //             color: isSelected ? Colors.blueAccent : Colors.transparent,
+  //             borderRadius: BorderRadius.circular(12),
+  //           ),
+  //           child: Column(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Icon(icon, color: Colors.white, size: 22),
+  //               const SizedBox(height: 6),
+  //               Text(
+  //                 label,
+  //                 style: const TextStyle(
+  //                   color: Colors.white,
+  //                   fontSize: 11,
+  //                   fontWeight: FontWeight.w500,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildToolItem({
     required String label,
     required IconData icon,
     required String tooltipMessage,
     VoidCallback? onTap,
     bool isSelected = false,
+    bool isRotate = false, // 🚨 NAYA PARAMETER: Animation on karne ke liye
   }) {
     return Tooltip(
       message: tooltipMessage,
@@ -1093,7 +1286,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, color: Colors.white, size: 22),
+                // 🚨 FIX: Yahan par Icon ko check kiya ki usko ghumana hai ya nahi
+                isRotate
+                    ? AnimatedRotation(
+                  turns: _iconRotationTurns, // Animation variable
+                  duration: const Duration(milliseconds: 300), // Smooth time
+                  child: Icon(icon, color: Colors.white, size: 22),
+                )
+                    : Icon(icon, color: Colors.white, size: 22),
+
                 const SizedBox(height: 6),
                 Text(
                   label,
