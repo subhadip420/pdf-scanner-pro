@@ -57,7 +57,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // PageView ka current index (Agar tumhare paas pehle se 'currentIndex' ya 'currentPage' name ka variable hai, toh use hi use karna)
   int _currentPageIndex = 0;
 
-
   @override
   void initState() {
     super.initState();
@@ -85,7 +84,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageController.dispose();
     super.dispose();
   }
-
 
   // --- CROP TOOL FUNCTIONS ---
 
@@ -260,7 +258,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-
   // 3. Main PDF generate karne ka function (With Real Image Rotation)
   Future<void> _generateAndSavePdf() async {
     showToast("Generating PDF...");
@@ -283,7 +280,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         img.Image? decodedImage = img.decodeImage(imageBytes);
         if (decodedImage != null) {
           // 1 turn = 90 degrees, 2 turns = 180 degrees
-          img.Image rotatedImage = img.copyRotate(decodedImage, angle: turns * 90);
+          img.Image rotatedImage = img.copyRotate(
+            decodedImage,
+            angle: turns * 90,
+          );
           // Ghumi hui photo ko wapas bytes mein convert karo
           imageBytes = img.encodeJpg(rotatedImage, quality: 90);
         }
@@ -346,7 +346,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
@@ -398,7 +398,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // 2. Jo page abhi screen par hai, uska rotation 1 step badha do
       // % 4 isliye lagaya taaki 4 baar ghumne par wapas 0 (normal) ho jaye
       //_imageQuarterTurns[_currentPageIndex] = (_imageQuarterTurns[_currentPageIndex] + 1) % 4;
-      _imageQuarterTurns[currentPage] = (_imageQuarterTurns[currentPage] + 1) % 4;
+      _imageQuarterTurns[currentPage] =
+          (_imageQuarterTurns[currentPage] + 1) % 4;
     });
   }
 
@@ -432,7 +433,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
       // 3. Agar result null hai (user ne back button daba diya bina photo liye),
       // toh purani photo waisi ki waisi hi rahegi (koi change nahi hoga).
-
     } catch (e) {
       showToast("Error replacing photo: $e");
       print("Retake Error: $e");
@@ -534,7 +534,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         ),
                         // 🚨 FIX: Image.file ko RotatedBox ke andar daal diya
                         child: RotatedBox(
-                          quarterTurns: _imageQuarterTurns[index], // Har image ka rotate state check karega
+                          quarterTurns: _imageQuarterTurns[index],
+                          // Har image ka rotate state check karega
                           child: Image.file(
                             widget.imageFiles[index]['cropped']!,
                             fit: BoxFit.contain,
@@ -542,10 +543,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         ),
                       ),
                     );
-
-
-
-
                   },
                 ),
 
@@ -866,7 +863,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-
   // --- TOOLBAR WIDGETS ---
 
   // --- TOOLBAR WIDGETS ---
@@ -900,8 +896,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Rotate",
             icon: Icons.rotate_right_rounded,
             tooltipMessage: "Rotate 90 degrees",
-            onTap: _rotateImage, // Tumhara upar banaya function
-            isRotate: true,      // 🚨 Isko true pass karna zaroori hai tabhi ghumega
+            onTap: _rotateImage,
+            // Tumhara upar banaya function
+            isRotate: true, // 🚨 Isko true pass karna zaroori hai tabhi ghumega
           ),
           _buildToolItem(
             label: "Filter",
@@ -1006,10 +1003,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 // 🚨 FIX: Yahan par Icon ko check kiya ki usko ghumana hai ya nahi
                 isRotate
                     ? AnimatedRotation(
-                  turns: _iconRotationTurns, // Animation variable
-                  duration: const Duration(milliseconds: 300), // Smooth time
-                  child: Icon(icon, color: Colors.white, size: 22),
-                )
+                        turns: _iconRotationTurns, // Animation variable
+                        duration: const Duration(
+                          milliseconds: 300,
+                        ), // Smooth time
+                        child: Icon(icon, color: Colors.white, size: 22),
+                      )
                     : Icon(icon, color: Colors.white, size: 22),
 
                 const SizedBox(height: 6),
