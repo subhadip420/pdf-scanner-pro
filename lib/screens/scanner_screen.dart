@@ -91,26 +91,50 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String _autoDetectPopupSubtitle = "";
   Timer? _popupTimer;
 
+  // 🚨 FIX 1: Camera ka naya safety tracker
+  bool _isCameraReady = false;
+
+  //@override
+  // void initState() {
+  //   super.initState();
+  //   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  //
+  //   controller = CameraController(
+  //     cameras.first,
+  //     ResolutionPreset.high,
+  //     enableAudio: false,
+  //     imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+  //   );
+  //
+  //   controller.initialize().then((_) {
+  //     if (mounted) {
+  //       setState(() {});
+  //       // FIX 1: Screen khulte hi auto-detect start karna zaroori hai
+  //       if (isAutoDetectOn) _startMLAutoDetect();
+  //     }
+  //   });
+  //
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     scrollToDocument();
+  //   });
+  //
+  //   _sensorSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
+  //     if (!mounted) return;
+  //     setState(() {
+  //       if (event.x > 6) _iconTurns = 0.25;
+  //       else if (event.x < -6) _iconTurns = -0.25;
+  //       else if (event.y > 6) _iconTurns = 0.0;
+  //     });
+  //   });
+  // }
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-    controller = CameraController(
-      cameras.first,
-      ResolutionPreset.high,
-      enableAudio: false,
-      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
-    );
-
-    controller.initialize().then((_) {
-      if (mounted) {
-        setState(() {});
-        // FIX 1: Screen khulte hi auto-detect start karna zaroori hai
-        if (isAutoDetectOn) _startMLAutoDetect();
-      }
-    });
+    // 🚨 Yahan direct start karne ke bajaye, Master helper call hoga
+    _initializeCamera();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollToDocument();
@@ -124,6 +148,53 @@ class _ScannerScreenState extends State<ScannerScreen> {
         else if (event.y > 6) _iconTurns = 0.0;
       });
     });
+  }
+
+  // 🚨 FIX 2: Camera chalu karne ka Master Helper
+  Future<void> _initializeCamera() async {
+    if (!mounted) return;
+    setState(() => _isCameraReady = false);
+
+    controller = CameraController(
+      cameras[currentCameraIndex],
+      ResolutionPreset.high,
+      enableAudio: false,
+      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+    );
+
+    try {
+      await controller.initialize();
+      await _applyFlashMode(selectedFlashMode);
+      if (mounted) {
+        setState(() => _isCameraReady = true);
+        if (isAutoDetectOn) _startMLAutoDetect();
+      }
+    } catch (e) {
+      print("Camera init error: $e");
+    }
+  }
+
+  // 🚨 FIX 3: Editor me jane se pehle Camera Free karne ka logic
+  Future<void> _goToEditor() async {
+    setState(() => _isCameraReady = false); // Loader dikhayega
+
+    // 1. Hardware memory release karo taaki crash na ho
+    if (controller.value.isStreamingImages) {
+      await controller.stopImageStream();
+    }
+    await controller.dispose();
+
+    // 2. Editor screen kholo aur result ka wait karo
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList)),
+    );
+
+    // 3. Jab "Keep Scanning" daba ke wapas aao, toh camera naye sire se fresh start hoga
+    if (mounted) {
+      await _initializeCamera();
+    }
   }
 
   @override
@@ -612,16 +683,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
         _detectedDocumentBox = null;
       });
 
+      // if (mounted) {
+      //   Navigator.push(
+      //     context,
+      //     MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList)),
+      //   ).then((_) {
+      //     if (isAutoDetectOn && !controller.value.isStreamingImages) {
+      //       _startMLAutoDetect();
+      //     }
+      //   });
+      // }
+
       if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList)),
-        ).then((_) {
-          if (isAutoDetectOn && !controller.value.isStreamingImages) {
-            _startMLAutoDetect();
-          }
-        });
+        _goToEditor(); // 🚨 Master Helper call kiya
       }
+
     } catch (e) {
       setState(() => isCapturing = false);
     }
@@ -874,18 +950,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       showToast("${selectedFiles.length} images imported serial wise");
 
+      // if (mounted) {
+      //   Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //       builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList),
+      //     ),
+      //   ).then((_) {
+      //     if (isAutoDetectOn && !controller.value.isStreamingImages) {
+      //       _startMLAutoDetect();
+      //     }
+      //   });
+      // }
+
       if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList),
-          ),
-        ).then((_) {
-          if (isAutoDetectOn && !controller.value.isStreamingImages) {
-            _startMLAutoDetect();
-          }
-        });
+        _goToEditor(); // 🚨 Master Helper call kiya
       }
+
     } catch (e) {
       print("Gallery Error: $e");
       showToast("Error importing images");
@@ -897,8 +978,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
     //final screenWidth = MediaQuery.of(context).size.width;
     //final itemWidth = screenWidth * 0.22;
 
-    if (!controller.value.isInitialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // if (!controller.value.isInitialized) {
+    //   return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // }
+
+    // 🚨 FIX 4: Jab tak memory release/reload na ho jaye, safe loading screen dikhao
+    if (!_isCameraReady || !controller.value.isInitialized) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF2C2C2C),
+        body: Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+      );
     }
 
     return Scaffold(
@@ -1288,17 +1377,23 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                           /// Last Photo with Counter Badge
                           GestureDetector(
+                            // onTap: () {
+                            //   if (capturedPhotosCount > 0) {
+                            //     // YAHAN NAVIGATOR ADD KIYA HAI
+                            //     Navigator.push(
+                            //       context,
+                            //       MaterialPageRoute(
+                            //         builder: (context) => DocumentEditorScreen(
+                            //           imageFiles: capturedImagesList, // List pass kar di
+                            //         ),
+                            //       ),
+                            //     );
+                            //   }
+                            // },
+
                             onTap: () {
                               if (capturedPhotosCount > 0) {
-                                // YAHAN NAVIGATOR ADD KIYA HAI
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => DocumentEditorScreen(
-                                      imageFiles: capturedImagesList, // List pass kar di
-                                    ),
-                                  ),
-                                );
+                                _goToEditor(); // 🚨 Master Helper call kiya
                               }
                             },
                             child: Stack(
