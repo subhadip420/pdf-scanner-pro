@@ -583,21 +583,49 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   return _buildInPlaceCropView();
                                 }
 
+                                // return GestureDetector(
+                                //   behavior: HitTestBehavior.translucent,
+                                //   onTap: () {
+                                //     if (_showFilterMenu) setState(() => _showFilterMenu = false);
+                                //   },
+                                //   child: Center(
+                                //     child: Padding(
+                                //       padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                                //       child: RotatedBox(
+                                //         quarterTurns: _imageQuarterTurns[index],
+                                //         child: ColorFiltered(
+                                //           colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                //           child: Image.file(
+                                //             widget.imageFiles[index]['cropped']!,
+                                //             fit: BoxFit.contain,
+                                //           ),
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ),
+                                // );
+
                                 return GestureDetector(
                                   behavior: HitTestBehavior.translucent,
                                   onTap: () {
                                     if (_showFilterMenu) setState(() => _showFilterMenu = false);
                                   },
-                                  child: Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
-                                      child: RotatedBox(
-                                        quarterTurns: _imageQuarterTurns[index],
-                                        child: ColorFiltered(
-                                          colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                          child: Image.file(
-                                            widget.imageFiles[index]['cropped']!,
-                                            fit: BoxFit.contain,
+                                  // 🚨 FIX: InteractiveViewer ko Padding ke bahar nikala taaki poore screen me phel sake
+                                  child: InteractiveViewer(
+                                    minScale: 1.0,
+                                    maxScale: 5.0,
+                                    clipBehavior: Clip.none, // Screen ke edge par photo cut nahi hogi
+                                    child: Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                                        child: RotatedBox(
+                                          quarterTurns: _imageQuarterTurns[index],
+                                          child: ColorFiltered(
+                                            colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                            child: Image.file(
+                                              widget.imageFiles[index]['cropped']!,
+                                              fit: BoxFit.contain,
+                                            ),
                                           ),
                                         ),
                                       ),
