@@ -31,6 +31,7 @@ class MarkupScreen extends StatefulWidget {
 
 class _MarkupScreenState extends State<MarkupScreen> {
   final GlobalKey _globalKey = GlobalKey();
+  final GlobalKey _canvasKey = GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
 
   List<DrawnPath> _paths = [];
   List<DrawnPath> _undonePaths = [];
@@ -42,6 +43,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   String _activeTab = "Drawing"; // Drawing, Eraser, Text, Shapes
   String _selectedShape = "Triangle";
+
+  int _pointerCount = 0; // Tracks number of fingers on screen
 
   final List<Color> _recentColors = [
     Colors.blue, Colors.green, Colors.teal, Colors.amber, Colors.greenAccent
@@ -66,7 +69,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               side: const BorderSide(color: Colors.grey),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            onPressed: () => Navigator.pop(context, true), // Discard (Yes, pop)
+            onPressed: () => Navigator.pop(context, true),
             child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
@@ -74,7 +77,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               backgroundColor: Colors.blueAccent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            onPressed: () => Navigator.pop(context, false), // Don't discard (No pop)
+            onPressed: () => Navigator.pop(context, false),
             child: const Text("OK", style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -101,8 +104,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
       await newFile.writeAsBytes(pngBytes);
 
       if (mounted) {
-        Navigator.pop(context); // Close loading
-        Navigator.pop(context, newFile); // Return new file to Editor
+        Navigator.pop(context);
+        Navigator.pop(context, newFile);
       }
     } catch (e) {
       if (mounted) Navigator.pop(context);
@@ -121,7 +124,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Dummy Gradient Box for UI
               Container(
                 height: 180, width: double.infinity,
                 decoration: BoxDecoration(
@@ -136,7 +138,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 child: const Icon(Icons.circle_outlined, color: Colors.white, size: 28),
               ),
               const SizedBox(height: 16),
-              // Recent Colors
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: _recentColors.map((c) => GestureDetector(
@@ -162,7 +163,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        backgroundColor: const Color(0xFF1E1E1E), // Dark Theme
+        backgroundColor: const Color(0xFF1E1E1E),
         appBar: AppBar(
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
@@ -216,64 +217,93 @@ class _MarkupScreenState extends State<MarkupScreen> {
               child: Container(
                 color: const Color(0xFF2C2C2C),
                 child: InteractiveViewer(
-                  minScale: 1.0, maxScale: 5.0,
-                  // Disable panning when drawing so we can draw freely
-                  panEnabled: _activeTab != "Drawing" && _activeTab != "Eraser",
+                  minScale: 1.0,
+                  maxScale: 8.0,
+                  clipBehavior: Clip.none,
+                  panEnabled: true,   // 🚨 FIX 2: Panning hamesha true rahegi taaki zoom ke baad photo move ho sake
+                  scaleEnabled: true, // 🚨 FIX 3: Zooming hamesha true rahegi
                   child: Center(
-                    child: RepaintBoundary(
-                      key: _globalKey,
-                      child: Stack(
-                        children: [
-                          Image.file(widget.imageFile, fit: BoxFit.contain),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 20),
+                      child: RepaintBoundary(
+                        key: _globalKey,
+                        child: Stack(
+                          key: _canvasKey, // 🚨 FIX 4: Canvas key yahan attach ki taaki scale hone par bhi offset ekdum ungli ke niche rahe
+                          children: [
+                            Image.file(widget.imageFile, fit: BoxFit.contain),
 
-                          // Drawing Layer
-                          Positioned.fill(
-                            child: GestureDetector(
-                              onPanStart: (details) {
-                                if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                            // Drawing Layer
+                            Positioned.fill(
+                              child: Listener(
+                                onPointerDown: (_) {
                                   setState(() {
-                                    RenderBox renderBox = context.findRenderObject() as RenderBox;
-                                    _currentPoints = [renderBox.globalToLocal(details.globalPosition)];
+                                    _pointerCount++;
+                                    // Safety check: Agar 1 se zyada finger aa gayi, toh current drawing line ko wahin rok do
+                                    if (_pointerCount > 1 && _currentPoints.isNotEmpty) {
+                                      _currentPoints.add(null);
+                                      _paths.add(DrawnPath(
+                                        points: List.from(_currentPoints),
+                                        color: _selectedColor,
+                                        strokeWidth: _strokeWidth,
+                                        opacity: _opacity,
+                                        isEraser: _activeTab == "Eraser",
+                                      ));
+                                      _currentPoints.clear();
+                                    }
                                   });
-                                }
-                              },
-                              onPanUpdate: (details) {
-                                if (_activeTab == "Drawing" || _activeTab == "Eraser") {
-                                  setState(() {
-                                    RenderBox renderBox = context.findRenderObject() as RenderBox;
-                                    _currentPoints.add(renderBox.globalToLocal(details.globalPosition));
-                                  });
-                                }
-                              },
-                              onPanEnd: (details) {
-                                if (_activeTab == "Drawing" || _activeTab == "Eraser") {
-                                  setState(() {
-                                    _currentPoints.add(null); // Mark end of stroke
-                                    _paths.add(DrawnPath(
-                                      points: List.from(_currentPoints),
-                                      color: _selectedColor,
-                                      strokeWidth: _strokeWidth,
-                                      opacity: _opacity,
+                                },
+                                onPointerUp: (_) => setState(() => _pointerCount--),
+                                onPointerCancel: (_) => setState(() => _pointerCount--),
+                                child: GestureDetector(
+                                  // 🚨 FIX 5: Agar pointer 1 se bada hai (2 fingers hain), toh drawing events ko 'null' karke bypass kar do, taaki InteractiveViewer smoothly zoom le sake.
+                                  onPanStart: _pointerCount > 1 ? null : (details) {
+                                    if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                      setState(() {
+                                        RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                        _currentPoints = [renderBox.globalToLocal(details.globalPosition)];
+                                      });
+                                    }
+                                  },
+                                  onPanUpdate: _pointerCount > 1 ? null : (details) {
+                                    if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                      setState(() {
+                                        RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                        _currentPoints.add(renderBox.globalToLocal(details.globalPosition));
+                                      });
+                                    }
+                                  },
+                                  onPanEnd: _pointerCount > 1 ? null : (details) {
+                                    if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                      if (_currentPoints.isEmpty) return;
+                                      setState(() {
+                                        _currentPoints.add(null);
+                                        _paths.add(DrawnPath(
+                                          points: List.from(_currentPoints),
+                                          color: _selectedColor,
+                                          strokeWidth: _strokeWidth,
+                                          opacity: _opacity,
+                                          isEraser: _activeTab == "Eraser",
+                                        ));
+                                        _currentPoints.clear();
+                                        _undonePaths.clear();
+                                      });
+                                    }
+                                  },
+                                  child: CustomPaint(
+                                    painter: DrawingPainter(
+                                      paths: _paths,
+                                      currentPoints: _currentPoints,
+                                      currentColor: _selectedColor,
+                                      currentStrokeWidth: _strokeWidth,
+                                      currentOpacity: _opacity,
                                       isEraser: _activeTab == "Eraser",
-                                    ));
-                                    _currentPoints.clear();
-                                    _undonePaths.clear(); // Clear redo history on new stroke
-                                  });
-                                }
-                              },
-                              child: CustomPaint(
-                                painter: DrawingPainter(
-                                  paths: _paths,
-                                  currentPoints: _currentPoints,
-                                  currentColor: _selectedColor,
-                                  currentStrokeWidth: _strokeWidth,
-                                  currentOpacity: _opacity,
-                                  isEraser: _activeTab == "Eraser",
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -307,7 +337,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  // Bottom Tab Builder
   Widget _buildBottomTab(String title, IconData icon) {
     bool isSelected = _activeTab == title;
     return GestureDetector(
@@ -323,7 +352,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  // Settings Panel Builder (Changes based on active tab)
   Widget _buildSettingsPanel() {
     if (_activeTab == "Drawing" || _activeTab == "Eraser") {
       return Column(
@@ -345,7 +373,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
             const SizedBox(height: 20),
           ],
 
-          // Stroke Width
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -363,7 +390,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
           if (_activeTab == "Drawing") ...[
             const SizedBox(height: 10),
-            // Opacity
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -383,7 +409,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
       );
     }
     else if (_activeTab == "Shapes") {
-      // Shape Menu (Triange, Circle, Square etc)
       List<IconData> shapeIcons = [Icons.change_history_rounded, Icons.circle_outlined, Icons.square_outlined, Icons.crop_square_rounded, Icons.hexagon_outlined];
       return SizedBox(
         height: 60,
@@ -398,7 +423,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 }
 
-// --- CUSTOM PAINTER FOR DRAWING & ERASING ---
 class DrawingPainter extends CustomPainter {
   final List<DrawnPath> paths;
   final List<Offset?> currentPoints;
@@ -418,10 +442,8 @@ class DrawingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // saveLayer zaroori hai taaki Eraser image ko nahi, sirf drawing ko mitaye!
     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
-    // Draw saved paths
     for (var path in paths) {
       Paint p = Paint()
         ..color = path.isEraser ? Colors.transparent : path.color.withOpacity(path.opacity)
@@ -439,7 +461,6 @@ class DrawingPainter extends CustomPainter {
       }
     }
 
-    // Draw current active path
     if (currentPoints.isNotEmpty) {
       Paint p = Paint()
         ..color = isEraser ? Colors.transparent : currentColor.withOpacity(currentOpacity)
