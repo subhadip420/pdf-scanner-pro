@@ -20,7 +20,15 @@ import 'package:flutter/foundation.dart'; // WriteBuffer ke liye
 
 
 class ScannerScreen extends StatefulWidget {
-  const ScannerScreen({super.key});
+
+  final bool isRetakeMode;
+
+  const ScannerScreen({
+    Key? key,
+    this.isRetakeMode = false, // By default normal mode rahega
+  }) : super(key: key);
+
+  //const ScannerScreen({super.key});
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
@@ -309,6 +317,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // NAYI LINE: Photo save hone se pehle usko explicitly 4:3 me crop kar do
       await _cropTo43(photo.path);
 
+      // 🚨 FIX 1: RETAKE LOGIC (Manual Camera Click) 🚨
+      if (widget.isRetakeMode) {
+        setState(() => isCapturing = false);
+        Navigator.pop(context, File(photo.path)); // Seedha photo wapas bhej do
+        return; // Niche ka code nahi chalega
+      }
+
       /// Update the state with the new photo and increment the counter
       setState(() {
         lastCapturedImage = photo;
@@ -572,6 +587,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       // Asli raw photo par AI ka auto-crop chalao
       File? croppedFile = await _autoCropImage(photo.path, boxToCrop);
+      File finalFile = croppedFile ?? File(photo.path);
+
+      // 🚨 FIX 3: RETAKE LOGIC (AI Auto-Capture) 🚨
+      if (widget.isRetakeMode) {
+        setState(() {
+          isCapturing = false;
+          _detectedDocumentBox = null;
+        });
+        Navigator.pop(context, finalFile); // Auto crop wali photo wapas bhej do
+        return;
+      }
 
       capturedImagesList.add({
         'original': File(photo.path),
@@ -829,6 +855,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // Agar user ne bina select kiye close kar diya
       if (selectedFiles == null || selectedFiles.isEmpty) return;
 
+      // 🚨 FIX 2: RETAKE LOGIC (Gallery Selection) 🚨
+      if (widget.isRetakeMode) {
+        // Retake me sirf 1 image replace karni hai, toh list ki pehli photo bhej do
+        Navigator.pop(context, selectedFiles.first);
+        return;
+      }
+
       setState(() {
         for (var file in selectedFiles) {
           capturedImagesList.add({
@@ -1071,24 +1104,39 @@ class _ScannerScreenState extends State<ScannerScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           /// Home
-                          IconButton(
-                            onPressed: () {
-                              //showToast("Home");
-                              // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const HomeScreen(),
-                                ),
-                                    (route) => false, // false matlab saari purani history clear
-                              );
-                            },
-                            icon: _buildRotatedIcon(
-                              Icons.home_rounded,
-                              color: Colors.white,
-                              size: 24,
+                          if (!widget.isRetakeMode)
+                            IconButton(
+                              onPressed: () {
+                                //showToast("Home");
+                                // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomeScreen(),
+                                  ),
+                                      (
+                                      route) => false, // false matlab saari purani history clear
+                                );
+                              },
+                              icon: _buildRotatedIcon(
+                                Icons.home_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            )
+                          else
+                          // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
+                            IconButton(
+                              onPressed: () {
+                                // Retake cancel karke wapas editor me jao
+                                Navigator.pop(context);
+                              },
+                              icon: _buildRotatedIcon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 28, // Thoda bada size acha lagega
+                              ),
                             ),
-                          ),
 
                           /// Gallery
                           /// Gallery Button
@@ -1504,6 +1552,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   size: 26,
                 ),
               ),
+              if (!widget.isRetakeMode)
               IconButton(
                 onPressed: () => showToast("Settings"),
                 icon: _buildRotatedIcon(

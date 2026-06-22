@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image/image.dart' as img;
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:open_file/open_file.dart';
+import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'home_screen.dart';
@@ -529,6 +531,43 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       //_imageQuarterTurns[_currentPageIndex] = (_imageQuarterTurns[_currentPageIndex] + 1) % 4;
       _imageQuarterTurns[currentPage] = (_imageQuarterTurns[currentPage] + 1) % 4;
     });
+  }
+
+  Future<void> _retakeImage() async {
+    try {
+      // 1. ScannerScreen ko 'Retake' mode me open karo
+      // Yeh result variable mein us File ka wait karega jo wahan se pop hogi
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ScannerScreen(isRetakeMode: true),
+        ),
+      );
+
+      // 2. Agar user ne photo click ki (ya gallery se li) aur 'result' me naya File wapas aaya
+      if (result != null && result is File) {
+        setState(() {
+          // Current page par purani photo ki jagah nayi photo set kardo
+          widget.imageFiles[currentPage] = {
+            'original': result,
+            'cropped': result,
+          };
+
+          // 🚨 ZAROORI: Is naye page ke liye purani settings (crop/rotate) RESET kardo
+          _imageQuarterTurns[currentPage] = 0;
+          _savedCropPositions[currentPage] = null;
+          _autoCropPositions[currentPage] = null;
+        });
+
+        showToast("Page ${currentPage + 1} replaced successfully!");
+      }
+      // 3. Agar result null hai (user ne back button daba diya bina photo liye),
+      // toh purani photo waisi ki waisi hi rahegi (koi change nahi hoga).
+
+    } catch (e) {
+      showToast("Error replacing photo: $e");
+      print("Retake Error: $e");
+    }
   }
 
   @override
@@ -1121,8 +1160,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         children: [
           _buildToolItem(
             label: "Retake",
-            icon: Icons.refresh_rounded,
+            icon: Symbols.reset_image_rounded,
             tooltipMessage: "Retake current photo",
+            onTap: _retakeImage, // 👈 YEH NAYI LINE ADD KARNI HAI
           ),
           _buildToolItem(
             label: "Crop",
