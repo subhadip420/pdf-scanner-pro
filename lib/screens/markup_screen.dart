@@ -63,13 +63,33 @@ class _MarkupScreenState extends State<MarkupScreen> {
           "Changes you have made with the Markup tool will be discarded.",
           style: TextStyle(color: Colors.white70),
         ),
+        // actions: [
+        //   OutlinedButton(
+        //     style: OutlinedButton.styleFrom(
+        //       side: const BorderSide(color: Colors.grey),
+        //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        //     ),
+        //     onPressed: () => Navigator.pop(context, true),
+        //     child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
+        //   ),
+        //   ElevatedButton(
+        //     style: ElevatedButton.styleFrom(
+        //       backgroundColor: Colors.blueAccent,
+        //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        //     ),
+        //     onPressed: () => Navigator.pop(context, false),
+        //     child: const Text("OK", style: TextStyle(color: Colors.white)),
+        //   ),
+        // ],
+
         actions: [
           OutlinedButton(
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.grey),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            onPressed: () => Navigator.pop(context, true),
+            // 🚨 FIX: Cancel dabaane par 'false' return hoga, jisse sirf popup band hoga, screen nahi
+            onPressed: () => Navigator.pop(context, false),
             child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
@@ -77,7 +97,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
               backgroundColor: Colors.blueAccent,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
-            onPressed: () => Navigator.pop(context, false),
+            // 🚨 FIX: OK dabaane par 'true' return hoga, jisse screen back chali jayegi (discard changes)
+            onPressed: () => Navigator.pop(context, true),
             child: const Text("OK", style: TextStyle(color: Colors.white)),
           ),
         ],
