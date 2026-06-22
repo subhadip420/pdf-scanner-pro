@@ -940,8 +940,27 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 children: [
                   Row(
                     children: [
-                      SizedBox(
-                        height: 30,
+                      // SizedBox(
+                      //   height: 30,
+                      //   child: Switch(
+                      //     value: _applyToAllPages,
+                      //     onChanged: (val) {
+                      //       setState(() {
+                      //         _applyToAllPages = val;
+                      //         if (val) {
+                      //           String activeFilter = _pageFilters[currentPage];
+                      //           for (int i = 0; i < _pageFilters.length; i++) {
+                      //             _pageFilters[i] = activeFilter;
+                      //           }
+                      //         }
+                      //       });
+                      //     },
+                      //     activeColor: Colors.blueAccent,
+                      //   ),
+                      // ),
+                      // 🚨 FIX: Image jaisa design aur size dene ke liye Transform.scale lagaya
+                      Transform.scale(
+                        scale: 0.85,
                         child: Switch(
                           value: _applyToAllPages,
                           onChanged: (val) {
@@ -955,7 +974,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               }
                             });
                           },
-                          activeColor: Colors.blueAccent,
+                          // ON hone par colors
+                          activeColor: Colors.white, // Gola (Thumb) white rahega
+                          activeTrackColor: Colors.blueAccent, // Line blue hogi
+
+                          // OFF hone par colors (Exactly tumhari image jaisa)
+                          inactiveThumbColor: const Color(0xFFC0C0C0), // Light grey gola
+                          inactiveTrackColor: const Color(0xFF505050), // Dark grey line
+
+                          // Material 3 ka default black border hatane ke liye
+                          trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
                         ),
                       ),
                       const SizedBox(width: 8),
