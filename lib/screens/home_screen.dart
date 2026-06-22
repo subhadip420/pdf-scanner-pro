@@ -9,6 +9,9 @@ import 'package:open_file/open_file.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:pdfx/pdfx.dart';
 import 'dart:typed_data';
+import 'package:permission_handler/permission_handler.dart';
+import 'custom_gallery_screen.dart'; // Apni gallery wali screen
+import 'document_editor_screen.dart'; // Apna editor
 
 import 'package:permission_handler/permission_handler.dart'; // Uint8List ke liye zaroori hai
 
@@ -150,6 +153,65 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _openGalleryForPdf() async {
+    try {
+      // 1. Permission Handle Karo
+      PermissionStatus status = PermissionStatus.denied;
+      if (Platform.isAndroid) {
+        status = await Permission.photos.status;
+        if (status.isDenied) status = await Permission.photos.request();
+        if (status.isDenied || status.isRestricted) {
+          status = await Permission.storage.status;
+          if (status.isDenied) status = await Permission.storage.request();
+        }
+      } else {
+        status = await Permission.photos.request();
+      }
+
+      if (status.isPermanentlyDenied) {
+        showToast("Please enable Gallery permission from settings.");
+        await openAppSettings();
+        return;
+      }
+      if (!status.isGranted && !status.isLimited) {
+        showToast("Gallery permission required.");
+        return;
+      }
+
+      // 2. Apni Premium Custom Gallery kholo
+      if (!mounted) return;
+      final List<File>? selectedFiles = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CustomGalleryScreen()),
+      );
+
+      // Agar user ne cancel kar diya (bina select kiye back aagaya)
+      if (selectedFiles == null || selectedFiles.isEmpty) return;
+
+      // 3. Files ko Editor ke format (Map) mein convert karo
+      List<Map<String, File>> imagesToEdit = [];
+      for (var file in selectedFiles) {
+        imagesToEdit.add({
+          'original': file,
+          'cropped': file,
+        });
+      }
+
+      // 4. Seedha DocumentEditorScreen par navigate kar jao
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DocumentEditorScreen(imageFiles: imagesToEdit),
+        ),
+      );
+
+    } catch (e) {
+      print("Home Screen Gallery Error: $e");
+      showToast("Error opening gallery");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -270,7 +332,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icons.photo_library_outlined,
                         () {
                       showToast("Gallery opening...");
-                      setState(() => _isFabMenuOpen = false); // Click ke baad menu close
+                      // 1. Pehle fab menu ko close karo
+                      setState(() => _isFabMenuOpen = false);
+
+                      // 2. Fir apni gallery open karne wala function call kar do
+                      _openGalleryForPdf();
                     },
                   ),
                   const SizedBox(height: 12), // Dono button ke beech ka gap
