@@ -12,6 +12,7 @@ import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'home_screen.dart';
+import 'markup_screen.dart';
 
 class DocumentEditorScreen extends StatefulWidget {
   //final List<File> imageFiles; // Real images coming from ScannerScreen
@@ -1333,11 +1334,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             },
           ),
 
+          // _buildToolItem(
+          //   label: "Markup",
+          //   icon: Icons.border_color_rounded,
+          //   tooltipMessage: "Draw or add text on image",
+          // ),
+
           _buildToolItem(
             label: "Markup",
             icon: Icons.border_color_rounded,
             tooltipMessage: "Draw or add text on image",
+            onTap: _openMarkupScreen, // 🚨 Naya function yahan cleanly call ho gaya
           ),
+
           _buildToolItem(
             label: "Cleanup",
             icon: Icons.auto_fix_high_rounded,
@@ -1361,6 +1370,35 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ],
       ),
     );
+  }
+
+  // --- MARKUP LOGIC ---
+  Future<void> _openMarkupScreen() async {
+    // Current image ko nayi screen me bhejo
+    File originalImage = widget.imageFiles[currentPage]['cropped']!;
+
+    final editedFile = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MarkupScreen(imageFile: originalImage),
+      ),
+    );
+
+    // Agar user ne 'OK (Tick)' dabaya, toh edited image wapas aayegi
+    if (editedFile != null && editedFile is File) {
+      setState(() {
+        widget.imageFiles[currentPage]['cropped'] = editedFile;
+
+        // Nayi drawing aayi hai, toh purana crop/rotate settings reset kardo
+        _imageQuarterTurns[currentPage] = 0;
+        _savedCropPositions[currentPage] = null;
+        _autoCropPositions[currentPage] = null;
+        _pageFilters[currentPage] = "Original color";
+        _pageBrightness[currentPage] = 0.0;
+        _pageContrast[currentPage] = 0.0;
+      });
+      showToast("Markup applied to Page ${currentPage + 1}");
+    }
   }
 
   Widget _buildCropSubTools() {
