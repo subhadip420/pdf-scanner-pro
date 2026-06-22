@@ -70,6 +70,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     "Whiteboard"
   ];
 
+  bool _showAdjustMenu = false; // 🚨 Naya Adjust menu track karne ke liye
+  late List<double> _pageBrightness; // 🚨 Har page ki brightness
+  late List<double> _pageContrast;   // 🚨 Har page ka contrast
+  String _activeAdjustTab = "Brightness"; // "Brightness" ya "Contrast" track karega
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +96,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
     _pageFilters = List.filled(widget.imageFiles.length, "Original color"); // 🚨 Default filter set kiya
+    _pageBrightness = List.filled(widget.imageFiles.length, 0.0); // Default 0
+    _pageContrast = List.filled(widget.imageFiles.length, 0.0);   // Default 0
   }
 
   @override
@@ -134,6 +141,24 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       default:
         return null;
     }
+  }
+
+
+  // --- 🚨 ADJUST LOGIC (Brightness & Contrast) ---
+  ColorFilter _getAdjustColorFilter(double brightness, double contrast) {
+    // Brightness range: -100 to 100 -> maps to -255 to 255
+    double b = brightness * 2.55;
+
+    // Contrast range: -100 to 100 -> maps to 0.0 to 2.0 (e.g., -100=0.0, 0=1.0, 100=2.0)
+    double c = 1.0 + (contrast / 100.0);
+    double t = (1.0 - c) * 127.5; // Offset for contrast centering
+
+    return ColorFilter.matrix([
+      c, 0, 0, 0, t + b,
+      0, c, 0, 0, t + b,
+      0, 0, c, 0, t + b,
+      0, 0, 0, 1, 0,
+    ]);
   }
 
   // --- CROP TOOL FUNCTIONS ---
@@ -479,6 +504,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           _savedCropPositions[currentPage] = null;
           _autoCropPositions[currentPage] = null;
           _pageFilters[currentPage] = "Original color"; // 🚨 Retake par filter wapas original hoga
+          _pageBrightness[currentPage] = 0.0; // 🚨 Retake par brightness reset
+          _pageContrast[currentPage] = 0.0;   // 🚨 Retake par contrast reset
         });
 
         showToast("Page ${currentPage + 1} replaced successfully!");
@@ -607,24 +634,50 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                 return GestureDetector(
                                   behavior: HitTestBehavior.translucent,
+                                  // onTap: () {
+                                  //   if (_showFilterMenu) setState(() => _showFilterMenu = false);
+                                  // },
+                                  // // 🚨 FIX: InteractiveViewer ko Padding ke bahar nikala taaki poore screen me phel sake
+                                  // child: InteractiveViewer(
+                                  //   minScale: 1.0,
+                                  //   maxScale: 5.0,
+                                  //   clipBehavior: Clip.none, // Screen ke edge par photo cut nahi hogi
+                                  //   child: Center(
+                                  //     child: Padding(
+                                  //       padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                                  //       child: RotatedBox(
+                                  //         quarterTurns: _imageQuarterTurns[index],
+                                  //         child: ColorFiltered(
+                                  //           colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                  //           child: Image.file(
+                                  //             widget.imageFiles[index]['cropped']!,
+                                  //             fit: BoxFit.contain,
+                                  //           ),
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
                                   onTap: () {
                                     if (_showFilterMenu) setState(() => _showFilterMenu = false);
+                                    if (_showAdjustMenu) setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
                                   },
-                                  // 🚨 FIX: InteractiveViewer ko Padding ke bahar nikala taaki poore screen me phel sake
                                   child: InteractiveViewer(
-                                    minScale: 1.0,
-                                    maxScale: 5.0,
-                                    clipBehavior: Clip.none, // Screen ke edge par photo cut nahi hogi
+                                    minScale: 1.0, maxScale: 5.0, clipBehavior: Clip.none,
                                     child: Center(
                                       child: Padding(
                                         padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
                                         child: RotatedBox(
                                           quarterTurns: _imageQuarterTurns[index],
+                                          // 🚨 FIX: Filter aur Adjust dono ka ColorFilter ek saath chain kiya
                                           child: ColorFiltered(
-                                            colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                            child: Image.file(
-                                              widget.imageFiles[index]['cropped']!,
-                                              fit: BoxFit.contain,
+                                            colorFilter: _getAdjustColorFilter(_pageBrightness[index], _pageContrast[index]),
+                                            child: ColorFiltered(
+                                              colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                              child: Image.file(
+                                                widget.imageFiles[index]['cropped']!,
+                                                fit: BoxFit.contain,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -772,13 +825,29 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   // --- LAYER 2: FILTER MENU ---
                   // Ab ye menu completely parent box ke andar hai.
                   // -200 ki wajah se ye Action bar ke theek peeche chhip jayega!
+              //     AnimatedPositioned(
+              //       duration: const Duration(milliseconds: 300),
+              //       curve: Curves.easeInOut,
+              //       bottom: _showFilterMenu ? 0 : -200,
+              //       left: 0,
+              //       right: 0,
+              //       child: _buildFilterMenuWidget(),
+              //     ),
+              //   ],
+              // ),
+
+                  // --- LAYER 2: FILTER MENU ---
                   AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    bottom: _showFilterMenu ? 0 : -200,
-                    left: 0,
-                    right: 0,
+                    duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
+                    bottom: _showFilterMenu ? 0 : -200, left: 0, right: 0,
                     child: _buildFilterMenuWidget(),
+                  ),
+
+                  // --- 🚨 LAYER 3: ADJUST MENU ---
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
+                    bottom: _showAdjustMenu ? 0 : -200, left: 0, right: 0,
+                    child: _buildAdjustMenuWidget(), // Naya adjust menu call kiya
                   ),
                 ],
               ),
@@ -1034,6 +1103,159 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+  // --- 🚨 NAYA BLOCK: ADJUST MENU WIDGET UI ---
+  Widget _buildAdjustMenuWidget() {
+    bool isBrightness = _activeAdjustTab == "Brightness";
+    double currentValue = isBrightness ? _pageBrightness[currentPage] : _pageContrast[currentPage];
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // Background tap roko
+      onTap: () {}, onHorizontalDragUpdate: (_) {}, onVerticalDragUpdate: (_) {},
+      child: Container(
+        height: 180,
+        decoration: const BoxDecoration(
+          color: Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
+        child: Column(
+          children: [
+            // --- TOP TABS (Brightness | Contrast) ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GestureDetector(
+                  onTap: () => setState(() => _activeAdjustTab = "Brightness"),
+                  child: Row(
+                    children: [
+                      Icon(Icons.light_mode_outlined, color: isBrightness ? Colors.blueAccent : Colors.white70, size: 22),
+                      const SizedBox(width: 8),
+                      Text("Brightness", style: TextStyle(color: isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15)),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _activeAdjustTab = "Contrast"),
+                  child: Row(
+                    children: [
+                      Icon(Icons.contrast_outlined, color: !isBrightness ? Colors.blueAccent : Colors.white70, size: 22),
+                      const SizedBox(width: 8),
+                      Text("Contrast", style: TextStyle(color: !isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // --- VALUE TEXT ROW ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(_activeAdjustTab, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                  Text("${currentValue.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
+                ],
+              ),
+            ),
+
+            // --- MAIN SLIDER ---
+            SliderTheme(
+              data: SliderThemeData(
+                trackHeight: 2.5,
+                activeTrackColor: Colors.grey.shade500, // Screenshot jaisa grey track
+                inactiveTrackColor: Colors.grey.shade800,
+                thumbColor: Colors.grey.shade400, // Light grey thumb
+                overlayShape: SliderComponentShape.noOverlay,
+              ),
+              child: Slider(
+                value: currentValue,
+                min: -100, max: 100,
+                onChanged: (val) {
+                  setState(() {
+                    if (isBrightness) {
+                      if (_applyToAllPages) {
+                        for (int i=0; i<_pageBrightness.length; i++) _pageBrightness[i] = val;
+                      } else {
+                        _pageBrightness[currentPage] = val;
+                      }
+                    } else {
+                      if (_applyToAllPages) {
+                        for (int i=0; i<_pageContrast.length; i++) _pageContrast[i] = val;
+                      } else {
+                        _pageContrast[currentPage] = val;
+                      }
+                    }
+                  });
+                },
+              ),
+            ),
+            const Spacer(),
+
+            // --- BOTTOM TOGGLE & RESET ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Transform.scale(
+                        scale: 0.85,
+                        child: Switch(
+                          value: _applyToAllPages,
+                          onChanged: (val) {
+                            setState(() {
+                              _applyToAllPages = val;
+                              if (val) {
+                                // Sync current values to all pages
+                                double b = _pageBrightness[currentPage];
+                                double c = _pageContrast[currentPage];
+                                for (int i=0; i<_pageBrightness.length; i++) {
+                                  _pageBrightness[i] = b;
+                                  _pageContrast[i] = c;
+                                }
+                              }
+                            });
+                          },
+                          activeColor: Colors.white, activeTrackColor: Colors.blueAccent,
+                          inactiveThumbColor: const Color(0xFFC0C0C0), inactiveTrackColor: const Color(0xFF505050),
+                          trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+                    ],
+                  ),
+
+                  // 🚨 RESET BUTTON
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_applyToAllPages) {
+                          for (int i=0; i<_pageBrightness.length; i++) {
+                            _pageBrightness[i] = 0.0;
+                            _pageContrast[i] = 0.0;
+                          }
+                        } else {
+                          _pageBrightness[currentPage] = 0.0;
+                          _pageContrast[currentPage] = 0.0;
+                        }
+                      });
+                      showToast("$_activeAdjustTab reset to 0");
+                    },
+                    child: const Text("Reset", style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.w500)),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
   // --- TOOLBAR WIDGETS ---
 
   // --- TOOLBAR WIDGETS ---
@@ -1072,22 +1294,45 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isRotate: true, // 🚨 Isko true pass karna zaroori hai tabhi ghumega
           ),
 
-          // 🚨 FIX 3: Filter Button Click setup
+          // // 🚨 FIX 3: Filter Button Click setup
+          // _buildToolItem(
+          //   label: "Filter",
+          //   icon: Symbols.masked_transitions_rounded,
+          //   tooltipMessage: "Apply color filters",
+          //   isSelected: _showFilterMenu,
+          //   onTap: () {
+          //     setState(() => _showFilterMenu = !_showFilterMenu);
+          //   },
+          // ),
+          //
+          // _buildToolItem(
+          //   label: "Adjust",
+          //   icon: Icons.tune_rounded,
+          //   tooltipMessage: "Adjust brightness and contrast",
+          // ),
+
           _buildToolItem(
-            label: "Filter",
-            icon: Symbols.masked_transitions_rounded,
-            tooltipMessage: "Apply color filters",
+            label: "Filter", icon: Symbols.masked_transitions_rounded, tooltipMessage: "Apply color filters",
             isSelected: _showFilterMenu,
             onTap: () {
-              setState(() => _showFilterMenu = !_showFilterMenu);
+              setState(() {
+                _showFilterMenu = !_showFilterMenu;
+                if (_showFilterMenu) _showAdjustMenu = false; // Filter khule toh Adjust band ho jaye
+              });
             },
           ),
 
           _buildToolItem(
-            label: "Adjust",
-            icon: Icons.tune_rounded,
-            tooltipMessage: "Adjust brightness and contrast",
+            label: "Adjust", icon: Icons.tune_rounded, tooltipMessage: "Adjust brightness and contrast",
+            isSelected: _showAdjustMenu, // Open hone par icon blue higlight hoga
+            onTap: () {
+              setState(() {
+                _showAdjustMenu = !_showAdjustMenu;
+                if (_showAdjustMenu) _showFilterMenu = false; // Adjust khule toh Filter band ho jaye
+              });
+            },
           ),
+
           _buildToolItem(
             label: "Markup",
             icon: Icons.border_color_rounded,
