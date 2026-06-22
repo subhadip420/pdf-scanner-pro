@@ -86,54 +86,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     super.dispose();
   }
 
-  // Future<void> _toggleCropMode() async {
-  //   if (isCroppingMode) {
-  //     await _saveNewCrop();
-  //   } else {
-  //     showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)));
-  //
-  //     File origFile = widget.imageFiles[currentPage]['original']!;
-  //     File cropFile = widget.imageFiles[currentPage]['cropped']!;
-  //
-  //     final origBytes = await origFile.readAsBytes();
-  //     final cropBytes = await cropFile.readAsBytes();
-  //
-  //     final decodedOrig = img.decodeImage(origBytes);
-  //     final decodedCrop = img.decodeImage(cropBytes);
-  //
-  //     if (mounted) Navigator.pop(context); // Loading hatao
-  //
-  //     if (decodedOrig != null && decodedCrop != null) {
-  //       setState(() {
-  //         isCroppingMode = true;
-  //         isThumbnailVisible = false; // Thumbnail hide
-  //         _origWidth = decodedOrig.width.toDouble();
-  //         _origHeight = decodedOrig.height.toDouble();
-  //
-  //         // FIX 3: Check karo ki kya is page ki position pehle se save hai?
-  //         if (_savedCropPositions[currentPage] != null) {
-  //           // Agar save hai toh purani exact position load karo!
-  //           cropTopRatio = _savedCropPositions[currentPage]!['top']!;
-  //           cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
-  //           cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
-  //           cropRightRatio = _savedCropPositions[currentPage]!['right']!;
-  //         } else {
-  //           // Agar pehli baar hai toh midle wala normal calculation karo
-  //           double percentW = decodedCrop.width / decodedOrig.width;
-  //           double percentH = decodedCrop.height / decodedOrig.height;
-  //           cropTopRatio = (1.0 - percentH) / 2;
-  //           cropBottomRatio = (1.0 - percentH) / 2;
-  //           cropLeftRatio = (1.0 - percentW) / 2;
-  //           cropRightRatio = (1.0 - percentW) / 2;
-  //         }
-  //       });
-  //     }
-  //   }
-  // }
-
-  // --- CROP TOOL FUNCTIONS ---
-
-  // --- CROP TOOL FUNCTIONS ---
 
   // --- CROP TOOL FUNCTIONS ---
 
@@ -308,89 +260,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // 3. Main PDF generate karne ka function
-  // 3. Main PDF generate karne ka function (Public Folder Logic)
-  // Future<void> _generateAndSavePdf() async {
-  //   showToast("Generating PDF...");
-  //
-  //   final pdf = pw.Document();
-  //
-  //   for (var map in widget.imageFiles) {
-  //     // 1. Map me se cropped file ko nikala
-  //     final File file = map['cropped']!;
-  //
-  //     // 2. Us file ke bytes ko read kiya
-  //     final image = pw.MemoryImage(file.readAsBytesSync());
-  //
-  //     pdf.addPage(
-  //       pw.Page(
-  //         margin: pw.EdgeInsets.zero,
-  //         pageFormat: PdfPageFormat.a4,
-  //         build: (context) {
-  //           return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-  //         },
-  //       ),
-  //     );
-  //   }
-  //
-  //   try {
-  //     // 1. Storage Permission Manage Karo (Android 11+ ke liye ekdum sahi tarika)
-  //     if (await Permission.manageExternalStorage.isDenied) {
-  //       // Yeh user ke samne system setting page open karega permission dene ke liye
-  //       await Permission.manageExternalStorage.request();
-  //     }
-  //
-  //     // Agar user ne setting se permission nahi di, toh check karke block karo
-  //     if (!await Permission.manageExternalStorage.isGranted) {
-  //       showToast("Storage permission is required to save PDF");
-  //       return; // Aage ka code nahi chalega jab tak permission na mile
-  //     }
-  //
-  //     // 2. Public Documents folder ka path set karein
-  //     final Directory publicDir = Directory(
-  //       '/storage/emulated/0/Documents/PDF Scanner Pro',
-  //     );
-  //
-  //     // 3. Agar folder nahi hai, toh naya banao
-  //     if (!await publicDir.exists()) {
-  //       await publicDir.create(recursive: true);
-  //     }
-  //
-  //     // 4. File save karein
-  //     // 4. Unique File Name Generator
-  //     String baseFilePath = "${publicDir.path}/$documentName";
-  //     String finalFilePath = "$baseFilePath.pdf";
-  //     File file = File(finalFilePath);
-  //
-  //     int counter = 1;
-  //     // Jab tak is naam ki file milti rahegi, counter badhta jayega (1), (2)...
-  //     while (await file.exists()) {
-  //       finalFilePath = "$baseFilePath ($counter).pdf";
-  //       file = File(finalFilePath);
-  //       counter++;
-  //     }
-  //
-  //     // Ab safely save karein naye unique naam ke sath
-  //     await file.writeAsBytes(await pdf.save());
-  //
-  //     showToast("Saved in Documents/PDF Scanner Pro");
-  //
-  //     // 5. UPDATE: File open karne ka code hata diya hai
-  //     // Aur seedhe Home Screen par redirect kar diya (Sare purane pages pop ho jayenge)
-  //     // 5. UPDATE: Seedhe Home Screen par redirect aur baaki sab close
-  //     if (mounted) {
-  //       Navigator.pushAndRemoveUntil(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const HomeScreen()),
-  //         (Route<dynamic> route) =>
-  //             false, // Yeh condition purane saare pages (Camera, Edit) ko stack se hata degi
-  //       );
-  //     }
-  //   } catch (e) {
-  //     showToast("Error saving PDF: $e");
-  //     print("Save Error: $e");
-  //   }
-  // }
 
   // 3. Main PDF generate karne ka function (With Real Image Rotation)
   Future<void> _generateAndSavePdf() async {
@@ -655,35 +524,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       return _buildInPlaceCropView();
                     }
 
-                    // Warna normal image preview dikhao
-                    // return Center(
-                    //   child: Padding(
-                    //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-                    //     child: Image.file(
-                    //       widget.imageFiles[index]['cropped']!,
-                    //       fit: BoxFit.contain,
-                    //     ),
-                    //   ),
-                    // );
-
-                    // Warna normal image preview dikhao
-                    // return Center(
-                    //   child: Padding(
-                    //     // FIX: symmetric hata kar only lagaya aur bottom padding ko 90 kar diya
-                    //     // Isse photo niche se upar chali jayegi aur controls se nahi takrayegi
-                    //     padding: const EdgeInsets.only(
-                    //       left: 24,
-                    //       right: 24,
-                    //       top: 20,
-                    //       bottom: 80,
-                    //     ),
-                    //     child: Image.file(
-                    //       widget.imageFiles[index]['cropped']!,
-                    //       fit: BoxFit.contain,
-                    //     ),
-                    //   ),
-                    // );
-
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.only(
@@ -851,71 +691,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
           ),
 
-          /// BOTTOM HORIZONTAL THUMBNAIL LIST
-          // if (isThumbnailVisible)
-          //   Container(
-          //     height: 90,
-          //     color: const Color(0xFF1E1E1E),
-          //     child: ListView.builder(
-          //       scrollDirection: Axis.horizontal,
-          //       itemCount: widget.imageFiles.length,
-          //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          //       itemBuilder: (context, index) {
-          //         bool isSelected = currentPage == index;
-          //         return GestureDetector(
-          //           onTap: () {
-          //             _pageController.animateToPage(
-          //               index,
-          //               duration: const Duration(milliseconds: 300),
-          //               curve: Curves.easeInOut,
-          //             );
-          //           },
-          //           child: Container(
-          //             width: 60,
-          //             margin: const EdgeInsets.only(right: 12),
-          //             decoration: BoxDecoration(
-          //               image: DecorationImage(
-          //                 //image: FileImage(widget.imageFiles[index]),
-          //                 image: FileImage(widget.imageFiles[index]['cropped']!),
-          //                 fit: BoxFit.cover,
-          //               ),
-          //               border: Border.all(
-          //                 color: isSelected ? Colors.blue : Colors.transparent,
-          //                 width: 3,
-          //               ),
-          //               borderRadius: BorderRadius.circular(4),
-          //             ),
-          //             child: Stack(
-          //               children: [
-          //
-          //                 // Number with small dark background box
-          //                 Align(
-          //                   alignment: Alignment.bottomCenter, // Number ko thoda right side me rakha hai jo zyada accha lagta hai
-          //                   child: Container(
-          //                     margin: const EdgeInsets.all(4),
-          //                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          //                     decoration: BoxDecoration(
-          //                       color: Colors.black.withOpacity(0.6), // Low opacity black background
-          //                       borderRadius: BorderRadius.circular(10), // Small rounded shape
-          //                     ),
-          //                     child: Text(
-          //                       '${index + 1}',
-          //                       style: const TextStyle(
-          //                         color: Colors.white,
-          //                         fontSize: 11,
-          //                         fontWeight: FontWeight.bold,
-          //                       ),
-          //                     ),
-          //                   ),
-          //                 ),
-          //               ],
-          //             ),
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //   ),
-
           /// BOTTOM HORIZONTAL THUMBNAIL LIST (Smooth Hide/Show Animation)
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
@@ -997,57 +772,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
           ),
 
-          /// NEW ACTION TOOLS BAR (Horizontal Scrollable)
-          // Container(
-          //   height: 75,
-          //   color: const Color(0xFF151515), // Dark background for tools section
-          //   child: ListView(
-          //     scrollDirection: Axis.horizontal,
-          //     padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-          //     children: [
-          //       _buildToolItem(label: "Retake",
-          //           icon: Icons.refresh_rounded,
-          //           tooltipMessage: "Retake current photo"),
-          //       // _buildToolItem(label: "Crop",
-          //       //     icon: Icons.crop_rounded,
-          //       //     tooltipMessage: "Crop & adjust borders"),
-          //
-          //       _buildToolItem(
-          //         label: "Crop",
-          //         icon: Icons.crop_rounded,
-          //         tooltipMessage: "Crop & adjust borders",
-          //         isSelected: isCroppingMode, // Mode ON hone par blue hoga
-          //         onTap: _toggleCropMode,     // Naya function call hoga
-          //       ),
-          //       _buildToolItem(label: "Rotate",
-          //           icon: Icons.rotate_right_rounded,
-          //           tooltipMessage: "Rotate 90 degrees"),
-          //       _buildToolItem(label: "Filter",
-          //           icon: Icons.photo_filter_rounded,
-          //           tooltipMessage: "Apply color filters"),
-          //       _buildToolItem(label: "Adjust",
-          //           icon: Icons.tune_rounded,
-          //           tooltipMessage: "Adjust brightness and contrast"),
-          //       _buildToolItem(label: "Markup",
-          //           icon: Icons.border_color_rounded,
-          //           tooltipMessage: "Draw or add text on image"),
-          //       _buildToolItem(label: "Cleanup",
-          //           icon: Icons.auto_fix_high_rounded,
-          //           tooltipMessage: "Erase unwanted areas"),
-          //       _buildToolItem(label: "Resize",
-          //           icon: Icons.aspect_ratio_rounded,
-          //           tooltipMessage: "Change page layout size"),
-          //       _buildToolItem(label: "Reorder",
-          //           icon: Icons.swap_horizontal_circle_outlined,
-          //           tooltipMessage: "Rearrange page sequence"),
-          //       _buildToolItem(label: "Delete",
-          //           icon: Icons.delete_outline_rounded,
-          //           tooltipMessage: "Delete current page"),
-          //     ],
-          //   ),
-          // ),
-
-          /// NEW ACTION TOOLS BAR (With Slide Animation)
           /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
           Container(
             height: 68,
@@ -1171,11 +895,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isSelected: isCroppingMode,
             onTap: _toggleCropMode,
           ),
-          // _buildToolItem(
-          //   label: "Rotate",
-          //   icon: Icons.rotate_right_rounded,
-          //   tooltipMessage: "Rotate 90 degrees",
-          // ),
 
           _buildToolItem(
             label: "Rotate",
@@ -1258,48 +977,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       ),
     );
   }
-
-  // Widget _buildToolItem({
-  //   required String label,
-  //   required IconData icon,
-  //   required String tooltipMessage,
-  //   VoidCallback? onTap,
-  //   bool isSelected = false,
-  // }) {
-  //   return Tooltip(
-  //     message: tooltipMessage,
-  //     child: GestureDetector(
-  //       onTap: onTap ?? () => showToast("$label clicked"),
-  //       child: Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 5),
-  //         child: Container(
-  //           // Agar selected hai toh Adobe Scan jaisa solid blue color aayega
-  //           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-  //           decoration: BoxDecoration(
-  //             color: isSelected ? Colors.blueAccent : Colors.transparent,
-  //             borderRadius: BorderRadius.circular(12),
-  //           ),
-  //           child: Column(
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             mainAxisSize: MainAxisSize.min,
-  //             children: [
-  //               Icon(icon, color: Colors.white, size: 22),
-  //               const SizedBox(height: 6),
-  //               Text(
-  //                 label,
-  //                 style: const TextStyle(
-  //                   color: Colors.white,
-  //                   fontSize: 11,
-  //                   fontWeight: FontWeight.w500,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _buildToolItem({
     required String label,
