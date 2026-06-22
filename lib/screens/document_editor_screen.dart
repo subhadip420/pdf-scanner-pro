@@ -57,6 +57,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // PageView ka current index (Agar tumhare paas pehle se 'currentIndex' ya 'currentPage' name ka variable hai, toh use hi use karna)
   int _currentPageIndex = 0;
 
+  // Filter Menu State Variables
+  bool _showFilterMenu = false;
+  bool _applyToAllPages = false;
+  late List<String> _pageFilters; // 🚨 Har page ka alag filter track karega
+  // 🚨 FIX: Filter ke saare options ki list define kardo
+  final List<String> _filterOptions = [
+    "Original color",
+    "Auto-color",
+    "Light text",
+    "Grayscale",
+    "Whiteboard"
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -77,12 +90,50 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
 
     _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
+    _pageFilters = List.filled(widget.imageFiles.length, "Original color"); // 🚨 Default filter set kiya
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  // --- FILTER LOGIC ---
+  ColorFilter? _getColorFilter(String filterName) {
+    switch (filterName) {
+      case "Grayscale":
+        return const ColorFilter.matrix([
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0.2126, 0.7152, 0.0722, 0, 0,
+          0,      0,      0,      1, 0,
+        ]);
+      case "Whiteboard":
+        return const ColorFilter.matrix([
+          1.5, 0, 0, 0, 20,
+          0, 1.5, 0, 0, 20,
+          0, 0, 1.5, 0, 20,
+          0, 0, 0, 1, 0,
+        ]);
+      case "Light text":
+        return const ColorFilter.matrix([
+          1.2, 0, 0, 0, 10,
+          0, 1.2, 0, 0, 10,
+          0, 0, 1.2, 0, 10,
+          0, 0, 0, 1, 0,
+        ]);
+      case "Auto-color":
+        return const ColorFilter.matrix([
+          1.2, -0.1, -0.1, 0, 10,
+          -0.1, 1.2, -0.1, 0, 10,
+          -0.1, -0.1, 1.2, 0, 10,
+          0, 0, 0, 1, 0,
+        ]);
+      case "Original color":
+      default:
+        return null;
+    }
   }
 
   // --- CROP TOOL FUNCTIONS ---
@@ -427,6 +478,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           _imageQuarterTurns[currentPage] = 0;
           _savedCropPositions[currentPage] = null;
           _autoCropPositions[currentPage] = null;
+          _pageFilters[currentPage] = "Original color"; // 🚨 Retake par filter wapas original hoga
         });
 
         showToast("Page ${currentPage + 1} replaced successfully!");
@@ -499,275 +551,534 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ],
       ),
 
+      // body: Column(
+      //   children: [
+      //     /// MAIN PREVIEW AREA
+      //     Expanded(
+      //       child: Stack(
+      //         children: [
+      //           // Swipeable & Zoomable Images
+      //           PageView.builder(
+      //             controller: _pageController,
+      //             // Jab crop chal raha ho toh page swipe disable kar denge
+      //             physics: isCroppingMode
+      //                 ? const NeverScrollableScrollPhysics()
+      //                 : const BouncingScrollPhysics(),
+      //             onPageChanged: (index) {
+      //               setState(() {
+      //                 currentPage = index;
+      //               });
+      //             },
+      //             itemCount: widget.imageFiles.length,
+      //             itemBuilder: (context, index) {
+      //               // Agar crop mode ON hai aur yehi current page hai, toh Crop UI dikhao
+      //               if (isCroppingMode && index == currentPage) {
+      //                 return _buildInPlaceCropView();
+      //               }
+      //
+      //               // return Center(
+      //               //   child: Padding(
+      //               //     padding: const EdgeInsets.only(
+      //               //       left: 24,
+      //               //       right: 24,
+      //               //       top: 20,
+      //               //       bottom: 80,
+      //               //     ),
+      //               //     // 🚨 FIX: Image.file ko RotatedBox ke andar daal diya
+      //               //     child: RotatedBox(
+      //               //       quarterTurns: _imageQuarterTurns[index],
+      //               //       // Har image ka rotate state check karega
+      //               //       child: Image.file(
+      //               //         widget.imageFiles[index]['cropped']!,
+      //               //         fit: BoxFit.contain,
+      //               //       ),
+      //               //     ),
+      //               //   ),
+      //               // );
+      //
+      //               // 🚨 FIX 1: Taps detect karna aur filter layer add karna
+      //               return GestureDetector(
+      //                 behavior: HitTestBehavior.translucent,
+      //                 onTap: () {
+      //                   if (_showFilterMenu) setState(() => _showFilterMenu = false);
+      //                 },
+      //                 child: Center(
+      //                   child: Padding(
+      //                     padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+      //                     child: RotatedBox(
+      //                       quarterTurns: _imageQuarterTurns[index],
+      //                       child: ColorFiltered(
+      //                         // Har image ka filter set hoga
+      //                         colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+      //                         child: Image.file(
+      //                           widget.imageFiles[index]['cropped']!,
+      //                           fit: BoxFit.contain,
+      //                         ),
+      //                       ),
+      //                     ),
+      //                   ),
+      //                 ),
+      //               );
+      //             },
+      //           ),
+      //
+      //           /// Overlay Controls (Arrows and Page Count)
+      //           if (!isCroppingMode)
+      //             Positioned(
+      //               bottom: 20,
+      //               left: 16,
+      //               right: 16,
+      //               child: Row(
+      //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //                 children: [
+      //                   /// Left Arrow
+      //                   Tooltip(
+      //                     message: "Previous Page",
+      //                     child: GestureDetector(
+      //                       // Agar first page hai (0), to null (disable), warna _previousPage call hoga
+      //                       onTap: currentPage > 0 ? _previousPage : null,
+      //                       child: Container(
+      //                         width: 40,
+      //                         height: 40,
+      //                         decoration: BoxDecoration(
+      //                           // First page par background halka (black38) ho jayega
+      //                           color: currentPage > 0
+      //                               ? Colors.black87
+      //                               : Colors.black38,
+      //                           shape: BoxShape.circle,
+      //                         ),
+      //                         child: Icon(
+      //                           Icons.arrow_back_ios_new_rounded,
+      //                           // First page par icon ka color fade (white30) ho jayega
+      //                           color: currentPage > 0
+      //                               ? Colors.white
+      //                               : Colors.white30,
+      //                           size: 18,
+      //                         ),
+      //                       ),
+      //                     ),
+      //                   ),
+      //
+      //                   /// Middle Controls (Add Icon + Page Count)
+      //                   Row(
+      //                     children: [
+      //                       Tooltip(
+      //                         message: "Add New Page",
+      //                         child: GestureDetector(
+      //                           onTap: () => showToast("Add new page"),
+      //                           child: Container(
+      //                             width: 40,
+      //                             height: 40,
+      //                             decoration: const BoxDecoration(
+      //                               color: Colors.black87,
+      //                               shape: BoxShape.circle,
+      //                             ),
+      //                             child: const Icon(
+      //                               Icons.post_add_rounded,
+      //                               color: Colors.white,
+      //                               size: 20,
+      //                             ),
+      //                           ),
+      //                         ),
+      //                       ),
+      //                       const SizedBox(width: 12),
+      //
+      //                       Tooltip(
+      //                         message: "Jump to page",
+      //                         child: GestureDetector(
+      //                           onTap: () {
+      //                             setState(() {
+      //                               isThumbnailVisible = !isThumbnailVisible;
+      //                             });
+      //                           },
+      //                           child: Container(
+      //                             padding: const EdgeInsets.symmetric(
+      //                               horizontal: 16,
+      //                               vertical: 10,
+      //                             ),
+      //                             decoration: BoxDecoration(
+      //                               color: Colors.black87,
+      //                               borderRadius: BorderRadius.circular(20),
+      //                             ),
+      //                             child: Row(
+      //                               children: [
+      //                                 Text(
+      //                                   "Page ${currentPage + 1} of ${widget.imageFiles.length}",
+      //                                   style: const TextStyle(
+      //                                     color: Colors.white,
+      //                                     fontSize: 14,
+      //                                     fontWeight: FontWeight.w500,
+      //                                   ),
+      //                                 ),
+      //                                 const SizedBox(width: 6),
+      //                                 Icon(
+      //                                   isThumbnailVisible
+      //                                       ? Icons.keyboard_arrow_down_rounded
+      //                                       : Icons.keyboard_arrow_up_rounded,
+      //                                   color: Colors.white,
+      //                                   size: 18,
+      //                                 ),
+      //                               ],
+      //                             ),
+      //                           ),
+      //                         ),
+      //                       ),
+      //                     ],
+      //                   ),
+      //
+      //                   /// Right Arrow
+      //                   Tooltip(
+      //                     message: "Next Page",
+      //                     child: GestureDetector(
+      //                       // Agar last page hai, to null (disable), warna _nextPage call hoga
+      //                       onTap: currentPage < widget.imageFiles.length - 1
+      //                           ? _nextPage
+      //                           : null,
+      //                       child: Container(
+      //                         width: 40,
+      //                         height: 40,
+      //                         decoration: BoxDecoration(
+      //                           // Last page par background halka ho jayega
+      //                           color:
+      //                               currentPage < widget.imageFiles.length - 1
+      //                               ? Colors.black87
+      //                               : Colors.black38,
+      //                           shape: BoxShape.circle,
+      //                         ),
+      //                         child: Icon(
+      //                           Icons.arrow_forward_ios_rounded,
+      //                           // Last page par icon fade ho jayega
+      //                           color:
+      //                               currentPage < widget.imageFiles.length - 1
+      //                               ? Colors.white
+      //                               : Colors.white30,
+      //                           size: 18,
+      //                         ),
+      //                       ),
+      //                     ),
+      //                   ),
+      //                 ],
+      //               ),
+      //             ),
+      //         ],
+      //       ),
+      //     ),
+      //
+      //         /// 🚨 FIX 2 (START): THUMBNAILS AUR FILTER MENU KO STACK ME RAKHA
+      //         Stack(
+      //         clipBehavior: Clip.none,
+      //         alignment: Alignment.bottomCenter,
+      //         children: [
+      //         /// BOTTOM HORIZONTAL THUMBNAIL LIST (Smooth Hide/Show Animation)
+      //     AnimatedContainer(
+      //       duration: const Duration(milliseconds: 300),
+      //       // Same duration as Toolbar animation
+      //       curve: Curves.easeInOut,
+      //       height: isThumbnailVisible ? 90.0 : 0.0,
+      //       // Achanak gayab hone ke bajaye shrink hoga
+      //       child: ClipRect(
+      //         // ClipRect zaroori hai taaki shrink hote waqt image bahar na nikle
+      //         child: Container(
+      //           height: 90,
+      //           color: const Color(0xFF1E1E1E),
+      //           child: ListView.builder(
+      //             scrollDirection: Axis.horizontal,
+      //             itemCount: widget.imageFiles.length,
+      //             padding: const EdgeInsets.symmetric(
+      //               horizontal: 16,
+      //               vertical: 10,
+      //             ),
+      //             itemBuilder: (context, index) {
+      //               bool isSelected = currentPage == index;
+      //               return GestureDetector(
+      //                 onTap: () {
+      //                   _pageController.animateToPage(
+      //                     index,
+      //                     duration: const Duration(milliseconds: 300),
+      //                     curve: Curves.easeInOut,
+      //                   );
+      //                 },
+      //                 child: Container(
+      //                   width: 60,
+      //                   margin: const EdgeInsets.only(right: 12),
+      //                   decoration: BoxDecoration(
+      //                     image: DecorationImage(
+      //                       image: FileImage(
+      //                         widget.imageFiles[index]['cropped']!,
+      //                       ),
+      //                       fit: BoxFit.cover,
+      //                     ),
+      //                     border: Border.all(
+      //                       color: isSelected
+      //                           ? Colors.blue
+      //                           : Colors.transparent,
+      //                       width: 3,
+      //                     ),
+      //                     borderRadius: BorderRadius.circular(4),
+      //                   ),
+      //                   child: Stack(
+      //                     children: [
+      //                       Align(
+      //                         alignment: Alignment.bottomCenter,
+      //                         child: Container(
+      //                           margin: const EdgeInsets.all(4),
+      //                           padding: const EdgeInsets.symmetric(
+      //                             horizontal: 6,
+      //                             vertical: 2,
+      //                           ),
+      //                           decoration: BoxDecoration(
+      //                             color: Colors.black.withOpacity(0.6),
+      //                             borderRadius: BorderRadius.circular(10),
+      //                           ),
+      //                           child: Text(
+      //                             '${index + 1}',
+      //                             style: const TextStyle(
+      //                               color: Colors.white,
+      //                               fontSize: 11,
+      //                               fontWeight: FontWeight.bold,
+      //                             ),
+      //                           ),
+      //                         ),
+      //                       ),
+      //                     ],
+      //                   ),
+      //                 ),
+      //               );
+      //             },
+      //           ),
+      //         ),
+      //       ),
+      //     ),
+      //
+      //
+      //           /// 🚨 FIX 2 (END): FILTER MENU UI (Action bar ke theek peeche se niklega)
+      //           Positioned(
+      //             bottom: 0, left: 0, right: 0,
+      //             child: IgnorePointer(
+      //               ignoring: !_showFilterMenu,
+      //               child: AnimatedSlide(
+      //                 duration: const Duration(milliseconds: 300),
+      //                 curve: Curves.easeInOut,
+      //                 offset: _showFilterMenu ? Offset.zero : const Offset(0, 1.2), // Menu Action bar ke peeche chup jayega
+      //                 child: AnimatedOpacity(
+      //                   duration: const Duration(milliseconds: 300),
+      //                   opacity: _showFilterMenu ? 1.0 : 0.0,
+      //                   child: _buildFilterMenuWidget(),
+      //                 ),
+      //               ),
+      //             ),
+      //           ),
+      //         ],
+      //         ), // Stack Yahan Close Hua
+
+
       body: Column(
         children: [
-          /// MAIN PREVIEW AREA
+          /// 🚨 FIX 1: MAIN PREVIEW AUR THUMBNAILS KO EK CLIP-RECT STACK ME RAKHA
+          /// Taaki Filter Menu peechhe se nikle aur uske clicks properly detect hon!
           Expanded(
-            child: Stack(
-              children: [
-                // Swipeable & Zoomable Images
-                PageView.builder(
-                  controller: _pageController,
-                  // Jab crop chal raha ho toh page swipe disable kar denge
-                  physics: isCroppingMode
-                      ? const NeverScrollableScrollPhysics()
-                      : const BouncingScrollPhysics(),
-                  onPageChanged: (index) {
-                    setState(() {
-                      currentPage = index;
-                    });
-                  },
-                  itemCount: widget.imageFiles.length,
-                  itemBuilder: (context, index) {
-                    // Agar crop mode ON hai aur yehi current page hai, toh Crop UI dikhao
-                    if (isCroppingMode && index == currentPage) {
-                      return _buildInPlaceCropView();
-                    }
-
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 24,
-                          right: 24,
-                          top: 20,
-                          bottom: 80,
-                        ),
-                        // 🚨 FIX: Image.file ko RotatedBox ke andar daal diya
-                        child: RotatedBox(
-                          quarterTurns: _imageQuarterTurns[index],
-                          // Har image ka rotate state check karega
-                          child: Image.file(
-                            widget.imageFiles[index]['cropped']!,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                /// Overlay Controls (Arrows and Page Count)
-                if (!isCroppingMode)
-                  Positioned(
-                    bottom: 20,
-                    left: 16,
-                    right: 16,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        /// Left Arrow
-                        Tooltip(
-                          message: "Previous Page",
-                          child: GestureDetector(
-                            // Agar first page hai (0), to null (disable), warna _previousPage call hoga
-                            onTap: currentPage > 0 ? _previousPage : null,
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                // First page par background halka (black38) ho jayega
-                                color: currentPage > 0
-                                    ? Colors.black87
-                                    : Colors.black38,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.arrow_back_ios_new_rounded,
-                                // First page par icon ka color fade (white30) ho jayega
-                                color: currentPage > 0
-                                    ? Colors.white
-                                    : Colors.white30,
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        /// Middle Controls (Add Icon + Page Count)
-                        Row(
-                          children: [
-                            Tooltip(
-                              message: "Add New Page",
-                              child: GestureDetector(
-                                onTap: () => showToast("Add new page"),
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.black87,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.post_add_rounded,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-
-                            Tooltip(
-                              message: "Jump to page",
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    isThumbnailVisible = !isThumbnailVisible;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black87,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Page ${currentPage + 1} of ${widget.imageFiles.length}",
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Icon(
-                                        isThumbnailVisible
-                                            ? Icons.keyboard_arrow_down_rounded
-                                            : Icons.keyboard_arrow_up_rounded,
-                                        color: Colors.white,
-                                        size: 18,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        /// Right Arrow
-                        Tooltip(
-                          message: "Next Page",
-                          child: GestureDetector(
-                            // Agar last page hai, to null (disable), warna _nextPage call hoga
-                            onTap: currentPage < widget.imageFiles.length - 1
-                                ? _nextPage
-                                : null,
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                // Last page par background halka ho jayega
-                                color:
-                                    currentPage < widget.imageFiles.length - 1
-                                    ? Colors.black87
-                                    : Colors.black38,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.arrow_forward_ios_rounded,
-                                // Last page par icon fade ho jayega
-                                color:
-                                    currentPage < widget.imageFiles.length - 1
-                                    ? Colors.white
-                                    : Colors.white30,
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          /// BOTTOM HORIZONTAL THUMBNAIL LIST (Smooth Hide/Show Animation)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            // Same duration as Toolbar animation
-            curve: Curves.easeInOut,
-            height: isThumbnailVisible ? 90.0 : 0.0,
-            // Achanak gayab hone ke bajaye shrink hoga
             child: ClipRect(
-              // ClipRect zaroori hai taaki shrink hote waqt image bahar na nikle
-              child: Container(
-                height: 90,
-                color: const Color(0xFF1E1E1E),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: widget.imageFiles.length,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  itemBuilder: (context, index) {
-                    bool isSelected = currentPage == index;
-                    return GestureDetector(
-                      onTap: () {
-                        _pageController.animateToPage(
-                          index,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      child: Container(
-                        width: 60,
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: FileImage(
-                              widget.imageFiles[index]['cropped']!,
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.blue
-                                : Colors.transparent,
-                            width: 3,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+              child: Stack(
+                children: [
+                  // --- LAYER 1: Preview & Thumbnails ---
+                  Column(
+                    children: [
+                      // MAIN PREVIEW AREA
+                      Expanded(
                         child: Stack(
                           children: [
-                            Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Container(
-                                margin: const EdgeInsets.all(4),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  '${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
+                            // Swipeable & Zoomable Images
+                            PageView.builder(
+                              controller: _pageController,
+                              physics: isCroppingMode
+                                  ? const NeverScrollableScrollPhysics()
+                                  : const BouncingScrollPhysics(),
+                              onPageChanged: (index) {
+                                setState(() {
+                                  currentPage = index;
+                                });
+                              },
+                              itemCount: widget.imageFiles.length,
+                              itemBuilder: (context, index) {
+                                if (isCroppingMode && index == currentPage) {
+                                  return _buildInPlaceCropView();
+                                }
+
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.translucent,
+                                  onTap: () {
+                                    if (_showFilterMenu) setState(() => _showFilterMenu = false);
+                                  },
+                                  child: Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                                      child: RotatedBox(
+                                        quarterTurns: _imageQuarterTurns[index],
+                                        child: ColorFiltered(
+                                          colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                          child: Image.file(
+                                            widget.imageFiles[index]['cropped']!,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
+                                );
+                              },
+                            ),
+
+                            /// Overlay Controls (Arrows and Page Count)
+                            if (!isCroppingMode)
+                              Positioned(
+                                bottom: 20, left: 16, right: 16,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Tooltip(
+                                      message: "Previous Page",
+                                      child: GestureDetector(
+                                        onTap: currentPage > 0 ? _previousPage : null,
+                                        child: Container(
+                                          width: 40, height: 40,
+                                          decoration: BoxDecoration(
+                                            color: currentPage > 0 ? Colors.black87 : Colors.black38,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(Icons.arrow_back_ios_new_rounded, color: currentPage > 0 ? Colors.white : Colors.white30, size: 18),
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Tooltip(
+                                          message: "Add New Page",
+                                          child: GestureDetector(
+                                            onTap: () => showToast("Add new page"),
+                                            child: Container(
+                                              width: 40, height: 40,
+                                              decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle),
+                                              child: const Icon(Icons.post_add_rounded, color: Colors.white, size: 20),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Tooltip(
+                                          message: "Jump to page",
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                isThumbnailVisible = !isThumbnailVisible;
+                                              });
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                              decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(20)),
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    "Page ${currentPage + 1} of ${widget.imageFiles.length}",
+                                                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Icon(
+                                                    isThumbnailVisible ? Icons.keyboard_arrow_down_rounded : Icons.keyboard_arrow_up_rounded,
+                                                    color: Colors.white, size: 18,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Tooltip(
+                                      message: "Next Page",
+                                      child: GestureDetector(
+                                        onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
+                                        child: Container(
+                                          width: 40, height: 40,
+                                          decoration: BoxDecoration(
+                                            color: currentPage < widget.imageFiles.length - 1 ? Colors.black87 : Colors.black38,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(Icons.arrow_forward_ios_rounded, color: currentPage < widget.imageFiles.length - 1 ? Colors.white : Colors.white30, size: 18),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
                           ],
                         ),
                       ),
-                    );
-                  },
-                ),
+
+                      // --- THUMBNAILS LIST ---
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                        height: isThumbnailVisible ? 90.0 : 0.0,
+                        child: ClipRect(
+                          child: Container(
+                            height: 90, color: const Color(0xFF1E1E1E),
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: widget.imageFiles.length,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              itemBuilder: (context, index) {
+                                bool isSelected = currentPage == index;
+                                return GestureDetector(
+                                  onTap: () {
+                                    _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                                  },
+                                  child: Container(
+                                    width: 60, margin: const EdgeInsets.only(right: 12),
+                                    decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                        image: FileImage(widget.imageFiles[index]['cropped']!), fit: BoxFit.cover,
+                                      ),
+                                      border: Border.all(color: isSelected ? Colors.blue : Colors.transparent, width: 3),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: Container(
+                                            margin: const EdgeInsets.all(4), padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(10)),
+                                            child: Text('${index + 1}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // --- LAYER 2: FILTER MENU ---
+                  // Ab ye menu completely parent box ke andar hai.
+                  // -200 ki wajah se ye Action bar ke theek peeche chhip jayega!
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    bottom: _showFilterMenu ? 0 : -200,
+                    left: 0,
+                    right: 0,
+                    child: _buildFilterMenuWidget(),
+                  ),
+                ],
               ),
             ),
           ),
+
+          /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
 
           /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
           Container(
@@ -863,6 +1174,251 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+  // // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+  // Widget _buildFilterMenuWidget() {
+  //   String currentFilter = _pageFilters[currentPage];
+  //
+  //   return Container(
+  //     height: 180,
+  //     decoration: const BoxDecoration(
+  //       color: Color(0xFF1E1E1E),
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //     ),
+  //     padding: const EdgeInsets.only(top: 16, bottom: 8),
+  //     child: Column(
+  //       children: [
+  //         // Thumbnails Options
+  //         SizedBox(
+  //           height: 100,
+  //           child: ListView.builder(
+  //             scrollDirection: Axis.horizontal,
+  //             padding: const EdgeInsets.symmetric(horizontal: 16),
+  //             itemCount: _filterOptions.length,
+  //             itemBuilder: (context, index) {
+  //               String filterName = _filterOptions[index];
+  //               bool isSelected = currentFilter == filterName;
+  //
+  //               return GestureDetector(
+  //                 onTap: () {
+  //                   setState(() {
+  //                     if (_applyToAllPages) {
+  //                       for (int i = 0; i < _pageFilters.length; i++) {
+  //                         _pageFilters[i] = filterName;
+  //                       }
+  //                     } else {
+  //                       _pageFilters[currentPage] = filterName;
+  //                     }
+  //                   });
+  //                 },
+  //                 child: Padding(
+  //                   padding: const EdgeInsets.only(right: 16),
+  //                   child: Column(
+  //                     children: [
+  //                       Container(
+  //                         width: 65, height: 65,
+  //                         decoration: BoxDecoration(
+  //                           border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent, width: 2.5),
+  //                           borderRadius: BorderRadius.circular(8),
+  //                         ),
+  //                         child: ClipRRect(
+  //                           borderRadius: BorderRadius.circular(5),
+  //                           child: ColorFiltered(
+  //                             colorFilter: _getColorFilter(filterName) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+  //                             child: Image.file(
+  //                               widget.imageFiles[currentPage]['cropped']!,
+  //                               fit: BoxFit.cover,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                       const SizedBox(height: 8),
+  //                       Text(
+  //                         filterName,
+  //                         style: TextStyle(
+  //                           color: isSelected ? Colors.blueAccent : Colors.white70,
+  //                           fontSize: 11,
+  //                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //         const Spacer(),
+  //         // Bottom Toggle
+  //         Padding(
+  //           padding: const EdgeInsets.symmetric(horizontal: 16),
+  //           child: Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //             children: [
+  //               Row(
+  //                 children: [
+  //                   SizedBox(
+  //                     height: 30,
+  //                     child: Switch(
+  //                       value: _applyToAllPages,
+  //                       onChanged: (val) {
+  //                         setState(() {
+  //                           _applyToAllPages = val;
+  //                           if (val) {
+  //                             String activeFilter = _pageFilters[currentPage];
+  //                             for (int i = 0; i < _pageFilters.length; i++) {
+  //                               _pageFilters[i] = activeFilter;
+  //                             }
+  //                           }
+  //                         });
+  //                       },
+  //                       activeColor: Colors.blueAccent,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 8),
+  //                   const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+  //                 ],
+  //               ),
+  //               Tooltip(
+  //                 message: "Filter Settings",
+  //                 child: IconButton(
+  //                   icon: const Icon(Icons.settings, color: Colors.white70, size: 24),
+  //                   onPressed: () => showToast("Settings coming soon!"),
+  //                 ),
+  //               )
+  //             ],
+  //           ),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
+
+
+  // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+  Widget _buildFilterMenuWidget() {
+    String currentFilter = _pageFilters[currentPage];
+
+    // 🚨 FIX: GestureDetector lagaya taaki touches/swipes background me leak na ho
+    return GestureDetector(
+      onTap: () {}, // Clicks ko yahan block karega
+      onHorizontalDragUpdate: (_) {}, // Horizontal swipe (PageView scroll) ko block karega
+      onVerticalDragUpdate: (_) {}, // Vertical scroll ko block karega
+      child: Container(
+        height: 180,
+        decoration: const BoxDecoration(
+          color: Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        padding: const EdgeInsets.only(top: 16, bottom: 8),
+        child: Column(
+          children: [
+            // Thumbnails Options
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _filterOptions.length,
+                itemBuilder: (context, index) {
+                  String filterName = _filterOptions[index];
+                  bool isSelected = currentFilter == filterName;
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (_applyToAllPages) {
+                          for (int i = 0; i < _pageFilters.length; i++) {
+                            _pageFilters[i] = filterName;
+                          }
+                        } else {
+                          _pageFilters[currentPage] = filterName;
+                        }
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 65, height: 65,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent, width: 2.5),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(5),
+                              child: ColorFiltered(
+                                colorFilter: _getColorFilter(filterName) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                child: Image.file(
+                                  widget.imageFiles[currentPage]['cropped']!,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            filterName,
+                            style: TextStyle(
+                              color: isSelected ? Colors.blueAccent : Colors.white70,
+                              fontSize: 11,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const Spacer(),
+            // Bottom Toggle
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 30,
+                        child: Switch(
+                          value: _applyToAllPages,
+                          onChanged: (val) {
+                            setState(() {
+                              _applyToAllPages = val;
+                              if (val) {
+                                String activeFilter = _pageFilters[currentPage];
+                                for (int i = 0; i < _pageFilters.length; i++) {
+                                  _pageFilters[i] = activeFilter;
+                                }
+                              }
+                            });
+                          },
+                          activeColor: Colors.blueAccent,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+                    ],
+                  ),
+                  Tooltip(
+                    message: "Filter Settings",
+                    child: IconButton(
+                      icon: const Icon(Icons.settings, color: Colors.white70, size: 24),
+                      onPressed: () => showToast("Settings coming soon!"),
+                    ),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
   // --- TOOLBAR WIDGETS ---
 
   // --- TOOLBAR WIDGETS ---
@@ -900,11 +1456,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             // Tumhara upar banaya function
             isRotate: true, // 🚨 Isko true pass karna zaroori hai tabhi ghumega
           ),
+          // _buildToolItem(
+          //   label: "Filter",
+          //   icon: Icons.photo_filter_rounded,
+          //   tooltipMessage: "Apply color filters",
+          // ),
+
+          // 🚨 FIX 3: Filter Button Click setup
           _buildToolItem(
             label: "Filter",
-            icon: Icons.photo_filter_rounded,
+            icon: Symbols.masked_transitions_rounded,
             tooltipMessage: "Apply color filters",
+            isSelected: _showFilterMenu,
+            onTap: () {
+              setState(() => _showFilterMenu = !_showFilterMenu);
+            },
           ),
+
           _buildToolItem(
             label: "Adjust",
             icon: Icons.tune_rounded,
