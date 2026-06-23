@@ -760,17 +760,43 @@ class _MarkupScreenState extends State<MarkupScreen> {
             child: Slider(value: _strokeWidth, min: 1, max: 50, onChanged: (val) => setState(() => _strokeWidth = val)),
           ),
 
-          const SizedBox(height: 5),
+          //const SizedBox(height: 5),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          //     const Text("Opacity", style: TextStyle(color: Colors.white, fontSize: 14)),
+          //     Text("${(_opacity * 100).toInt()}%", style: const TextStyle(color: Colors.white, fontSize: 14)),
+          //   ],
+          // ),
+          // SliderTheme(
+          //   data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
+          //   child: Slider(value: _opacity, min: 0.1, max: 1.0, onChanged: (val) => setState(() => _opacity = val)),
+          // )
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Opacity", style: TextStyle(color: Colors.white, fontSize: 14)),
-              Text("${(_opacity * 100).toInt()}%", style: const TextStyle(color: Colors.white, fontSize: 14)),
+              // 🚨 FIX: Text ko bhi gray (white38) kar diya agar Eraser mode on hai
+              Text("Opacity", style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 16)),
+              Text("${(_opacity * 100).toInt()}%", style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 14)),
             ],
           ),
           SliderTheme(
-            data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
-            child: Slider(value: _opacity, min: 0.1, max: 1.0, onChanged: (val) => setState(() => _opacity = val)),
+            data: SliderThemeData(
+              trackHeight: 2,
+              activeTrackColor: Colors.grey.shade400,
+              inactiveTrackColor: Colors.grey.shade800,
+              thumbColor: Colors.white,
+              // 🚨 FIX: Disabled state ke liye dark colors apply kiye
+              disabledThumbColor: Colors.grey.shade800,
+              disabledActiveTrackColor: Colors.grey.shade800,
+            ),
+            child: Slider(
+              value: _opacity,
+              min: 0.1,
+              max: 1.0,
+              // 🚨 FIX: _isEraserMode true hone par onChanged ko 'null' pass kiya, jisse slider disable (unclickable) ho jayega
+              onChanged: _isEraserMode ? null : (val) => setState(() => _opacity = val),
+            ),
           )
         ],
       );
