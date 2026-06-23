@@ -1224,19 +1224,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-              // Agar text select nahi hai, toh delete button grey dikhega aur kaam nahi karega
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: hasActiveText ? Colors.redAccent : Colors.grey.shade700,
-              ),
-              onPressed: hasActiveText
-                  ? () => setState(() {
-                      _textItems.remove(_activeTextItem);
-                      _activeTextItem = null;
-                    })
-                  : null,
-            ),
+
             GestureDetector(
               onTap: () => setState(() {
                 int idx = _fonts.indexOf(activeItem.font);
@@ -1485,6 +1473,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                 ),
               ),
+
+              GestureDetector(
+                onTap: hasActiveText
+                    ? () => setState(() {
+                  _textItems.remove(_activeTextItem);
+                  _activeTextItem = null;
+                })
+                    : null,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 36,
+                  height: 36,
+                  child: Icon(
+                    Icons.delete_forever_rounded, // 🚨 Delete icon
+                    color: hasActiveText ? Colors.redAccent : Colors.white38,
+                  ),
+                ),
+              ),
+
             ],
           ),
         ),
