@@ -509,27 +509,59 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
+  // Widget _buildBottomTab(String title, IconData icon) {
+  //   bool isSelected = _activeTab == title;
+  //   return GestureDetector(
+  //     onTap: () => setState(() => _activeTab = title),
+  //     child: Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         Icon(
+  //           icon,
+  //           color: isSelected ? Colors.blueAccent : Colors.white54,
+  //           size: 24,
+  //         ),
+  //         const SizedBox(height: 4),
+  //         Text(
+  //           title,
+  //           style: TextStyle(
+  //             color: isSelected ? Colors.blueAccent : Colors.white54,
+  //             fontSize: 11,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildBottomTab(String title, IconData icon) {
     bool isSelected = _activeTab == title;
     return GestureDetector(
+      // 🚨 FIX 1: Opaque lagane se icon/text ke beech ki khaali jagah par bhi click kaam karega
+      behavior: HitTestBehavior.opaque,
       onTap: () => setState(() => _activeTab = title),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? Colors.blueAccent : Colors.white54,
-            size: 24,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
+      // 🚨 FIX 2: Padding lagakar invisible touch area bada kar diya
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
               color: isSelected ? Colors.blueAccent : Colors.white54,
-              fontSize: 11,
+              size: 24,
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? Colors.blueAccent : Colors.white54,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
