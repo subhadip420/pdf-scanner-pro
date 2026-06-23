@@ -879,6 +879,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                         ),
                                                       ),
                                                     ),
+
+                                                  // 🚨 3. NAYA: TOP-LEFT CROSS ICON
+                                                  if (isActive)
+                                                    Positioned(
+                                                      top: -15, left: -15,
+                                                      child: GestureDetector(
+                                                        onTap: () {
+                                                          setState(() {
+                                                            _textItems.remove(item);
+                                                            _activeTextItem = null;
+                                                          });
+                                                        },
+                                                        child: Container(
+                                                          padding: const EdgeInsets.all(4),
+                                                          decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                                                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                                                        ),
+                                                      ),
+                                                    ),
                                                 ],
                                               ),
                                             ),
