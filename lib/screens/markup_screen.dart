@@ -105,24 +105,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
           "Changes you have made with the Markup tool will be discarded.",
           style: TextStyle(color: Colors.white70),
         ),
-        // actions: [
-        //   OutlinedButton(
-        //     style: OutlinedButton.styleFrom(
-        //       side: const BorderSide(color: Colors.grey),
-        //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        //     ),
-        //     onPressed: () => Navigator.pop(context, true),
-        //     child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
-        //   ),
-        //   ElevatedButton(
-        //     style: ElevatedButton.styleFrom(
-        //       backgroundColor: Colors.blueAccent,
-        //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        //     ),
-        //     onPressed: () => Navigator.pop(context, false),
-        //     child: const Text("OK", style: TextStyle(color: Colors.white)),
-        //   ),
-        // ],
 
         actions: [
           OutlinedButton(
@@ -174,122 +156,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
       if (mounted) Navigator.pop(context);
     }
   }
-
-  // Color Picker Window
-  // void _openColorPicker() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => Dialog(
-  //       backgroundColor: const Color(0xFF2C2C2C),
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-  //       child: Padding(
-  //         padding: const EdgeInsets.all(16),
-  //         child: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             Container(
-  //               height: 180, width: double.infinity,
-  //               decoration: BoxDecoration(
-  //                 borderRadius: BorderRadius.circular(8),
-  //                 gradient: const LinearGradient(
-  //                   colors: [Colors.white, Colors.blue, Colors.black],
-  //                   begin: Alignment.topLeft, end: Alignment.bottomRight,
-  //                 ),
-  //               ),
-  //               alignment: Alignment.topRight,
-  //               padding: const EdgeInsets.all(12),
-  //               child: const Icon(Icons.circle_outlined, color: Colors.white, size: 28),
-  //             ),
-  //             const SizedBox(height: 16),
-  //             Row(
-  //               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //               children: _recentColors.map((c) => GestureDetector(
-  //                 onTap: () {
-  //                   setState(() => _selectedColor = c);
-  //                   Navigator.pop(context);
-  //                 },
-  //                 child: Container(
-  //                   width: 40, height: 40,
-  //                   decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade600)),
-  //                 ),
-  //               )).toList(),
-  //             )
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-// Color Picker Window (With Package & Opacity)
-//   // Color Picker Window (Auto-Select & Tap Outside to Close)
-//   Future<void> _openColorPicker() async {
-//     // showDialog default 'barrierDismissible: true' hota hai, iska matlab bahar tap karne se close ho jayega
-//     await showDialog(
-//       context: context,
-//       builder: (context) => AlertDialog(
-//         backgroundColor: const Color(0xFF2C2C2C),
-//         contentPadding: const EdgeInsets.all(16),
-//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-//         content: SingleChildScrollView(
-//           child: Column(
-//             mainAxisSize: MainAxisSize.min,
-//             children: [
-//               // 🚨 Exact Screenshot jaisa HSV Picker with Auto-Select
-//               ColorPicker(
-//                 pickerColor: _selectedColor.withOpacity(_opacity),
-//                 onColorChanged: (color) {
-//                   // 🚨 Real-time update (Jaise hi color drag karoge, immediately apply hoga)
-//                   setState(() {
-//                     _selectedColor = color.withOpacity(1.0); // Base color
-//                     _opacity = color.opacity; // Opacity slider sync
-//                   });
-//                 },
-//                 colorPickerWidth: 280,
-//                 pickerAreaHeightPercent: 0.7,
-//                 enableAlpha: true, // Opacity (Alpha) slider
-//                 displayThumbColor: true,
-//                 paletteType: PaletteType.hsvWithHue,
-//                 pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(8)),
-//                 hexInputBar: false,
-//                 labelTypes: const [], // Labels hide kiye
-//               ),
-//               const SizedBox(height: 5),
-//
-//               // 🚨 Recent Colors Row
-//               if (_recentColors.isNotEmpty)
-//                 Row(
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: _recentColors.map((c) => GestureDetector(
-//                     onTap: () {
-//                       setState(() {
-//                         _selectedColor = c.withOpacity(1.0);
-//                         _opacity = 1.0; // Recent color select karne par opacity 100% ho jayegi
-//                       });
-//                       Navigator.pop(context); // Recent color click karte hi popup close ho jayega
-//                     },
-//                     child: Container(
-//                       margin: const EdgeInsets.symmetric(horizontal: 5),
-//                       width: 35, height: 35,
-//                       decoration: BoxDecoration(
-//                           color: c,
-//                           borderRadius: BorderRadius.circular(8),
-//                           border: Border.all(color: Colors.grey.shade500, width: 1.5)
-//                       ),
-//                     ),
-//                   )).toList(),
-//                 )
-//               else
-//                 const Text("No recent colors", style: TextStyle(color: Colors.white54, fontSize: 12)),
-//             ],
-//           ),
-//         ),
-//         // 🚨 FIX: Actions (Cancel, Select) hata diye gaye hain
-//       ),
-//     );
-//
-//     // 🚨 Jab popup close hoga (bahar tap karne par), tab final color Memory me save hoga
-//     _saveRecentColor(_selectedColor);
-//   }
 
   // Color Picker Window (No Opacity, Auto-Select, Exact Screenshot Design)
   Future<void> _openColorPicker() async {
@@ -468,51 +334,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                 onPointerUp: (_) => setState(() => _pointerCount--),
                                 onPointerCancel: (_) => setState(() => _pointerCount--),
                                 child: GestureDetector(
-                                  // 🚨 FIX 5: Agar pointer 1 se bada hai (2 fingers hain), toh drawing events ko 'null' karke bypass kar do, taaki InteractiveViewer smoothly zoom le sake.
-                                  // onPanStart: _pointerCount > 1 ? null : (details) {
-                                  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
-                                  //     setState(() {
-                                  //       RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                  //       _currentPoints = [renderBox.globalToLocal(details.globalPosition)];
-                                  //     });
-                                  //   }
-                                  // },
-                                  // onPanUpdate: _pointerCount > 1 ? null : (details) {
-                                  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
-                                  //     setState(() {
-                                  //       RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                  //       _currentPoints.add(renderBox.globalToLocal(details.globalPosition));
-                                  //     });
-                                  //   }
-                                  // },
-                                  // onPanEnd: _pointerCount > 1 ? null : (details) {
-                                  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
-                                  //     if (_currentPoints.isEmpty) return;
-                                  //     setState(() {
-                                  //       _currentPoints.add(null);
-                                  //       _paths.add(DrawnPath(
-                                  //         points: List.from(_currentPoints),
-                                  //         color: _selectedColor,
-                                  //         strokeWidth: _strokeWidth,
-                                  //         opacity: _opacity,
-                                  //         isEraser: _activeTab == "Eraser",
-                                  //       ));
-                                  //       _currentPoints.clear();
-                                  //       _undonePaths.clear();
-                                  //     });
-                                  //   }
-                                  // },
-                                  // child: CustomPaint(
-                                  //   painter: DrawingPainter(
-                                  //     paths: _paths,
-                                  //     currentPoints: _currentPoints,
-                                  //     currentColor: _selectedColor,
-                                  //     currentStrokeWidth: _strokeWidth,
-                                  //     currentOpacity: _opacity,
-                                  //     isEraser: _activeTab == "Eraser",
-                                  //   ),
-                                  // ),
-
                                   // 🚨 FIX 3: Gestures ab sirf 'Drawing' tab mein aur '_isEraserMode' flag ke sath kaam karenge
                                   onPanStart: _pointerCount > 1 ? null : (details) {
                                     if (_activeTab == "Drawing") {
@@ -611,76 +432,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  // Widget _buildSettingsPanel() {
-  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
-  //     return Column(
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: [
-  //         if (_activeTab == "Drawing") ...[
-  //           Row(
-  //             children: [
-  //               const Text("Color", style: TextStyle(color: Colors.white, fontSize: 16)),
-  //               const SizedBox(width: 16),
-  //               GestureDetector(
-  //                 onTap: _openColorPicker,
-  //                 child: Container(width: 35, height: 35, decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6))),
-  //               ),
-  //               const SizedBox(width: 16),
-  //               const Icon(Icons.colorize_rounded, color: Colors.white70),
-  //             ],
-  //           ),
-  //           const SizedBox(height: 20),
-  //         ],
-  //
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             const Text("Stroke width", style: TextStyle(color: Colors.white, fontSize: 16)),
-  //             Text("${_strokeWidth.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
-  //           ],
-  //         ),
-  //         SliderTheme(
-  //           data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
-  //           child: Slider(
-  //             value: _strokeWidth, min: 1, max: 50,
-  //             onChanged: (val) => setState(() => _strokeWidth = val),
-  //           ),
-  //         ),
-  //
-  //         if (_activeTab == "Drawing") ...[
-  //           const SizedBox(height: 10),
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             children: [
-  //               const Text("Opacity", style: TextStyle(color: Colors.white, fontSize: 16)),
-  //               Text("${(_opacity * 100).toInt()}%", style: const TextStyle(color: Colors.white, fontSize: 14)),
-  //             ],
-  //           ),
-  //           SliderTheme(
-  //             data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
-  //             child: Slider(
-  //               value: _opacity, min: 0.1, max: 1.0,
-  //               onChanged: (val) => setState(() => _opacity = val),
-  //             ),
-  //           ),
-  //         ]
-  //       ],
-  //     );
-  //   }
-  //   else if (_activeTab == "Shapes") {
-  //     List<IconData> shapeIcons = [Icons.change_history_rounded, Icons.circle_outlined, Icons.square_outlined, Icons.crop_square_rounded, Icons.hexagon_outlined];
-  //     return SizedBox(
-  //       height: 60,
-  //       child: Row(
-  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //         children: shapeIcons.map((icon) => Icon(icon, color: Colors.cyan, size: 40)).toList(),
-  //       ),
-  //     );
-  //   }
-  //
-  //   return const Center(child: Text("Feature coming soon", style: TextStyle(color: Colors.white54)));
-  // }
-
   Widget _buildSettingsPanel() {
     if (_activeTab == "Drawing") {
       return Column(
@@ -760,18 +511,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
             child: Slider(value: _strokeWidth, min: 1, max: 50, onChanged: (val) => setState(() => _strokeWidth = val)),
           ),
 
-          //const SizedBox(height: 5),
-          // Row(
-          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //   children: [
-          //     const Text("Opacity", style: TextStyle(color: Colors.white, fontSize: 14)),
-          //     Text("${(_opacity * 100).toInt()}%", style: const TextStyle(color: Colors.white, fontSize: 14)),
-          //   ],
-          // ),
-          // SliderTheme(
-          //   data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
-          //   child: Slider(value: _opacity, min: 0.1, max: 1.0, onChanged: (val) => setState(() => _opacity = val)),
-          // )
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
