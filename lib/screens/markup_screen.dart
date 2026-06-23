@@ -57,6 +57,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
   //   Colors.blue, Colors.green, Colors.teal, Colors.amber, Colors.greenAccent
   // ];
   List<Color> _recentColors = []; // 🚨 Default empty list, ab memory se aayegi
+  bool _isPanelHidden = false; // 🚨 NAYA VARIABLE: Panel hide/show track karne ke liye
+
+
+
 
   @override
   void initState() {
@@ -491,11 +495,71 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
             ),
 
-            // --- 2. SETTINGS PANEL (Color, Stroke, Shapes) ---
+            // // --- 2. SETTINGS PANEL (Color, Stroke, Shapes) ---
+            // Container(
+            //   color: const Color(0xFF1E1E1E),
+            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            //   child: _buildSettingsPanel(),
+            // ),
+
+            // --- 2. SETTINGS PANEL (Animated Hide/Show) ---
             Container(
-              color: const Color(0xFF1E1E1E),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: _buildSettingsPanel(),
+              color: const Color(0xFF2C2C2C),
+              child: AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1E1E1E), // Panel ka color
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(
+                          24), // Ab ye rounded corners ekdum clear dikhenge!
+                    ),
+                  ),
+                  // Agar hidden hai, toh padding hata do
+                  padding: _isPanelHidden
+                      ? const EdgeInsets.only(top: 8, bottom: 6)
+                      : const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 🚨 DRAG/TAP HANDLE: Ise drag ya tap karne se panel khulega/band hoga
+                      GestureDetector(
+                        onTap: () =>
+                            setState(() => _isPanelHidden = !_isPanelHidden),
+                        onVerticalDragEnd: (details) {
+                          if (details.primaryVelocity! > 0) {
+                            // Niche drag kiya (Hide)
+                            setState(() => _isPanelHidden = true);
+                          } else if (details.primaryVelocity! < 0) {
+                            // Upar drag kiya (Show)
+                            setState(() => _isPanelHidden = false);
+                          }
+                        },
+                        // Invisible touch area bada karne ke liye
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.only(bottom: 12, top: 4),
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.white30,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Agar hidden nahi hai, toh baaki panel dikhao
+                      if (!_isPanelHidden)
+                        _buildSettingsPanel(),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
             // --- 3. BOTTOM TABS ---
@@ -808,7 +872,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
     return const SizedBox.shrink();
   }
 
-  // --- 1. DRAWING WIDGET PANEL ---
+
+// --- 1. DRAWING WIDGET PANEL ---
   Widget _buildDrawingPanel() {
     return Column(
       mainAxisSize: MainAxisSize.min,
