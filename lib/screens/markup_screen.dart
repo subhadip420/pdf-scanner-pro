@@ -136,6 +136,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
     super.dispose();
   }
 
+  void _unfocusAll() {
+    FocusManager.instance.primaryFocus?.unfocus(); // Keyboard band hoga
+    setState(() {
+      _activeTextItem = null; // Text box ka border hat jayega
+    });
+  }
+
   // --- 🚨 SHARED PREFERENCES LOGIC ---
   Future<void> _loadRecentColors() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -355,6 +362,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
+        // 🚨 FIX: Poori screen wrap ki, taaki kahin bhi click ho to focus hat jaye
+        child: GestureDetector(
+        onTap: _unfocusAll,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF1E1E1E),
@@ -966,6 +976,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
           ],
         ),
       ),
+        ),
     );
   }
 
