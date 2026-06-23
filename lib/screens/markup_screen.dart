@@ -194,8 +194,33 @@ class _MarkupScreenState extends State<MarkupScreen> {
     return discard ?? false;
   }
 
+  // // Save the drawn canvas as a new image file
+  // Future<void> _saveMarkup() async {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (_) => const Center(
+  //       child: CircularProgressIndicator(color: Colors.blueAccent),
+  //     ),
+  //   );
+  //
+  //   try {
+
+
+  // Save the drawn canvas as a new image file
   // Save the drawn canvas as a new image file
   Future<void> _saveMarkup() async {
+    setState(() {
+      _activeTextItem = null; // Text se selection border hatao
+      _textItems.removeWhere((item) => item.text.trim().isEmpty); // Khali text ko list se delete karo
+    });
+
+    // 🚨 MAIN FIX: Flutter ko screen update karne ke liye thoda time do (100ms)
+    // Warna UI refresh hone se pehle hi purani photo save ho jayegi!
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Yahan loading indicator dikhana shuru hoga (Screen freeze hone se rokne ke liye wait use kiya)
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1025,14 +1050,36 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 child: Text(activeItem.font, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
+            // ElevatedButton.icon(
+            //   style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+            //   onPressed: () {
+            //     setState(() {
+            //       // Naya text button dabane par current settings (font, color, size) copy ho jayengi
+            //       final newItem = activeItem.clone();
+            //       newItem.text = "";
+            //       newItem.offset = const Offset(150, 150); // Default position
+            //       _textItems.add(newItem);
+            //       _activeTextItem = newItem;
+            //       _textEditorController.text = newItem.text;
+            //     });
+            //   },
+            //   icon: const Icon(Icons.add, color: Colors.white, size: 16),
+            //   label: const Text("Add", style: TextStyle(color: Colors.white)),
+            // )
+
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
               onPressed: () {
                 setState(() {
-                  // Naya text button dabane par current settings (font, color, size) copy ho jayengi
+                  // 🚨 FIX 1: Image/Canvas ka center pata lagao
+                  RenderBox? renderBox = _canvasKey.currentContext?.findRenderObject() as RenderBox?;
+                  Offset centerOffset = renderBox != null
+                      ? Offset(renderBox.size.width / 2 - 30, renderBox.size.height / 2 - 20)
+                      : const Offset(150, 150);
+
                   final newItem = activeItem.clone();
                   newItem.text = "";
-                  newItem.offset = const Offset(150, 150); // Default position
+                  newItem.offset = centerOffset; // 🚨 Ab naya text ekdum screen ke beech (center) me aayega
                   _textItems.add(newItem);
                   _activeTextItem = newItem;
                   _textEditorController.text = newItem.text;
@@ -1041,6 +1088,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               icon: const Icon(Icons.add, color: Colors.white, size: 16),
               label: const Text("Add", style: TextStyle(color: Colors.white)),
             )
+
           ],
         ),
         const SizedBox(height: 4),
