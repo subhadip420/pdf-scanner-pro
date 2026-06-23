@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DrawnPath {
@@ -10,6 +11,7 @@ class DrawnPath {
   final double strokeWidth;
   final double opacity;
   final bool isEraser;
+  final bool isClear;
 
   DrawnPath({
     required this.points,
@@ -17,6 +19,7 @@ class DrawnPath {
     required this.strokeWidth,
     required this.opacity,
     this.isEraser = false,
+    this.isClear = false,
   });
 }
 
@@ -44,6 +47,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
   String _activeTab = "Drawing"; // Drawing, Eraser, Text, Shapes
   String _selectedShape = "Triangle";
 
+  bool _isEraserMode = false;
   int _pointerCount = 0; // Tracks number of fingers on screen
 
   final List<Color> _recentColors = [
@@ -277,8 +281,53 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                 onPointerCancel: (_) => setState(() => _pointerCount--),
                                 child: GestureDetector(
                                   // 🚨 FIX 5: Agar pointer 1 se bada hai (2 fingers hain), toh drawing events ko 'null' karke bypass kar do, taaki InteractiveViewer smoothly zoom le sake.
+                                  // onPanStart: _pointerCount > 1 ? null : (details) {
+                                  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                  //     setState(() {
+                                  //       RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                  //       _currentPoints = [renderBox.globalToLocal(details.globalPosition)];
+                                  //     });
+                                  //   }
+                                  // },
+                                  // onPanUpdate: _pointerCount > 1 ? null : (details) {
+                                  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                  //     setState(() {
+                                  //       RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                  //       _currentPoints.add(renderBox.globalToLocal(details.globalPosition));
+                                  //     });
+                                  //   }
+                                  // },
+                                  // onPanEnd: _pointerCount > 1 ? null : (details) {
+                                  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                  //     if (_currentPoints.isEmpty) return;
+                                  //     setState(() {
+                                  //       _currentPoints.add(null);
+                                  //       _paths.add(DrawnPath(
+                                  //         points: List.from(_currentPoints),
+                                  //         color: _selectedColor,
+                                  //         strokeWidth: _strokeWidth,
+                                  //         opacity: _opacity,
+                                  //         isEraser: _activeTab == "Eraser",
+                                  //       ));
+                                  //       _currentPoints.clear();
+                                  //       _undonePaths.clear();
+                                  //     });
+                                  //   }
+                                  // },
+                                  // child: CustomPaint(
+                                  //   painter: DrawingPainter(
+                                  //     paths: _paths,
+                                  //     currentPoints: _currentPoints,
+                                  //     currentColor: _selectedColor,
+                                  //     currentStrokeWidth: _strokeWidth,
+                                  //     currentOpacity: _opacity,
+                                  //     isEraser: _activeTab == "Eraser",
+                                  //   ),
+                                  // ),
+
+                                  // 🚨 FIX 3: Gestures ab sirf 'Drawing' tab mein aur '_isEraserMode' flag ke sath kaam karenge
                                   onPanStart: _pointerCount > 1 ? null : (details) {
-                                    if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                    if (_activeTab == "Drawing") {
                                       setState(() {
                                         RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
                                         _currentPoints = [renderBox.globalToLocal(details.globalPosition)];
@@ -286,7 +335,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                     }
                                   },
                                   onPanUpdate: _pointerCount > 1 ? null : (details) {
-                                    if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                    if (_activeTab == "Drawing") {
                                       setState(() {
                                         RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
                                         _currentPoints.add(renderBox.globalToLocal(details.globalPosition));
@@ -294,7 +343,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                     }
                                   },
                                   onPanEnd: _pointerCount > 1 ? null : (details) {
-                                    if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+                                    if (_activeTab == "Drawing") {
                                       if (_currentPoints.isEmpty) return;
                                       setState(() {
                                         _currentPoints.add(null);
@@ -303,7 +352,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                           color: _selectedColor,
                                           strokeWidth: _strokeWidth,
                                           opacity: _opacity,
-                                          isEraser: _activeTab == "Eraser",
+                                          isEraser: _isEraserMode, // Yahan Flag Change
                                         ));
                                         _currentPoints.clear();
                                         _undonePaths.clear();
@@ -317,9 +366,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       currentColor: _selectedColor,
                                       currentStrokeWidth: _strokeWidth,
                                       currentOpacity: _opacity,
-                                      isEraser: _activeTab == "Eraser",
+                                      isEraser: _isEraserMode, // Yahan Flag Change
                                     ),
                                   ),
+
                                 ),
                               ),
                             ),
@@ -346,7 +396,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildBottomTab("Drawing", Icons.draw_rounded),
-                  _buildBottomTab("Eraser", Icons.cleaning_services_rounded),
+                  // _buildBottomTab("Eraser", Icons.cleaning_services_rounded),
                   _buildBottomTab("Text", Icons.title_rounded),
                   _buildBottomTab("Shapes", Icons.category_rounded),
                 ],
@@ -373,59 +423,167 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
+  // Widget _buildSettingsPanel() {
+  //   if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+  //     return Column(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: [
+  //         if (_activeTab == "Drawing") ...[
+  //           Row(
+  //             children: [
+  //               const Text("Color", style: TextStyle(color: Colors.white, fontSize: 16)),
+  //               const SizedBox(width: 16),
+  //               GestureDetector(
+  //                 onTap: _openColorPicker,
+  //                 child: Container(width: 35, height: 35, decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6))),
+  //               ),
+  //               const SizedBox(width: 16),
+  //               const Icon(Icons.colorize_rounded, color: Colors.white70),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 20),
+  //         ],
+  //
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             const Text("Stroke width", style: TextStyle(color: Colors.white, fontSize: 16)),
+  //             Text("${_strokeWidth.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
+  //           ],
+  //         ),
+  //         SliderTheme(
+  //           data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
+  //           child: Slider(
+  //             value: _strokeWidth, min: 1, max: 50,
+  //             onChanged: (val) => setState(() => _strokeWidth = val),
+  //           ),
+  //         ),
+  //
+  //         if (_activeTab == "Drawing") ...[
+  //           const SizedBox(height: 10),
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //             children: [
+  //               const Text("Opacity", style: TextStyle(color: Colors.white, fontSize: 16)),
+  //               Text("${(_opacity * 100).toInt()}%", style: const TextStyle(color: Colors.white, fontSize: 14)),
+  //             ],
+  //           ),
+  //           SliderTheme(
+  //             data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
+  //             child: Slider(
+  //               value: _opacity, min: 0.1, max: 1.0,
+  //               onChanged: (val) => setState(() => _opacity = val),
+  //             ),
+  //           ),
+  //         ]
+  //       ],
+  //     );
+  //   }
+  //   else if (_activeTab == "Shapes") {
+  //     List<IconData> shapeIcons = [Icons.change_history_rounded, Icons.circle_outlined, Icons.square_outlined, Icons.crop_square_rounded, Icons.hexagon_outlined];
+  //     return SizedBox(
+  //       height: 60,
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //         children: shapeIcons.map((icon) => Icon(icon, color: Colors.cyan, size: 40)).toList(),
+  //       ),
+  //     );
+  //   }
+  //
+  //   return const Center(child: Text("Feature coming soon", style: TextStyle(color: Colors.white54)));
+  // }
+
   Widget _buildSettingsPanel() {
-    if (_activeTab == "Drawing" || _activeTab == "Eraser") {
+    if (_activeTab == "Drawing") {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (_activeTab == "Drawing") ...[
-            Row(
-              children: [
-                const Text("Color", style: TextStyle(color: Colors.white, fontSize: 16)),
-                const SizedBox(width: 16),
-                GestureDetector(
-                  onTap: _openColorPicker,
-                  child: Container(width: 35, height: 35, decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6))),
-                ),
-                const SizedBox(width: 16),
-                const Icon(Icons.colorize_rounded, color: Colors.white70),
-              ],
-            ),
-            const SizedBox(height: 20),
-          ],
-
+          // --- 🚨 TOP ROW: Color Picker (Left) & Tools (Right) ---
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Stroke width", style: TextStyle(color: Colors.white, fontSize: 16)),
+              // LEFT SIDE: Color Picker (Eraser mode me hide hoga)
+              if (!_isEraserMode)
+                Row(
+                  children: [
+                    const Text("Color", style: TextStyle(color: Colors.white, fontSize: 14)),
+                    const SizedBox(width: 16),
+                    GestureDetector(
+                      onTap: _openColorPicker,
+                      child: Container(width: 32, height: 32, decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6))),
+                    ),
+                    const SizedBox(width: 16),
+                    GestureDetector(onTap: _openColorPicker, child: const Icon(Icons.colorize_rounded, color: Colors.white70, size: 24)),
+                  ],
+                )
+              else
+                const Text("Eraser Mode", style: TextStyle(color: Colors.white70, fontSize: 14)),
+
+              // RIGHT SIDE: Draw, Eraser, Delete Buttons
+              Row(
+                children: [
+                  // Draw Button
+                  GestureDetector(
+                    onTap: () => setState(() => _isEraserMode = false),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: !_isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Symbols.stylus_note, color: !_isEraserMode ? Colors.blueAccent : Colors.white70, size: 24),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  // Eraser Button
+                  GestureDetector(
+                    onTap: () => setState(() => _isEraserMode = true),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: _isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Symbols.ink_eraser_rounded, color: _isEraserMode ? Colors.blueAccent : Colors.white70, size: 24),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  // Delete Button
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        // 🚨 Secret: Delete action ko as a "Path" history me daal diya taaki Undo ho sake!
+                        _paths.add(DrawnPath(points: [], color: Colors.transparent, strokeWidth: 0, opacity: 0, isClear: true));
+                        _undonePaths.clear();
+                      });
+                    },
+                    child: Container(padding: const EdgeInsets.all(6), child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 24)),
+                  ),
+                ],
+              )
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // --- SLIDERS ---
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Stroke width", style: TextStyle(color: Colors.white, fontSize: 14)),
               Text("${_strokeWidth.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
             ],
           ),
           SliderTheme(
             data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
-            child: Slider(
-              value: _strokeWidth, min: 1, max: 50,
-              onChanged: (val) => setState(() => _strokeWidth = val),
-            ),
+            child: Slider(value: _strokeWidth, min: 1, max: 50, onChanged: (val) => setState(() => _strokeWidth = val)),
           ),
 
-          if (_activeTab == "Drawing") ...[
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Opacity", style: TextStyle(color: Colors.white, fontSize: 16)),
-                Text("${(_opacity * 100).toInt()}%", style: const TextStyle(color: Colors.white, fontSize: 14)),
-              ],
-            ),
-            SliderTheme(
-              data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
-              child: Slider(
-                value: _opacity, min: 0.1, max: 1.0,
-                onChanged: (val) => setState(() => _opacity = val),
-              ),
-            ),
-          ]
+          const SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Opacity", style: TextStyle(color: Colors.white, fontSize: 14)),
+              Text("${(_opacity * 100).toInt()}%", style: const TextStyle(color: Colors.white, fontSize: 14)),
+            ],
+          ),
+          SliderTheme(
+            data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
+            child: Slider(value: _opacity, min: 0.1, max: 1.0, onChanged: (val) => setState(() => _opacity = val)),
+          )
         ],
       );
     }
@@ -439,7 +597,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
         ),
       );
     }
-
     return const Center(child: Text("Feature coming soon", style: TextStyle(color: Colors.white54)));
   }
 }
@@ -466,6 +623,13 @@ class DrawingPainter extends CustomPainter {
     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
     for (var path in paths) {
+
+      // 🚨 FIX 6: Agar Delete click hua tha, toh is point tak ka sab clear kardo (Background image safe rahegi)
+      if (path.isClear) {
+        canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..blendMode = BlendMode.clear);
+        continue; // Niche ka code skip karke agle drawing path par jao
+      }
+
       Paint p = Paint()
         ..color = path.isEraser ? Colors.transparent : path.color.withOpacity(path.opacity)
         ..strokeWidth = path.strokeWidth
