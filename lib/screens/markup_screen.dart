@@ -2,8 +2,10 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DrawnPath {
   final List<Offset?> points;
@@ -50,10 +52,46 @@ class _MarkupScreenState extends State<MarkupScreen> {
   bool _isEraserMode = false;
   int _pointerCount = 0; // Tracks number of fingers on screen
 
-  final List<Color> _recentColors = [
-    Colors.blue, Colors.green, Colors.teal, Colors.amber, Colors.greenAccent
-  ];
+  // final List<Color> _recentColors = [
+  //   Colors.blue, Colors.green, Colors.teal, Colors.amber, Colors.greenAccent
+  // ];
+  List<Color> _recentColors = []; // 🚨 Default empty list, ab memory se aayegi
 
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentColors();
+  }
+
+  // --- 🚨 SHARED PREFERENCES LOGIC ---
+  Future<void> _loadRecentColors() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? savedColors = prefs.getStringList('markup_recent_colors');
+    if (savedColors != null) {
+      setState(() {
+        _recentColors = savedColors.map((c) => Color(int.parse(c))).toList();
+      });
+    }
+  }
+
+  Future<void> _saveRecentColor(Color color) async {
+    // Agar color pehle se hai toh hatao, aur ekdum start (left) me add karo
+    _recentColors.remove(color);
+    _recentColors.insert(0, color);
+
+    // Sirf last 5 colors rakho
+    if (_recentColors.length > 5) {
+      _recentColors = _recentColors.sublist(0, 5);
+    }
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> colorsToSave = _recentColors.map((c) => c.value.toString()).toList();
+    await prefs.setStringList('markup_recent_colors', colorsToSave);
+
+    setState(() {}); // UI Update
+  }
+
+  // Discard Dialog
   // Discard Dialog
   Future<bool> _onWillPop() async {
     if (_paths.isEmpty) return true;
@@ -138,49 +176,199 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   // Color Picker Window
-  void _openColorPicker() {
-    showDialog(
+  // void _openColorPicker() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => Dialog(
+  //       backgroundColor: const Color(0xFF2C2C2C),
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  //       child: Padding(
+  //         padding: const EdgeInsets.all(16),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Container(
+  //               height: 180, width: double.infinity,
+  //               decoration: BoxDecoration(
+  //                 borderRadius: BorderRadius.circular(8),
+  //                 gradient: const LinearGradient(
+  //                   colors: [Colors.white, Colors.blue, Colors.black],
+  //                   begin: Alignment.topLeft, end: Alignment.bottomRight,
+  //                 ),
+  //               ),
+  //               alignment: Alignment.topRight,
+  //               padding: const EdgeInsets.all(12),
+  //               child: const Icon(Icons.circle_outlined, color: Colors.white, size: 28),
+  //             ),
+  //             const SizedBox(height: 16),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //               children: _recentColors.map((c) => GestureDetector(
+  //                 onTap: () {
+  //                   setState(() => _selectedColor = c);
+  //                   Navigator.pop(context);
+  //                 },
+  //                 child: Container(
+  //                   width: 40, height: 40,
+  //                   decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade600)),
+  //                 ),
+  //               )).toList(),
+  //             )
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+// Color Picker Window (With Package & Opacity)
+//   // Color Picker Window (Auto-Select & Tap Outside to Close)
+//   Future<void> _openColorPicker() async {
+//     // showDialog default 'barrierDismissible: true' hota hai, iska matlab bahar tap karne se close ho jayega
+//     await showDialog(
+//       context: context,
+//       builder: (context) => AlertDialog(
+//         backgroundColor: const Color(0xFF2C2C2C),
+//         contentPadding: const EdgeInsets.all(16),
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//         content: SingleChildScrollView(
+//           child: Column(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               // 🚨 Exact Screenshot jaisa HSV Picker with Auto-Select
+//               ColorPicker(
+//                 pickerColor: _selectedColor.withOpacity(_opacity),
+//                 onColorChanged: (color) {
+//                   // 🚨 Real-time update (Jaise hi color drag karoge, immediately apply hoga)
+//                   setState(() {
+//                     _selectedColor = color.withOpacity(1.0); // Base color
+//                     _opacity = color.opacity; // Opacity slider sync
+//                   });
+//                 },
+//                 colorPickerWidth: 280,
+//                 pickerAreaHeightPercent: 0.7,
+//                 enableAlpha: true, // Opacity (Alpha) slider
+//                 displayThumbColor: true,
+//                 paletteType: PaletteType.hsvWithHue,
+//                 pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(8)),
+//                 hexInputBar: false,
+//                 labelTypes: const [], // Labels hide kiye
+//               ),
+//               const SizedBox(height: 5),
+//
+//               // 🚨 Recent Colors Row
+//               if (_recentColors.isNotEmpty)
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: _recentColors.map((c) => GestureDetector(
+//                     onTap: () {
+//                       setState(() {
+//                         _selectedColor = c.withOpacity(1.0);
+//                         _opacity = 1.0; // Recent color select karne par opacity 100% ho jayegi
+//                       });
+//                       Navigator.pop(context); // Recent color click karte hi popup close ho jayega
+//                     },
+//                     child: Container(
+//                       margin: const EdgeInsets.symmetric(horizontal: 5),
+//                       width: 35, height: 35,
+//                       decoration: BoxDecoration(
+//                           color: c,
+//                           borderRadius: BorderRadius.circular(8),
+//                           border: Border.all(color: Colors.grey.shade500, width: 1.5)
+//                       ),
+//                     ),
+//                   )).toList(),
+//                 )
+//               else
+//                 const Text("No recent colors", style: TextStyle(color: Colors.white54, fontSize: 12)),
+//             ],
+//           ),
+//         ),
+//         // 🚨 FIX: Actions (Cancel, Select) hata diye gaye hain
+//       ),
+//     );
+//
+//     // 🚨 Jab popup close hoga (bahar tap karne par), tab final color Memory me save hoga
+//     _saveRecentColor(_selectedColor);
+//   }
+
+  // Color Picker Window (No Opacity, Auto-Select, Exact Screenshot Design)
+  Future<void> _openColorPicker() async {
+    await showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF2C2C2C),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 180, width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  gradient: const LinearGradient(
-                    colors: [Colors.white, Colors.blue, Colors.black],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+      builder: (context) =>
+          Dialog(
+            backgroundColor: const Color(0xFF2C2C2C),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 🚨 FIX: Alpha (Opacity) disabled. Exact screenshot look.
+                  ColorPicker(
+                    pickerColor: _selectedColor,
+                    // Alpha link hata diya
+                    onColorChanged: (color) {
+                      setState(() {
+                        _selectedColor =
+                            color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
+                      });
+                    },
+                    colorPickerWidth: 280,
+                    pickerAreaHeightPercent: 0.8,
+                    // Thoda square look dene ke liye
+                    enableAlpha: false,
+                    // 🚨 Opacity slider gayab
+                    displayThumbColor: true,
+                    paletteType: PaletteType.hsvWithHue,
+                    pickerAreaBorderRadius: const BorderRadius.all(
+                        Radius.circular(6)),
+                    hexInputBar: false,
+                    labelTypes: const [], // Faltu labels hide kiye
                   ),
-                ),
-                alignment: Alignment.topRight,
-                padding: const EdgeInsets.all(12),
-                child: const Icon(Icons.circle_outlined, color: Colors.white, size: 28),
+                  const SizedBox(height: 5),
+
+                  // 🚨 FIX: Recent Colors Exact Screenshot Design (Square, light grey border)
+                  if (_recentColors.isNotEmpty)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      // Evenly spread karega
+                      children: _recentColors.map((c) =>
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedColor = c;
+                              });
+                              Navigator.pop(context); // Click karte hi close
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              width: 38, height: 38, // Square design
+                              decoration: BoxDecoration(
+                                  color: c,
+                                  borderRadius: BorderRadius.circular(6),
+                                  // Halka rounded corner
+                                  border: Border.all(
+                                      color: Colors.grey.shade400,
+                                      width: 1.5) // Light grey exact border
+                              ),
+                            ),
+                          )).toList(),
+                    )
+                  else
+                    const SizedBox(height: 38,
+                        child: Center(child: Text("No recent colors",
+                            style: TextStyle(
+                                color: Colors.white54, fontSize: 12)))),
+                ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: _recentColors.map((c) => GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedColor = c);
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(color: c, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade600)),
-                  ),
-                )).toList(),
-              )
-            ],
+            ),
           ),
-        ),
-      ),
     );
+
+    // Jab bahar click karke popup band hoga, naya color save ho jayega
+    _saveRecentColor(_selectedColor);
   }
 
   @override
