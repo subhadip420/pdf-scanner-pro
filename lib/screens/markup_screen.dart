@@ -271,6 +271,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF1E1E1E),
         appBar: AppBar(
           backgroundColor: const Color(0xFF1E1E1E),
