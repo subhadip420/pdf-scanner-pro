@@ -36,7 +36,8 @@ class MarkupScreen extends StatefulWidget {
 
 class _MarkupScreenState extends State<MarkupScreen> {
   final GlobalKey _globalKey = GlobalKey();
-  final GlobalKey _canvasKey = GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
+  final GlobalKey _canvasKey =
+      GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
 
   List<DrawnPath> _paths = [];
   List<DrawnPath> _undonePaths = [];
@@ -85,7 +86,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
     }
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> colorsToSave = _recentColors.map((c) => c.value.toString()).toList();
+    List<String> colorsToSave = _recentColors
+        .map((c) => c.value.toString())
+        .toList();
     await prefs.setStringList('markup_recent_colors', colorsToSave);
 
     setState(() {}); // UI Update
@@ -100,7 +103,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF2C2C2C),
-        title: const Text("Discard changes", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Discard changes",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         content: const Text(
           "Changes you have made with the Markup tool will be discarded.",
           style: TextStyle(color: Colors.white70),
@@ -110,16 +116,23 @@ class _MarkupScreenState extends State<MarkupScreen> {
           OutlinedButton(
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.grey),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
             // 🚨 FIX: Cancel dabaane par 'false' return hoga, jisse sirf popup band hoga, screen nahi
             onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Colors.white70),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
             // 🚨 FIX: OK dabaane par 'true' return hoga, jisse screen back chali jayegi (discard changes)
             onPressed: () => Navigator.pop(context, true),
@@ -134,18 +147,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
   // Save the drawn canvas as a new image file
   Future<void> _saveMarkup() async {
     showDialog(
-      context: context, barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Colors.blueAccent),
+      ),
     );
 
     try {
-      RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      RenderRepaintBoundary boundary =
+          _globalKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
 
       final dir = await getTemporaryDirectory();
-      final newFile = File('${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png');
+      final newFile = File(
+        '${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
       await newFile.writeAsBytes(pngBytes);
 
       if (mounted) {
@@ -161,76 +181,85 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Future<void> _openColorPicker() async {
     await showDialog(
       context: context,
-      builder: (context) =>
-          Dialog(
-            backgroundColor: const Color(0xFF2C2C2C),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 🚨 FIX: Alpha (Opacity) disabled. Exact screenshot look.
-                  ColorPicker(
-                    pickerColor: _selectedColor,
-                    // Alpha link hata diya
-                    onColorChanged: (color) {
-                      setState(() {
-                        _selectedColor =
-                            color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
-                      });
-                    },
-                    colorPickerWidth: 280,
-                    pickerAreaHeightPercent: 0.8,
-                    // Thoda square look dene ke liye
-                    enableAlpha: false,
-                    // 🚨 Opacity slider gayab
-                    displayThumbColor: true,
-                    paletteType: PaletteType.hsvWithHue,
-                    pickerAreaBorderRadius: const BorderRadius.all(
-                        Radius.circular(6)),
-                    hexInputBar: false,
-                    labelTypes: const [], // Faltu labels hide kiye
-                  ),
-                  const SizedBox(height: 5),
-
-                  // 🚨 FIX: Recent Colors Exact Screenshot Design (Square, light grey border)
-                  if (_recentColors.isNotEmpty)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      // Evenly spread karega
-                      children: _recentColors.map((c) =>
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _selectedColor = c;
-                              });
-                              Navigator.pop(context); // Click karte hi close
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
-                              width: 38, height: 38, // Square design
-                              decoration: BoxDecoration(
-                                  color: c,
-                                  borderRadius: BorderRadius.circular(6),
-                                  // Halka rounded corner
-                                  border: Border.all(
-                                      color: Colors.grey.shade400,
-                                      width: 1.5) // Light grey exact border
-                              ),
-                            ),
-                          )).toList(),
-                    )
-                  else
-                    const SizedBox(height: 38,
-                        child: Center(child: Text("No recent colors",
-                            style: TextStyle(
-                                color: Colors.white54, fontSize: 12)))),
-                ],
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF2C2C2C),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 🚨 FIX: Alpha (Opacity) disabled. Exact screenshot look.
+              ColorPicker(
+                pickerColor: _selectedColor,
+                // Alpha link hata diya
+                onColorChanged: (color) {
+                  setState(() {
+                    _selectedColor =
+                        color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
+                  });
+                },
+                colorPickerWidth: 280,
+                pickerAreaHeightPercent: 0.8,
+                // Thoda square look dene ke liye
+                enableAlpha: false,
+                // 🚨 Opacity slider gayab
+                displayThumbColor: true,
+                paletteType: PaletteType.hsvWithHue,
+                pickerAreaBorderRadius: const BorderRadius.all(
+                  Radius.circular(6),
+                ),
+                hexInputBar: false,
+                labelTypes: const [], // Faltu labels hide kiye
               ),
-            ),
+              const SizedBox(height: 5),
+
+              // 🚨 FIX: Recent Colors Exact Screenshot Design (Square, light grey border)
+              if (_recentColors.isNotEmpty)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  // Evenly spread karega
+                  children: _recentColors
+                      .map(
+                        (c) => GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedColor = c;
+                            });
+                            Navigator.pop(context); // Click karte hi close
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 5),
+                            width: 38,
+                            height: 38, // Square design
+                            decoration: BoxDecoration(
+                              color: c,
+                              borderRadius: BorderRadius.circular(6),
+                              // Halka rounded corner
+                              border: Border.all(
+                                color: Colors.grey.shade400,
+                                width: 1.5,
+                              ), // Light grey exact border
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                )
+              else
+                const SizedBox(
+                  height: 38,
+                  child: Center(
+                    child: Text(
+                      "No recent colors",
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  ),
+                ),
+            ],
           ),
+        ),
+      ),
     );
 
     // Jab bahar click karke popup band hoga, naya color save ho jayega
@@ -247,19 +276,33 @@ class _MarkupScreenState extends State<MarkupScreen> {
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+            icon: const Icon(
+              Icons.close_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
             onPressed: () async {
               if (await _onWillPop()) {
                 Navigator.pop(context);
               }
             },
           ),
-          title: const Text("Markup", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
+          title: const Text(
+            "Markup",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           actions: [
             Tooltip(
               message: "Undo",
               child: IconButton(
-                icon: Icon(Icons.undo_rounded, color: _paths.isNotEmpty ? Colors.white : Colors.white38),
+                icon: Icon(
+                  Icons.undo_rounded,
+                  color: _paths.isNotEmpty ? Colors.white : Colors.white38,
+                ),
                 onPressed: () {
                   if (_paths.isNotEmpty) {
                     setState(() {
@@ -272,7 +315,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
             Tooltip(
               message: "Redo",
               child: IconButton(
-                icon: Icon(Icons.redo_rounded, color: _undonePaths.isNotEmpty ? Colors.white : Colors.white38),
+                icon: Icon(
+                  Icons.redo_rounded,
+                  color: _undonePaths.isNotEmpty
+                      ? Colors.white
+                      : Colors.white38,
+                ),
                 onPressed: () {
                   if (_undonePaths.isNotEmpty) {
                     setState(() {
@@ -283,7 +331,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 30),
+              icon: const Icon(
+                Icons.check_rounded,
+                color: Colors.blueAccent,
+                size: 30,
+              ),
               onPressed: _saveMarkup,
             ),
             const SizedBox(width: 8),
@@ -299,15 +351,23 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   minScale: 1.0,
                   maxScale: 8.0,
                   clipBehavior: Clip.none,
-                  panEnabled: true,   // 🚨 FIX 2: Panning hamesha true rahegi taaki zoom ke baad photo move ho sake
-                  scaleEnabled: true, // 🚨 FIX 3: Zooming hamesha true rahegi
+                  panEnabled: true,
+                  // 🚨 FIX 2: Panning hamesha true rahegi taaki zoom ke baad photo move ho sake
+                  scaleEnabled: true,
+                  // 🚨 FIX 3: Zooming hamesha true rahegi
                   child: Center(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 20),
+                      padding: const EdgeInsets.only(
+                        left: 24,
+                        right: 24,
+                        top: 20,
+                        bottom: 20,
+                      ),
                       child: RepaintBoundary(
                         key: _globalKey,
                         child: Stack(
-                          key: _canvasKey, // 🚨 FIX 4: Canvas key yahan attach ki taaki scale hone par bhi offset ekdum ungli ke niche rahe
+                          key: _canvasKey,
+                          // 🚨 FIX 4: Canvas key yahan attach ki taaki scale hone par bhi offset ekdum ungli ke niche rahe
                           children: [
                             Image.file(widget.imageFile, fit: BoxFit.contain),
 
@@ -318,56 +378,86 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                   setState(() {
                                     _pointerCount++;
                                     // Safety check: Agar 1 se zyada finger aa gayi, toh current drawing line ko wahin rok do
-                                    if (_pointerCount > 1 && _currentPoints.isNotEmpty) {
+                                    if (_pointerCount > 1 &&
+                                        _currentPoints.isNotEmpty) {
                                       _currentPoints.add(null);
-                                      _paths.add(DrawnPath(
-                                        points: List.from(_currentPoints),
-                                        color: _selectedColor,
-                                        strokeWidth: _strokeWidth,
-                                        opacity: _opacity,
-                                        isEraser: _activeTab == "Eraser",
-                                      ));
-                                      _currentPoints.clear();
-                                    }
-                                  });
-                                },
-                                onPointerUp: (_) => setState(() => _pointerCount--),
-                                onPointerCancel: (_) => setState(() => _pointerCount--),
-                                child: GestureDetector(
-                                  // 🚨 FIX 3: Gestures ab sirf 'Drawing' tab mein aur '_isEraserMode' flag ke sath kaam karenge
-                                  onPanStart: _pointerCount > 1 ? null : (details) {
-                                    if (_activeTab == "Drawing") {
-                                      setState(() {
-                                        RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                        _currentPoints = [renderBox.globalToLocal(details.globalPosition)];
-                                      });
-                                    }
-                                  },
-                                  onPanUpdate: _pointerCount > 1 ? null : (details) {
-                                    if (_activeTab == "Drawing") {
-                                      setState(() {
-                                        RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                        _currentPoints.add(renderBox.globalToLocal(details.globalPosition));
-                                      });
-                                    }
-                                  },
-                                  onPanEnd: _pointerCount > 1 ? null : (details) {
-                                    if (_activeTab == "Drawing") {
-                                      if (_currentPoints.isEmpty) return;
-                                      setState(() {
-                                        _currentPoints.add(null);
-                                        _paths.add(DrawnPath(
+                                      _paths.add(
+                                        DrawnPath(
                                           points: List.from(_currentPoints),
                                           color: _selectedColor,
                                           strokeWidth: _strokeWidth,
                                           opacity: _opacity,
-                                          isEraser: _isEraserMode, // Yahan Flag Change
-                                        ));
-                                        _currentPoints.clear();
-                                        _undonePaths.clear();
-                                      });
+                                          isEraser: _activeTab == "Eraser",
+                                        ),
+                                      );
+                                      _currentPoints.clear();
                                     }
-                                  },
+                                  });
+                                },
+                                onPointerUp: (_) =>
+                                    setState(() => _pointerCount--),
+                                onPointerCancel: (_) =>
+                                    setState(() => _pointerCount--),
+                                child: GestureDetector(
+                                  // 🚨 FIX 3: Gestures ab sirf 'Drawing' tab mein aur '_isEraserMode' flag ke sath kaam karenge
+                                  onPanStart: _pointerCount > 1
+                                      ? null
+                                      : (details) {
+                                          if (_activeTab == "Drawing") {
+                                            setState(() {
+                                              RenderBox renderBox =
+                                                  _canvasKey.currentContext!
+                                                          .findRenderObject()
+                                                      as RenderBox;
+                                              _currentPoints = [
+                                                renderBox.globalToLocal(
+                                                  details.globalPosition,
+                                                ),
+                                              ];
+                                            });
+                                          }
+                                        },
+                                  onPanUpdate: _pointerCount > 1
+                                      ? null
+                                      : (details) {
+                                          if (_activeTab == "Drawing") {
+                                            setState(() {
+                                              RenderBox renderBox =
+                                                  _canvasKey.currentContext!
+                                                          .findRenderObject()
+                                                      as RenderBox;
+                                              _currentPoints.add(
+                                                renderBox.globalToLocal(
+                                                  details.globalPosition,
+                                                ),
+                                              );
+                                            });
+                                          }
+                                        },
+                                  onPanEnd: _pointerCount > 1
+                                      ? null
+                                      : (details) {
+                                          if (_activeTab == "Drawing") {
+                                            if (_currentPoints.isEmpty) return;
+                                            setState(() {
+                                              _currentPoints.add(null);
+                                              _paths.add(
+                                                DrawnPath(
+                                                  points: List.from(
+                                                    _currentPoints,
+                                                  ),
+                                                  color: _selectedColor,
+                                                  strokeWidth: _strokeWidth,
+                                                  opacity: _opacity,
+                                                  isEraser:
+                                                      _isEraserMode, // Yahan Flag Change
+                                                ),
+                                              );
+                                              _currentPoints.clear();
+                                              _undonePaths.clear();
+                                            });
+                                          }
+                                        },
                                   child: CustomPaint(
                                     painter: DrawingPainter(
                                       paths: _paths,
@@ -375,10 +465,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       currentColor: _selectedColor,
                                       currentStrokeWidth: _strokeWidth,
                                       currentOpacity: _opacity,
-                                      isEraser: _isEraserMode, // Yahan Flag Change
+                                      isEraser:
+                                          _isEraserMode, // Yahan Flag Change
                                     ),
                                   ),
-
                                 ),
                               ),
                             ),
@@ -400,7 +490,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
             // --- 3. BOTTOM TABS ---
             Container(
-              height: 60, color: Colors.black,
+              height: 60,
+              color: Colors.black,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -424,9 +515,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: isSelected ? Colors.blueAccent : Colors.white54, size: 24),
+          Icon(
+            icon,
+            color: isSelected ? Colors.blueAccent : Colors.white54,
+            size: 24,
+          ),
           const SizedBox(height: 4),
-          Text(title, style: TextStyle(color: isSelected ? Colors.blueAccent : Colors.white54, fontSize: 11)),
+          Text(
+            title,
+            style: TextStyle(
+              color: isSelected ? Colors.blueAccent : Colors.white54,
+              fontSize: 11,
+            ),
+          ),
         ],
       ),
     );
@@ -445,18 +546,38 @@ class _MarkupScreenState extends State<MarkupScreen> {
               if (!_isEraserMode)
                 Row(
                   children: [
-                    const Text("Color", style: TextStyle(color: Colors.white, fontSize: 14)),
+                    const Text(
+                      "Color",
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
                     const SizedBox(width: 16),
                     GestureDetector(
                       onTap: _openColorPicker,
-                      child: Container(width: 32, height: 32, decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6))),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: _selectedColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 16),
-                    GestureDetector(onTap: _openColorPicker, child: const Icon(Icons.colorize_rounded, color: Colors.white70, size: 24)),
+                    GestureDetector(
+                      onTap: _openColorPicker,
+                      child: const Icon(
+                        Icons.colorize_rounded,
+                        color: Colors.white70,
+                        size: 24,
+                      ),
+                    ),
                   ],
                 )
               else
-                const Text("Eraser Mode", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const Text(
+                  "Eraser Mode",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
 
               // RIGHT SIDE: Draw, Eraser, Delete Buttons
               Row(
@@ -466,8 +587,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     onTap: () => setState(() => _isEraserMode = false),
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(color: !_isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Symbols.stylus_note, color: !_isEraserMode ? Colors.blueAccent : Colors.white70, size: 24),
+                      decoration: BoxDecoration(
+                        color: !_isEraserMode
+                            ? Colors.blueAccent.withOpacity(0.2)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Symbols.stylus_note,
+                        color: !_isEraserMode
+                            ? Colors.blueAccent
+                            : Colors.white70,
+                        size: 24,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -476,8 +608,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     onTap: () => setState(() => _isEraserMode = true),
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(color: _isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent, borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Symbols.ink_eraser_rounded, color: _isEraserMode ? Colors.blueAccent : Colors.white70, size: 24),
+                      decoration: BoxDecoration(
+                        color: _isEraserMode
+                            ? Colors.blueAccent.withOpacity(0.2)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Symbols.ink_eraser_rounded,
+                        color: _isEraserMode
+                            ? Colors.blueAccent
+                            : Colors.white70,
+                        size: 24,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 4),
@@ -486,14 +629,29 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     onTap: () {
                       setState(() {
                         // 🚨 Secret: Delete action ko as a "Path" history me daal diya taaki Undo ho sake!
-                        _paths.add(DrawnPath(points: [], color: Colors.transparent, strokeWidth: 0, opacity: 0, isClear: true));
+                        _paths.add(
+                          DrawnPath(
+                            points: [],
+                            color: Colors.transparent,
+                            strokeWidth: 0,
+                            opacity: 0,
+                            isClear: true,
+                          ),
+                        );
                         _undonePaths.clear();
                       });
                     },
-                    child: Container(padding: const EdgeInsets.all(6), child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 24)),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.redAccent,
+                        size: 24,
+                      ),
+                    ),
                   ),
                 ],
-              )
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -502,21 +660,49 @@ class _MarkupScreenState extends State<MarkupScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Stroke width", style: TextStyle(color: Colors.white, fontSize: 14)),
-              Text("${_strokeWidth.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
+              const Text(
+                "Stroke width",
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+              Text(
+                "${_strokeWidth.toInt()}",
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+              ),
             ],
           ),
           SliderTheme(
-            data: SliderThemeData(trackHeight: 2, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800, thumbColor: Colors.white),
-            child: Slider(value: _strokeWidth, min: 1, max: 50, onChanged: (val) => setState(() => _strokeWidth = val)),
+            data: SliderThemeData(
+              trackHeight: 2,
+              activeTrackColor: Colors.grey.shade400,
+              inactiveTrackColor: Colors.grey.shade800,
+              thumbColor: Colors.white,
+            ),
+            child: Slider(
+              value: _strokeWidth,
+              min: 1,
+              max: 50,
+              onChanged: (val) => setState(() => _strokeWidth = val),
+            ),
           ),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // 🚨 FIX: Text ko bhi gray (white38) kar diya agar Eraser mode on hai
-              Text("Opacity", style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 16)),
-              Text("${(_opacity * 100).toInt()}%", style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 14)),
+              Text(
+                "Opacity",
+                style: TextStyle(
+                  color: _isEraserMode ? Colors.white38 : Colors.white,
+                  fontSize: 16,
+                ),
+              ),
+              Text(
+                "${(_opacity * 100).toInt()}%",
+                style: TextStyle(
+                  color: _isEraserMode ? Colors.white38 : Colors.white,
+                  fontSize: 14,
+                ),
+              ),
             ],
           ),
           SliderTheme(
@@ -534,23 +720,37 @@ class _MarkupScreenState extends State<MarkupScreen> {
               min: 0.1,
               max: 1.0,
               // 🚨 FIX: _isEraserMode true hone par onChanged ko 'null' pass kiya, jisse slider disable (unclickable) ho jayega
-              onChanged: _isEraserMode ? null : (val) => setState(() => _opacity = val),
+              onChanged: _isEraserMode
+                  ? null
+                  : (val) => setState(() => _opacity = val),
             ),
-          )
+          ),
         ],
       );
-    }
-    else if (_activeTab == "Shapes") {
-      List<IconData> shapeIcons = [Icons.change_history_rounded, Icons.circle_outlined, Icons.square_outlined, Icons.crop_square_rounded, Icons.hexagon_outlined];
+    } else if (_activeTab == "Shapes") {
+      List<IconData> shapeIcons = [
+        Icons.change_history_rounded,
+        Icons.circle_outlined,
+        Icons.square_outlined,
+        Icons.crop_square_rounded,
+        Icons.hexagon_outlined,
+      ];
       return SizedBox(
         height: 60,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: shapeIcons.map((icon) => Icon(icon, color: Colors.cyan, size: 40)).toList(),
+          children: shapeIcons
+              .map((icon) => Icon(icon, color: Colors.cyan, size: 40))
+              .toList(),
         ),
       );
     }
-    return const Center(child: Text("Feature coming soon", style: TextStyle(color: Colors.white54)));
+    return const Center(
+      child: Text(
+        "Feature coming soon",
+        style: TextStyle(color: Colors.white54),
+      ),
+    );
   }
 }
 
@@ -576,15 +776,19 @@ class DrawingPainter extends CustomPainter {
     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
     for (var path in paths) {
-
       // 🚨 FIX 6: Agar Delete click hua tha, toh is point tak ka sab clear kardo (Background image safe rahegi)
       if (path.isClear) {
-        canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..blendMode = BlendMode.clear);
+        canvas.drawRect(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          Paint()..blendMode = BlendMode.clear,
+        );
         continue; // Niche ka code skip karke agle drawing path par jao
       }
 
       Paint p = Paint()
-        ..color = path.isEraser ? Colors.transparent : path.color.withOpacity(path.opacity)
+        ..color = path.isEraser
+            ? Colors.transparent
+            : path.color.withOpacity(path.opacity)
         ..strokeWidth = path.strokeWidth
         ..strokeCap = StrokeCap.round
         ..style = PaintingStyle.stroke
@@ -601,7 +805,9 @@ class DrawingPainter extends CustomPainter {
 
     if (currentPoints.isNotEmpty) {
       Paint p = Paint()
-        ..color = isEraser ? Colors.transparent : currentColor.withOpacity(currentOpacity)
+        ..color = isEraser
+            ? Colors.transparent
+            : currentColor.withOpacity(currentOpacity)
         ..strokeWidth = currentStrokeWidth
         ..strokeCap = StrokeCap.round
         ..style = PaintingStyle.stroke
