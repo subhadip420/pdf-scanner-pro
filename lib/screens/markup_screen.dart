@@ -25,6 +25,40 @@ class DrawnPath {
   });
 }
 
+// 🚨 NAYA CLASS: Text overlays ko track karne ke liye
+class TextOverlayItem {
+  String text;
+  Offset offset;
+  Color color;
+  double fontSize;
+  double rotation;
+  int appearance; // 0=Normal, 1=Solid Box, 2=Transparent Box, 3=Stroke
+  bool isBold;
+  bool isItalic;
+  bool isUnderline;
+  bool isStrikethrough;
+  TextAlign alignment;
+  String font;
+
+  TextOverlayItem({
+    required this.text, required this.offset, required this.color,
+    this.fontSize = 32.0, this.rotation = 0.0,
+    this.appearance = 0, this.isBold = false, this.isItalic = false,
+    this.isUnderline = false, this.isStrikethrough = false,
+    this.alignment = TextAlign.center, this.font = 'Roboto',
+  });
+
+  // Duplicate karne ka function
+  TextOverlayItem clone() {
+    return TextOverlayItem(
+      text: text, offset: offset + const Offset(20, 20), color: color,
+      fontSize: fontSize, rotation: rotation, appearance: appearance,
+      isBold: isBold, isItalic: isItalic, isUnderline: isUnderline,
+      isStrikethrough: isStrikethrough, alignment: alignment, font: font,
+    );
+  }
+}
+
 class MarkupScreen extends StatefulWidget {
   final File imageFile;
 
@@ -60,10 +94,24 @@ class _MarkupScreenState extends State<MarkupScreen> {
   bool _isPanelHidden =
       false; // 🚨 NAYA VARIABLE: Panel hide/show track karne ke liye
 
+  // 🚨 TEXT WIDGET VARIABLES
+  List<TextOverlayItem> _textItems = [];
+  TextOverlayItem? _activeTextItem;
+  // 🚨 NAYA VARIABLE: Jab screen par koi text select nahi hoga, toh UI is draft ki settings dikhayega
+  TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(150, 150), color: Colors.white);
+  final TextEditingController _textEditorController = TextEditingController();
+  final List<String> _fonts = ['Roboto', 'Serif', 'Monospace', 'Cursive'];
+
   @override
   void initState() {
     super.initState();
     _loadRecentColors();
+  }
+
+  @override
+  void dispose() {
+    _textEditorController.dispose();
+    super.dispose();
   }
 
   // --- 🚨 SHARED PREFERENCES LOGIC ---
@@ -491,6 +539,24 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                             });
                                           }
                                         },
+                      //             child: CustomPaint(
+                      //               painter: DrawingPainter(
+                      //                 paths: _paths,
+                      //                 currentPoints: _currentPoints,
+                      //                 currentColor: _selectedColor,
+                      //                 currentStrokeWidth: _strokeWidth,
+                      //                 currentOpacity: _opacity,
+                      //                 isEraser:
+                      //                     _isEraserMode, // Yahan Flag Change
+                      //               ),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
+
                                   child: CustomPaint(
                                     painter: DrawingPainter(
                                       paths: _paths,
@@ -498,16 +564,122 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       currentColor: _selectedColor,
                                       currentStrokeWidth: _strokeWidth,
                                       currentOpacity: _opacity,
-                                      isEraser:
-                                          _isEraserMode, // Yahan Flag Change
+                                      isEraser: _isEraserMode,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
+
+                            // --- 🚨 NAYA: ON-CANVAS TEXT LAYER (DRAG, ROTATE, EDIT) ---
+                            ..._textItems.map((item) {
+                              bool isActive = _activeTextItem == item;
+
+                              // Background and Text Color Logic
+                              Color textColor = item.appearance == 0 ? item.color :
+                              (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) :
+                              Colors.white;
+                              Color bgColor = item.appearance == 1 ? item.color :
+                              item.appearance == 2 ? item.color.withOpacity(0.5) : // Transparent Box
+                              Colors.transparent;
+
+                              // Text Decorations (Underline / Strikethrough)
+                              TextDecoration decoration = TextDecoration.none;
+                              if (item.isUnderline && item.isStrikethrough) { decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]); }
+                              else if (item.isUnderline) { decoration = TextDecoration.underline; }
+                              else if (item.isStrikethrough) { decoration = TextDecoration.lineThrough; }
+
+                              return Positioned(
+                                left: item.offset.dx, top: item.offset.dy,
+                                child: Transform.rotate(
+                                  angle: item.rotation,
+                                  child: GestureDetector(
+                                    onPanUpdate: (details) {
+                                      if (_activeTab == "Text") {
+                                        setState(() {
+                                          RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                          Offset localDelta = renderBox.globalToLocal(details.globalPosition) - renderBox.globalToLocal(details.globalPosition - details.delta);
+                                          item.offset += localDelta; // Drag smooth with Zoom
+                                        });
+                                      }
+                                    },
+                                    onTap: () {
+                                      if (_activeTab == "Text") {
+                                        setState(() { _activeTextItem = item; _textEditorController.text = item.text; });
+                                      }
+                                    },
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      alignment: Alignment.center,
+                                      children: [
+                                        // Main Text Box
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: bgColor, borderRadius: BorderRadius.circular(8),
+                                            border: isActive ? Border.all(color: Colors.white, width: 2) : Border.all(color: Colors.transparent, width: 2),
+                                          ),
+                                          child: IntrinsicWidth(
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                // Stroke Layer (Mode 3)
+                                                if (item.appearance == 3)
+                                                  Text(
+                                                    item.text.isEmpty ? "Text" : item.text,
+                                                    textAlign: item.alignment,
+                                                    style: TextStyle(
+                                                      fontSize: item.fontSize, fontFamily: item.font,
+                                                      fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+                                                      fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+                                                      decoration: decoration,
+                                                      foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = item.fontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color,
+                                                    ),
+                                                  ),
+
+                                                // Editable TextField
+                                                TextField(
+                                                  controller: isActive ? _textEditorController : TextEditingController(text: item.text),
+                                                  enabled: isActive, autofocus: isActive, textAlign: item.alignment,
+                                                  maxLines: null, cursorColor: textColor,
+                                                  onChanged: (val) => setState(() => item.text = val),
+                                                  style: TextStyle(
+                                                    color: textColor, fontSize: item.fontSize, fontFamily: item.font,
+                                                    fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+                                                    fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+                                                    decoration: decoration, decorationColor: textColor,
+                                                    shadows: item.appearance == 0 ? const [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
+                                                  ),
+                                                  decoration: InputDecoration(
+                                                    isDense: true, contentPadding: EdgeInsets.zero, border: InputBorder.none,
+                                                    hintText: isActive ? "Text" : "",
+                                                    hintStyle: TextStyle(color: item.appearance == 3 ? Colors.transparent : Colors.white54, fontSize: item.fontSize),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+
+                                        // Rotate Handle (Corner Icon)
+                                        if (isActive)
+                                          Positioned(
+                                            bottom: -15, right: -15,
+                                            child: GestureDetector(
+                                              onPanUpdate: (details) => setState(() => item.rotation += details.delta.dy * 0.03 + details.delta.dx * 0.03),
+                                              child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 20)),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
                           ],
                         ),
                       ),
+
                     ),
                   ),
                 ),
@@ -823,10 +995,138 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
+
   // --- 2. TEXT WIDGET PANEL ---
   Widget _buildTextPanel() {
-    // 🚨 Requirement ke mutabik abhi isko blank rakha hai
-    return const SizedBox.shrink();
+    // 🚨 FIX: Agar koi text select hai toh use lo, warna humara naya '_draftTextItem' use karo
+    TextOverlayItem activeItem = _activeTextItem ?? _draftTextItem;
+    bool hasActiveText = _activeTextItem != null; // Yeh check karne ke liye ki text asli mein select hai ya nahi
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // --- 1ST ROW: Delete (Left) | Font (Middle) | Add Text (Right) ---
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              // Agar text select nahi hai, toh delete button grey dikhega aur kaam nahi karega
+              icon: Icon(Icons.delete_outline_rounded, color: hasActiveText ? Colors.redAccent : Colors.grey.shade700),
+              onPressed: hasActiveText ? () => setState(() { _textItems.remove(_activeTextItem); _activeTextItem = null; }) : null,
+            ),
+            GestureDetector(
+              onTap: () => setState(() {
+                int idx = _fonts.indexOf(activeItem.font);
+                activeItem.font = _fonts[(idx + 1) % _fonts.length];
+              }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                decoration: BoxDecoration(border: Border.all(color: Colors.white54), borderRadius: BorderRadius.circular(20)),
+                child: Text(activeItem.font, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+              onPressed: () {
+                setState(() {
+                  // Naya text button dabane par current settings (font, color, size) copy ho jayengi
+                  final newItem = activeItem.clone();
+                  newItem.text = "";
+                  newItem.offset = const Offset(150, 150); // Default position
+                  _textItems.add(newItem);
+                  _activeTextItem = newItem;
+                  _textEditorController.text = newItem.text;
+                });
+              },
+              icon: const Icon(Icons.add, color: Colors.white, size: 16),
+              label: const Text("Add", style: TextStyle(color: Colors.white)),
+            )
+          ],
+        ),
+        const SizedBox(height: 4),
+
+        // --- 2ND ROW: Size Slider ---
+        Row(
+          children: [
+            const Text("T", style: TextStyle(color: Colors.white70, fontSize: 14)),
+            Expanded(
+              child: SliderTheme(
+                  data: SliderThemeData(trackHeight: 2, thumbColor: Colors.white, activeTrackColor: Colors.grey.shade400, inactiveTrackColor: Colors.grey.shade800),
+                  child: Slider(value: activeItem.fontSize, min: 12, max: 100, onChanged: (val) => setState(() => activeItem.fontSize = val))
+              ),
+            ),
+            const Text("T", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 4),
+
+        // --- 3RD ROW: Scrollable Tools (A, Bold, Underline, Italic, Strike, Duplicate) ---
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              // Appearance (A) - 4 Modes
+              GestureDetector(
+                onTap: () => setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4),
+                child: Container(
+                  width: 36, height: 36, alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      color: activeItem.appearance == 1 ? Colors.white : (activeItem.appearance == 2 ? Colors.white38 : Colors.transparent),
+                      border: Border.all(color: Colors.white), borderRadius: BorderRadius.circular(8)
+                  ),
+                  child: Stack(alignment: Alignment.center, children: [
+                    if (activeItem.appearance == 3) Text("A", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, foreground: Paint()..style=PaintingStyle.stroke..strokeWidth=2.5..color=Colors.white)),
+                    Text("A", style: TextStyle(color: (activeItem.appearance == 1 || activeItem.appearance == 2) ? Colors.black : Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  ]),
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(onTap: () => setState(() => activeItem.isBold = !activeItem.isBold), child: Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 36, height: 36, decoration: BoxDecoration(color: activeItem.isBold ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Icon(Icons.format_bold_rounded, color: activeItem.isBold ? Colors.blueAccent : Colors.white))),
+              GestureDetector(onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline), child: Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 36, height: 36, decoration: BoxDecoration(color: activeItem.isUnderline ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Icon(Icons.format_underlined_rounded, color: activeItem.isUnderline ? Colors.blueAccent : Colors.white))),
+              GestureDetector(onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic), child: Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 36, height: 36, decoration: BoxDecoration(color: activeItem.isItalic ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Icon(Icons.format_italic_rounded, color: activeItem.isItalic ? Colors.blueAccent : Colors.white))),
+              GestureDetector(onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough), child: Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 36, height: 36, decoration: BoxDecoration(color: activeItem.isStrikethrough ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent, borderRadius: BorderRadius.circular(8)), child: Icon(Icons.format_strikethrough_rounded, color: activeItem.isStrikethrough ? Colors.blueAccent : Colors.white))),
+              const SizedBox(width: 12),
+
+              // Duplicate (Agar text select nahi hai, toh disable rahega)
+              GestureDetector(
+                  onTap: hasActiveText ? () => setState(() {
+                    TextOverlayItem duplicateItem = _activeTextItem!.clone();
+                    _textItems.add(duplicateItem);
+                    _activeTextItem = duplicateItem;
+                    _textEditorController.text = duplicateItem.text;
+                  }) : null,
+                  child: Container(margin: const EdgeInsets.symmetric(horizontal: 4), width: 36, height: 36, child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38))
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // --- 4TH ROW: Colors Array ---
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal, physics: const BouncingScrollPhysics(),
+          child: Row(
+              children: [
+                Colors.white, Colors.black, Colors.grey.shade400, Colors.redAccent, Colors.pinkAccent, Colors.purpleAccent, Colors.blueAccent, Colors.lightBlueAccent, Colors.cyanAccent, Colors.tealAccent, Colors.greenAccent, Colors.yellowAccent, Colors.amberAccent, Colors.orangeAccent, Colors.brown
+              ].map((c) {
+                bool isSelected = activeItem.color == c;
+                Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
+                return GestureDetector(
+                  onTap: () => setState(() => activeItem.color = c),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200), margin: const EdgeInsets.symmetric(horizontal: 6),
+                    width: isSelected ? 34 : 26, height: isSelected ? 34 : 26,
+                    decoration: BoxDecoration(color: c, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5)),
+                    child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
+                  ),
+                );
+              }).toList()
+          ),
+        )
+      ],
+    );
   }
 
   // --- 3. SHAPES WIDGET PANEL ---
