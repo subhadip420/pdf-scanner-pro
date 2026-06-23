@@ -554,7 +554,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         child: Container(
                           width: double.infinity,
                           alignment: Alignment.center,
-                          padding: const EdgeInsets.only(bottom: 12, top: 4),
+                          padding: const EdgeInsets.only(bottom: 12, top: 8),
                           child: Container(
                             width: 40,
                             height: 4,
