@@ -37,7 +37,7 @@ class MarkupScreen extends StatefulWidget {
 class _MarkupScreenState extends State<MarkupScreen> {
   final GlobalKey _globalKey = GlobalKey();
   final GlobalKey _canvasKey =
-      GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
+  GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
 
   List<DrawnPath> _paths = [];
   List<DrawnPath> _undonePaths = [];
@@ -101,45 +101,47 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
     bool? discard = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2C2C2C),
-        title: const Text(
-          "Discard changes",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          "Changes you have made with the Markup tool will be discarded.",
-          style: TextStyle(color: Colors.white70),
-        ),
-
-        actions: [
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.grey),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+      builder: (context) =>
+          AlertDialog(
+            backgroundColor: const Color(0xFF2C2C2C),
+            title: const Text(
+              "Discard changes",
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
             ),
-            // 🚨 FIX: Cancel dabaane par 'false' return hoga, jisse sirf popup band hoga, screen nahi
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              "Cancel",
+            content: const Text(
+              "Changes you have made with the Markup tool will be discarded.",
               style: TextStyle(color: Colors.white70),
             ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+
+            actions: [
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.grey),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                // 🚨 FIX: Cancel dabaane par 'false' return hoga, jisse sirf popup band hoga, screen nahi
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text(
+                  "Cancel",
+                  style: TextStyle(color: Colors.white70),
+                ),
               ),
-            ),
-            // 🚨 FIX: OK dabaane par 'true' return hoga, jisse screen back chali jayegi (discard changes)
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("OK", style: TextStyle(color: Colors.white)),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                // 🚨 FIX: OK dabaane par 'true' return hoga, jisse screen back chali jayegi (discard changes)
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text("OK", style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
-        ],
-      ),
     );
     return discard ?? false;
   }
@@ -149,22 +151,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
+      builder: (_) =>
+      const Center(
         child: CircularProgressIndicator(color: Colors.blueAccent),
       ),
     );
 
     try {
       RenderRepaintBoundary boundary =
-          _globalKey.currentContext!.findRenderObject()
-              as RenderRepaintBoundary;
+      _globalKey.currentContext!.findRenderObject()
+      as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
 
       final dir = await getTemporaryDirectory();
       final newFile = File(
-        '${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png',
+        '${dir.path}/markup_${DateTime
+            .now()
+            .millisecondsSinceEpoch}.png',
       );
       await newFile.writeAsBytes(pngBytes);
 
@@ -181,85 +186,89 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Future<void> _openColorPicker() async {
     await showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF2C2C2C),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 🚨 FIX: Alpha (Opacity) disabled. Exact screenshot look.
-              ColorPicker(
-                pickerColor: _selectedColor,
-                // Alpha link hata diya
-                onColorChanged: (color) {
-                  setState(() {
-                    _selectedColor =
-                        color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
-                  });
-                },
-                colorPickerWidth: 280,
-                pickerAreaHeightPercent: 0.8,
-                // Thoda square look dene ke liye
-                enableAlpha: false,
-                // 🚨 Opacity slider gayab
-                displayThumbColor: true,
-                paletteType: PaletteType.hsvWithHue,
-                pickerAreaBorderRadius: const BorderRadius.all(
-                  Radius.circular(6),
-                ),
-                hexInputBar: false,
-                labelTypes: const [], // Faltu labels hide kiye
-              ),
-              const SizedBox(height: 5),
-
-              // 🚨 FIX: Recent Colors Exact Screenshot Design (Square, light grey border)
-              if (_recentColors.isNotEmpty)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  // Evenly spread karega
-                  children: _recentColors
-                      .map(
-                        (c) => GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedColor = c;
-                            });
-                            Navigator.pop(context); // Click karte hi close
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 5),
-                            width: 38,
-                            height: 38, // Square design
-                            decoration: BoxDecoration(
-                              color: c,
-                              borderRadius: BorderRadius.circular(6),
-                              // Halka rounded corner
-                              border: Border.all(
-                                color: Colors.grey.shade400,
-                                width: 1.5,
-                              ), // Light grey exact border
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                )
-              else
-                const SizedBox(
-                  height: 38,
-                  child: Center(
-                    child: Text(
-                      "No recent colors",
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
+      builder: (context) =>
+          Dialog(
+            backgroundColor: const Color(0xFF2C2C2C),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 🚨 FIX: Alpha (Opacity) disabled. Exact screenshot look.
+                  ColorPicker(
+                    pickerColor: _selectedColor,
+                    // Alpha link hata diya
+                    onColorChanged: (color) {
+                      setState(() {
+                        _selectedColor =
+                            color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
+                      });
+                    },
+                    colorPickerWidth: 280,
+                    pickerAreaHeightPercent: 0.8,
+                    // Thoda square look dene ke liye
+                    enableAlpha: false,
+                    // 🚨 Opacity slider gayab
+                    displayThumbColor: true,
+                    paletteType: PaletteType.hsvWithHue,
+                    pickerAreaBorderRadius: const BorderRadius.all(
+                      Radius.circular(6),
                     ),
+                    hexInputBar: false,
+                    labelTypes: const [], // Faltu labels hide kiye
                   ),
-                ),
-            ],
+                  const SizedBox(height: 5),
+
+                  // 🚨 FIX: Recent Colors Exact Screenshot Design (Square, light grey border)
+                  if (_recentColors.isNotEmpty)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      // Evenly spread karega
+                      children: _recentColors
+                          .map(
+                            (c) =>
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedColor = c;
+                                });
+                                Navigator.pop(context); // Click karte hi close
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                    horizontal: 5),
+                                width: 38,
+                                height: 38, // Square design
+                                decoration: BoxDecoration(
+                                  color: c,
+                                  borderRadius: BorderRadius.circular(6),
+                                  // Halka rounded corner
+                                  border: Border.all(
+                                    color: Colors.grey.shade400,
+                                    width: 1.5,
+                                  ), // Light grey exact border
+                                ),
+                              ),
+                            ),
+                      )
+                          .toList(),
+                    )
+                  else
+                    const SizedBox(
+                      height: 38,
+                      child: Center(
+                        child: Text(
+                          "No recent colors",
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
     );
 
     // Jab bahar click karke popup band hoga, naya color save ho jayega
@@ -404,61 +413,61 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                   onPanStart: _pointerCount > 1
                                       ? null
                                       : (details) {
-                                          if (_activeTab == "Drawing") {
-                                            setState(() {
-                                              RenderBox renderBox =
-                                                  _canvasKey.currentContext!
-                                                          .findRenderObject()
-                                                      as RenderBox;
-                                              _currentPoints = [
-                                                renderBox.globalToLocal(
-                                                  details.globalPosition,
-                                                ),
-                                              ];
-                                            });
-                                          }
-                                        },
+                                    if (_activeTab == "Drawing") {
+                                      setState(() {
+                                        RenderBox renderBox =
+                                        _canvasKey.currentContext!
+                                            .findRenderObject()
+                                        as RenderBox;
+                                        _currentPoints = [
+                                          renderBox.globalToLocal(
+                                            details.globalPosition,
+                                          ),
+                                        ];
+                                      });
+                                    }
+                                  },
                                   onPanUpdate: _pointerCount > 1
                                       ? null
                                       : (details) {
-                                          if (_activeTab == "Drawing") {
-                                            setState(() {
-                                              RenderBox renderBox =
-                                                  _canvasKey.currentContext!
-                                                          .findRenderObject()
-                                                      as RenderBox;
-                                              _currentPoints.add(
-                                                renderBox.globalToLocal(
-                                                  details.globalPosition,
-                                                ),
-                                              );
-                                            });
-                                          }
-                                        },
+                                    if (_activeTab == "Drawing") {
+                                      setState(() {
+                                        RenderBox renderBox =
+                                        _canvasKey.currentContext!
+                                            .findRenderObject()
+                                        as RenderBox;
+                                        _currentPoints.add(
+                                          renderBox.globalToLocal(
+                                            details.globalPosition,
+                                          ),
+                                        );
+                                      });
+                                    }
+                                  },
                                   onPanEnd: _pointerCount > 1
                                       ? null
                                       : (details) {
-                                          if (_activeTab == "Drawing") {
-                                            if (_currentPoints.isEmpty) return;
-                                            setState(() {
-                                              _currentPoints.add(null);
-                                              _paths.add(
-                                                DrawnPath(
-                                                  points: List.from(
-                                                    _currentPoints,
-                                                  ),
-                                                  color: _selectedColor,
-                                                  strokeWidth: _strokeWidth,
-                                                  opacity: _opacity,
-                                                  isEraser:
-                                                      _isEraserMode, // Yahan Flag Change
-                                                ),
-                                              );
-                                              _currentPoints.clear();
-                                              _undonePaths.clear();
-                                            });
-                                          }
-                                        },
+                                    if (_activeTab == "Drawing") {
+                                      if (_currentPoints.isEmpty) return;
+                                      setState(() {
+                                        _currentPoints.add(null);
+                                        _paths.add(
+                                          DrawnPath(
+                                            points: List.from(
+                                              _currentPoints,
+                                            ),
+                                            color: _selectedColor,
+                                            strokeWidth: _strokeWidth,
+                                            opacity: _opacity,
+                                            isEraser:
+                                            _isEraserMode, // Yahan Flag Change
+                                          ),
+                                        );
+                                        _currentPoints.clear();
+                                        _undonePaths.clear();
+                                      });
+                                    }
+                                  },
                                   child: CustomPaint(
                                     painter: DrawingPainter(
                                       paths: _paths,
@@ -467,7 +476,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       currentStrokeWidth: _strokeWidth,
                                       currentOpacity: _opacity,
                                       isEraser:
-                                          _isEraserMode, // Yahan Flag Change
+                                      _isEraserMode, // Yahan Flag Change
                                     ),
                                   ),
                                 ),
@@ -566,226 +575,435 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
+//   Widget _buildSettingsPanel() {
+//     if (_activeTab == "Drawing") {
+//       return Column(
+//         mainAxisSize: MainAxisSize.min,
+//         children: [
+//           // --- 🚨 TOP ROW: Color Picker (Left) & Tools (Right) ---
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               // LEFT SIDE: Color Picker (Eraser mode me hide hoga)
+//               if (!_isEraserMode)
+//                 Row(
+//                   children: [
+//                     const Text(
+//                       "Color",
+//                       style: TextStyle(color: Colors.white, fontSize: 14),
+//                     ),
+//                     const SizedBox(width: 16),
+//                     GestureDetector(
+//                       onTap: _openColorPicker,
+//                       child: Container(
+//                         width: 32,
+//                         height: 32,
+//                         decoration: BoxDecoration(
+//                           color: _selectedColor,
+//                           borderRadius: BorderRadius.circular(6),
+//                         ),
+//                       ),
+//                     ),
+//                     const SizedBox(width: 16),
+//                     GestureDetector(
+//                       onTap: _openColorPicker,
+//                       child: const Icon(
+//                         Icons.colorize_rounded,
+//                         color: Colors.white70,
+//                         size: 24,
+//                       ),
+//                     ),
+//                   ],
+//                 )
+//               else
+//                 const Text(
+//                   "Eraser Mode",
+//                   style: TextStyle(color: Colors.white70, fontSize: 14),
+//                 ),
+//
+//               // RIGHT SIDE: Draw, Eraser, Delete Buttons
+//               Row(
+//                 children: [
+//                   // Draw Button
+//                   GestureDetector(
+//                     onTap: () => setState(() => _isEraserMode = false),
+//                     child: Container(
+//                       padding: const EdgeInsets.all(6),
+//                       decoration: BoxDecoration(
+//                         color: !_isEraserMode
+//                             ? Colors.blueAccent.withOpacity(0.2)
+//                             : Colors.transparent,
+//                         borderRadius: BorderRadius.circular(8),
+//                       ),
+//                       child: Icon(
+//                         Symbols.stylus_note,
+//                         color: !_isEraserMode
+//                             ? Colors.blueAccent
+//                             : Colors.white70,
+//                         size: 24,
+//                       ),
+//                     ),
+//                   ),
+//                   const SizedBox(width: 4),
+//                   // Eraser Button
+//                   GestureDetector(
+//                     onTap: () => setState(() => _isEraserMode = true),
+//                     child: Container(
+//                       padding: const EdgeInsets.all(6),
+//                       decoration: BoxDecoration(
+//                         color: _isEraserMode
+//                             ? Colors.blueAccent.withOpacity(0.2)
+//                             : Colors.transparent,
+//                         borderRadius: BorderRadius.circular(8),
+//                       ),
+//                       child: Icon(
+//                         Symbols.ink_eraser_rounded,
+//                         color: _isEraserMode
+//                             ? Colors.blueAccent
+//                             : Colors.white70,
+//                         size: 24,
+//                       ),
+//                     ),
+//                   ),
+//                   const SizedBox(width: 4),
+//                   // Delete Button
+//                   GestureDetector(
+//                     onTap: () {
+//                       setState(() {
+//                         // 🚨 Secret: Delete action ko as a "Path" history me daal diya taaki Undo ho sake!
+//                         _paths.add(
+//                           DrawnPath(
+//                             points: [],
+//                             color: Colors.transparent,
+//                             strokeWidth: 0,
+//                             opacity: 0,
+//                             isClear: true,
+//                           ),
+//                         );
+//                         _undonePaths.clear();
+//                       });
+//                     },
+//                     child: Container(
+//                       padding: const EdgeInsets.all(6),
+//                       child: const Icon(
+//                         Icons.delete_outline_rounded,
+//                         color: Colors.redAccent,
+//                         size: 24,
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ],
+//           ),
+//           const SizedBox(height: 10),
+//
+//           // --- SLIDERS ---
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               const Text(
+//                 "Stroke width",
+//                 style: TextStyle(color: Colors.white, fontSize: 14),
+//               ),
+//               Text(
+//                 "${_strokeWidth.toInt()}",
+//                 style: const TextStyle(color: Colors.white, fontSize: 14),
+//               ),
+//             ],
+//           ),
+//           SliderTheme(
+//             data: SliderThemeData(
+//               trackHeight: 2,
+//               activeTrackColor: Colors.grey.shade400,
+//               inactiveTrackColor: Colors.grey.shade800,
+//               thumbColor: Colors.white,
+//             ),
+//             child: Slider(
+//               value: _strokeWidth,
+//               min: 1,
+//               max: 50,
+//               onChanged: (val) => setState(() => _strokeWidth = val),
+//             ),
+//           ),
+//
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               // 🚨 FIX: Text ko bhi gray (white38) kar diya agar Eraser mode on hai
+//               Text(
+//                 "Opacity",
+//                 style: TextStyle(
+//                   color: _isEraserMode ? Colors.white38 : Colors.white,
+//                   fontSize: 16,
+//                 ),
+//               ),
+//               Text(
+//                 "${(_opacity * 100).toInt()}%",
+//                 style: TextStyle(
+//                   color: _isEraserMode ? Colors.white38 : Colors.white,
+//                   fontSize: 14,
+//                 ),
+//               ),
+//             ],
+//           ),
+//           SliderTheme(
+//             data: SliderThemeData(
+//               trackHeight: 2,
+//               activeTrackColor: Colors.grey.shade400,
+//               inactiveTrackColor: Colors.grey.shade800,
+//               thumbColor: Colors.white,
+//               // 🚨 FIX: Disabled state ke liye dark colors apply kiye
+//               disabledThumbColor: Colors.grey.shade800,
+//               disabledActiveTrackColor: Colors.grey.shade800,
+//             ),
+//             child: Slider(
+//               value: _opacity,
+//               min: 0.1,
+//               max: 1.0,
+//               // 🚨 FIX: _isEraserMode true hone par onChanged ko 'null' pass kiya, jisse slider disable (unclickable) ho jayega
+//               onChanged: _isEraserMode
+//                   ? null
+//                   : (val) => setState(() => _opacity = val),
+//             ),
+//           ),
+//         ],
+//       );
+//     } else if (_activeTab == "Shapes") {
+//       List<IconData> shapeIcons = [
+//         Icons.change_history_rounded,
+//         Icons.circle_outlined,
+//         Icons.square_outlined,
+//         Icons.crop_square_rounded,
+//         Icons.hexagon_outlined,
+//       ];
+//       return SizedBox(
+//         height: 60,
+//         child: Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//           children: shapeIcons
+//               .map((icon) => Icon(icon, color: Colors.cyan, size: 40))
+//               .toList(),
+//         ),
+//       );
+//     }
+//     return const Center(
+//       child: Text(
+//         "Feature coming soon",
+//         style: TextStyle(color: Colors.white54),
+//       ),
+//     );
+//   }
+// }
+
+  // --- 🚨 BASE PANEL MANAGER ---
   Widget _buildSettingsPanel() {
     if (_activeTab == "Drawing") {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // --- 🚨 TOP ROW: Color Picker (Left) & Tools (Right) ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // LEFT SIDE: Color Picker (Eraser mode me hide hoga)
-              if (!_isEraserMode)
-                Row(
-                  children: [
-                    const Text(
-                      "Color",
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                    const SizedBox(width: 16),
-                    GestureDetector(
-                      onTap: _openColorPicker,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: _selectedColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    GestureDetector(
-                      onTap: _openColorPicker,
-                      child: const Icon(
-                        Icons.colorize_rounded,
-                        color: Colors.white70,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                )
-              else
-                const Text(
-                  "Eraser Mode",
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
+      return _buildDrawingPanel(); // Drawing widget load hoga
+    } else if (_activeTab == "Text") {
+      return _buildTextPanel(); // Text widget load hoga (Blank)
+    } else if (_activeTab == "Shapes") {
+      return _buildShapesPanel(); // Shapes widget load hoga (Blank)
+    }
+    return const SizedBox.shrink();
+  }
 
-              // RIGHT SIDE: Draw, Eraser, Delete Buttons
+  // --- 1. DRAWING WIDGET PANEL ---
+  Widget _buildDrawingPanel() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // --- TOP ROW: Color Picker & Tools ---
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            if (!_isEraserMode)
               Row(
                 children: [
-                  // Draw Button
+                  const Text(
+                    "Color",
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                  const SizedBox(width: 16),
                   GestureDetector(
-                    onTap: () => setState(() => _isEraserMode = false),
+                    onTap: _openColorPicker,
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: !_isEraserMode
-                            ? Colors.blueAccent.withOpacity(0.2)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Symbols.stylus_note,
-                        color: !_isEraserMode
-                            ? Colors.blueAccent
-                            : Colors.white70,
-                        size: 24,
+                        color: _selectedColor,
+                        borderRadius: BorderRadius.circular(6),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  // Eraser Button
+                  const SizedBox(width: 16),
                   GestureDetector(
-                    onTap: () => setState(() => _isEraserMode = true),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: _isEraserMode
-                            ? Colors.blueAccent.withOpacity(0.2)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Symbols.ink_eraser_rounded,
-                        color: _isEraserMode
-                            ? Colors.blueAccent
-                            : Colors.white70,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  // Delete Button
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        // 🚨 Secret: Delete action ko as a "Path" history me daal diya taaki Undo ho sake!
-                        _paths.add(
-                          DrawnPath(
-                            points: [],
-                            color: Colors.transparent,
-                            strokeWidth: 0,
-                            opacity: 0,
-                            isClear: true,
-                          ),
-                        );
-                        _undonePaths.clear();
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      child: const Icon(
-                        Icons.delete_outline_rounded,
-                        color: Colors.redAccent,
-                        size: 24,
-                      ),
+                    onTap: _openColorPicker,
+                    child: const Icon(
+                      Icons.colorize_rounded,
+                      color: Colors.white70,
+                      size: 24,
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // --- SLIDERS ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+              )
+            else
               const Text(
-                "Stroke width",
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                "Eraser Mode",
+                style: TextStyle(color: Colors.white70, fontSize: 14),
               ),
-              Text(
-                "${_strokeWidth.toInt()}",
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ],
-          ),
-          SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 2,
-              activeTrackColor: Colors.grey.shade400,
-              inactiveTrackColor: Colors.grey.shade800,
-              thumbColor: Colors.white,
-            ),
-            child: Slider(
-              value: _strokeWidth,
-              min: 1,
-              max: 50,
-              onChanged: (val) => setState(() => _strokeWidth = val),
-            ),
-          ),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // 🚨 FIX: Text ko bhi gray (white38) kar diya agar Eraser mode on hai
-              Text(
-                "Opacity",
-                style: TextStyle(
-                  color: _isEraserMode ? Colors.white38 : Colors.white,
-                  fontSize: 16,
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => setState(() => _isEraserMode = false),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: !_isEraserMode
+                          ? Colors.blueAccent.withOpacity(0.2)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Symbols.stylus_note,
+                      color: !_isEraserMode ? Colors.blueAccent : Colors
+                          .white70,
+                      size: 24,
+                    ),
+                  ),
                 ),
-              ),
-              Text(
-                "${(_opacity * 100).toInt()}%",
-                style: TextStyle(
-                  color: _isEraserMode ? Colors.white38 : Colors.white,
-                  fontSize: 14,
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => setState(() => _isEraserMode = true),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: _isEraserMode
+                          ? Colors.blueAccent.withOpacity(0.2)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Symbols.ink_eraser_rounded,
+                      color: _isEraserMode ? Colors.blueAccent : Colors.white70,
+                      size: 24,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 2,
-              activeTrackColor: Colors.grey.shade400,
-              inactiveTrackColor: Colors.grey.shade800,
-              thumbColor: Colors.white,
-              // 🚨 FIX: Disabled state ke liye dark colors apply kiye
-              disabledThumbColor: Colors.grey.shade800,
-              disabledActiveTrackColor: Colors.grey.shade800,
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _paths.add(
+                        DrawnPath(
+                          points: [],
+                          color: Colors.transparent,
+                          strokeWidth: 0,
+                          opacity: 0,
+                          isClear: true,
+                        ),
+                      );
+                      _undonePaths.clear();
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    child: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.redAccent,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: Slider(
-              value: _opacity,
-              min: 0.1,
-              max: 1.0,
-              // 🚨 FIX: _isEraserMode true hone par onChanged ko 'null' pass kiya, jisse slider disable (unclickable) ho jayega
-              onChanged: _isEraserMode
-                  ? null
-                  : (val) => setState(() => _opacity = val),
-            ),
-          ),
-        ],
-      );
-    } else if (_activeTab == "Shapes") {
-      List<IconData> shapeIcons = [
-        Icons.change_history_rounded,
-        Icons.circle_outlined,
-        Icons.square_outlined,
-        Icons.crop_square_rounded,
-        Icons.hexagon_outlined,
-      ];
-      return SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: shapeIcons
-              .map((icon) => Icon(icon, color: Colors.cyan, size: 40))
-              .toList(),
+          ],
         ),
-      );
-    }
-    return const Center(
-      child: Text(
-        "Feature coming soon",
-        style: TextStyle(color: Colors.white54),
-      ),
+        const SizedBox(height: 10),
+
+        // --- SLIDERS ---
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Stroke width",
+              style: TextStyle(color: Colors.white, fontSize: 14),
+            ),
+            Text(
+              "${_strokeWidth.toInt()}",
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderThemeData(
+            trackHeight: 2,
+            activeTrackColor: Colors.grey.shade400,
+            inactiveTrackColor: Colors.grey.shade800,
+            thumbColor: Colors.white,
+          ),
+          child: Slider(
+            value: _strokeWidth,
+            min: 1,
+            max: 50,
+            onChanged: (val) => setState(() => _strokeWidth = val),
+          ),
+        ),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Opacity",
+              style: TextStyle(
+                color: _isEraserMode ? Colors.white38 : Colors.white,
+                fontSize: 16,
+              ),
+            ),
+            Text(
+              "${(_opacity * 100).toInt()}%",
+              style: TextStyle(
+                color: _isEraserMode ? Colors.white38 : Colors.white,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderThemeData(
+            trackHeight: 2,
+            activeTrackColor: Colors.grey.shade400,
+            inactiveTrackColor: Colors.grey.shade800,
+            thumbColor: Colors.white,
+            disabledThumbColor: Colors.grey.shade800,
+            disabledActiveTrackColor: Colors.grey.shade800,
+          ),
+          child: Slider(
+            value: _opacity,
+            min: 0.1,
+            max: 1.0,
+            onChanged: _isEraserMode ? null : (val) =>
+                setState(() => _opacity = val),
+          ),
+        ),
+      ],
     );
   }
-}
+
+  // --- 2. TEXT WIDGET PANEL ---
+  Widget _buildTextPanel() {
+    // 🚨 Requirement ke mutabik abhi isko blank rakha hai
+    return const SizedBox.shrink();
+  }
+
+  // --- 3. SHAPES WIDGET PANEL ---
+  Widget _buildShapesPanel() {
+    // 🚨 Requirement ke mutabik abhi isko blank rakha hai
+    return const SizedBox.shrink();
+  }
+
+}/// end main class
 
 class DrawingPainter extends CustomPainter {
   final List<DrawnPath> paths;
