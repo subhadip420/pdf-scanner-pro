@@ -789,7 +789,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               "Opacity",
               style: TextStyle(
                 color: _isEraserMode ? Colors.white38 : Colors.white,
-                fontSize: 16,
+                fontSize: 14,
               ),
             ),
             Text(
@@ -910,6 +910,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
 //   @override
 //   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 // }
+
 
 
 class DrawingPainter extends CustomPainter {
