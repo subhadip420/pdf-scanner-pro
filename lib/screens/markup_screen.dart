@@ -403,40 +403,70 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                     setState(() => _pointerCount--),
                                 child: GestureDetector(
                                   // 🚨 FIX 3: Gestures ab sirf 'Drawing' tab mein aur '_isEraserMode' flag ke sath kaam karenge
+                                  // onPanStart: _pointerCount > 1
+                                  //     ? null
+                                  //     : (details) {
+                                  //         if (_activeTab == "Drawing") {
+                                  //           setState(() {
+                                  //             RenderBox renderBox =
+                                  //                 _canvasKey.currentContext!
+                                  //                         .findRenderObject()
+                                  //                     as RenderBox;
+                                  //             _currentPoints = [
+                                  //               renderBox.globalToLocal(
+                                  //                 details.globalPosition,
+                                  //               ),
+                                  //             ];
+                                  //           });
+                                  //         }
+                                  //       },
+                                  // onPanUpdate: _pointerCount > 1
+                                  //     ? null
+                                  //     : (details) {
+                                  //         if (_activeTab == "Drawing") {
+                                  //           setState(() {
+                                  //             RenderBox renderBox =
+                                  //                 _canvasKey.currentContext!
+                                  //                         .findRenderObject()
+                                  //                     as RenderBox;
+                                  //             _currentPoints.add(
+                                  //               renderBox.globalToLocal(
+                                  //                 details.globalPosition,
+                                  //               ),
+                                  //             );
+                                  //           });
+                                  //         }
+                                  //       },
+
                                   onPanStart: _pointerCount > 1
                                       ? null
                                       : (details) {
-                                          if (_activeTab == "Drawing") {
-                                            setState(() {
-                                              RenderBox renderBox =
-                                                  _canvasKey.currentContext!
-                                                          .findRenderObject()
-                                                      as RenderBox;
-                                              _currentPoints = [
-                                                renderBox.globalToLocal(
-                                                  details.globalPosition,
-                                                ),
-                                              ];
-                                            });
-                                          }
-                                        },
+                                    if (_activeTab == "Drawing") {
+                                      setState(() {
+                                        RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                        Offset localPos = renderBox.globalToLocal(details.globalPosition);
+                                        // 🚨 FIX: Points ko image ke width aur height se divide karke percentage me badla
+                                        _currentPoints = [
+                                          Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height)
+                                        ];
+                                      });
+                                    }
+                                  },
                                   onPanUpdate: _pointerCount > 1
                                       ? null
                                       : (details) {
-                                          if (_activeTab == "Drawing") {
-                                            setState(() {
-                                              RenderBox renderBox =
-                                                  _canvasKey.currentContext!
-                                                          .findRenderObject()
-                                                      as RenderBox;
-                                              _currentPoints.add(
-                                                renderBox.globalToLocal(
-                                                  details.globalPosition,
-                                                ),
-                                              );
-                                            });
-                                          }
-                                        },
+                                    if (_activeTab == "Drawing") {
+                                      setState(() {
+                                        RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                        Offset localPos = renderBox.globalToLocal(details.globalPosition);
+                                        // 🚨 FIX: Same yahan bhi percentage me convert kiya
+                                        _currentPoints.add(
+                                            Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height)
+                                        );
+                                      });
+                                    }
+                                  },
+
                                   onPanEnd: _pointerCount > 1
                                       ? null
                                       : (details) {
@@ -808,6 +838,80 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
 /// end main class
 
+// class DrawingPainter extends CustomPainter {
+//   final List<DrawnPath> paths;
+//   final List<Offset?> currentPoints;
+//   final Color currentColor;
+//   final double currentStrokeWidth;
+//   final double currentOpacity;
+//   final bool isEraser;
+//
+//   DrawingPainter({
+//     required this.paths,
+//     required this.currentPoints,
+//     required this.currentColor,
+//     required this.currentStrokeWidth,
+//     required this.currentOpacity,
+//     required this.isEraser,
+//   });
+//
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
+//
+//     for (var path in paths) {
+//       // 🚨 FIX 6: Agar Delete click hua tha, toh is point tak ka sab clear kardo (Background image safe rahegi)
+//       if (path.isClear) {
+//         canvas.drawRect(
+//           Rect.fromLTWH(0, 0, size.width, size.height),
+//           Paint()..blendMode = BlendMode.clear,
+//         );
+//         continue; // Niche ka code skip karke agle drawing path par jao
+//       }
+//
+//       Paint p = Paint()
+//         ..color = path.isEraser
+//             ? Colors.transparent
+//             : path.color.withOpacity(path.opacity)
+//         ..strokeWidth = path.strokeWidth
+//         ..strokeCap = StrokeCap.round
+//         ..style = PaintingStyle.stroke
+//         ..blendMode = path.isEraser ? BlendMode.clear : BlendMode.srcOver;
+//
+//       for (int i = 0; i < path.points.length - 1; i++) {
+//         if (path.points[i] != null && path.points[i + 1] != null) {
+//           canvas.drawLine(path.points[i]!, path.points[i + 1]!, p);
+//         } else if (path.points[i] != null && path.points[i + 1] == null) {
+//           canvas.drawPoints(ui.PointMode.points, [path.points[i]!], p);
+//         }
+//       }
+//     }
+//
+//     if (currentPoints.isNotEmpty) {
+//       Paint p = Paint()
+//         ..color = isEraser
+//             ? Colors.transparent
+//             : currentColor.withOpacity(currentOpacity)
+//         ..strokeWidth = currentStrokeWidth
+//         ..strokeCap = StrokeCap.round
+//         ..style = PaintingStyle.stroke
+//         ..blendMode = isEraser ? BlendMode.clear : BlendMode.srcOver;
+//
+//       for (int i = 0; i < currentPoints.length - 1; i++) {
+//         if (currentPoints[i] != null && currentPoints[i + 1] != null) {
+//           canvas.drawLine(currentPoints[i]!, currentPoints[i + 1]!, p);
+//         }
+//       }
+//     }
+//
+//     canvas.restore();
+//   }
+//
+//   @override
+//   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+// }
+
+
 class DrawingPainter extends CustomPainter {
   final List<DrawnPath> paths;
   final List<Offset?> currentPoints;
@@ -829,14 +933,19 @@ class DrawingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
+    // 🚨 HELPER FUNCTION: Percentage coordinates ko current image size ke pixels me convert karne ke liye
+    Offset? toPixels(Offset? normalized) {
+      if (normalized == null) return null;
+      return Offset(normalized.dx * size.width, normalized.dy * size.height);
+    }
+
     for (var path in paths) {
-      // 🚨 FIX 6: Agar Delete click hua tha, toh is point tak ka sab clear kardo (Background image safe rahegi)
       if (path.isClear) {
         canvas.drawRect(
           Rect.fromLTWH(0, 0, size.width, size.height),
           Paint()..blendMode = BlendMode.clear,
         );
-        continue; // Niche ka code skip karke agle drawing path par jao
+        continue;
       }
 
       Paint p = Paint()
@@ -849,10 +958,13 @@ class DrawingPainter extends CustomPainter {
         ..blendMode = path.isEraser ? BlendMode.clear : BlendMode.srcOver;
 
       for (int i = 0; i < path.points.length - 1; i++) {
-        if (path.points[i] != null && path.points[i + 1] != null) {
-          canvas.drawLine(path.points[i]!, path.points[i + 1]!, p);
-        } else if (path.points[i] != null && path.points[i + 1] == null) {
-          canvas.drawPoints(ui.PointMode.points, [path.points[i]!], p);
+        Offset? p1 = toPixels(path.points[i]);
+        Offset? p2 = toPixels(path.points[i + 1]);
+
+        if (p1 != null && p2 != null) {
+          canvas.drawLine(p1, p2, p);
+        } else if (p1 != null && p2 == null) {
+          canvas.drawPoints(ui.PointMode.points, [p1], p);
         }
       }
     }
@@ -868,8 +980,11 @@ class DrawingPainter extends CustomPainter {
         ..blendMode = isEraser ? BlendMode.clear : BlendMode.srcOver;
 
       for (int i = 0; i < currentPoints.length - 1; i++) {
-        if (currentPoints[i] != null && currentPoints[i + 1] != null) {
-          canvas.drawLine(currentPoints[i]!, currentPoints[i + 1]!, p);
+        Offset? p1 = toPixels(currentPoints[i]);
+        Offset? p2 = toPixels(currentPoints[i + 1]);
+
+        if (p1 != null && p2 != null) {
+          canvas.drawLine(p1, p2, p);
         }
       }
     }
