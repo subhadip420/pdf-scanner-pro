@@ -49,14 +49,26 @@ class TextOverlayItem {
   });
 
   // Duplicate karne ka function
+  // TextOverlayItem clone() {
+  //   return TextOverlayItem(
+  //     text: text, offset: offset + const Offset(20, 20), color: color,
+  //     fontSize: fontSize, rotation: rotation, appearance: appearance,
+  //     isBold: isBold, isItalic: isItalic, isUnderline: isUnderline,
+  //     isStrikethrough: isStrikethrough, alignment: alignment, font: font,
+  //   );
+  // }
+
+// Duplicate karne ka function
   TextOverlayItem clone() {
     return TextOverlayItem(
-      text: text, offset: offset + const Offset(20, 20), color: color,
+      // 🚨 FIX: Duplicate offset ko ab percentage mein (5%) shift kiya hai
+      text: text, offset: offset + const Offset(0.05, 0.05), color: color,
       fontSize: fontSize, rotation: rotation, appearance: appearance,
       isBold: isBold, isItalic: isItalic, isUnderline: isUnderline,
       isStrikethrough: isStrikethrough, alignment: alignment, font: font,
     );
   }
+
 }
 
 class MarkupScreen extends StatefulWidget {
@@ -98,7 +110,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
   List<TextOverlayItem> _textItems = [];
   TextOverlayItem? _activeTextItem;
   // 🚨 NAYA VARIABLE: Jab screen par koi text select nahi hoga, toh UI is draft ki settings dikhayega
-  TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(150, 150), color: Colors.white);
+  //TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(150, 150), color: Colors.white);
+  TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(0.5, 0.5), color: Colors.white);
   final TextEditingController _textEditorController = TextEditingController();
   final List<String> _fonts = ['Roboto', 'Serif', 'Monospace', 'Cursive'];
 
@@ -420,6 +433,298 @@ class _MarkupScreenState extends State<MarkupScreen> {
         body: Column(
           children: [
             // --- 1. MAIN PREVIEW AREA (With Zoom & Draw) ---
+            // Expanded(
+            //   child: Container(
+            //     color: const Color(0xFF2C2C2C),
+            //     child: InteractiveViewer(
+            //       minScale: 1.0,
+            //       maxScale: 8.0,
+            //       clipBehavior: Clip.none,
+            //       panEnabled: true,
+            //       // 🚨 FIX 2: Panning hamesha true rahegi taaki zoom ke baad photo move ho sake
+            //       scaleEnabled: true,
+            //       // 🚨 FIX 3: Zooming hamesha true rahegi
+            //       child: Center(
+            //         child: Padding(
+            //           padding: const EdgeInsets.only(
+            //             left: 24,
+            //             right: 24,
+            //             top: 20,
+            //             bottom: 20,
+            //           ),
+            //           child: RepaintBoundary(
+            //             key: _globalKey,
+            //             child: Stack(
+            //               key: _canvasKey,
+            //               // 🚨 FIX 4: Canvas key yahan attach ki taaki scale hone par bhi offset ekdum ungli ke niche rahe
+            //               children: [
+            //                 Image.file(widget.imageFile, fit: BoxFit.contain),
+            //
+            //                 // Drawing Layer
+            //                 Positioned.fill(
+            //                   child: Listener(
+            //                     onPointerDown: (_) {
+            //                       setState(() {
+            //                         _pointerCount++;
+            //                         // Safety check: Agar 1 se zyada finger aa gayi, toh current drawing line ko wahin rok do
+            //                         if (_pointerCount > 1 &&
+            //                             _currentPoints.isNotEmpty) {
+            //                           _currentPoints.add(null);
+            //                           _paths.add(
+            //                             DrawnPath(
+            //                               points: List.from(_currentPoints),
+            //                               color: _selectedColor,
+            //                               strokeWidth: _strokeWidth,
+            //                               opacity: _opacity,
+            //                               isEraser: _activeTab == "Eraser",
+            //                             ),
+            //                           );
+            //                           _currentPoints.clear();
+            //                         }
+            //                       });
+            //                     },
+            //                     onPointerUp: (_) =>
+            //                         setState(() => _pointerCount--),
+            //                     onPointerCancel: (_) =>
+            //                         setState(() => _pointerCount--),
+            //                     child: GestureDetector(
+            //                       // 🚨 FIX 3: Gestures ab sirf 'Drawing' tab mein aur '_isEraserMode' flag ke sath kaam karenge
+            //                       // onPanStart: _pointerCount > 1
+            //                       //     ? null
+            //                       //     : (details) {
+            //                       //         if (_activeTab == "Drawing") {
+            //                       //           setState(() {
+            //                       //             RenderBox renderBox =
+            //                       //                 _canvasKey.currentContext!
+            //                       //                         .findRenderObject()
+            //                       //                     as RenderBox;
+            //                       //             _currentPoints = [
+            //                       //               renderBox.globalToLocal(
+            //                       //                 details.globalPosition,
+            //                       //               ),
+            //                       //             ];
+            //                       //           });
+            //                       //         }
+            //                       //       },
+            //                       // onPanUpdate: _pointerCount > 1
+            //                       //     ? null
+            //                       //     : (details) {
+            //                       //         if (_activeTab == "Drawing") {
+            //                       //           setState(() {
+            //                       //             RenderBox renderBox =
+            //                       //                 _canvasKey.currentContext!
+            //                       //                         .findRenderObject()
+            //                       //                     as RenderBox;
+            //                       //             _currentPoints.add(
+            //                       //               renderBox.globalToLocal(
+            //                       //                 details.globalPosition,
+            //                       //               ),
+            //                       //             );
+            //                       //           });
+            //                       //         }
+            //                       //       },
+            //
+            //                       onPanStart: _pointerCount > 1
+            //                           ? null
+            //                           : (details) {
+            //                         if (_activeTab == "Drawing") {
+            //                           setState(() {
+            //                             RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+            //                             Offset localPos = renderBox.globalToLocal(details.globalPosition);
+            //                             // 🚨 FIX: Points ko image ke width aur height se divide karke percentage me badla
+            //                             _currentPoints = [
+            //                               Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height)
+            //                             ];
+            //                           });
+            //                         }
+            //                       },
+            //                       onPanUpdate: _pointerCount > 1
+            //                           ? null
+            //                           : (details) {
+            //                         if (_activeTab == "Drawing") {
+            //                           setState(() {
+            //                             RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+            //                             Offset localPos = renderBox.globalToLocal(details.globalPosition);
+            //                             // 🚨 FIX: Same yahan bhi percentage me convert kiya
+            //                             _currentPoints.add(
+            //                                 Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height)
+            //                             );
+            //                           });
+            //                         }
+            //                       },
+            //
+            //                       onPanEnd: _pointerCount > 1
+            //                           ? null
+            //                           : (details) {
+            //                               if (_activeTab == "Drawing") {
+            //                                 if (_currentPoints.isEmpty) return;
+            //                                 setState(() {
+            //                                   _currentPoints.add(null);
+            //                                   _paths.add(
+            //                                     DrawnPath(
+            //                                       points: List.from(
+            //                                         _currentPoints,
+            //                                       ),
+            //                                       color: _selectedColor,
+            //                                       strokeWidth: _strokeWidth,
+            //                                       opacity: _opacity,
+            //                                       isEraser:
+            //                                           _isEraserMode, // Yahan Flag Change
+            //                                     ),
+            //                                   );
+            //                                   _currentPoints.clear();
+            //                                   _undonePaths.clear();
+            //                                 });
+            //                               }
+            //                             },
+            //           //             child: CustomPaint(
+            //           //               painter: DrawingPainter(
+            //           //                 paths: _paths,
+            //           //                 currentPoints: _currentPoints,
+            //           //                 currentColor: _selectedColor,
+            //           //                 currentStrokeWidth: _strokeWidth,
+            //           //                 currentOpacity: _opacity,
+            //           //                 isEraser:
+            //           //                     _isEraserMode, // Yahan Flag Change
+            //           //               ),
+            //           //             ),
+            //           //           ),
+            //           //         ),
+            //           //       ),
+            //           //     ],
+            //           //   ),
+            //           // ),
+            //
+            //                       child: CustomPaint(
+            //                         painter: DrawingPainter(
+            //                           paths: _paths,
+            //                           currentPoints: _currentPoints,
+            //                           currentColor: _selectedColor,
+            //                           currentStrokeWidth: _strokeWidth,
+            //                           currentOpacity: _opacity,
+            //                           isEraser: _isEraserMode,
+            //                         ),
+            //                       ),
+            //                     ),
+            //                   ),
+            //                 ),
+            //
+            //                 // --- 🚨 NAYA: ON-CANVAS TEXT LAYER (DRAG, ROTATE, EDIT) ---
+            //                 ..._textItems.map((item) {
+            //                   bool isActive = _activeTextItem == item;
+            //
+            //                   // Background and Text Color Logic
+            //                   Color textColor = item.appearance == 0 ? item.color :
+            //                   (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) :
+            //                   Colors.white;
+            //                   Color bgColor = item.appearance == 1 ? item.color :
+            //                   item.appearance == 2 ? item.color.withOpacity(0.5) : // Transparent Box
+            //                   Colors.transparent;
+            //
+            //                   // Text Decorations (Underline / Strikethrough)
+            //                   TextDecoration decoration = TextDecoration.none;
+            //                   if (item.isUnderline && item.isStrikethrough) { decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]); }
+            //                   else if (item.isUnderline) { decoration = TextDecoration.underline; }
+            //                   else if (item.isStrikethrough) { decoration = TextDecoration.lineThrough; }
+            //
+            //                   return Positioned(
+            //                     left: item.offset.dx, top: item.offset.dy,
+            //                     child: Transform.rotate(
+            //                       angle: item.rotation,
+            //                       child: GestureDetector(
+            //                         onPanUpdate: (details) {
+            //                           if (_activeTab == "Text") {
+            //                             setState(() {
+            //                               RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+            //                               Offset localDelta = renderBox.globalToLocal(details.globalPosition) - renderBox.globalToLocal(details.globalPosition - details.delta);
+            //                               item.offset += localDelta; // Drag smooth with Zoom
+            //                             });
+            //                           }
+            //                         },
+            //                         onTap: () {
+            //                           if (_activeTab == "Text") {
+            //                             setState(() { _activeTextItem = item; _textEditorController.text = item.text; });
+            //                           }
+            //                         },
+            //                         child: Stack(
+            //                           clipBehavior: Clip.none,
+            //                           alignment: Alignment.center,
+            //                           children: [
+            //                             // Main Text Box
+            //                             Container(
+            //                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            //                               decoration: BoxDecoration(
+            //                                 color: bgColor, borderRadius: BorderRadius.circular(8),
+            //                                 border: isActive ? Border.all(color: Colors.white, width: 2) : Border.all(color: Colors.transparent, width: 2),
+            //                               ),
+            //                               child: IntrinsicWidth(
+            //                                 child: Stack(
+            //                                   alignment: Alignment.center,
+            //                                   children: [
+            //                                     // Stroke Layer (Mode 3)
+            //                                     if (item.appearance == 3)
+            //                                       Text(
+            //                                         item.text.isEmpty ? "Text" : item.text,
+            //                                         textAlign: item.alignment,
+            //                                         style: TextStyle(
+            //                                           fontSize: item.fontSize, fontFamily: item.font,
+            //                                           fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+            //                                           fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+            //                                           decoration: decoration,
+            //                                           foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = item.fontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color,
+            //                                         ),
+            //                                       ),
+            //
+            //                                     // Editable TextField
+            //                                     TextField(
+            //                                       controller: isActive ? _textEditorController : TextEditingController(text: item.text),
+            //                                       enabled: isActive, autofocus: isActive, textAlign: item.alignment,
+            //                                       maxLines: null, cursorColor: textColor,
+            //                                       onChanged: (val) => setState(() => item.text = val),
+            //                                       style: TextStyle(
+            //                                         color: textColor, fontSize: item.fontSize, fontFamily: item.font,
+            //                                         fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+            //                                         fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+            //                                         decoration: decoration, decorationColor: textColor,
+            //                                         shadows: item.appearance == 0 ? const [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
+            //                                       ),
+            //                                       decoration: InputDecoration(
+            //                                         isDense: true, contentPadding: EdgeInsets.zero, border: InputBorder.none,
+            //                                         hintText: isActive ? "Text" : "",
+            //                                         hintStyle: TextStyle(color: item.appearance == 3 ? Colors.transparent : Colors.white54, fontSize: item.fontSize),
+            //                                       ),
+            //                                     ),
+            //                                   ],
+            //                                 ),
+            //                               ),
+            //                             ),
+            //
+            //                             // Rotate Handle (Corner Icon)
+            //                             if (isActive)
+            //                               Positioned(
+            //                                 bottom: -15, right: -15,
+            //                                 child: GestureDetector(
+            //                                   onPanUpdate: (details) => setState(() => item.rotation += details.delta.dy * 0.03 + details.delta.dx * 0.03),
+            //                                   child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 20)),
+            //                                 ),
+            //                               ),
+            //                           ],
+            //                         ),
+            //                       ),
+            //                     ),
+            //                   );
+            //                 }).toList(),
+            //               ],
+            //             ),
+            //           ),
+            //
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+
+            // --- 1. MAIN PREVIEW AREA (With Zoom & Draw) ---
             Expanded(
               child: Container(
                 color: const Color(0xFF2C2C2C),
@@ -428,283 +733,192 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   maxScale: 8.0,
                   clipBehavior: Clip.none,
                   panEnabled: true,
-                  // 🚨 FIX 2: Panning hamesha true rahegi taaki zoom ke baad photo move ho sake
                   scaleEnabled: true,
-                  // 🚨 FIX 3: Zooming hamesha true rahegi
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.only(
-                        left: 24,
-                        right: 24,
-                        top: 20,
-                        bottom: 20,
+                        left: 24, right: 24, top: 20, bottom: 20,
                       ),
                       child: RepaintBoundary(
                         key: _globalKey,
+                        // 🚨 FEVICOL FIX 1: Ab Canvas EXACTLY Image ke size ka banega. No empty letterbox space!
                         child: Stack(
                           key: _canvasKey,
-                          // 🚨 FIX 4: Canvas key yahan attach ki taaki scale hone par bhi offset ekdum ungli ke niche rahe
+                          clipBehavior: Clip.none,
                           children: [
-                            Image.file(widget.imageFile, fit: BoxFit.contain),
+                            // 1. BASE IMAGE (Bina 'BoxFit' ke, ye khudko exact ratio me set karega)
+                            Image.file(widget.imageFile),
 
-                            // Drawing Layer
+                            // 2. DRAWING LAYER
                             Positioned.fill(
                               child: Listener(
                                 onPointerDown: (_) {
                                   setState(() {
                                     _pointerCount++;
-                                    // Safety check: Agar 1 se zyada finger aa gayi, toh current drawing line ko wahin rok do
-                                    if (_pointerCount > 1 &&
-                                        _currentPoints.isNotEmpty) {
+                                    if (_pointerCount > 1 && _currentPoints.isNotEmpty) {
                                       _currentPoints.add(null);
-                                      _paths.add(
-                                        DrawnPath(
-                                          points: List.from(_currentPoints),
-                                          color: _selectedColor,
-                                          strokeWidth: _strokeWidth,
-                                          opacity: _opacity,
-                                          isEraser: _activeTab == "Eraser",
-                                        ),
-                                      );
+                                      _paths.add(DrawnPath(points: List.from(_currentPoints), color: _selectedColor, strokeWidth: _strokeWidth, opacity: _opacity, isEraser: _activeTab == "Eraser"));
                                       _currentPoints.clear();
                                     }
                                   });
                                 },
-                                onPointerUp: (_) =>
-                                    setState(() => _pointerCount--),
-                                onPointerCancel: (_) =>
-                                    setState(() => _pointerCount--),
+                                onPointerUp: (_) => setState(() => _pointerCount--),
+                                onPointerCancel: (_) => setState(() => _pointerCount--),
                                 child: GestureDetector(
-                                  // 🚨 FIX 3: Gestures ab sirf 'Drawing' tab mein aur '_isEraserMode' flag ke sath kaam karenge
-                                  // onPanStart: _pointerCount > 1
-                                  //     ? null
-                                  //     : (details) {
-                                  //         if (_activeTab == "Drawing") {
-                                  //           setState(() {
-                                  //             RenderBox renderBox =
-                                  //                 _canvasKey.currentContext!
-                                  //                         .findRenderObject()
-                                  //                     as RenderBox;
-                                  //             _currentPoints = [
-                                  //               renderBox.globalToLocal(
-                                  //                 details.globalPosition,
-                                  //               ),
-                                  //             ];
-                                  //           });
-                                  //         }
-                                  //       },
-                                  // onPanUpdate: _pointerCount > 1
-                                  //     ? null
-                                  //     : (details) {
-                                  //         if (_activeTab == "Drawing") {
-                                  //           setState(() {
-                                  //             RenderBox renderBox =
-                                  //                 _canvasKey.currentContext!
-                                  //                         .findRenderObject()
-                                  //                     as RenderBox;
-                                  //             _currentPoints.add(
-                                  //               renderBox.globalToLocal(
-                                  //                 details.globalPosition,
-                                  //               ),
-                                  //             );
-                                  //           });
-                                  //         }
-                                  //       },
-
-                                  onPanStart: _pointerCount > 1
-                                      ? null
-                                      : (details) {
+                                  onPanStart: _pointerCount > 1 ? null : (details) {
                                     if (_activeTab == "Drawing") {
                                       setState(() {
                                         RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
                                         Offset localPos = renderBox.globalToLocal(details.globalPosition);
-                                        // 🚨 FIX: Points ko image ke width aur height se divide karke percentage me badla
-                                        _currentPoints = [
-                                          Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height)
-                                        ];
+                                        _currentPoints = [Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height)];
                                       });
                                     }
                                   },
-                                  onPanUpdate: _pointerCount > 1
-                                      ? null
-                                      : (details) {
+                                  onPanUpdate: _pointerCount > 1 ? null : (details) {
                                     if (_activeTab == "Drawing") {
                                       setState(() {
                                         RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
                                         Offset localPos = renderBox.globalToLocal(details.globalPosition);
-                                        // 🚨 FIX: Same yahan bhi percentage me convert kiya
-                                        _currentPoints.add(
-                                            Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height)
-                                        );
+                                        _currentPoints.add(Offset(localPos.dx / renderBox.size.width, localPos.dy / renderBox.size.height));
                                       });
                                     }
                                   },
-
-                                  onPanEnd: _pointerCount > 1
-                                      ? null
-                                      : (details) {
-                                          if (_activeTab == "Drawing") {
-                                            if (_currentPoints.isEmpty) return;
-                                            setState(() {
-                                              _currentPoints.add(null);
-                                              _paths.add(
-                                                DrawnPath(
-                                                  points: List.from(
-                                                    _currentPoints,
-                                                  ),
-                                                  color: _selectedColor,
-                                                  strokeWidth: _strokeWidth,
-                                                  opacity: _opacity,
-                                                  isEraser:
-                                                      _isEraserMode, // Yahan Flag Change
-                                                ),
-                                              );
-                                              _currentPoints.clear();
-                                              _undonePaths.clear();
-                                            });
-                                          }
-                                        },
-                      //             child: CustomPaint(
-                      //               painter: DrawingPainter(
-                      //                 paths: _paths,
-                      //                 currentPoints: _currentPoints,
-                      //                 currentColor: _selectedColor,
-                      //                 currentStrokeWidth: _strokeWidth,
-                      //                 currentOpacity: _opacity,
-                      //                 isEraser:
-                      //                     _isEraserMode, // Yahan Flag Change
-                      //               ),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
-
+                                  onPanEnd: _pointerCount > 1 ? null : (details) {
+                                    if (_activeTab == "Drawing") {
+                                      if (_currentPoints.isEmpty) return;
+                                      setState(() {
+                                        _currentPoints.add(null);
+                                        _paths.add(DrawnPath(points: List.from(_currentPoints), color: _selectedColor, strokeWidth: _strokeWidth, opacity: _opacity, isEraser: _isEraserMode));
+                                        _currentPoints.clear();
+                                        _undonePaths.clear();
+                                      });
+                                    }
+                                  },
                                   child: CustomPaint(
                                     painter: DrawingPainter(
-                                      paths: _paths,
-                                      currentPoints: _currentPoints,
-                                      currentColor: _selectedColor,
-                                      currentStrokeWidth: _strokeWidth,
-                                      currentOpacity: _opacity,
-                                      isEraser: _isEraserMode,
+                                      paths: _paths, currentPoints: _currentPoints, currentColor: _selectedColor, currentStrokeWidth: _strokeWidth, currentOpacity: _opacity, isEraser: _isEraserMode,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
 
-                            // --- 🚨 NAYA: ON-CANVAS TEXT LAYER (DRAG, ROTATE, EDIT) ---
-                            ..._textItems.map((item) {
-                              bool isActive = _activeTextItem == item;
+                            // 3. TEXT LAYER (Auto Scale & Attached to Center)
+                            Positioned.fill(
+                                child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      // Yahan canvas/image ka exact width & height aayega
+                                      double canvasW = constraints.maxWidth;
+                                      double canvasH = constraints.maxHeight;
 
-                              // Background and Text Color Logic
-                              Color textColor = item.appearance == 0 ? item.color :
-                              (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) :
-                              Colors.white;
-                              Color bgColor = item.appearance == 1 ? item.color :
-                              item.appearance == 2 ? item.color.withOpacity(0.5) : // Transparent Box
-                              Colors.transparent;
+                                      // 🚨 FEVICOL FIX 2: Text ki size Image ki size ke sath badi-choti hogi!
+                                      double scaleRatio = canvasW / 400.0;
 
-                              // Text Decorations (Underline / Strikethrough)
-                              TextDecoration decoration = TextDecoration.none;
-                              if (item.isUnderline && item.isStrikethrough) { decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]); }
-                              else if (item.isUnderline) { decoration = TextDecoration.underline; }
-                              else if (item.isStrikethrough) { decoration = TextDecoration.lineThrough; }
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: _textItems.map((item) {
+                                          bool isActive = _activeTextItem == item;
+                                          // Text size automatically image ke mutabik scale hogi
+                                          double scaledFontSize = item.fontSize * scaleRatio;
 
-                              return Positioned(
-                                left: item.offset.dx, top: item.offset.dy,
-                                child: Transform.rotate(
-                                  angle: item.rotation,
-                                  child: GestureDetector(
-                                    onPanUpdate: (details) {
-                                      if (_activeTab == "Text") {
-                                        setState(() {
-                                          RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                          Offset localDelta = renderBox.globalToLocal(details.globalPosition) - renderBox.globalToLocal(details.globalPosition - details.delta);
-                                          item.offset += localDelta; // Drag smooth with Zoom
-                                        });
-                                      }
-                                    },
-                                    onTap: () {
-                                      if (_activeTab == "Text") {
-                                        setState(() { _activeTextItem = item; _textEditorController.text = item.text; });
-                                      }
-                                    },
-                                    child: Stack(
-                                      clipBehavior: Clip.none,
-                                      alignment: Alignment.center,
-                                      children: [
-                                        // Main Text Box
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                          decoration: BoxDecoration(
-                                            color: bgColor, borderRadius: BorderRadius.circular(8),
-                                            border: isActive ? Border.all(color: Colors.white, width: 2) : Border.all(color: Colors.transparent, width: 2),
-                                          ),
-                                          child: IntrinsicWidth(
-                                            child: Stack(
-                                              alignment: Alignment.center,
-                                              children: [
-                                                // Stroke Layer (Mode 3)
-                                                if (item.appearance == 3)
-                                                  Text(
-                                                    item.text.isEmpty ? "Text" : item.text,
-                                                    textAlign: item.alignment,
-                                                    style: TextStyle(
-                                                      fontSize: item.fontSize, fontFamily: item.font,
-                                                      fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
-                                                      fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
-                                                      decoration: decoration,
-                                                      foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = item.fontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color,
-                                                    ),
-                                                  ),
+                                          Color textColor = item.appearance == 0 ? item.color :
+                                          (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) : Colors.white;
+                                          Color bgColor = item.appearance == 1 ? item.color :
+                                          item.appearance == 2 ? item.color.withOpacity(0.5) : Colors.transparent;
 
-                                                // Editable TextField
-                                                TextField(
-                                                  controller: isActive ? _textEditorController : TextEditingController(text: item.text),
-                                                  enabled: isActive, autofocus: isActive, textAlign: item.alignment,
-                                                  maxLines: null, cursorColor: textColor,
-                                                  onChanged: (val) => setState(() => item.text = val),
-                                                  style: TextStyle(
-                                                    color: textColor, fontSize: item.fontSize, fontFamily: item.font,
-                                                    fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
-                                                    fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
-                                                    decoration: decoration, decorationColor: textColor,
-                                                    shadows: item.appearance == 0 ? const [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
-                                                  ),
-                                                  decoration: InputDecoration(
-                                                    isDense: true, contentPadding: EdgeInsets.zero, border: InputBorder.none,
-                                                    hintText: isActive ? "Text" : "",
-                                                    hintStyle: TextStyle(color: item.appearance == 3 ? Colors.transparent : Colors.white54, fontSize: item.fontSize),
+                                          TextDecoration decoration = TextDecoration.none;
+                                          if (item.isUnderline && item.isStrikethrough) { decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]); }
+                                          else if (item.isUnderline) { decoration = TextDecoration.underline; }
+                                          else if (item.isStrikethrough) { decoration = TextDecoration.lineThrough; }
+
+                                          return Positioned(
+                                            // Offset image size ke percentage par multiply hua
+                                            left: item.offset.dx * canvasW,
+                                            top: item.offset.dy * canvasH,
+                                            // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
+                                            child: FractionalTranslation(
+                                              translation: const Offset(-0.5, -0.5),
+                                              child: Transform.rotate(
+                                                angle: item.rotation,
+                                                child: GestureDetector(
+                                                  onPanUpdate: (details) {
+                                                    if (_activeTab == "Text") {
+                                                      setState(() {
+                                                        RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                        Offset localDelta = renderBox.globalToLocal(details.globalPosition) - renderBox.globalToLocal(details.globalPosition - details.delta);
+                                                        item.offset += Offset(localDelta.dx / renderBox.size.width, localDelta.dy / renderBox.size.height);
+                                                      });
+                                                    }
+                                                  },
+                                                  onTap: () {
+                                                    if (_activeTab == "Text") {
+                                                      setState(() { _activeTextItem = item; _textEditorController.text = item.text; });
+                                                    }
+                                                  },
+                                                  child: Stack(
+                                                    clipBehavior: Clip.none,
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      Container(
+                                                        padding: EdgeInsets.symmetric(horizontal: 16 * scaleRatio, vertical: 8 * scaleRatio),
+                                                        decoration: BoxDecoration(
+                                                          color: bgColor, borderRadius: BorderRadius.circular(8 * scaleRatio),
+                                                          border: isActive ? Border.all(color: Colors.white, width: 2) : Border.all(color: Colors.transparent, width: 2),
+                                                        ),
+                                                        child: IntrinsicWidth(
+                                                          child: Stack(
+                                                            alignment: Alignment.center,
+                                                            children: [
+                                                              if (item.appearance == 3)
+                                                                Text(
+                                                                  item.text.isEmpty ? "Text" : item.text, textAlign: item.alignment,
+                                                                  style: TextStyle(
+                                                                    fontSize: scaledFontSize, fontFamily: item.font, fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+                                                                    fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal, decoration: decoration,
+                                                                    foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = scaledFontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color,
+                                                                  ),
+                                                                ),
+                                                              TextField(
+                                                                controller: isActive ? _textEditorController : TextEditingController(text: item.text),
+                                                                enabled: isActive, autofocus: isActive, textAlign: item.alignment, maxLines: null, cursorColor: textColor,
+                                                                onChanged: (val) => setState(() => item.text = val),
+                                                                style: TextStyle(
+                                                                  color: textColor, fontSize: scaledFontSize, fontFamily: item.font,
+                                                                  fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal, fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+                                                                  decoration: decoration, decorationColor: textColor,
+                                                                  shadows: item.appearance == 0 ? [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
+                                                                ),
+                                                                decoration: InputDecoration(
+                                                                  isDense: true, contentPadding: EdgeInsets.zero, border: InputBorder.none,
+                                                                  hintText: isActive ? "Text" : "", hintStyle: TextStyle(color: item.appearance == 3 ? Colors.transparent : Colors.white54, fontSize: scaledFontSize),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      if (isActive)
+                                                        Positioned(
+                                                          bottom: -15, right: -15,
+                                                          child: GestureDetector(
+                                                            onPanUpdate: (details) => setState(() => item.rotation += details.delta.dy * 0.03 + details.delta.dx * 0.03),
+                                                            child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 20)),
+                                                          ),
+                                                        ),
+                                                    ],
                                                   ),
                                                 ),
-                                              ],
+                                              ),
                                             ),
-                                          ),
-                                        ),
-
-                                        // Rotate Handle (Corner Icon)
-                                        if (isActive)
-                                          Positioned(
-                                            bottom: -15, right: -15,
-                                            child: GestureDetector(
-                                              onPanUpdate: (details) => setState(() => item.rotation += details.delta.dy * 0.03 + details.delta.dx * 0.03),
-                                              child: Container(padding: const EdgeInsets.all(4), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: const Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 20)),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                                          );
+                                        }).toList(),
+                                      );
+                                    }
+                                )
+                            )
                           ],
                         ),
                       ),
-
                     ),
                   ),
                 ),
@@ -1067,19 +1281,33 @@ class _MarkupScreenState extends State<MarkupScreen> {
             //   label: const Text("Add", style: TextStyle(color: Colors.white)),
             // )
 
+            // ElevatedButton.icon(
+            //   style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+            //   onPressed: () {
+            //     setState(() {
+            //       // 🚨 FIX 1: Image/Canvas ka center pata lagao
+            //       RenderBox? renderBox = _canvasKey.currentContext?.findRenderObject() as RenderBox?;
+            //       Offset centerOffset = renderBox != null
+            //           ? Offset(renderBox.size.width / 2 - 30, renderBox.size.height / 2 - 20)
+            //           : const Offset(150, 150);
+            //
+            //       final newItem = activeItem.clone();
+            //       newItem.text = "";
+            //       newItem.offset = centerOffset; // 🚨 Ab naya text ekdum screen ke beech (center) me aayega
+            //       _textItems.add(newItem);
+            //       _activeTextItem = newItem;
+            //       _textEditorController.text = newItem.text;
+            //     });
+            //   },
+
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
               onPressed: () {
                 setState(() {
-                  // 🚨 FIX 1: Image/Canvas ka center pata lagao
-                  RenderBox? renderBox = _canvasKey.currentContext?.findRenderObject() as RenderBox?;
-                  Offset centerOffset = renderBox != null
-                      ? Offset(renderBox.size.width / 2 - 30, renderBox.size.height / 2 - 20)
-                      : const Offset(150, 150);
-
                   final newItem = activeItem.clone();
                   newItem.text = "";
-                  newItem.offset = centerOffset; // 🚨 Ab naya text ekdum screen ke beech (center) me aayega
+                  // 🚨 MAIN FIX: Ab offset sirf percentage (0.5 = center) use karega
+                  newItem.offset = const Offset(0.5, 0.5);
                   _textItems.add(newItem);
                   _activeTextItem = newItem;
                   _textEditorController.text = newItem.text;
@@ -1261,6 +1489,90 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
 
 
+// class DrawingPainter extends CustomPainter {
+//   final List<DrawnPath> paths;
+//   final List<Offset?> currentPoints;
+//   final Color currentColor;
+//   final double currentStrokeWidth;
+//   final double currentOpacity;
+//   final bool isEraser;
+//
+//   DrawingPainter({
+//     required this.paths,
+//     required this.currentPoints,
+//     required this.currentColor,
+//     required this.currentStrokeWidth,
+//     required this.currentOpacity,
+//     required this.isEraser,
+//   });
+//
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
+//
+//     // 🚨 HELPER FUNCTION: Percentage coordinates ko current image size ke pixels me convert karne ke liye
+//     Offset? toPixels(Offset? normalized) {
+//       if (normalized == null) return null;
+//       return Offset(normalized.dx * size.width, normalized.dy * size.height);
+//     }
+//
+//     for (var path in paths) {
+//       if (path.isClear) {
+//         canvas.drawRect(
+//           Rect.fromLTWH(0, 0, size.width, size.height),
+//           Paint()..blendMode = BlendMode.clear,
+//         );
+//         continue;
+//       }
+//
+//       Paint p = Paint()
+//         ..color = path.isEraser
+//             ? Colors.transparent
+//             : path.color.withOpacity(path.opacity)
+//         ..strokeWidth = path.strokeWidth
+//         ..strokeCap = StrokeCap.round
+//         ..style = PaintingStyle.stroke
+//         ..blendMode = path.isEraser ? BlendMode.clear : BlendMode.srcOver;
+//
+//       for (int i = 0; i < path.points.length - 1; i++) {
+//         Offset? p1 = toPixels(path.points[i]);
+//         Offset? p2 = toPixels(path.points[i + 1]);
+//
+//         if (p1 != null && p2 != null) {
+//           canvas.drawLine(p1, p2, p);
+//         } else if (p1 != null && p2 == null) {
+//           canvas.drawPoints(ui.PointMode.points, [p1], p);
+//         }
+//       }
+//     }
+//
+//     if (currentPoints.isNotEmpty) {
+//       Paint p = Paint()
+//         ..color = isEraser
+//             ? Colors.transparent
+//             : currentColor.withOpacity(currentOpacity)
+//         ..strokeWidth = currentStrokeWidth
+//         ..strokeCap = StrokeCap.round
+//         ..style = PaintingStyle.stroke
+//         ..blendMode = isEraser ? BlendMode.clear : BlendMode.srcOver;
+//
+//       for (int i = 0; i < currentPoints.length - 1; i++) {
+//         Offset? p1 = toPixels(currentPoints[i]);
+//         Offset? p2 = toPixels(currentPoints[i + 1]);
+//
+//         if (p1 != null && p2 != null) {
+//           canvas.drawLine(p1, p2, p);
+//         }
+//       }
+//     }
+//
+//     canvas.restore();
+//   }
+//
+//   @override
+//   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+// }
+
 class DrawingPainter extends CustomPainter {
   final List<DrawnPath> paths;
   final List<Offset?> currentPoints;
@@ -1270,38 +1582,31 @@ class DrawingPainter extends CustomPainter {
   final bool isEraser;
 
   DrawingPainter({
-    required this.paths,
-    required this.currentPoints,
-    required this.currentColor,
-    required this.currentStrokeWidth,
-    required this.currentOpacity,
-    required this.isEraser,
+    required this.paths, required this.currentPoints, required this.currentColor,
+    required this.currentStrokeWidth, required this.currentOpacity, required this.isEraser,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
-    // 🚨 HELPER FUNCTION: Percentage coordinates ko current image size ke pixels me convert karne ke liye
     Offset? toPixels(Offset? normalized) {
       if (normalized == null) return null;
       return Offset(normalized.dx * size.width, normalized.dy * size.height);
     }
 
+    // 🚨 FEVICOL FIX 4: Drawing Stroke ki motai (thickness) bhi image ke sath scale hogi
+    double strokeScale = size.width / 400.0;
+
     for (var path in paths) {
       if (path.isClear) {
-        canvas.drawRect(
-          Rect.fromLTWH(0, 0, size.width, size.height),
-          Paint()..blendMode = BlendMode.clear,
-        );
+        canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..blendMode = BlendMode.clear);
         continue;
       }
 
       Paint p = Paint()
-        ..color = path.isEraser
-            ? Colors.transparent
-            : path.color.withOpacity(path.opacity)
-        ..strokeWidth = path.strokeWidth
+        ..color = path.isEraser ? Colors.transparent : path.color.withOpacity(path.opacity)
+        ..strokeWidth = path.strokeWidth * strokeScale // Scaling applied
         ..strokeCap = StrokeCap.round
         ..style = PaintingStyle.stroke
         ..blendMode = path.isEraser ? BlendMode.clear : BlendMode.srcOver;
@@ -1310,20 +1615,15 @@ class DrawingPainter extends CustomPainter {
         Offset? p1 = toPixels(path.points[i]);
         Offset? p2 = toPixels(path.points[i + 1]);
 
-        if (p1 != null && p2 != null) {
-          canvas.drawLine(p1, p2, p);
-        } else if (p1 != null && p2 == null) {
-          canvas.drawPoints(ui.PointMode.points, [p1], p);
-        }
+        if (p1 != null && p2 != null) { canvas.drawLine(p1, p2, p); }
+        else if (p1 != null && p2 == null) { canvas.drawPoints(ui.PointMode.points, [p1], p); }
       }
     }
 
     if (currentPoints.isNotEmpty) {
       Paint p = Paint()
-        ..color = isEraser
-            ? Colors.transparent
-            : currentColor.withOpacity(currentOpacity)
-        ..strokeWidth = currentStrokeWidth
+        ..color = isEraser ? Colors.transparent : currentColor.withOpacity(currentOpacity)
+        ..strokeWidth = currentStrokeWidth * strokeScale // Scaling applied
         ..strokeCap = StrokeCap.round
         ..style = PaintingStyle.stroke
         ..blendMode = isEraser ? BlendMode.clear : BlendMode.srcOver;
@@ -1331,13 +1631,9 @@ class DrawingPainter extends CustomPainter {
       for (int i = 0; i < currentPoints.length - 1; i++) {
         Offset? p1 = toPixels(currentPoints[i]);
         Offset? p2 = toPixels(currentPoints[i + 1]);
-
-        if (p1 != null && p2 != null) {
-          canvas.drawLine(p1, p2, p);
-        }
+        if (p1 != null && p2 != null) { canvas.drawLine(p1, p2, p); }
       }
     }
-
     canvas.restore();
   }
 
