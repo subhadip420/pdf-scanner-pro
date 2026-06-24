@@ -83,6 +83,8 @@ class ShapeItem {
 
   //double strokeWidth;
   double rotation;
+  double scaleX = 1.0; // 🚨 Direct initialize kiya
+  double scaleY = 1.0; // 🚨 Direct initialize kiya
 
   ShapeItem({
     required this.icon,
@@ -91,6 +93,8 @@ class ShapeItem {
     this.size = 100.0,
     //this.strokeWidth = 2.0,
     this.rotation = 0.0,
+    this.scaleX = 1.0, // Default 1.0 (Normal size)
+    this.scaleY = 1.0, // Default 1.0 (Normal size)
   });
 }
 
@@ -1057,28 +1061,56 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                     alignment: Alignment.center,
                                                     children: [
                                                       // Border aur Shape
+                                                      // Container(
+                                                      //   padding:
+                                                      //       const EdgeInsets.all(
+                                                      //         8,
+                                                      //       ),
+                                                      //   decoration: isActive
+                                                      //       ? BoxDecoration(
+                                                      //           border: Border.all(
+                                                      //             color: Colors
+                                                      //                 .white,
+                                                      //             width: 2,
+                                                      //           ),
+                                                      //         )
+                                                      //       : null,
+                                                      //   // 🚨 FIX: scaledIconSize ab variable ke roop mein yahan active hai
+                                                      //   child: Icon(
+                                                      //     shape.icon,
+                                                      //     color: shape.color,
+                                                      //     size:
+                                                      //         shape.size *
+                                                      //         (canvasW /
+                                                      //             400.0), // ScaleRatio yahi apply kar diya
+                                                      //   ),
+                                                      // ),
+
+                                                      // Border aur Shape
                                                       Container(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              8,
-                                                            ),
+                                                        padding: const EdgeInsets.all(8),
                                                         decoration: isActive
                                                             ? BoxDecoration(
-                                                                border: Border.all(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  width: 2,
-                                                                ),
-                                                              )
+                                                          border: Border.all(color: Colors.white, width: 2),
+                                                        )
                                                             : null,
-                                                        // 🚨 FIX: scaledIconSize ab variable ke roop mein yahan active hai
-                                                        child: Icon(
-                                                          shape.icon,
-                                                          color: shape.color,
-                                                          size:
-                                                              shape.size *
-                                                              (canvasW /
-                                                                  400.0), // ScaleRatio yahi apply kar diya
+                                                        // 🚨 NAYA TAREKA (Shrink, Stretch, Mirror ke liye)
+                                                        child: SizedBox(
+                                                          // Canvas ke scale ratio ke saath height/width set kiya
+                                                          width: (shape.size * shape.scaleX.abs()) * (canvasW / 400.0),
+                                                          height: (shape.size * shape.scaleY.abs()) * (canvasW / 400.0),
+                                                          child: FittedBox(
+                                                            fit: BoxFit.fill, // Icon ko is box ke hisaab se stretch karega
+                                                            child: Transform.scale(
+                                                              // Agar negative hui width/height toh flip (mirror) ho jayega
+                                                              scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                              scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                              child: Icon(
+                                                                shape.icon,
+                                                                color: shape.color,
+                                                              ),
+                                                            ),
+                                                          ),
                                                         ),
                                                       ),
 
@@ -1146,6 +1178,41 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                                     .white,
                                                                 size: 16,
                                                               ),
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                      // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
+                                                      // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
+                                                      if (isActive)
+                                                        Positioned(
+                                                          left: -12,
+                                                          bottom: -12,
+                                                          child: GestureDetector(
+                                                            behavior: HitTestBehavior.opaque,
+                                                            onPanUpdate: (details) {
+                                                              setState(() {
+                                                                double sensitivity = 0.01;
+
+                                                                double newScaleX = shape.scaleX - (details.delta.dx * sensitivity);
+                                                                double newScaleY = shape.scaleY + (details.delta.dy * sensitivity);
+
+                                                                // 🚨 FIX: Shape ko exactly 0 (invisible) hone se roko
+                                                                if (newScaleX.abs() < 0.1) newScaleX = newScaleX < 0 ? -0.1 : 0.1;
+                                                                if (newScaleY.abs() < 0.1) newScaleY = newScaleY < 0 ? -0.1 : 0.1;
+
+                                                                shape.scaleX = newScaleX;
+                                                                shape.scaleY = newScaleY;
+                                                              });
+                                                            },
+                                                            child: Container(
+                                                              padding: const EdgeInsets.all(5),
+                                                              decoration: BoxDecoration(
+                                                                  color: Colors.white,
+                                                                  shape: BoxShape.circle,
+                                                                  border: Border.all(color: Colors.black, width: 1),
+                                                              ),
+                                                              child: const Icon(Icons.open_in_full_rounded, color: Colors.blueAccent, size: 14),
                                                             ),
                                                           ),
                                                         ),
@@ -1928,6 +1995,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         rotation: _activeShapeItem!.rotation,
                         // Original shape se thoda side mein add karo (offset)
                         offset: _activeShapeItem!.offset + const Offset(0.05, 0.05),
+                        scaleX: _activeShapeItem!.scaleX, // 🚨 NAYA ADD KIYA
+                        scaleY: _activeShapeItem!.scaleY, // 🚨 NAYA ADD KIYA
                       );
                       _shapeItems.add(copy);
                       _activeShapeItem = copy; // Naya copy select ho jayega
