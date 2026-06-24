@@ -251,6 +251,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Future<void> _saveMarkup() async {
     setState(() {
       _activeTextItem = null; // Text se selection border hatao
+      _activeShapeItem = null;
       _textItems.removeWhere(
         (item) => item.text.trim().isEmpty,
       ); // Khali text ko list se delete karo
