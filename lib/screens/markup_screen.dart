@@ -1115,33 +1115,61 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                       ),
 
                                                       // Rotate Handle
+                                                      // if (isActive)
+                                                      //   Positioned(
+                                                      //     bottom: -10,
+                                                      //     right: -10,
+                                                      //     child: GestureDetector(
+                                                      //       behavior:
+                                                      //           HitTestBehavior
+                                                      //               .opaque,
+                                                      //       onPanUpdate:
+                                                      //           (
+                                                      //             details,
+                                                      //           ) => setState(
+                                                      //             () => shape.rotation +=
+                                                      //                 details
+                                                      //                     .delta
+                                                      //                     .dx *
+                                                      //                 0.015,
+                                                      //           ),
+                                                      //       child: const CircleAvatar(
+                                                      //         radius: 14,
+                                                      //         backgroundColor:
+                                                      //             Colors.white,
+                                                      //         child: Icon(
+                                                      //           Icons
+                                                      //               .rotate_right_rounded,
+                                                      //           color: Colors
+                                                      //               .blueAccent,
+                                                      //           size: 18,
+                                                      //         ),
+                                                      //       ),
+                                                      //     ),
+                                                      //   ),
                                                       if (isActive)
                                                         Positioned(
                                                           bottom: -10,
                                                           right: -10,
                                                           child: GestureDetector(
-                                                            behavior:
-                                                                HitTestBehavior
-                                                                    .opaque,
-                                                            onPanUpdate:
-                                                                (
-                                                                  details,
-                                                                ) => setState(
-                                                                  () => shape.rotation +=
-                                                                      details
-                                                                          .delta
-                                                                          .dx *
-                                                                      0.015,
+                                                            behavior: HitTestBehavior.opaque,
+                                                            onPanUpdate: (details) => setState(
+                                                                  () => shape.rotation += details.delta.dx * 0.015,
+                                                            ),
+                                                            child: Container(
+                                                              width: 28,
+                                                              height: 28,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white,
+                                                                shape: BoxShape.circle,
+                                                                border: Border.all(
+                                                                  color: Colors.black,
+                                                                  width: 1,
                                                                 ),
-                                                            child: const CircleAvatar(
-                                                              radius: 14,
-                                                              backgroundColor:
-                                                                  Colors.white,
-                                                              child: Icon(
-                                                                Icons
-                                                                    .rotate_right_rounded,
-                                                                color: Colors
-                                                                    .blueAccent,
+                                                              ),
+                                                              child: const Icon(
+                                                                Icons.rotate_right_rounded,
+                                                                color: Colors.blueAccent,
                                                                 size: 18,
                                                               ),
                                                             ),
@@ -1149,40 +1177,68 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                         ),
 
                                                       // Delete Handle
+                                                      // if (isActive)
+                                                      //   Positioned(
+                                                      //     top: -10,
+                                                      //     left: -10,
+                                                      //     child: GestureDetector(
+                                                      //       behavior:
+                                                      //           HitTestBehavior
+                                                      //               .opaque,
+                                                      //       onTap: () =>
+                                                      //           setState(() {
+                                                      //             _shapeItems
+                                                      //                 .remove(
+                                                      //                   shape,
+                                                      //                 );
+                                                      //             _activeShapeItem =
+                                                      //                 null;
+                                                      //           }),
+                                                      //       child: const CircleAvatar(
+                                                      //         radius: 12,
+                                                      //         backgroundColor:
+                                                      //             Colors
+                                                      //                 .redAccent,
+                                                      //         child: Icon(
+                                                      //           Icons
+                                                      //               .close_rounded,
+                                                      //           color: Colors
+                                                      //               .white,
+                                                      //           size: 16,
+                                                      //         ),
+                                                      //       ),
+                                                      //     ),
+                                                      //   ),
+
                                                       if (isActive)
                                                         Positioned(
                                                           top: -10,
                                                           left: -10,
                                                           child: GestureDetector(
-                                                            behavior:
-                                                                HitTestBehavior
-                                                                    .opaque,
-                                                            onTap: () =>
-                                                                setState(() {
-                                                                  _shapeItems
-                                                                      .remove(
-                                                                        shape,
-                                                                      );
-                                                                  _activeShapeItem =
-                                                                      null;
-                                                                }),
-                                                            child: const CircleAvatar(
-                                                              radius: 12,
-                                                              backgroundColor:
-                                                                  Colors
-                                                                      .redAccent,
-                                                              child: Icon(
-                                                                Icons
-                                                                    .close_rounded,
-                                                                color: Colors
-                                                                    .white,
+                                                            behavior: HitTestBehavior.opaque,
+                                                            onTap: () => setState(() {
+                                                              _shapeItems.remove(shape);
+                                                              _activeShapeItem = null;
+                                                            }),
+                                                            child: Container(
+                                                              width: 24,
+                                                              height: 24,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.redAccent,
+                                                                shape: BoxShape.circle,
+                                                                border: Border.all(
+                                                                  color: Colors.white,
+                                                                  width: 1,
+                                                                ),
+                                                              ),
+                                                              child: const Icon(
+                                                                Icons.close_rounded,
+                                                                color: Colors.white,
                                                                 size: 16,
                                                               ),
                                                             ),
                                                           ),
                                                         ),
-
-                                                      // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
                                                       // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
                                                       if (isActive)
                                                         Positioned(
