@@ -1972,13 +1972,30 @@ class _MarkupScreenState extends State<MarkupScreen> {
           physics: const BouncingScrollPhysics(),
           child: Row(
             children: [
+              // --- Basic Geometry ---
               _buildShapeIcon(Icons.rectangle_outlined),
+              _buildShapeIcon(Icons.crop_square_rounded), // Square
               _buildShapeIcon(Icons.circle_outlined),
               _buildShapeIcon(Icons.change_history_rounded), // Triangle
               _buildShapeIcon(Icons.pentagon_outlined),
               _buildShapeIcon(Icons.hexagon_outlined),
-              _buildShapeIcon(Icons.star_border_rounded),
-              _buildShapeIcon(Icons.arrow_forward_rounded),
+
+              // --- Arrows ---
+              _buildShapeIcon(Icons.arrow_forward_rounded), // Right Arrow
+              _buildShapeIcon(Icons.arrow_back_rounded), // Left Arrow
+              _buildShapeIcon(Icons.arrow_upward_rounded), // Up Arrow
+              _buildShapeIcon(Icons.sync_alt_rounded), // Double Arrow (Left-Right)
+
+              // --- Objects & Symbols ---
+              _buildShapeIcon(Icons.star_border_rounded), // Star
+              _buildShapeIcon(Icons.favorite_border_rounded), // Heart
+              _buildShapeIcon(Icons.shield_outlined), // Shield
+              _buildShapeIcon(Icons.cloud_queue_rounded), // Cloud
+
+              // --- Markup / Annotation ---
+              _buildShapeIcon(Icons.chat_bubble_outline_rounded), // Speech Bubble / Callout
+              _buildShapeIcon(Icons.check_rounded), // Tick / Right mark
+              _buildShapeIcon(Icons.close_rounded), // Cross / Wrong mark
             ],
           ),
         ),
