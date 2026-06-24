@@ -1002,38 +1002,75 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       children: _shapeItems.map((shape) {
                                         bool isActive = _activeShapeItem == shape;
 
+                                        // return Positioned(
+                                        //   left: shape.offset.dx * canvasW,
+                                        //   top: shape.offset.dy * canvasH,
+                                        //   child: GestureDetector(
+                                        //     // 🚨 Parent Gesture: Sirf move karne ke liye
+                                        //     behavior: HitTestBehavior.translucent,
+                                        //     onPanUpdate: (details) {
+                                        //       setState(() {
+                                        //         RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                        //         shape.offset += Offset(details.delta.dx / renderBox.size.width, details.delta.dy / renderBox.size.height);
+                                        //       });
+                                        //     },
+                                        //     onTap: () => setState(() {
+                                        //       _activeShapeItem = shape;
+                                        //       _activeTextItem = null;
+                                        //     }),
+                                        //     child: Transform.rotate(
+                                        //       angle: shape.rotation,
+                                        //       child: Container(
+                                        //         padding: const EdgeInsets.all(24), // Touch area bada rakho
+                                        //         child: Stack(
+                                        //           clipBehavior: Clip.none,
+                                        //           alignment: Alignment.center,
+                                        //           children: [
+                                        //             // Border aur Shape
+                                        //             Container(
+                                        //               padding: const EdgeInsets.all(8),
+                                        //               decoration: isActive
+                                        //                   ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
+                                        //                   : null,
+                                        //               child: Icon(shape.icon, color: shape.color, size: shape.size),
+                                        //             ),
+
                                         return Positioned(
                                           left: shape.offset.dx * canvasW,
                                           top: shape.offset.dy * canvasH,
-                                          child: GestureDetector(
-                                            // 🚨 Parent Gesture: Sirf move karne ke liye
-                                            behavior: HitTestBehavior.translucent,
-                                            onPanUpdate: (details) {
-                                              setState(() {
-                                                RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                                shape.offset += Offset(details.delta.dx / renderBox.size.width, details.delta.dy / renderBox.size.height);
-                                              });
-                                            },
-                                            onTap: () => setState(() {
-                                              _activeShapeItem = shape;
-                                              _activeTextItem = null;
-                                            }),
-                                            child: Transform.rotate(
-                                              angle: shape.rotation,
-                                              child: Container(
-                                                padding: const EdgeInsets.all(24), // Touch area bada rakho
-                                                child: Stack(
-                                                  clipBehavior: Clip.none,
-                                                  alignment: Alignment.center,
-                                                  children: [
-                                                    // Border aur Shape
-                                                    Container(
-                                                      padding: const EdgeInsets.all(8),
-                                                      decoration: isActive
-                                                          ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
-                                                          : null,
-                                                      child: Icon(shape.icon, color: shape.color, size: shape.size),
-                                                    ),
+                                          // 🚨 FIX: FractionalTranslation add karo taaki center pin ho sake
+                                          child: FractionalTranslation(
+                                            translation: const Offset(-0.5, -0.5),
+                                            child: GestureDetector(
+                                              behavior: HitTestBehavior.translucent,
+                                              onPanUpdate: (details) {
+                                                setState(() {
+                                                  RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                  // Canvas coordinates update
+                                                  shape.offset += Offset(details.delta.dx / renderBox.size.width, details.delta.dy / renderBox.size.height);
+                                                });
+                                              },
+                                              onTap: () => setState(() {
+                                                _activeShapeItem = shape;
+                                                _activeTextItem = null;
+                                              }),
+                                              child: Transform.rotate(
+                                                angle: shape.rotation,
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(24),
+                                                  child: Stack(
+                                                    clipBehavior: Clip.none,
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      // Shape content...
+                                                      Container(
+                                                        padding: const EdgeInsets.all(8),
+                                                        decoration: isActive
+                                                            ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
+                                                            : null,
+                                                        child: Icon(shape.icon, color: shape.color, size: shape.size),
+                                                      ),
+                                                      // Buttons (Rotate/Delete)...
 
                                                     // Rotate Handle
                                                     if (isActive)
@@ -1062,6 +1099,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                 ),
                                               ),
                                             ),
+                                          ),
                                           ),
                                         );
                                       }).toList(),
@@ -1936,11 +1974,23 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Widget _buildShapeIcon(IconData icon) {
     bool isSelected = _selectedShape == icon.toString(); // Tumhara shape state variable
     return GestureDetector(
+      // onTap: () {
+      //   setState(() {
+      //     final newShape = ShapeItem(icon: icon, color: _selectedColor);
+      //     _shapeItems.add(newShape);
+      //     _activeShapeItem = newShape; // Isse shape select ho jayegi
+      //   });
+      // },
       onTap: () {
         setState(() {
-          final newShape = ShapeItem(icon: icon, color: _selectedColor);
+          // 🚨 FIX: Nayi shape banate waqt center offset ensure karo
+          final newShape = ShapeItem(
+            icon: icon,
+            color: _selectedColor,
+            offset: const Offset(0.5, 0.5), // Explicitly center
+          );
           _shapeItems.add(newShape);
-          _activeShapeItem = newShape; // Isse shape select ho jayegi
+          _activeShapeItem = newShape;
         });
       },
       child: Container(
