@@ -80,6 +80,7 @@ class ShapeItem {
   Offset offset;
   Color color;
   double size;
+  //double strokeWidth;
   double rotation;
 
   ShapeItem({
@@ -87,6 +88,7 @@ class ShapeItem {
     this.offset = const Offset(0.5, 0.5),
     required this.color,
     this.size = 100.0,
+    //this.strokeWidth = 2.0,
     this.rotation = 0.0,
   });
 }
@@ -1095,6 +1097,72 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                         // 🚨 FIX: Icon size ko scaleRatio se multiply karo
                                         double scaledIconSize = shape.size * scaleRatio;
 
+                                        // return Positioned(
+                                        //   left: shape.offset.dx * canvasW,
+                                        //   top: shape.offset.dy * canvasH,
+                                        //   child: FractionalTranslation(
+                                        //     translation: const Offset(-0.5, -0.5),
+                                        //     child: Transform.rotate(
+                                        //       angle: shape.rotation,
+                                        //       child: GestureDetector(
+                                        //         behavior: HitTestBehavior.translucent,
+                                        //         onPanUpdate: (details) {
+                                        //           setState(() {
+                                        //             shape.offset += Offset(
+                                        //               details.delta.dx / canvasW,
+                                        //               details.delta.dy / canvasH,
+                                        //             );
+                                        //           });
+                                        //         },
+                                        //         onTap: () => setState(() {
+                                        //           _activeShapeItem = shape;
+                                        //           _activeTextItem = null;
+                                        //         }),
+                                        //         child: Container(
+                                        //           padding: const EdgeInsets.all(24),
+                                        //           child: Stack(
+                                        //             clipBehavior: Clip.none,
+                                        //             alignment: Alignment.center,
+                                        //             children: [
+                                        //               // Border aur Shape
+                                        //               Container(
+                                        //                 padding: const EdgeInsets.all(8),
+                                        //                 decoration: isActive
+                                        //                     ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
+                                        //                     : null,
+                                        //                 // 🚨 FIX: Yahan scaledIconSize use karo
+                                        //                 child: Icon(shape.icon, color: shape.color, size: scaledIconSize),
+                                        //               ),
+                                        //
+                                        //               // Rotate Handle
+                                        //               if (isActive)
+                                        //                 Positioned(
+                                        //                   bottom: -10, right: -10,
+                                        //                   child: GestureDetector(
+                                        //                     behavior: HitTestBehavior.opaque,
+                                        //                     onPanUpdate: (details) => setState(() => shape.rotation += details.delta.dx * 0.015),
+                                        //                     child: const CircleAvatar(radius: 14, backgroundColor: Colors.white, child: Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 18)),
+                                        //                   ),
+                                        //                 ),
+                                        //
+                                        //               // Delete Handle
+                                        //               if (isActive)
+                                        //                 Positioned(
+                                        //                   top: -10, left: -10,
+                                        //                   child: GestureDetector(
+                                        //                     behavior: HitTestBehavior.opaque,
+                                        //                     onTap: () => setState(() { _shapeItems.remove(shape); _activeShapeItem = null; }),
+                                        //                     child: const CircleAvatar(radius: 12, backgroundColor: Colors.redAccent, child: Icon(Icons.close_rounded, color: Colors.white, size: 16)),
+                                        //                   ),
+                                        //                 ),
+                                        //             ],
+                                        //           ),
+                                        //         ),
+                                        //       ),
+                                        //     ),
+                                        //   ),
+                                        // );
+
                                         return Positioned(
                                           left: shape.offset.dx * canvasW,
                                           top: shape.offset.dy * canvasH,
@@ -1126,31 +1194,60 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                       Container(
                                                         padding: const EdgeInsets.all(8),
                                                         decoration: isActive
-                                                            ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
+                                                            ? BoxDecoration(
+                                                          border: Border.all(color: Colors.white, width: 2),
+                                                        )
                                                             : null,
-                                                        // 🚨 FIX: Yahan scaledIconSize use karo
-                                                        child: Icon(shape.icon, color: shape.color, size: scaledIconSize),
+                                                        // 🚨 FIX: scaledIconSize ab variable ke roop mein yahan active hai
+                                                        child: Icon(
+                                                          shape.icon,
+                                                          color: shape.color,
+                                                          size: shape.size * (canvasW / 400.0), // ScaleRatio yahi apply kar diya
+                                                        ),
                                                       ),
 
                                                       // Rotate Handle
                                                       if (isActive)
                                                         Positioned(
-                                                          bottom: -10, right: -10,
+                                                          bottom: -10,
+                                                          right: -10,
                                                           child: GestureDetector(
                                                             behavior: HitTestBehavior.opaque,
-                                                            onPanUpdate: (details) => setState(() => shape.rotation += details.delta.dx * 0.015),
-                                                            child: const CircleAvatar(radius: 14, backgroundColor: Colors.white, child: Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 18)),
+                                                            onPanUpdate: (details) => setState(
+                                                                  () => shape.rotation += details.delta.dx * 0.015,
+                                                            ),
+                                                            child: const CircleAvatar(
+                                                              radius: 14,
+                                                              backgroundColor: Colors.white,
+                                                              child: Icon(
+                                                                Icons.rotate_right_rounded,
+                                                                color: Colors.blueAccent,
+                                                                size: 18,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
 
                                                       // Delete Handle
                                                       if (isActive)
                                                         Positioned(
-                                                          top: -10, left: -10,
+                                                          top: -10,
+                                                          left: -10,
                                                           child: GestureDetector(
                                                             behavior: HitTestBehavior.opaque,
-                                                            onTap: () => setState(() { _shapeItems.remove(shape); _activeShapeItem = null; }),
-                                                            child: const CircleAvatar(radius: 12, backgroundColor: Colors.redAccent, child: Icon(Icons.close_rounded, color: Colors.white, size: 16)),
+                                                            onTap: () => setState(() {
+                                                              _shapeItems.remove(shape);
+                                                              _activeShapeItem = null;
+                                                            }),
+                                                            child: const CircleAvatar(
+                                                              radius: 12,
+                                                              backgroundColor: Colors.redAccent,
+                                                              child: Icon(
+                                                                Icons.close_rounded,
+                                                                color: Colors.white,
+                                                                size: 16,
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
                                                     ],
@@ -1867,6 +1964,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Widget _buildShapesPanel() {
     // Shape ke liye temporary state variables (tum inhe class-level pe move kar sakte ho)
     // Abhi ke liye hum generic variables use kar rahe hain
+
+    final active = _activeShapeItem;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1906,25 +2006,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
         ),
         const SizedBox(height: 10),
 
-        // 2. 2nd Row: Size Slider
-        Row(
-          children: [
-            const Text("Stroke", style: TextStyle(color: Colors.white70, fontSize: 14)),
-            Expanded(
-              child: SliderTheme(
-                data: SliderThemeData(trackHeight: 2, thumbColor: Colors.white, activeTrackColor: Colors.grey.shade400),
-                child: Slider(
-                  value: _strokeWidth,
-                  min: 1, max: 50,
-                  onChanged: (val) => setState(() => _strokeWidth = val),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
+        // // 2. 2nd Row: Size Slider
+        // // 2nd Row: Stroke Slider (Border motai)
+        // _buildSlider("Stroke", active?.strokeWidth ?? 2.0, 1, 20, (val) {
+        //   setState(() {
+        //     if (active != null) active.strokeWidth = val;
+        //     _strokeWidth = val; // Default store
+        //   });
+        // }),
+        // const SizedBox(height: 10),
 
-        // 3. 3rd Row: Scrollable Shapes
+        // 3rd Row: Size Slider (Shape ka overall size)
+        _buildSlider("Size", active?.size ?? 100.0, 20, 200, (val) {
+          setState(() {
+            if (active != null) active.size = val;
+          });
+        }),
+
+        const SizedBox(height: 10),
+        // 4. 4th Row: Scrollable Shapes
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
@@ -1941,6 +2041,47 @@ class _MarkupScreenState extends State<MarkupScreen> {
           ),
         ),
         const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  // Slider Helper
+  // Widget _buildSlider(String label, double val, double min, double max, Function(double) onChanged) {
+  //   return Row(
+  //     children: [
+  //       Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+  //       Expanded(
+  //         child: Slider(
+  //           value: val.clamp(min, max),
+  //           min: min, max: max,
+  //           onChanged: onChanged,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
+  Widget _buildSlider(String label, double val, double min, double max, Function(double) onChanged) {
+    return Row(
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        const SizedBox(width: 10),
+        Expanded(
+          child: SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 2,
+              thumbColor: Colors.white,
+              activeTrackColor: Colors.grey.shade400,
+              inactiveTrackColor: Colors.grey.shade800,
+            ),
+            child: Slider(
+              value: val.clamp(min, max),
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
+          ),
+        ),
       ],
     );
   }
