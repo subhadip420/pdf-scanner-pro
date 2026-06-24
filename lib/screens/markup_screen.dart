@@ -313,6 +313,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   setState(() {
                     _selectedColor =
                         color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
+                    if (_activeShapeItem != null) {
+                      _activeShapeItem!.color = color;
+                    }
                   });
                 },
                 colorPickerWidth: 280,
@@ -341,6 +344,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                           onTap: () {
                             setState(() {
                               _selectedColor = c;
+                              if (_activeShapeItem != null) {
+                                _activeShapeItem!.color = c; // Shape ka color yahan update hua
+                              }
                             });
                             Navigator.pop(context); // Click karte hi close
                           },
