@@ -150,6 +150,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     if (savedColors != null) {
       setState(() {
         _recentColors = savedColors.map((c) => Color(int.parse(c))).toList();
+        _selectedColor = _recentColors.first;
       });
     }
   }
@@ -1123,6 +1124,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   // --- 1. DRAWING WIDGET PANEL ---
   Widget _buildDrawingPanel() {
+
+    bool canEraseOrClear = _paths.isNotEmpty;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1188,48 +1192,74 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                 ),
                 const SizedBox(width: 4),
+                // GestureDetector(
+                //   onTap: () => setState(() => _isEraserMode = true),
+                //   child: Container(
+                //     padding: const EdgeInsets.all(6),
+                //     decoration: BoxDecoration(
+                //       color: _isEraserMode
+                //           ? Colors.blueAccent.withOpacity(0.2)
+                //           : Colors.transparent,
+                //       borderRadius: BorderRadius.circular(8),
+                //     ),
+                //     child: Icon(
+                //       Symbols.ink_eraser_rounded,
+                //       color: _isEraserMode ? Colors.blueAccent : Colors.white70,
+                //       size: 24,
+                //     ),
+                //   ),
+                // ),
+
                 GestureDetector(
-                  onTap: () => setState(() => _isEraserMode = true),
+                  onTap: canEraseOrClear ? () => setState(() => _isEraserMode = true) : null,
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: _isEraserMode
-                          ? Colors.blueAccent.withOpacity(0.2)
-                          : Colors.transparent,
+                      color: _isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      Symbols.ink_eraser_rounded,
-                      color: _isEraserMode ? Colors.blueAccent : Colors.white70,
-                      size: 24,
-                    ),
+                    child: Icon(Symbols.ink_eraser_rounded, color: canEraseOrClear ? (_isEraserMode ? Colors.blueAccent : Colors.white70) : Colors.white38, size: 24),
                   ),
                 ),
+
                 const SizedBox(width: 4),
+                // GestureDetector(
+                //   onTap: () {
+                //     setState(() {
+                //       _paths.add(
+                //         DrawnPath(
+                //           points: [],
+                //           color: Colors.transparent,
+                //           strokeWidth: 0,
+                //           opacity: 0,
+                //           isClear: true,
+                //         ),
+                //       );
+                //       _undonePaths.clear();
+                //     });
+                //   },
+                //   child: Container(
+                //     padding: const EdgeInsets.all(6),
+                //     child: const Icon(
+                //       Icons.delete_outline_rounded,
+                //       color: Colors.redAccent,
+                //       size: 24,
+                //     ),
+                //   ),
+                // ),
+
                 GestureDetector(
-                  onTap: () {
+                  onTap: canEraseOrClear ? () {
                     setState(() {
-                      _paths.add(
-                        DrawnPath(
-                          points: [],
-                          color: Colors.transparent,
-                          strokeWidth: 0,
-                          opacity: 0,
-                          isClear: true,
-                        ),
-                      );
-                      _undonePaths.clear();
+                      _paths.add(DrawnPath(points: [], color: Colors.transparent, strokeWidth: 0, opacity: 0, isClear: true));
                     });
-                  },
+                  } : null,
                   child: Container(
                     padding: const EdgeInsets.all(6),
-                    child: const Icon(
-                      Icons.delete_outline_rounded,
-                      color: Colors.redAccent,
-                      size: 24,
-                    ),
+                    child: Icon(Icons.delete_outline_rounded, color: canEraseOrClear ? Colors.redAccent : Colors.white38, size: 24),
                   ),
                 ),
+
               ],
             ),
           ],
