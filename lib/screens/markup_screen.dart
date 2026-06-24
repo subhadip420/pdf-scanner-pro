@@ -159,6 +159,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     FocusManager.instance.primaryFocus?.unfocus(); // Keyboard band hoga
     setState(() {
       _activeTextItem = null; // Text box ka border hat jayega
+      _activeShapeItem = null; // 🚨 Shape selection bhi hatao
     });
   }
 
@@ -1263,7 +1264,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
     return GestureDetector(
       // 🚨 FIX 1: Opaque lagane se icon/text ke beech ki khaali jagah par bhi click kaam karega
       behavior: HitTestBehavior.opaque,
-      onTap: () => setState(() => _activeTab = title),
+      //onTap: () => setState(() => _activeTab = title),
+      onTap: () {
+        _unfocusAll(); // 🚨 Jab bhi tab switch ho, saara focus clear karo
+        setState(() => _activeTab = title);
+      },
       // 🚨 FIX 2: Padding lagakar invisible touch area bada kar diya
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
