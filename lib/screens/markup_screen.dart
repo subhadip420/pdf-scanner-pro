@@ -1153,15 +1153,15 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  GestureDetector(
-                    onTap: _openColorPicker,
-                    child: const Icon(
-                      Icons.colorize_rounded,
-                      color: Colors.white70,
-                      size: 24,
-                    ),
-                  ),
+                  // const SizedBox(width: 16),
+                  // GestureDetector(
+                  //   onTap: _openColorPicker,
+                  //   child: const Icon(
+                  //     Icons.colorize_rounded,
+                  //     color: Colors.white70,
+                  //     size: 24,
+                  //   ),
+                  // ),
                 ],
               )
             else
