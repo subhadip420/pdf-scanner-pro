@@ -393,6 +393,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
             ),
             actions: [
+              if (_activeTab == "Drawing") ...[
               Tooltip(
                 message: "Undo",
                 child: IconButton(
@@ -427,6 +428,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   },
                 ),
               ),
+              ],
               IconButton(
                 icon: const Icon(
                   Icons.check_rounded,
@@ -1334,7 +1336,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
-                  vertical: 6,
+                  vertical: 10,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.white54),
