@@ -1885,25 +1885,72 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ],
             ),
+            // Row(
+            //   children: [
+            //     IconButton(
+            //       icon: const Icon(
+            //         Icons.content_copy_rounded,
+            //         color: Colors.white,
+            //       ),
+            //       onPressed: () {
+            //         /* Copy logic */
+            //       },
+            //     ),
+            //     IconButton(
+            //       icon: const Icon(
+            //         Icons.delete_forever_rounded,
+            //         color: Colors.redAccent,
+            //       ),
+            //       onPressed: () {
+            //         /* Delete logic */
+            //       },
+            //     ),
+            //   ],
+            // ),
             Row(
               children: [
+                // --- COPY BUTTON ---
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.content_copy_rounded,
-                    color: Colors.white,
+                    // 🚨 Shape select nahi hai toh icon dull dikhega
+                    color: _activeShapeItem != null ? Colors.white : Colors.white38,
                   ),
-                  onPressed: () {
-                    /* Copy logic */
-                  },
+                  onPressed: _activeShapeItem != null
+                      ? () {
+                    setState(() {
+                      // 🚨 Duplicate shape create karo
+                      final copy = ShapeItem(
+                        icon: _activeShapeItem!.icon,
+                        color: _activeShapeItem!.color,
+                        size: _activeShapeItem!.size,
+                        rotation: _activeShapeItem!.rotation,
+                        // Original shape se thoda side mein add karo (offset)
+                        offset: _activeShapeItem!.offset + const Offset(0.05, 0.05),
+                      );
+                      _shapeItems.add(copy);
+                      _activeShapeItem = copy; // Naya copy select ho jayega
+                    });
+                  }
+                      : null, // Shape select nahi hai toh tap disable
                 ),
+
+                // --- DELETE BUTTON ---
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.delete_forever_rounded,
-                    color: Colors.redAccent,
+                    // 🚨 Shape select nahi hai toh icon dull dikhega
+                    color: _activeShapeItem != null ? Colors.redAccent : Colors.white38,
                   ),
-                  onPressed: () {
-                    /* Delete logic */
-                  },
+                  onPressed: _activeShapeItem != null
+                      ? () {
+                    setState(() {
+                      // 🚨 Selected shape delete karo
+                      _shapeItems.remove(_activeShapeItem);
+                      _activeShapeItem = null;
+                    });
+                  }
+                      : null, // Shape select nahi hai toh tap disable
                 ),
               ],
             ),
