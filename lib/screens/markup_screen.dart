@@ -109,8 +109,7 @@ class MarkupScreen extends StatefulWidget {
 
 class _MarkupScreenState extends State<MarkupScreen> {
   final GlobalKey _globalKey = GlobalKey();
-  final GlobalKey _canvasKey =
-      GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
+  final GlobalKey _canvasKey = GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
 
   List<DrawnPath> _paths = [];
   List<DrawnPath> _undonePaths = [];
@@ -130,8 +129,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
   //   Colors.blue, Colors.green, Colors.teal, Colors.amber, Colors.greenAccent
   // ];
   List<Color> _recentColors = []; // 🚨 Default empty list, ab memory se aayegi
-  bool _isPanelHidden =
-      false; // 🚨 NAYA VARIABLE: Panel hide/show track karne ke liye
+  bool _isPanelHidden = false; // 🚨 NAYA VARIABLE: Panel hide/show track karne ke liye
 
   // 🚨 TEXT WIDGET VARIABLES
   List<TextOverlayItem> _textItems = [];
@@ -139,11 +137,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   // 🚨 NAYA VARIABLE: Jab screen par koi text select nahi hoga, toh UI is draft ki settings dikhayega
   //TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(150, 150), color: Colors.white);
-  TextOverlayItem _draftTextItem = TextOverlayItem(
-    text: "",
-    offset: const Offset(0.5, 0.5),
-    color: Colors.white,
-  );
+  TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(0.5, 0.5), color: Colors.white);
   final TextEditingController _textEditorController = TextEditingController();
   final List<String> _fonts = ['Roboto', 'Serif', 'Monospace', 'Cursive'];
 
@@ -193,9 +187,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     }
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> colorsToSave = _recentColors
-        .map((c) => c.value.toString())
-        .toList();
+    List<String> colorsToSave = _recentColors.map((c) => c.value.toString()).toList();
     await prefs.setStringList('markup_recent_colors', colorsToSave);
 
     setState(() {}); // UI Update
@@ -223,23 +215,16 @@ class _MarkupScreenState extends State<MarkupScreen> {
           OutlinedButton(
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.grey),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
             // 🚨 FIX: Cancel dabaane par 'false' return hoga, jisse sirf popup band hoga, screen nahi
             onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: Colors.white70),
-            ),
+            child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
             // 🚨 FIX: OK dabaane par 'true' return hoga, jisse screen back chali jayegi (discard changes)
             onPressed: () => Navigator.pop(context, true),
@@ -256,9 +241,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     setState(() {
       _activeTextItem = null; // Text se selection border hatao
       _activeShapeItem = null;
-      _textItems.removeWhere(
-        (item) => item.text.trim().isEmpty,
-      ); // Khali text ko list se delete karo
+      _textItems.removeWhere((item) => item.text.trim().isEmpty); // Khali text ko list se delete karo
     });
 
     // 🚨 MAIN FIX: Flutter ko screen update karne ke liye thoda time do (100ms)
@@ -270,23 +253,17 @@ class _MarkupScreenState extends State<MarkupScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: Colors.blueAccent),
-      ),
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
     );
 
     try {
-      RenderRepaintBoundary boundary =
-          _globalKey.currentContext!.findRenderObject()
-              as RenderRepaintBoundary;
+      RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
 
       final dir = await getTemporaryDirectory();
-      final newFile = File(
-        '${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png',
-      );
+      final newFile = File('${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png');
       await newFile.writeAsBytes(pngBytes);
 
       if (mounted) {
@@ -316,8 +293,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 // Alpha link hata diya
                 onColorChanged: (color) {
                   setState(() {
-                    _selectedColor =
-                        color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
+                    _selectedColor = color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
                     if (_activeShapeItem != null) {
                       _activeShapeItem!.color = color;
                     }
@@ -330,9 +306,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 // 🚨 Opacity slider gayab
                 displayThumbColor: true,
                 paletteType: PaletteType.hsvWithHue,
-                pickerAreaBorderRadius: const BorderRadius.all(
-                  Radius.circular(6),
-                ),
+                pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(6)),
                 hexInputBar: false,
                 labelTypes: const [], // Faltu labels hide kiye
               ),
@@ -363,10 +337,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                               color: c,
                               borderRadius: BorderRadius.circular(6),
                               // Halka rounded corner
-                              border: Border.all(
-                                color: Colors.grey.shade400,
-                                width: 1.5,
-                              ), // Light grey exact border
+                              border: Border.all(color: Colors.grey.shade400, width: 1.5), // Light grey exact border
                             ),
                           ),
                         ),
@@ -377,10 +348,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 const SizedBox(
                   height: 38,
                   child: Center(
-                    child: Text(
-                      "No recent colors",
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
-                    ),
+                    child: Text("No recent colors", style: TextStyle(color: Colors.white54, fontSize: 12)),
                   ),
                 ),
             ],
@@ -407,11 +375,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             backgroundColor: const Color(0xFF1E1E1E),
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(
-                Icons.close_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
+              icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
               onPressed: () async {
                 if (await _onWillPop()) {
                   Navigator.pop(context);
@@ -420,21 +384,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ),
             title: const Text(
               "Markup",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
             ),
             actions: [
               if (_activeTab == "Drawing") ...[
                 Tooltip(
                   message: "Undo",
                   child: IconButton(
-                    icon: Icon(
-                      Icons.undo_rounded,
-                      color: _paths.isNotEmpty ? Colors.white : Colors.white38,
-                    ),
+                    icon: Icon(Icons.undo_rounded, color: _paths.isNotEmpty ? Colors.white : Colors.white38),
                     onPressed: () {
                       if (_paths.isNotEmpty) {
                         setState(() {
@@ -447,12 +404,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Tooltip(
                   message: "Redo",
                   child: IconButton(
-                    icon: Icon(
-                      Icons.redo_rounded,
-                      color: _undonePaths.isNotEmpty
-                          ? Colors.white
-                          : Colors.white38,
-                    ),
+                    icon: Icon(Icons.redo_rounded, color: _undonePaths.isNotEmpty ? Colors.white : Colors.white38),
                     onPressed: () {
                       if (_undonePaths.isNotEmpty) {
                         setState(() {
@@ -464,11 +416,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ],
               IconButton(
-                icon: const Icon(
-                  Icons.check_rounded,
-                  color: Colors.blueAccent,
-                  size: 30,
-                ),
+                icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 30),
                 onPressed: _saveMarkup,
               ),
               const SizedBox(width: 8),
@@ -488,12 +436,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     scaleEnabled: true,
                     child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 24,
-                          right: 24,
-                          top: 20,
-                          bottom: 20,
-                        ),
+                        padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 20),
                         child: RepaintBoundary(
                           key: _globalKey,
                           // 🚨 FEVICOL FIX 1: Ab Canvas EXACTLY Image ke size ka banega. No empty letterbox space!
@@ -510,8 +453,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                   onPointerDown: (_) {
                                     setState(() {
                                       _pointerCount++;
-                                      if (_pointerCount > 1 &&
-                                          _currentPoints.isNotEmpty) {
+                                      if (_pointerCount > 1 && _currentPoints.isNotEmpty) {
                                         _currentPoints.add(null);
                                         _paths.add(
                                           DrawnPath(
@@ -526,10 +468,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       }
                                     });
                                   },
-                                  onPointerUp: (_) =>
-                                      setState(() => _pointerCount--),
-                                  onPointerCancel: (_) =>
-                                      setState(() => _pointerCount--),
+                                  onPointerUp: (_) => setState(() => _pointerCount--),
+                                  onPointerCancel: (_) => setState(() => _pointerCount--),
                                   child: GestureDetector(
                                     onPanStart: _pointerCount > 1
                                         ? null
@@ -537,19 +477,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                             if (_activeTab == "Drawing") {
                                               setState(() {
                                                 RenderBox renderBox =
-                                                    _canvasKey.currentContext!
-                                                            .findRenderObject()
-                                                        as RenderBox;
-                                                Offset localPos = renderBox
-                                                    .globalToLocal(
-                                                      details.globalPosition,
-                                                    );
+                                                    _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                Offset localPos = renderBox.globalToLocal(details.globalPosition);
                                                 _currentPoints = [
                                                   Offset(
-                                                    localPos.dx /
-                                                        renderBox.size.width,
-                                                    localPos.dy /
-                                                        renderBox.size.height,
+                                                    localPos.dx / renderBox.size.width,
+                                                    localPos.dy / renderBox.size.height,
                                                   ),
                                                 ];
                                               });
@@ -561,19 +494,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                             if (_activeTab == "Drawing") {
                                               setState(() {
                                                 RenderBox renderBox =
-                                                    _canvasKey.currentContext!
-                                                            .findRenderObject()
-                                                        as RenderBox;
-                                                Offset localPos = renderBox
-                                                    .globalToLocal(
-                                                      details.globalPosition,
-                                                    );
+                                                    _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                Offset localPos = renderBox.globalToLocal(details.globalPosition);
                                                 _currentPoints.add(
                                                   Offset(
-                                                    localPos.dx /
-                                                        renderBox.size.width,
-                                                    localPos.dy /
-                                                        renderBox.size.height,
+                                                    localPos.dx / renderBox.size.width,
+                                                    localPos.dy / renderBox.size.height,
                                                   ),
                                                 );
                                               });
@@ -583,15 +509,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                         ? null
                                         : (details) {
                                             if (_activeTab == "Drawing") {
-                                              if (_currentPoints.isEmpty)
-                                                return;
+                                              if (_currentPoints.isEmpty) return;
                                               setState(() {
                                                 _currentPoints.add(null);
                                                 _paths.add(
                                                   DrawnPath(
-                                                    points: List.from(
-                                                      _currentPoints,
-                                                    ),
+                                                    points: List.from(_currentPoints),
                                                     color: _selectedColor,
                                                     strokeWidth: _strokeWidth,
                                                     opacity: _opacity,
@@ -633,17 +556,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       children: _textItems.map((item) {
                                         bool isActive = _activeTextItem == item;
                                         // Text size automatically image ke mutabik scale hogi
-                                        double scaledFontSize =
-                                            item.fontSize * scaleRatio;
+                                        double scaledFontSize = item.fontSize * scaleRatio;
 
                                         Color textColor = item.appearance == 0
                                             ? item.color
-                                            : (item.appearance == 1 ||
-                                                  item.appearance == 2)
-                                            ? (item.color.computeLuminance() >
-                                                      0.5
-                                                  ? Colors.black
-                                                  : Colors.white)
+                                            : (item.appearance == 1 || item.appearance == 2)
+                                            ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
                                             : Colors.white;
                                         Color bgColor = item.appearance == 1
                                             ? item.color
@@ -651,10 +569,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                             ? item.color.withOpacity(0.5)
                                             : Colors.transparent;
 
-                                        TextDecoration decoration =
-                                            TextDecoration.none;
-                                        if (item.isUnderline &&
-                                            item.isStrikethrough) {
+                                        TextDecoration decoration = TextDecoration.none;
+                                        if (item.isUnderline && item.isStrikethrough) {
                                           decoration = TextDecoration.combine([
                                             TextDecoration.underline,
                                             TextDecoration.lineThrough,
@@ -662,8 +578,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                         } else if (item.isUnderline) {
                                           decoration = TextDecoration.underline;
                                         } else if (item.isStrikethrough) {
-                                          decoration =
-                                              TextDecoration.lineThrough;
+                                          decoration = TextDecoration.lineThrough;
                                         }
 
                                         return Positioned(
@@ -672,10 +587,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                           top: item.offset.dy * canvasH,
                                           // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
                                           child: FractionalTranslation(
-                                            translation: const Offset(
-                                              -0.5,
-                                              -0.5,
-                                            ),
+                                            translation: const Offset(-0.5, -0.5),
                                             child: Transform.rotate(
                                               angle: item.rotation,
                                               child: GestureDetector(
@@ -683,28 +595,15 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                   if (_activeTab == "Text") {
                                                     setState(() {
                                                       RenderBox renderBox =
-                                                          _canvasKey
-                                                                  .currentContext!
-                                                                  .findRenderObject()
-                                                              as RenderBox;
+                                                          _canvasKey.currentContext!.findRenderObject() as RenderBox;
                                                       Offset localDelta =
+                                                          renderBox.globalToLocal(details.globalPosition) -
                                                           renderBox.globalToLocal(
-                                                            details
-                                                                .globalPosition,
-                                                          ) -
-                                                          renderBox.globalToLocal(
-                                                            details.globalPosition -
-                                                                details.delta,
+                                                            details.globalPosition - details.delta,
                                                           );
                                                       item.offset += Offset(
-                                                        localDelta.dx /
-                                                            renderBox
-                                                                .size
-                                                                .width,
-                                                        localDelta.dy /
-                                                            renderBox
-                                                                .size
-                                                                .height,
+                                                        localDelta.dx / renderBox.size.width,
+                                                        localDelta.dy / renderBox.size.height,
                                                       );
                                                     });
                                                   }
@@ -713,9 +612,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                   if (_activeTab == "Text") {
                                                     setState(() {
                                                       _activeTextItem = item;
-                                                      _textEditorController
-                                                              .text =
-                                                          item.text;
+                                                      _textEditorController.text = item.text;
                                                     });
                                                   }
                                                 },
@@ -724,168 +621,85 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                   alignment: Alignment.center,
                                                   children: [
                                                     Container(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                            horizontal:
-                                                                16 * scaleRatio,
-                                                            vertical:
-                                                                8 * scaleRatio,
-                                                          ),
+                                                      padding: EdgeInsets.symmetric(
+                                                        horizontal: 16 * scaleRatio,
+                                                        vertical: 8 * scaleRatio,
+                                                      ),
                                                       decoration: BoxDecoration(
                                                         color: bgColor,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8 * scaleRatio,
-                                                            ),
+                                                        borderRadius: BorderRadius.circular(8 * scaleRatio),
                                                         border: isActive
-                                                            ? Border.all(
-                                                                color: Colors
-                                                                    .white,
-                                                                width: 2,
-                                                              )
-                                                            : Border.all(
-                                                                color: Colors
-                                                                    .transparent,
-                                                                width: 2,
-                                                              ),
+                                                            ? Border.all(color: Colors.white, width: 2)
+                                                            : Border.all(color: Colors.transparent, width: 2),
                                                       ),
                                                       child: IntrinsicWidth(
                                                         child: Stack(
-                                                          alignment:
-                                                              Alignment.center,
+                                                          alignment: Alignment.center,
                                                           children: [
-                                                            if (item.appearance ==
-                                                                3)
+                                                            if (item.appearance == 3)
                                                               Text(
-                                                                item
-                                                                        .text
-                                                                        .isEmpty
-                                                                    ? "Text"
-                                                                    : item.text,
-                                                                textAlign: item
-                                                                    .alignment,
+                                                                item.text.isEmpty ? "Text" : item.text,
+                                                                textAlign: item.alignment,
                                                                 style: TextStyle(
-                                                                  fontSize:
-                                                                      scaledFontSize,
-                                                                  fontFamily:
-                                                                      item.font,
-                                                                  fontWeight:
-                                                                      item.isBold
-                                                                      ? FontWeight
-                                                                            .bold
-                                                                      : FontWeight
-                                                                            .normal,
-                                                                  fontStyle:
-                                                                      item.isItalic
-                                                                      ? FontStyle
-                                                                            .italic
-                                                                      : FontStyle
-                                                                            .normal,
-                                                                  decoration:
-                                                                      decoration,
+                                                                  fontSize: scaledFontSize,
+                                                                  fontFamily: item.font,
+                                                                  fontWeight: item.isBold
+                                                                      ? FontWeight.bold
+                                                                      : FontWeight.normal,
+                                                                  fontStyle: item.isItalic
+                                                                      ? FontStyle.italic
+                                                                      : FontStyle.normal,
+                                                                  decoration: decoration,
                                                                   foreground: Paint()
-                                                                    ..style =
-                                                                        PaintingStyle
-                                                                            .stroke
-                                                                    ..strokeWidth =
-                                                                        scaledFontSize *
-                                                                        0.25
-                                                                    ..strokeJoin =
-                                                                        StrokeJoin
-                                                                            .round
-                                                                    ..strokeCap =
-                                                                        StrokeCap
-                                                                            .round
-                                                                    ..color = item
-                                                                        .color,
+                                                                    ..style = PaintingStyle.stroke
+                                                                    ..strokeWidth = scaledFontSize * 0.25
+                                                                    ..strokeJoin = StrokeJoin.round
+                                                                    ..strokeCap = StrokeCap.round
+                                                                    ..color = item.color,
                                                                 ),
                                                               ),
                                                             TextField(
-                                                              controller:
-                                                                  isActive
+                                                              controller: isActive
                                                                   ? _textEditorController
-                                                                  : TextEditingController(
-                                                                      text: item
-                                                                          .text,
-                                                                    ),
+                                                                  : TextEditingController(text: item.text),
                                                               enabled: isActive,
-                                                              autofocus:
-                                                                  isActive,
-                                                              textAlign: item
-                                                                  .alignment,
+                                                              autofocus: isActive,
+                                                              textAlign: item.alignment,
                                                               maxLines: null,
-                                                              cursorColor:
-                                                                  textColor,
-                                                              onChanged:
-                                                                  (
-                                                                    val,
-                                                                  ) => setState(
-                                                                    () =>
-                                                                        item.text =
-                                                                            val,
-                                                                  ),
+                                                              cursorColor: textColor,
+                                                              onChanged: (val) => setState(() => item.text = val),
                                                               style: TextStyle(
-                                                                color:
-                                                                    textColor,
-                                                                fontSize:
-                                                                    scaledFontSize,
-                                                                fontFamily:
-                                                                    item.font,
-                                                                fontWeight:
-                                                                    item.isBold
-                                                                    ? FontWeight
-                                                                          .bold
-                                                                    : FontWeight
-                                                                          .normal,
-                                                                fontStyle:
-                                                                    item.isItalic
-                                                                    ? FontStyle
-                                                                          .italic
-                                                                    : FontStyle
-                                                                          .normal,
-                                                                decoration:
-                                                                    decoration,
-                                                                decorationColor:
-                                                                    textColor,
-                                                                shadows:
-                                                                    item.appearance ==
-                                                                        0
+                                                                color: textColor,
+                                                                fontSize: scaledFontSize,
+                                                                fontFamily: item.font,
+                                                                fontWeight: item.isBold
+                                                                    ? FontWeight.bold
+                                                                    : FontWeight.normal,
+                                                                fontStyle: item.isItalic
+                                                                    ? FontStyle.italic
+                                                                    : FontStyle.normal,
+                                                                decoration: decoration,
+                                                                decorationColor: textColor,
+                                                                shadows: item.appearance == 0
                                                                     ? [
                                                                         Shadow(
-                                                                          color:
-                                                                              Colors.black54,
-                                                                          blurRadius:
-                                                                              4,
-                                                                          offset: Offset(
-                                                                            1,
-                                                                            1,
-                                                                          ),
+                                                                          color: Colors.black54,
+                                                                          blurRadius: 4,
+                                                                          offset: Offset(1, 1),
                                                                         ),
                                                                       ]
                                                                     : null,
                                                               ),
                                                               decoration: InputDecoration(
                                                                 isDense: true,
-                                                                contentPadding:
-                                                                    EdgeInsets
-                                                                        .zero,
-                                                                border:
-                                                                    InputBorder
-                                                                        .none,
-                                                                hintText:
-                                                                    isActive
-                                                                    ? "Text"
-                                                                    : "",
+                                                                contentPadding: EdgeInsets.zero,
+                                                                border: InputBorder.none,
+                                                                hintText: isActive ? "Text" : "",
                                                                 hintStyle: TextStyle(
-                                                                  color:
-                                                                      item.appearance ==
-                                                                          3
-                                                                      ? Colors
-                                                                            .transparent
-                                                                      : Colors
-                                                                            .white54,
-                                                                  fontSize:
-                                                                      scaledFontSize,
+                                                                  color: item.appearance == 3
+                                                                      ? Colors.transparent
+                                                                      : Colors.white54,
+                                                                  fontSize: scaledFontSize,
                                                                 ),
                                                               ),
                                                             ),
@@ -900,43 +714,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                         child: GestureDetector(
                                                           onPanUpdate: (details) {
                                                             setState(() {
-                                                              item.rotation +=
-                                                                  details
-                                                                      .delta
-                                                                      .dx *
-                                                                  0.015;
+                                                              item.rotation += details.delta.dx * 0.015;
                                                             });
                                                           },
                                                           child: Transform.rotate(
-                                                            angle:
-                                                                -item.rotation,
+                                                            angle: -item.rotation,
                                                             child: Container(
                                                               width: 28,
                                                               height: 28,
                                                               decoration: BoxDecoration(
-                                                                color: Colors
-                                                                    .white,
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                border: Border.all(
-                                                                  color: Colors
-                                                                      .blueAccent,
-                                                                  width: 2,
-                                                                ),
+                                                                color: Colors.white,
+                                                                shape: BoxShape.circle,
+                                                                border: Border.all(color: Colors.blueAccent, width: 2),
                                                                 boxShadow: const [
-                                                                  BoxShadow(
-                                                                    color: Colors
-                                                                        .black26,
-                                                                    blurRadius:
-                                                                        4,
-                                                                  ),
+                                                                  BoxShadow(color: Colors.black26, blurRadius: 4),
                                                                 ],
                                                               ),
                                                               child: const Icon(
-                                                                Icons
-                                                                    .rotate_right_rounded,
-                                                                color: Colors
-                                                                    .blueAccent,
+                                                                Icons.rotate_right_rounded,
+                                                                color: Colors.blueAccent,
                                                                 size: 18,
                                                               ),
                                                             ),
@@ -950,43 +746,26 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                         child: GestureDetector(
                                                           onTap: () {
                                                             setState(() {
-                                                              _textItems.remove(
-                                                                item,
-                                                              );
-                                                              _activeTextItem =
-                                                                  null;
+                                                              _textItems.remove(item);
+                                                              _activeTextItem = null;
                                                             });
                                                           },
                                                           child: Transform.rotate(
-                                                            angle:
-                                                                -item.rotation,
+                                                            angle: -item.rotation,
                                                             child: Container(
                                                               width: 25,
                                                               height: 25,
                                                               decoration: BoxDecoration(
-                                                                color: Colors
-                                                                    .redAccent,
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                border: Border.all(
-                                                                  color: Colors
-                                                                      .white,
-                                                                  width: 2,
-                                                                ),
+                                                                color: Colors.redAccent,
+                                                                shape: BoxShape.circle,
+                                                                border: Border.all(color: Colors.white, width: 2),
                                                                 boxShadow: const [
-                                                                  BoxShadow(
-                                                                    color: Colors
-                                                                        .black26,
-                                                                    blurRadius:
-                                                                        4,
-                                                                  ),
+                                                                  BoxShadow(color: Colors.black26, blurRadius: 4),
                                                                 ],
                                                               ),
                                                               child: const Icon(
-                                                                Icons
-                                                                    .close_rounded,
-                                                                color: Colors
-                                                                    .white,
+                                                                Icons.close_rounded,
+                                                                color: Colors.white,
                                                                 size: 16,
                                                               ),
                                                             ),
@@ -1018,33 +797,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                     return Stack(
                                       clipBehavior: Clip.none,
                                       children: _shapeItems.map((shape) {
-                                        bool isActive =
-                                            _activeShapeItem == shape;
+                                        bool isActive = _activeShapeItem == shape;
 
                                         // 🚨 FIX: Icon size ko scaleRatio se multiply karo
-                                        double scaledIconSize =
-                                            shape.size * scaleRatio;
+                                        double scaledIconSize = shape.size * scaleRatio;
 
                                         return Positioned(
                                           left: shape.offset.dx * canvasW,
                                           top: shape.offset.dy * canvasH,
                                           child: FractionalTranslation(
-                                            translation: const Offset(
-                                              -0.5,
-                                              -0.5,
-                                            ),
+                                            translation: const Offset(-0.5, -0.5),
                                             child: Transform.rotate(
                                               angle: shape.rotation,
                                               child: GestureDetector(
-                                                behavior:
-                                                    HitTestBehavior.translucent,
+                                                behavior: HitTestBehavior.translucent,
                                                 onPanUpdate: (details) {
                                                   setState(() {
                                                     shape.offset += Offset(
-                                                      details.delta.dx /
-                                                          canvasW,
-                                                      details.delta.dy /
-                                                          canvasH,
+                                                      details.delta.dx / canvasW,
+                                                      details.delta.dy / canvasH,
                                                     );
                                                   });
                                                 },
@@ -1053,46 +824,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                   _activeTextItem = null;
                                                 }),
                                                 child: Container(
-                                                  padding: const EdgeInsets.all(
-                                                    24,
-                                                  ),
+                                                  padding: const EdgeInsets.all(24),
                                                   child: Stack(
                                                     clipBehavior: Clip.none,
                                                     alignment: Alignment.center,
                                                     children: [
                                                       // Border aur Shape
-                                                      // Container(
-                                                      //   padding:
-                                                      //       const EdgeInsets.all(
-                                                      //         8,
-                                                      //       ),
-                                                      //   decoration: isActive
-                                                      //       ? BoxDecoration(
-                                                      //           border: Border.all(
-                                                      //             color: Colors
-                                                      //                 .white,
-                                                      //             width: 2,
-                                                      //           ),
-                                                      //         )
-                                                      //       : null,
-                                                      //   // 🚨 FIX: scaledIconSize ab variable ke roop mein yahan active hai
-                                                      //   child: Icon(
-                                                      //     shape.icon,
-                                                      //     color: shape.color,
-                                                      //     size:
-                                                      //         shape.size *
-                                                      //         (canvasW /
-                                                      //             400.0), // ScaleRatio yahi apply kar diya
-                                                      //   ),
-                                                      // ),
-
-                                                      // Border aur Shape
                                                       Container(
                                                         padding: const EdgeInsets.all(8),
                                                         decoration: isActive
                                                             ? BoxDecoration(
-                                                          border: Border.all(color: Colors.white, width: 2),
-                                                        )
+                                                                border: Border.all(color: Colors.white, width: 2),
+                                                              )
                                                             : null,
                                                         // 🚨 NAYA TAREKA (Shrink, Stretch, Mirror ke liye)
                                                         child: SizedBox(
@@ -1100,53 +843,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                           width: (shape.size * shape.scaleX.abs()) * (canvasW / 400.0),
                                                           height: (shape.size * shape.scaleY.abs()) * (canvasW / 400.0),
                                                           child: FittedBox(
-                                                            fit: BoxFit.fill, // Icon ko is box ke hisaab se stretch karega
+                                                            fit: BoxFit.fill,
+                                                            // Icon ko is box ke hisaab se stretch karega
                                                             child: Transform.scale(
                                                               // Agar negative hui width/height toh flip (mirror) ho jayega
                                                               scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
                                                               scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                              child: Icon(
-                                                                shape.icon,
-                                                                color: shape.color,
-                                                              ),
+                                                              child: Icon(shape.icon, color: shape.color),
                                                             ),
                                                           ),
                                                         ),
                                                       ),
 
-                                                      // Rotate Handle
-                                                      // if (isActive)
-                                                      //   Positioned(
-                                                      //     bottom: -10,
-                                                      //     right: -10,
-                                                      //     child: GestureDetector(
-                                                      //       behavior:
-                                                      //           HitTestBehavior
-                                                      //               .opaque,
-                                                      //       onPanUpdate:
-                                                      //           (
-                                                      //             details,
-                                                      //           ) => setState(
-                                                      //             () => shape.rotation +=
-                                                      //                 details
-                                                      //                     .delta
-                                                      //                     .dx *
-                                                      //                 0.015,
-                                                      //           ),
-                                                      //       child: const CircleAvatar(
-                                                      //         radius: 14,
-                                                      //         backgroundColor:
-                                                      //             Colors.white,
-                                                      //         child: Icon(
-                                                      //           Icons
-                                                      //               .rotate_right_rounded,
-                                                      //           color: Colors
-                                                      //               .blueAccent,
-                                                      //           size: 18,
-                                                      //         ),
-                                                      //       ),
-                                                      //     ),
-                                                      //   ),
                                                       if (isActive)
                                                         Positioned(
                                                           bottom: -10,
@@ -1154,7 +862,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                           child: GestureDetector(
                                                             behavior: HitTestBehavior.opaque,
                                                             onPanUpdate: (details) => setState(
-                                                                  () => shape.rotation += details.delta.dx * 0.015,
+                                                              () => shape.rotation += details.delta.dx * 0.015,
                                                             ),
                                                             child: Container(
                                                               width: 28,
@@ -1162,10 +870,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                               decoration: BoxDecoration(
                                                                 color: Colors.white,
                                                                 shape: BoxShape.circle,
-                                                                border: Border.all(
-                                                                  color: Colors.black,
-                                                                  width: 1,
-                                                                ),
+                                                                border: Border.all(color: Colors.black, width: 1),
                                                               ),
                                                               child: const Icon(
                                                                 Icons.rotate_right_rounded,
@@ -1175,40 +880,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                             ),
                                                           ),
                                                         ),
-
-                                                      // Delete Handle
-                                                      // if (isActive)
-                                                      //   Positioned(
-                                                      //     top: -10,
-                                                      //     left: -10,
-                                                      //     child: GestureDetector(
-                                                      //       behavior:
-                                                      //           HitTestBehavior
-                                                      //               .opaque,
-                                                      //       onTap: () =>
-                                                      //           setState(() {
-                                                      //             _shapeItems
-                                                      //                 .remove(
-                                                      //                   shape,
-                                                      //                 );
-                                                      //             _activeShapeItem =
-                                                      //                 null;
-                                                      //           }),
-                                                      //       child: const CircleAvatar(
-                                                      //         radius: 12,
-                                                      //         backgroundColor:
-                                                      //             Colors
-                                                      //                 .redAccent,
-                                                      //         child: Icon(
-                                                      //           Icons
-                                                      //               .close_rounded,
-                                                      //           color: Colors
-                                                      //               .white,
-                                                      //           size: 16,
-                                                      //         ),
-                                                      //       ),
-                                                      //     ),
-                                                      //   ),
 
                                                       if (isActive)
                                                         Positioned(
@@ -1226,10 +897,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                               decoration: BoxDecoration(
                                                                 color: Colors.redAccent,
                                                                 shape: BoxShape.circle,
-                                                                border: Border.all(
-                                                                  color: Colors.white,
-                                                                  width: 1,
-                                                                ),
+                                                                border: Border.all(color: Colors.white, width: 1),
                                                               ),
                                                               child: const Icon(
                                                                 Icons.close_rounded,
@@ -1250,12 +918,16 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                               setState(() {
                                                                 double sensitivity = 0.01;
 
-                                                                double newScaleX = shape.scaleX - (details.delta.dx * sensitivity);
-                                                                double newScaleY = shape.scaleY + (details.delta.dy * sensitivity);
+                                                                double newScaleX =
+                                                                    shape.scaleX - (details.delta.dx * sensitivity);
+                                                                double newScaleY =
+                                                                    shape.scaleY + (details.delta.dy * sensitivity);
 
                                                                 // 🚨 FIX: Shape ko exactly 0 (invisible) hone se roko
-                                                                if (newScaleX.abs() < 0.1) newScaleX = newScaleX < 0 ? -0.1 : 0.1;
-                                                                if (newScaleY.abs() < 0.1) newScaleY = newScaleY < 0 ? -0.1 : 0.1;
+                                                                if (newScaleX.abs() < 0.1)
+                                                                  newScaleX = newScaleX < 0 ? -0.1 : 0.1;
+                                                                if (newScaleY.abs() < 0.1)
+                                                                  newScaleY = newScaleY < 0 ? -0.1 : 0.1;
 
                                                                 shape.scaleX = newScaleX;
                                                                 shape.scaleY = newScaleY;
@@ -1264,11 +936,15 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                             child: Container(
                                                               padding: const EdgeInsets.all(5),
                                                               decoration: BoxDecoration(
-                                                                  color: Colors.white,
-                                                                  shape: BoxShape.circle,
-                                                                  border: Border.all(color: Colors.black, width: 1),
+                                                                color: Colors.white,
+                                                                shape: BoxShape.circle,
+                                                                border: Border.all(color: Colors.black, width: 1),
                                                               ),
-                                                              child: const Icon(Icons.open_in_full_rounded, color: Colors.blueAccent, size: 14),
+                                                              child: const Icon(
+                                                                Icons.open_in_full_rounded,
+                                                                color: Colors.blueAccent,
+                                                                size: 14,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
@@ -1303,25 +979,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     decoration: const BoxDecoration(
                       color: Color(0xFF1E1E1E), // Panel ka color
                       borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(
-                          24,
-                        ), // Ab ye rounded corners ekdum clear dikhenge!
+                        top: Radius.circular(24), // Ab ye rounded corners ekdum clear dikhenge!
                       ),
                     ),
                     // Agar hidden hai, toh padding hata do
                     padding: _isPanelHidden
                         ? const EdgeInsets.only(top: 8, bottom: 6)
-                        : const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 6,
-                          ),
+                        : const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // 🚨 DRAG/TAP HANDLE: Ise drag ya tap karne se panel khulega/band hoga
                         GestureDetector(
-                          onTap: () =>
-                              setState(() => _isPanelHidden = !_isPanelHidden),
+                          onTap: () => setState(() => _isPanelHidden = !_isPanelHidden),
                           onVerticalDragEnd: (details) {
                             if (details.primaryVelocity! > 0) {
                               // Niche drag kiya (Hide)
@@ -1340,10 +1010,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                             child: Container(
                               width: 40,
                               height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.white30,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
+                              decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)),
                             ),
                           ),
                         ),
@@ -1394,19 +1061,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.blueAccent : Colors.white54,
-              size: 24,
-            ),
+            Icon(icon, color: isSelected ? Colors.blueAccent : Colors.white54, size: 24),
             const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? Colors.blueAccent : Colors.white54,
-                fontSize: 11,
-              ),
-            ),
+            Text(title, style: TextStyle(color: isSelected ? Colors.blueAccent : Colors.white54, fontSize: 11)),
           ],
         ),
       ),
@@ -1439,20 +1096,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
             if (!_isEraserMode)
               Row(
                 children: [
-                  const Text(
-                    "Color",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
+                  const Text("Color", style: TextStyle(color: Colors.white, fontSize: 14)),
                   const SizedBox(width: 16),
                   GestureDetector(
                     onTap: _openColorPicker,
                     child: Container(
                       width: 32,
                       height: 32,
-                      decoration: BoxDecoration(
-                        color: _selectedColor,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
+                      decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6)),
                     ),
                   ),
                   // const SizedBox(width: 16),
@@ -1467,10 +1118,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ],
               )
             else
-              const Text(
-                "Eraser Mode",
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-              ),
+              const Text("Eraser Mode", style: TextStyle(color: Colors.white70, fontSize: 14)),
 
             Row(
               children: [
@@ -1481,16 +1129,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: !_isEraserMode
-                            ? Colors.blueAccent.withOpacity(0.2)
-                            : Colors.transparent,
+                        color: !_isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Symbols.stylus_note,
-                        color: !_isEraserMode
-                            ? Colors.blueAccent
-                            : Colors.white70,
+                        color: !_isEraserMode ? Colors.blueAccent : Colors.white70,
                         size: 24,
                       ),
                     ),
@@ -1500,24 +1144,16 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Tooltip(
                   message: "Eraser",
                   child: GestureDetector(
-                    onTap: canEraseOrClear
-                        ? () => setState(() => _isEraserMode = true)
-                        : null,
+                    onTap: canEraseOrClear ? () => setState(() => _isEraserMode = true) : null,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: _isEraserMode
-                            ? Colors.blueAccent.withOpacity(0.2)
-                            : Colors.transparent,
+                        color: _isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Symbols.ink_eraser_rounded,
-                        color: canEraseOrClear
-                            ? (_isEraserMode
-                                  ? Colors.blueAccent
-                                  : Colors.white70)
-                            : Colors.white38,
+                        color: canEraseOrClear ? (_isEraserMode ? Colors.blueAccent : Colors.white70) : Colors.white38,
                         size: 24,
                       ),
                     ),
@@ -1547,9 +1183,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       padding: const EdgeInsets.all(6),
                       child: Icon(
                         Icons.delete_outline_rounded,
-                        color: canEraseOrClear
-                            ? Colors.redAccent
-                            : Colors.white38,
+                        color: canEraseOrClear ? Colors.redAccent : Colors.white38,
                         size: 24,
                       ),
                     ),
@@ -1565,14 +1199,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              "Stroke width",
-              style: TextStyle(color: Colors.white, fontSize: 14),
-            ),
-            Text(
-              "${_strokeWidth.toInt()}",
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
+            const Text("Stroke width", style: TextStyle(color: Colors.white, fontSize: 14)),
+            Text("${_strokeWidth.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
           ],
         ),
         SliderTheme(
@@ -1582,30 +1210,16 @@ class _MarkupScreenState extends State<MarkupScreen> {
             inactiveTrackColor: Colors.grey.shade800,
             thumbColor: Colors.white,
           ),
-          child: Slider(
-            value: _strokeWidth,
-            min: 1,
-            max: 50,
-            onChanged: (val) => setState(() => _strokeWidth = val),
-          ),
+          child: Slider(value: _strokeWidth, min: 1, max: 50, onChanged: (val) => setState(() => _strokeWidth = val)),
         ),
 
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              "Opacity",
-              style: TextStyle(
-                color: _isEraserMode ? Colors.white38 : Colors.white,
-                fontSize: 14,
-              ),
-            ),
+            Text("Opacity", style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 14)),
             Text(
               "${(_opacity * 100).toInt()}%",
-              style: TextStyle(
-                color: _isEraserMode ? Colors.white38 : Colors.white,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 14),
             ),
           ],
         ),
@@ -1622,9 +1236,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             value: _opacity,
             min: 0.1,
             max: 1.0,
-            onChanged: _isEraserMode
-                ? null
-                : (val) => setState(() => _opacity = val),
+            onChanged: _isEraserMode ? null : (val) => setState(() => _opacity = val),
           ),
         ),
       ],
@@ -1635,9 +1247,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Widget _buildTextPanel() {
     // 🚨 FIX: Agar koi text select hai toh use lo, warna humara naya '_draftTextItem' use karo
     TextOverlayItem activeItem = _activeTextItem ?? _draftTextItem;
-    bool hasActiveText =
-        _activeTextItem !=
-        null; // Yeh check karne ke liye ki text asli mein select hai ya nahi
+    bool hasActiveText = _activeTextItem != null; // Yeh check karne ke liye ki text asli mein select hai ya nahi
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1652,20 +1262,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 activeItem.font = _fonts[(idx + 1) % _fonts.length];
               }),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.white54),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   activeItem.font,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -1673,9 +1277,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
               onPressed: () {
                 setState(() {
@@ -1698,10 +1300,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         // --- 2ND ROW: Size Slider ---
         Row(
           children: [
-            const Text(
-              "T",
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
+            const Text("T", style: TextStyle(color: Colors.white70, fontSize: 14)),
             Expanded(
               child: SliderTheme(
                 data: SliderThemeData(
@@ -1720,11 +1319,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ),
             const Text(
               "T",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -1738,9 +1333,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             children: [
               // Appearance (A) - 4 Modes
               GestureDetector(
-                onTap: () => setState(
-                  () => activeItem.appearance = (activeItem.appearance + 1) % 4,
-                ),
+                onTap: () => setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4),
                 child: Container(
                   width: 36,
                   height: 36,
@@ -1748,9 +1341,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   decoration: BoxDecoration(
                     color: activeItem.appearance == 1
                         ? Colors.white
-                        : (activeItem.appearance == 2
-                              ? Colors.white38
-                              : Colors.transparent),
+                        : (activeItem.appearance == 2 ? Colors.white38 : Colors.transparent),
                     border: Border.all(color: Colors.white),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -1772,9 +1363,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       Text(
                         "A",
                         style: TextStyle(
-                          color:
-                              (activeItem.appearance == 1 ||
-                                  activeItem.appearance == 2)
+                          color: (activeItem.appearance == 1 || activeItem.appearance == 2)
                               ? Colors.black
                               : Colors.white,
                           fontSize: 16,
@@ -1787,87 +1376,63 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
               const SizedBox(width: 12),
               GestureDetector(
-                onTap: () =>
-                    setState(() => activeItem.isBold = !activeItem.isBold),
+                onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: activeItem.isBold
-                        ? Colors.blueAccent.withOpacity(0.3)
-                        : Colors.transparent,
+                    color: activeItem.isBold ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    Icons.format_bold_rounded,
-                    color: activeItem.isBold ? Colors.blueAccent : Colors.white,
-                  ),
+                  child: Icon(Icons.format_bold_rounded, color: activeItem.isBold ? Colors.blueAccent : Colors.white),
                 ),
               ),
               GestureDetector(
-                onTap: () => setState(
-                  () => activeItem.isUnderline = !activeItem.isUnderline,
-                ),
+                onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: activeItem.isUnderline
-                        ? Colors.blueAccent.withOpacity(0.3)
-                        : Colors.transparent,
+                    color: activeItem.isUnderline ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.format_underlined_rounded,
-                    color: activeItem.isUnderline
-                        ? Colors.blueAccent
-                        : Colors.white,
+                    color: activeItem.isUnderline ? Colors.blueAccent : Colors.white,
                   ),
                 ),
               ),
               GestureDetector(
-                onTap: () =>
-                    setState(() => activeItem.isItalic = !activeItem.isItalic),
+                onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: activeItem.isItalic
-                        ? Colors.blueAccent.withOpacity(0.3)
-                        : Colors.transparent,
+                    color: activeItem.isItalic ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.format_italic_rounded,
-                    color: activeItem.isItalic
-                        ? Colors.blueAccent
-                        : Colors.white,
+                    color: activeItem.isItalic ? Colors.blueAccent : Colors.white,
                   ),
                 ),
               ),
               GestureDetector(
-                onTap: () => setState(
-                  () =>
-                      activeItem.isStrikethrough = !activeItem.isStrikethrough,
-                ),
+                onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: activeItem.isStrikethrough
-                        ? Colors.blueAccent.withOpacity(0.3)
-                        : Colors.transparent,
+                    color: activeItem.isStrikethrough ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.format_strikethrough_rounded,
-                    color: activeItem.isStrikethrough
-                        ? Colors.blueAccent
-                        : Colors.white,
+                    color: activeItem.isStrikethrough ? Colors.blueAccent : Colors.white,
                   ),
                 ),
               ),
@@ -1877,8 +1442,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               GestureDetector(
                 onTap: hasActiveText
                     ? () => setState(() {
-                        TextOverlayItem duplicateItem = _activeTextItem!
-                            .clone();
+                        TextOverlayItem duplicateItem = _activeTextItem!.clone();
                         _textItems.add(duplicateItem);
                         _activeTextItem = duplicateItem;
                         _textEditorController.text = duplicateItem.text;
@@ -1888,10 +1452,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: 36,
                   height: 36,
-                  child: Icon(
-                    Icons.content_copy_rounded,
-                    color: hasActiveText ? Colors.white : Colors.white38,
-                  ),
+                  child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38),
                 ),
               ),
 
@@ -1941,9 +1502,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   Colors.brown,
                 ].map((c) {
                   bool isSelected = activeItem.color == c;
-                  Color iconColor = c.computeLuminance() > 0.5
-                      ? Colors.black
-                      : Colors.white;
+                  Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
                   return GestureDetector(
                     onTap: () => setState(() => activeItem.color = c),
@@ -1955,18 +1514,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       decoration: BoxDecoration(
                         color: c,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: isSelected ? 2.5 : 1.5,
-                        ),
+                        border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
                       ),
-                      child: isSelected
-                          ? Icon(
-                              Icons.check_rounded,
-                              color: iconColor,
-                              size: 20,
-                            )
-                          : null,
+                      child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
                     ),
                   );
                 }).toList(),
@@ -1991,20 +1541,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
           children: [
             Row(
               children: [
-                const Text(
-                  "Color",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
+                const Text("Color", style: TextStyle(color: Colors.white, fontSize: 14)),
                 const SizedBox(width: 16),
                 GestureDetector(
                   onTap: _openColorPicker,
                   child: Container(
                     width: 32,
                     height: 32,
-                    decoration: BoxDecoration(
-                      color: _selectedColor,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
+                    decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6)),
                   ),
                 ),
               ],
@@ -2042,22 +1586,23 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
-                    setState(() {
-                      // 🚨 Duplicate shape create karo
-                      final copy = ShapeItem(
-                        icon: _activeShapeItem!.icon,
-                        color: _activeShapeItem!.color,
-                        size: _activeShapeItem!.size,
-                        rotation: _activeShapeItem!.rotation,
-                        // Original shape se thoda side mein add karo (offset)
-                        offset: _activeShapeItem!.offset + const Offset(0.05, 0.05),
-                        scaleX: _activeShapeItem!.scaleX, // 🚨 NAYA ADD KIYA
-                        scaleY: _activeShapeItem!.scaleY, // 🚨 NAYA ADD KIYA
-                      );
-                      _shapeItems.add(copy);
-                      _activeShapeItem = copy; // Naya copy select ho jayega
-                    });
-                  }
+                          setState(() {
+                            // 🚨 Duplicate shape create karo
+                            final copy = ShapeItem(
+                              icon: _activeShapeItem!.icon,
+                              color: _activeShapeItem!.color,
+                              size: _activeShapeItem!.size,
+                              rotation: _activeShapeItem!.rotation,
+                              // Original shape se thoda side mein add karo (offset)
+                              offset: _activeShapeItem!.offset + const Offset(0.05, 0.05),
+                              scaleX: _activeShapeItem!.scaleX,
+                              // 🚨 NAYA ADD KIYA
+                              scaleY: _activeShapeItem!.scaleY, // 🚨 NAYA ADD KIYA
+                            );
+                            _shapeItems.add(copy);
+                            _activeShapeItem = copy; // Naya copy select ho jayega
+                          });
+                        }
                       : null, // Shape select nahi hai toh tap disable
                 ),
 
@@ -2070,12 +1615,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
-                    setState(() {
-                      // 🚨 Selected shape delete karo
-                      _shapeItems.remove(_activeShapeItem);
-                      _activeShapeItem = null;
-                    });
-                  }
+                          setState(() {
+                            // 🚨 Selected shape delete karo
+                            _shapeItems.remove(_activeShapeItem);
+                            _activeShapeItem = null;
+                          });
+                        }
                       : null, // Shape select nahi hai toh tap disable
                 ),
               ],
@@ -2099,28 +1644,41 @@ class _MarkupScreenState extends State<MarkupScreen> {
             children: [
               // --- Basic Geometry ---
               _buildShapeIcon(Icons.rectangle_outlined),
-              _buildShapeIcon(Icons.crop_square_rounded), // Square
+              _buildShapeIcon(Icons.crop_square_rounded),
+              // Square
               _buildShapeIcon(Icons.circle_outlined),
-              _buildShapeIcon(Icons.change_history_rounded), // Triangle
+              _buildShapeIcon(Icons.change_history_rounded),
+              // Triangle
               _buildShapeIcon(Icons.pentagon_outlined),
               _buildShapeIcon(Icons.hexagon_outlined),
 
               // --- Arrows ---
-              _buildShapeIcon(Icons.arrow_forward_rounded), // Right Arrow
-              _buildShapeIcon(Icons.arrow_back_rounded), // Left Arrow
-              _buildShapeIcon(Icons.arrow_upward_rounded), // Up Arrow
-              _buildShapeIcon(Icons.sync_alt_rounded), // Double Arrow (Left-Right)
+              _buildShapeIcon(Icons.arrow_forward_rounded),
+              // Right Arrow
+              _buildShapeIcon(Icons.arrow_back_rounded),
+              // Left Arrow
+              _buildShapeIcon(Icons.arrow_upward_rounded),
+              // Up Arrow
+              _buildShapeIcon(Icons.sync_alt_rounded),
+              // Double Arrow (Left-Right)
 
               // --- Objects & Symbols ---
-              _buildShapeIcon(Icons.star_border_rounded), // Star
-              _buildShapeIcon(Icons.favorite_border_rounded), // Heart
-              _buildShapeIcon(Icons.shield_outlined), // Shield
-              _buildShapeIcon(Icons.cloud_queue_rounded), // Cloud
+              _buildShapeIcon(Icons.star_border_rounded),
+              // Star
+              _buildShapeIcon(Icons.favorite_border_rounded),
+              // Heart
+              _buildShapeIcon(Icons.shield_outlined),
+              // Shield
+              _buildShapeIcon(Icons.cloud_queue_rounded),
+              // Cloud
 
               // --- Markup / Annotation ---
-              _buildShapeIcon(Icons.chat_bubble_outline_rounded), // Speech Bubble / Callout
-              _buildShapeIcon(Icons.check_rounded), // Tick / Right mark
-              _buildShapeIcon(Icons.close_rounded), // Cross / Wrong mark
+              _buildShapeIcon(Icons.chat_bubble_outline_rounded),
+              // Speech Bubble / Callout
+              _buildShapeIcon(Icons.check_rounded),
+              // Tick / Right mark
+              _buildShapeIcon(Icons.close_rounded),
+              // Cross / Wrong mark
             ],
           ),
         ),
@@ -2129,19 +1687,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  Widget _buildSlider(
-    String label,
-    double val,
-    double min,
-    double max,
-    Function(double) onChanged,
-  ) {
+  Widget _buildSlider(String label, double val, double min, double max, Function(double) onChanged) {
     return Row(
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
-        ),
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
         const SizedBox(width: 10),
         Expanded(
           child: SliderTheme(
@@ -2151,12 +1700,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               activeTrackColor: Colors.grey.shade400,
               inactiveTrackColor: Colors.grey.shade800,
             ),
-            child: Slider(
-              value: val.clamp(min, max),
-              min: min,
-              max: max,
-              onChanged: onChanged,
-            ),
+            child: Slider(value: val.clamp(min, max), min: min, max: max, onChanged: onChanged),
           ),
         ),
       ],
@@ -2165,8 +1709,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   // Shape Icon Helper
   Widget _buildShapeIcon(IconData icon) {
-    bool isSelected =
-        _selectedShape == icon.toString(); // Tumhara shape state variable
+    bool isSelected = _selectedShape == icon.toString(); // Tumhara shape state variable
     return GestureDetector(
       // onTap: () {
       //   setState(() {
@@ -2191,9 +1734,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 8),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.blueAccent.withOpacity(0.2)
-              : Colors.transparent,
+          color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
           border: Border.all(color: Colors.white70),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -2236,17 +1777,12 @@ class DrawingPainter extends CustomPainter {
 
     for (var path in paths) {
       if (path.isClear) {
-        canvas.drawRect(
-          Rect.fromLTWH(0, 0, size.width, size.height),
-          Paint()..blendMode = BlendMode.clear,
-        );
+        canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()..blendMode = BlendMode.clear);
         continue;
       }
 
       Paint p = Paint()
-        ..color = path.isEraser
-            ? Colors.transparent
-            : path.color.withOpacity(path.opacity)
+        ..color = path.isEraser ? Colors.transparent : path.color.withOpacity(path.opacity)
         ..strokeWidth =
             path.strokeWidth *
             strokeScale // Scaling applied
@@ -2268,9 +1804,7 @@ class DrawingPainter extends CustomPainter {
 
     if (currentPoints.isNotEmpty) {
       Paint p = Paint()
-        ..color = isEraser
-            ? Colors.transparent
-            : currentColor.withOpacity(currentOpacity)
+        ..color = isEraser ? Colors.transparent : currentColor.withOpacity(currentOpacity)
         ..strokeWidth =
             currentStrokeWidth *
             strokeScale // Scaling applied
