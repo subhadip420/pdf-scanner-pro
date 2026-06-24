@@ -1172,7 +1172,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
             Row(
               children: [
-                GestureDetector(
+                Tooltip(
+                  message: "Pen",
+                child:GestureDetector(
                   onTap: () => setState(() => _isEraserMode = false),
                   child: Container(
                     padding: const EdgeInsets.all(6),
@@ -1190,6 +1192,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       size: 24,
                     ),
                   ),
+                ),
                 ),
                 const SizedBox(width: 4),
                 // GestureDetector(
@@ -1210,7 +1213,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 //   ),
                 // ),
 
-                GestureDetector(
+                Tooltip(
+                  message: "Eraser",
+                  child: GestureDetector(
                   onTap: canEraseOrClear ? () => setState(() => _isEraserMode = true) : null,
                   child: Container(
                     padding: const EdgeInsets.all(6),
@@ -1220,6 +1225,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     ),
                     child: Icon(Symbols.ink_eraser_rounded, color: canEraseOrClear ? (_isEraserMode ? Colors.blueAccent : Colors.white70) : Colors.white38, size: 24),
                   ),
+                ),
                 ),
 
                 const SizedBox(width: 4),
@@ -1248,7 +1254,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 //   ),
                 // ),
 
-                GestureDetector(
+                Tooltip(
+                  message: "Clear All",
+                  child: GestureDetector(
                   onTap: canEraseOrClear ? () {
                     setState(() {
                       _paths.add(DrawnPath(points: [], color: Colors.transparent, strokeWidth: 0, opacity: 0, isClear: true));
@@ -1258,6 +1266,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     padding: const EdgeInsets.all(6),
                     child: Icon(Icons.delete_outline_rounded, color: canEraseOrClear ? Colors.redAccent : Colors.white38, size: 24),
                   ),
+                ),
                 ),
 
               ],
