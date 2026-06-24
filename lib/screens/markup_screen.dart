@@ -990,83 +990,173 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                 ),
                               ),
 
-                              // 🚨 4. SHAPE LAYER (Sahi logic)
+                              // // 🚨 4. SHAPE LAYER (Sahi logic)
+                              // Positioned.fill(
+                              //   child: LayoutBuilder(
+                              //     builder: (context, constraints) {
+                              //       double canvasW = constraints.maxWidth;
+                              //       double canvasH = constraints.maxHeight;
+                              //
+                              //       return Stack(
+                              //         clipBehavior: Clip.none,
+                              //         children: _shapeItems.map((shape) {
+                              //           bool isActive = _activeShapeItem == shape;
+                              //
+                              //           return Positioned(
+                              //             left: shape.offset.dx * canvasW,
+                              //             top: shape.offset.dy * canvasH,
+                              //             // 🚨 FIX: FractionalTranslation add karo taaki center pin ho sake
+                              //             child: FractionalTranslation(
+                              //               translation: const Offset(-0.5, -0.5),
+                              //               child: GestureDetector(
+                              //                 behavior: HitTestBehavior.translucent,
+                              //                 onPanUpdate: (details) {
+                              //                   setState(() {
+                              //                     RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                              //                     // Canvas coordinates update
+                              //                     shape.offset += Offset(details.delta.dx / renderBox.size.width, details.delta.dy / renderBox.size.height);
+                              //                   });
+                              //                 },
+                              //                 onTap: () => setState(() {
+                              //                   _activeShapeItem = shape;
+                              //                   _activeTextItem = null;
+                              //                 }),
+                              //                 child: Transform.rotate(
+                              //                   angle: shape.rotation,
+                              //                   child: Container(
+                              //                     padding: const EdgeInsets.all(24),
+                              //                     child: Stack(
+                              //                       clipBehavior: Clip.none,
+                              //                       alignment: Alignment.center,
+                              //                       children: [
+                              //                         // Shape content...
+                              //                         Container(
+                              //                           padding: const EdgeInsets.all(8),
+                              //                           decoration: isActive
+                              //                               ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
+                              //                               : null,
+                              //                           child: Icon(shape.icon, color: shape.color, size: shape.size),
+                              //                         ),
+                              //                         // Buttons (Rotate/Delete)...
+                              //
+                              //                       // Rotate Handle
+                              //                       if (isActive)
+                              //                         Positioned(
+                              //                           bottom: -10, right: -10,
+                              //                           child: GestureDetector(
+                              //                             behavior: HitTestBehavior.opaque, // 🚨 Button priority
+                              //                             onPanUpdate: (details) {
+                              //                               setState(() => shape.rotation += details.delta.dx * 0.015);
+                              //                             },
+                              //                             child: const CircleAvatar(radius: 14, backgroundColor: Colors.white, child: Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 18)),
+                              //                           ),
+                              //                         ),
+                              //
+                              //                       // Delete Handle
+                              //                       if (isActive)
+                              //                         Positioned(
+                              //                           top: -10, left: -10,
+                              //                           child: GestureDetector(
+                              //                             behavior: HitTestBehavior.opaque, // 🚨 Button priority
+                              //                             onTap: () => setState(() { _shapeItems.remove(shape); _activeShapeItem = null; }),
+                              //                             child: const CircleAvatar(radius: 12, backgroundColor: Colors.redAccent, child: Icon(Icons.close_rounded, color: Colors.white, size: 16)),
+                              //                           ),
+                              //                         ),
+                              //                     ],
+                              //                   ),
+                              //                 ),
+                              //               ),
+                              //             ),
+                              //             ),
+                              //           );
+                              //         }).toList(),
+                              //       );
+                              //     },
+                              //   ),
+                              // ),
+
+                              // 🚨 4. SHAPE LAYER (FIXED FOR RESPONSIVE POSITIONING)
+                              // 🚨 4. SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
                               Positioned.fill(
                                 child: LayoutBuilder(
                                   builder: (context, constraints) {
                                     double canvasW = constraints.maxWidth;
                                     double canvasH = constraints.maxHeight;
 
+                                    // 🚨 FIX: Text ke jaisa hi scale ratio calculate karo (400.0 tumhara base reference hai)
+                                    double scaleRatio = canvasW / 400.0;
+
                                     return Stack(
                                       clipBehavior: Clip.none,
                                       children: _shapeItems.map((shape) {
                                         bool isActive = _activeShapeItem == shape;
 
+                                        // 🚨 FIX: Icon size ko scaleRatio se multiply karo
+                                        double scaledIconSize = shape.size * scaleRatio;
+
                                         return Positioned(
                                           left: shape.offset.dx * canvasW,
                                           top: shape.offset.dy * canvasH,
-                                          // 🚨 FIX: FractionalTranslation add karo taaki center pin ho sake
                                           child: FractionalTranslation(
                                             translation: const Offset(-0.5, -0.5),
-                                            child: GestureDetector(
-                                              behavior: HitTestBehavior.translucent,
-                                              onPanUpdate: (details) {
-                                                setState(() {
-                                                  RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                                  // Canvas coordinates update
-                                                  shape.offset += Offset(details.delta.dx / renderBox.size.width, details.delta.dy / renderBox.size.height);
-                                                });
-                                              },
-                                              onTap: () => setState(() {
-                                                _activeShapeItem = shape;
-                                                _activeTextItem = null;
-                                              }),
-                                              child: Transform.rotate(
-                                                angle: shape.rotation,
+                                            child: Transform.rotate(
+                                              angle: shape.rotation,
+                                              child: GestureDetector(
+                                                behavior: HitTestBehavior.translucent,
+                                                onPanUpdate: (details) {
+                                                  setState(() {
+                                                    shape.offset += Offset(
+                                                      details.delta.dx / canvasW,
+                                                      details.delta.dy / canvasH,
+                                                    );
+                                                  });
+                                                },
+                                                onTap: () => setState(() {
+                                                  _activeShapeItem = shape;
+                                                  _activeTextItem = null;
+                                                }),
                                                 child: Container(
                                                   padding: const EdgeInsets.all(24),
                                                   child: Stack(
                                                     clipBehavior: Clip.none,
                                                     alignment: Alignment.center,
                                                     children: [
-                                                      // Shape content...
+                                                      // Border aur Shape
                                                       Container(
                                                         padding: const EdgeInsets.all(8),
                                                         decoration: isActive
                                                             ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
                                                             : null,
-                                                        child: Icon(shape.icon, color: shape.color, size: shape.size),
-                                                      ),
-                                                      // Buttons (Rotate/Delete)...
-
-                                                    // Rotate Handle
-                                                    if (isActive)
-                                                      Positioned(
-                                                        bottom: -10, right: -10,
-                                                        child: GestureDetector(
-                                                          behavior: HitTestBehavior.opaque, // 🚨 Button priority
-                                                          onPanUpdate: (details) {
-                                                            setState(() => shape.rotation += details.delta.dx * 0.015);
-                                                          },
-                                                          child: const CircleAvatar(radius: 14, backgroundColor: Colors.white, child: Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 18)),
-                                                        ),
+                                                        // 🚨 FIX: Yahan scaledIconSize use karo
+                                                        child: Icon(shape.icon, color: shape.color, size: scaledIconSize),
                                                       ),
 
-                                                    // Delete Handle
-                                                    if (isActive)
-                                                      Positioned(
-                                                        top: -10, left: -10,
-                                                        child: GestureDetector(
-                                                          behavior: HitTestBehavior.opaque, // 🚨 Button priority
-                                                          onTap: () => setState(() { _shapeItems.remove(shape); _activeShapeItem = null; }),
-                                                          child: const CircleAvatar(radius: 12, backgroundColor: Colors.redAccent, child: Icon(Icons.close_rounded, color: Colors.white, size: 16)),
+                                                      // Rotate Handle
+                                                      if (isActive)
+                                                        Positioned(
+                                                          bottom: -10, right: -10,
+                                                          child: GestureDetector(
+                                                            behavior: HitTestBehavior.opaque,
+                                                            onPanUpdate: (details) => setState(() => shape.rotation += details.delta.dx * 0.015),
+                                                            child: const CircleAvatar(radius: 14, backgroundColor: Colors.white, child: Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 18)),
+                                                          ),
                                                         ),
-                                                      ),
-                                                  ],
+
+                                                      // Delete Handle
+                                                      if (isActive)
+                                                        Positioned(
+                                                          top: -10, left: -10,
+                                                          child: GestureDetector(
+                                                            behavior: HitTestBehavior.opaque,
+                                                            onTap: () => setState(() { _shapeItems.remove(shape); _activeShapeItem = null; }),
+                                                            child: const CircleAvatar(radius: 12, backgroundColor: Colors.redAccent, child: Icon(Icons.close_rounded, color: Colors.white, size: 16)),
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
                                           ),
                                         );
                                       }).toList(),
