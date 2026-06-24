@@ -838,52 +838,109 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                       ),
                                                     ),
                                                   ),
+                                                  // if (isActive)
+                                                  //   Positioned(
+                                                  //     bottom: -15,
+                                                  //     right: -15,
+                                                  //     child: GestureDetector(
+                                                  //       onPanUpdate:
+                                                  //           (
+                                                  //             details,
+                                                  //           ) => setState(
+                                                  //             () => item.rotation +=
+                                                  //                 details
+                                                  //                         .delta
+                                                  //                         .dy *
+                                                  //                     0.03 +
+                                                  //                 details
+                                                  //                         .delta
+                                                  //                         .dx *
+                                                  //                     0.03,
+                                                  //           ),
+                                                  //       child: Container(
+                                                  //         padding:
+                                                  //             const EdgeInsets.all(
+                                                  //               4,
+                                                  //             ),
+                                                  //         decoration:
+                                                  //             const BoxDecoration(
+                                                  //               color: Colors
+                                                  //                   .white,
+                                                  //               shape: BoxShape
+                                                  //                   .circle,
+                                                  //             ),
+                                                  //         child: const Icon(
+                                                  //           Icons
+                                                  //               .rotate_right_rounded,
+                                                  //           color: Colors
+                                                  //               .blueAccent,
+                                                  //           size: 20,
+                                                  //         ),
+                                                  //       ),
+                                                  //     ),
+                                                  //   ),
                                                   if (isActive)
                                                     Positioned(
-                                                      bottom: -15,
-                                                      right: -15,
+                                                      bottom: -10,
+                                                      right: -10,
                                                       child: GestureDetector(
-                                                        onPanUpdate:
-                                                            (
-                                                              details,
-                                                            ) => setState(
-                                                              () => item.rotation +=
-                                                                  details
-                                                                          .delta
-                                                                          .dy *
-                                                                      0.03 +
-                                                                  details
-                                                                          .delta
-                                                                          .dx *
-                                                                      0.03,
+                                                        onPanUpdate: (details) {
+                                                          setState(() {
+                                                            item.rotation += details.delta.dx * 0.015;
+                                                          });
+                                                        },
+                                                        child: Transform.rotate(
+                                                          angle: -item.rotation,
+                                                          child: Container(
+                                                            width: 28,
+                                                            height: 28,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white,
+                                                              shape: BoxShape.circle,
+                                                              border: Border.all(
+                                                                color: Colors.blueAccent,
+                                                                width: 2,
+                                                              ),
+                                                              boxShadow: const [
+                                                                BoxShadow(
+                                                                  color: Colors.black26,
+                                                                  blurRadius: 4,
+                                                                ),
+                                                              ],
                                                             ),
-                                                        child: Container(
-                                                          padding:
-                                                              const EdgeInsets.all(
-                                                                4,
-                                                              ),
-                                                          decoration:
-                                                              const BoxDecoration(
-                                                                color: Colors
-                                                                    .white,
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                              ),
-                                                          child: const Icon(
-                                                            Icons
-                                                                .rotate_right_rounded,
-                                                            color: Colors
-                                                                .blueAccent,
-                                                            size: 20,
+                                                            child: const Icon(
+                                                              Icons.rotate_right_rounded,
+                                                              color: Colors.blueAccent,
+                                                              size: 18,
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
                                                     ),
 
                                                   // 🚨 3. NAYA: TOP-LEFT CROSS ICON
+                                                  // if (isActive)
+                                                  //   Positioned(
+                                                  //     top: -15, left: -15,
+                                                  //     child: GestureDetector(
+                                                  //       onTap: () {
+                                                  //         setState(() {
+                                                  //           _textItems.remove(item);
+                                                  //           _activeTextItem = null;
+                                                  //         });
+                                                  //       },
+                                                  //       child: Container(
+                                                  //         padding: const EdgeInsets.all(4),
+                                                  //         decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                                                  //         child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                                                  //       ),
+                                                  //     ),
+                                                  //   ),
+
                                                   if (isActive)
                                                     Positioned(
-                                                      top: -15, left: -15,
+                                                      top: -10,
+                                                      left: -10,
                                                       child: GestureDetector(
                                                         onTap: () {
                                                           setState(() {
@@ -891,10 +948,31 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                             _activeTextItem = null;
                                                           });
                                                         },
-                                                        child: Container(
-                                                          padding: const EdgeInsets.all(4),
-                                                          decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                                                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                                                        child: Transform.rotate(
+                                                          angle: -item.rotation,
+                                                          child: Container(
+                                                            width: 25,
+                                                            height: 25,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.redAccent,
+                                                              shape: BoxShape.circle,
+                                                              border: Border.all(
+                                                                color: Colors.white,
+                                                                width: 2,
+                                                              ),
+                                                              boxShadow: const [
+                                                                BoxShadow(
+                                                                  color: Colors.black26,
+                                                                  blurRadius: 4,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: const Icon(
+                                                              Icons.close_rounded,
+                                                              color: Colors.white,
+                                                              size: 16,
+                                                            ),
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
