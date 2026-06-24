@@ -75,6 +75,22 @@ class TextOverlayItem {
   }
 }
 
+class ShapeItem {
+  IconData icon; // Shape ka icon
+  Offset offset;
+  Color color;
+  double size;
+  double rotation;
+
+  ShapeItem({
+    required this.icon,
+    this.offset = const Offset(0.5, 0.5),
+    required this.color,
+    this.size = 100.0,
+    this.rotation = 0.0,
+  });
+}
+
 class MarkupScreen extends StatefulWidget {
   final File imageFile;
 
@@ -123,6 +139,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
   );
   final TextEditingController _textEditorController = TextEditingController();
   final List<String> _fonts = ['Roboto', 'Serif', 'Monospace', 'Cursive'];
+
+  List<ShapeItem> _shapeItems = [];
+  ShapeItem? _activeShapeItem;
 
   @override
   void initState() {
@@ -970,6 +989,174 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                   },
                                 ),
                               ),
+
+                              // 🚨 4. SHAPE LAYER (Sahi logic)
+                              Positioned.fill(
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    double canvasW = constraints.maxWidth;
+                                    double canvasH = constraints.maxHeight;
+
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      children: _shapeItems.map((shape) {
+                                        bool isActive = _activeShapeItem == shape;
+
+                                        return Positioned(
+                                          left: shape.offset.dx * canvasW,
+                                          top: shape.offset.dy * canvasH,
+                                          child: GestureDetector(
+                                            // 🚨 Parent Gesture: Sirf move karne ke liye
+                                            behavior: HitTestBehavior.translucent,
+                                            onPanUpdate: (details) {
+                                              setState(() {
+                                                RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                shape.offset += Offset(details.delta.dx / renderBox.size.width, details.delta.dy / renderBox.size.height);
+                                              });
+                                            },
+                                            onTap: () => setState(() {
+                                              _activeShapeItem = shape;
+                                              _activeTextItem = null;
+                                            }),
+                                            child: Transform.rotate(
+                                              angle: shape.rotation,
+                                              child: Container(
+                                                padding: const EdgeInsets.all(24), // Touch area bada rakho
+                                                child: Stack(
+                                                  clipBehavior: Clip.none,
+                                                  alignment: Alignment.center,
+                                                  children: [
+                                                    // Border aur Shape
+                                                    Container(
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: isActive
+                                                          ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
+                                                          : null,
+                                                      child: Icon(shape.icon, color: shape.color, size: shape.size),
+                                                    ),
+
+                                                    // Rotate Handle
+                                                    if (isActive)
+                                                      Positioned(
+                                                        bottom: -10, right: -10,
+                                                        child: GestureDetector(
+                                                          behavior: HitTestBehavior.opaque, // 🚨 Button priority
+                                                          onPanUpdate: (details) {
+                                                            setState(() => shape.rotation += details.delta.dx * 0.015);
+                                                          },
+                                                          child: const CircleAvatar(radius: 14, backgroundColor: Colors.white, child: Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 18)),
+                                                        ),
+                                                      ),
+
+                                                    // Delete Handle
+                                                    if (isActive)
+                                                      Positioned(
+                                                        top: -10, left: -10,
+                                                        child: GestureDetector(
+                                                          behavior: HitTestBehavior.opaque, // 🚨 Button priority
+                                                          onTap: () => setState(() { _shapeItems.remove(shape); _activeShapeItem = null; }),
+                                                          child: const CircleAvatar(radius: 12, backgroundColor: Colors.redAccent, child: Icon(Icons.close_rounded, color: Colors.white, size: 16)),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    );
+                                  },
+                                ),
+                              ),
+
+                              // // 4. SHAPE LAYER
+                              // Positioned.fill(
+                              //   child: LayoutBuilder(
+                              //     builder: (context, constraints) {
+                              //       double canvasW = constraints.maxWidth;
+                              //       double canvasH = constraints.maxHeight;
+                              //
+                              //       return Stack(
+                              //         clipBehavior: Clip.none,
+                              //         children: _shapeItems.map((shape) {
+                              //           bool isActive = _activeShapeItem == shape;
+                              //           return Positioned(
+                              //             left: shape.offset.dx * canvasW,
+                              //             top: shape.offset.dy * canvasH,
+                              //             child: FractionalTranslation(
+                              //               translation: const Offset(-0.5, -0.5),
+                              //               child: Transform.rotate(
+                              //                 angle: shape.rotation,
+                              //                 child: Stack(
+                              //                   clipBehavior: Clip.none,
+                              //                   alignment: Alignment.center,
+                              //                   children: [
+                              //                     // Main Shape with GestureDetector for moving
+                              //                     GestureDetector(
+                              //                       onPanUpdate: (details) {
+                              //                         setState(() {
+                              //                           RenderBox renderBox = _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                              //                           shape.offset += Offset(details.delta.dx / renderBox.size.width, details.delta.dy / renderBox.size.height);
+                              //                         });
+                              //                       },
+                              //                       onTap: () => setState(() {
+                              //                         _activeShapeItem = shape;
+                              //                         _activeTextItem = null;
+                              //                       }),
+                              //                       child: Container(
+                              //                         padding: const EdgeInsets.all(8),
+                              //                         decoration: isActive
+                              //                             ? BoxDecoration(border: Border.all(color: Colors.white, width: 2))
+                              //                             : null,
+                              //                         child: Icon(shape.icon, color: shape.color, size: shape.size),
+                              //                       ),
+                              //                     ),
+                              //
+                              //                     // Rotate Handle (Independent GestureDetector)
+                              //                     if (isActive)
+                              //                       Positioned(
+                              //                         bottom: -15, right: -15,
+                              //                         child: GestureDetector(
+                              //                           behavior: HitTestBehavior.opaque,
+                              //                           onPanUpdate: (details) {
+                              //                             setState(() => shape.rotation += details.delta.dx * 0.015);
+                              //                           },
+                              //                           child: const CircleAvatar(
+                              //                             radius: 16,
+                              //                             backgroundColor: Colors.white,
+                              //                             child: Icon(Icons.rotate_right_rounded, color: Colors.blueAccent, size: 18),
+                              //                           ),
+                              //                         ),
+                              //                       ),
+                              //
+                              //                     // Delete Handle (Independent GestureDetector)
+                              //                     if (isActive)
+                              //                       Positioned(
+                              //                         top: -15, left: -15,
+                              //                         child: GestureDetector(
+                              //                           behavior: HitTestBehavior.opaque,
+                              //                           onTap: () => setState(() {
+                              //                             _shapeItems.remove(shape);
+                              //                             _activeShapeItem = null;
+                              //                           }),
+                              //                           child: const CircleAvatar(
+                              //                             radius: 15,
+                              //                             backgroundColor: Colors.redAccent,
+                              //                             child: Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                              //                           ),
+                              //                         ),
+                              //                       ),
+                              //                   ],
+                              //                 ),
+                              //               ),
+                              //             ),
+                              //           );
+                              //         }).toList(),
+                              //       );
+                              //     },
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
@@ -1658,13 +1845,118 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  // --- 3. SHAPES WIDGET PANEL ---
-  Widget _buildShapesPanel() {
-    // 🚨 Requirement ke mutabik abhi isko blank rakha hai
-    return const SizedBox.shrink();
-  }
-}
+  // // --- 3. SHAPES WIDGET PANEL ---
+  // Widget _buildShapesPanel() {
+  //   // 🚨 Requirement ke mutabik abhi isko blank rakha hai
+  //   return const SizedBox.shrink();
+  // }
 
+  Widget _buildShapesPanel() {
+    // Shape ke liye temporary state variables (tum inhe class-level pe move kar sakte ho)
+    // Abhi ke liye hum generic variables use kar rahe hain
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 1. Top Row: Color Picker (Left) | Copy & Delete (Right)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Text("Color", style: TextStyle(color: Colors.white, fontSize: 14)),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: _openColorPicker,
+                  child: Container(
+                    width: 32, height: 32,
+                    decoration: BoxDecoration(
+                      color: _selectedColor,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.content_copy_rounded, color: Colors.white),
+                  onPressed: () { /* Copy logic */ },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_forever_rounded, color: Colors.redAccent),
+                  onPressed: () { /* Delete logic */ },
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // 2. 2nd Row: Size Slider
+        Row(
+          children: [
+            const Text("Stroke", style: TextStyle(color: Colors.white70, fontSize: 14)),
+            Expanded(
+              child: SliderTheme(
+                data: SliderThemeData(trackHeight: 2, thumbColor: Colors.white, activeTrackColor: Colors.grey.shade400),
+                child: Slider(
+                  value: _strokeWidth,
+                  min: 1, max: 50,
+                  onChanged: (val) => setState(() => _strokeWidth = val),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // 3. 3rd Row: Scrollable Shapes
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _buildShapeIcon(Icons.rectangle_outlined),
+              _buildShapeIcon(Icons.circle_outlined),
+              _buildShapeIcon(Icons.change_history_rounded), // Triangle
+              _buildShapeIcon(Icons.pentagon_outlined),
+              _buildShapeIcon(Icons.hexagon_outlined),
+              _buildShapeIcon(Icons.star_border_rounded),
+              _buildShapeIcon(Icons.arrow_forward_rounded),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+// Shape Icon Helper
+  Widget _buildShapeIcon(IconData icon) {
+    bool isSelected = _selectedShape == icon.toString(); // Tumhara shape state variable
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          final newShape = ShapeItem(icon: icon, color: _selectedColor);
+          _shapeItems.add(newShape);
+          _activeShapeItem = newShape; // Isse shape select ho jayegi
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+          border: Border.all(color: Colors.white70),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: Colors.white, size: 28),
+      ),
+    );
+  }
+
+}
 /// end main class
 
 class DrawingPainter extends CustomPainter {
