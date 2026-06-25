@@ -7,6 +7,19 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// 🚨 YAHAN ADD KARO (Lines 9-10 ke aas-paas)
+class MarkupExportData {
+  final List<DrawnPath> paths;
+  final List<TextOverlayItem> texts;
+  final List<ShapeItem> shapes;
+
+  MarkupExportData({
+    required this.paths,
+    required this.texts,
+    required this.shapes,
+  });
+}
+
 class DrawnPath {
   final List<Offset?> points;
   final Color color;
@@ -101,7 +114,24 @@ class ShapeItem {
 class MarkupScreen extends StatefulWidget {
   final File imageFile;
 
-  const MarkupScreen({Key? key, required this.imageFile}) : super(key: key);
+  // 🚨 NAYE PARAMETERS ADD KIYE
+  final int rotationTurns;
+  final String filterName;
+  final double brightness;
+  final double contrast;
+  final dynamic existingMarkups;
+
+  //const MarkupScreen({Key? key, required this.imageFile}) : super(key: key);
+
+  const MarkupScreen({
+    Key? key,
+    required this.imageFile,
+    this.rotationTurns = 0,
+    this.filterName = "Original color",
+    this.brightness = 0.0,
+    this.contrast = 0.0,
+    this.existingMarkups,
+  }) : super(key: key);
 
   @override
   State<MarkupScreen> createState() => _MarkupScreenState();
@@ -148,12 +178,40 @@ class _MarkupScreenState extends State<MarkupScreen> {
   void initState() {
     super.initState();
     _loadRecentColors();
+
+    // 🚨 NAYA LOGIC: Agar pehle se kuch draw kiya hua hai toh load karo
+    if (widget.existingMarkups != null && widget.existingMarkups is MarkupExportData) {
+      MarkupExportData data = widget.existingMarkups;
+      _paths = List.from(data.paths);
+      _textItems = List.from(data.texts);
+      _shapeItems = List.from(data.shapes);
+    }
   }
 
   @override
   void dispose() {
     _textEditorController.dispose();
     super.dispose();
+  }
+
+  // --- 🚨 NAYE FILTER LOGIC (Live Preview ke liye) ---
+  ColorFilter? _getColorFilter(String filterName) {
+    switch (filterName) {
+      case "Grayscale": return const ColorFilter.matrix([0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0, 0, 0, 1, 0,]);
+      case "Whiteboard": return const ColorFilter.matrix([1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0,]);
+      case "Light text": return const ColorFilter.matrix([1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0,]);
+      case "Auto-color": return const ColorFilter.matrix([1.2, -0.1, -0.1, 0, 10, -0.1, 1.2, -0.1, 0, 10, -0.1, -0.1, 1.2, 0, 10, 0, 0, 0, 1, 0,]);
+      case "Original color": default: return null;
+    }
+  }
+
+  ColorFilter _getAdjustColorFilter(double brightness, double contrast) {
+    double b = brightness * 2.55;
+    double c = 1.0 + (contrast / 100.0);
+    double t = (1.0 - c) * 127.5;
+    return ColorFilter.matrix([
+      c, 0, 0, 0, t + b, 0, c, 0, 0, t + b, 0, 0, c, 0, t + b, 0, 0, 0, 1, 0,
+    ]);
   }
 
   void _unfocusAll() {
@@ -237,42 +295,60 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   // Save the drawn canvas as a new image file
-  Future<void> _saveMarkup() async {
+  // Future<void> _saveMarkup() async {
+  //   setState(() {
+  //     _activeTextItem = null; // Text se selection border hatao
+  //     _activeShapeItem = null;
+  //     _textItems.removeWhere((item) => item.text.trim().isEmpty); // Khali text ko list se delete karo
+  //   });
+  //
+  //   // 🚨 MAIN FIX: Flutter ko screen update karne ke liye thoda time do (100ms)
+  //   // Warna UI refresh hone se pehle hi purani photo save ho jayegi!
+  //   await Future.delayed(const Duration(milliseconds: 100));
+  //
+  //   // Yahan loading indicator dikhana shuru hoga (Screen freeze hone se rokne ke liye wait use kiya)
+  //   if (!mounted) return;
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+  //   );
+  //
+  //   try {
+  //     RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  //     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+  //     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  //     final pngBytes = byteData!.buffer.asUint8List();
+  //
+  //     final dir = await getTemporaryDirectory();
+  //     final newFile = File('${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png');
+  //     await newFile.writeAsBytes(pngBytes);
+  //
+  //     if (mounted) {
+  //       Navigator.pop(context);
+  //       Navigator.pop(context, newFile);
+  //     }
+  //   } catch (e) {
+  //     if (mounted) Navigator.pop(context);
+  //   }
+  // }
+
+  // Save the drawn canvas as Data (No Image Save)
+  void _saveMarkup() {
     setState(() {
-      _activeTextItem = null; // Text se selection border hatao
+      _activeTextItem = null;
       _activeShapeItem = null;
-      _textItems.removeWhere((item) => item.text.trim().isEmpty); // Khali text ko list se delete karo
+      _textItems.removeWhere((item) => item.text.trim().isEmpty);
     });
 
-    // 🚨 MAIN FIX: Flutter ko screen update karne ke liye thoda time do (100ms)
-    // Warna UI refresh hone se pehle hi purani photo save ho jayegi!
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    // Yahan loading indicator dikhana shuru hoga (Screen freeze hone se rokne ke liye wait use kiya)
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+    // 🚨 NAYA: Sirf Arrays pass kar rahe hain, isliye lag ekdum 0 hoga
+    final exportData = MarkupExportData(
+      paths: List.from(_paths),
+      texts: List.from(_textItems),
+      shapes: List.from(_shapeItems),
     );
 
-    try {
-      RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      final pngBytes = byteData!.buffer.asUint8List();
-
-      final dir = await getTemporaryDirectory();
-      final newFile = File('${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png');
-      await newFile.writeAsBytes(pngBytes);
-
-      if (mounted) {
-        Navigator.pop(context);
-        Navigator.pop(context, newFile);
-      }
-    } catch (e) {
-      if (mounted) Navigator.pop(context);
-    }
+    Navigator.pop(context, exportData);
   }
 
   // Color Picker Window (No Opacity, Auto-Select, Exact Screenshot Design)
@@ -437,15 +513,33 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 20),
+                        // child: RepaintBoundary(
+                        //   key: _globalKey,
+                        //   // 🚨 FEVICOL FIX 1: Ab Canvas EXACTLY Image ke size ka banega. No empty letterbox space!
+                        //   child: Stack(
+                        //     key: _canvasKey,
+                        //     clipBehavior: Clip.none,
+                        //     children: [
+                        //       // 1. BASE IMAGE (Bina 'BoxFit' ke, ye khudko exact ratio me set karega)
+                        //       Image.file(widget.imageFile),
+
                         child: RepaintBoundary(
                           key: _globalKey,
-                          // 🚨 FEVICOL FIX 1: Ab Canvas EXACTLY Image ke size ka banega. No empty letterbox space!
-                          child: Stack(
-                            key: _canvasKey,
-                            clipBehavior: Clip.none,
-                            children: [
-                              // 1. BASE IMAGE (Bina 'BoxFit' ke, ye khudko exact ratio me set karega)
-                              Image.file(widget.imageFile),
+                          // 🚨 NAYA: RotatedBox aur ColorFiltered lagaya preview ke liye
+                          child: RotatedBox(
+                            quarterTurns: widget.rotationTurns,
+                            child: Stack(
+                              key: _canvasKey,
+                              clipBehavior: Clip.none,
+                              children: [
+                                // 1. BASE IMAGE (Filters applied)
+                                ColorFiltered(
+                                  colorFilter: _getAdjustColorFilter(widget.brightness, widget.contrast),
+                                  child: ColorFiltered(
+                                    colorFilter: _getColorFilter(widget.filterName) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                    child: Image.file(widget.imageFile),
+                                  ),
+                                ),
 
                               // 2. DRAWING LAYER
                               Positioned.fill(
@@ -967,6 +1061,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     ),
                   ),
                 ),
+                ),
               ),
 
               // --- 2. SETTINGS PANEL (Animated Hide/Show) ---
@@ -1023,6 +1118,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ),
 
+
               // --- 3. BOTTOM TABS ---
               Container(
                 height: 60,
@@ -1037,7 +1133,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ],
                 ),
               ),
-            ],
+        ],
           ),
         ),
       ),
