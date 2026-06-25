@@ -162,6 +162,59 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     ]);
   }
 
+  // --- 🚨 NAYE HELPER FUNCTIONS (Exact UI Math Sync) ---
+  void _applyColorMatrix(img.Image image, List<double> m) {
+    for (final p in image) {
+      final num r = p.r;
+      final num g = p.g;
+      final num b = p.b;
+      final num a = p.a;
+
+      p.r = (r * m[0] + g * m[1] + b * m[2] + a * m[3] + m[4]).clamp(0, 255);
+      p.g = (r * m[5] + g * m[6] + b * m[7] + a * m[8] + m[9]).clamp(0, 255);
+      p.b = (r * m[10] + g * m[11] + b * m[12] + a * m[13] + m[14]).clamp(0, 255);
+      p.a = (r * m[15] + g * m[16] + b * m[17] + a * m[18] + m[19]).clamp(0, 255);
+    }
+  }
+
+  img.Image _processImageSync(img.Image decodedImage, int turns, String activeFilter, double activeBright, double activeContrast) {
+    // 1. Apply Rotation
+    if (turns != 0) {
+      decodedImage = img.copyRotate(decodedImage, angle: turns * 90);
+    }
+
+    // 2. Apply Filters (EXACT Matrix matching UI)
+    if (activeFilter != "Original color") {
+      List<double>? filterMatrix;
+      switch (activeFilter) {
+        case "Grayscale": filterMatrix = [0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0, 0, 0, 1, 0]; break;
+        case "Whiteboard": filterMatrix = [1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0]; break;
+        case "Light text": filterMatrix = [1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0]; break;
+        case "Auto-color": filterMatrix = [1.2, -0.1, -0.1, 0, 10, -0.1, 1.2, -0.1, 0, 10, -0.1, -0.1, 1.2, 0, 10, 0, 0, 0, 1, 0]; break;
+      }
+      if (filterMatrix != null) {
+        _applyColorMatrix(decodedImage, filterMatrix);
+      }
+    }
+
+    // 3. Apply Adjustments (EXACT Matrix matching UI)
+    if (activeBright != 0.0 || activeContrast != 0.0) {
+      double b = activeBright * 2.55;
+      double c = 1.0 + (activeContrast / 100.0);
+      double t = (1.0 - c) * 127.5;
+      double offset = t + b;
+      List<double> adjustMatrix = [
+        c, 0, 0, 0, offset,
+        0, c, 0, 0, offset,
+        0, 0, c, 0, offset,
+        0, 0, 0, 1, 0,
+      ];
+      _applyColorMatrix(decodedImage, adjustMatrix);
+    }
+
+    return decodedImage;
+  }
+
   // --- CROP TOOL FUNCTIONS ---
 
   Future<void> _toggleCropMode() async {
@@ -343,30 +396,63 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     // 🚨 FIX: Yahan 'for in' loop ki jagah index (i) wala loop use kiya
     // taaki hum check kar sakein ki kis photo ko kitna rotate karna hai
+    // for (int i = 0; i < widget.imageFiles.length; i++) {
+    //   var map = widget.imageFiles[i];
+    //   final File file = map['cropped']!;
+    //
+    //   // 1. Pehle image ki file ko bytes mein read karo
+    //   var imageBytes = await file.readAsBytes();
+    //
+    //   // 2. 🚨 REAL ROTATION LOGIC: Check karo ki kya is page ka rotate icon click hua tha?
+    //   int turns = _imageQuarterTurns[i];
+    //   if (turns != 0) {
+    //     // Agar photo rotate hui hai, toh real mein usko ghumao
+    //     img.Image? decodedImage = img.decodeImage(imageBytes);
+    //     if (decodedImage != null) {
+    //       // 1 turn = 90 degrees, 2 turns = 180 degrees
+    //       img.Image rotatedImage = img.copyRotate(
+    //         decodedImage,
+    //         angle: turns * 90,
+    //       );
+    //       // Ghumi hui photo ko wapas bytes mein convert karo
+    //       imageBytes = img.encodeJpg(rotatedImage, quality: 90);
+    //     }
+    //   }
+    //
+    //   // 3. Ab in final (ghumi hui) bytes ko PDF me dalo
+    //   final image = pw.MemoryImage(imageBytes);
+    //
+    //   pdf.addPage(
+    //     pw.Page(
+    //       margin: pw.EdgeInsets.zero,
+    //       pageFormat: PdfPageFormat.a4,
+    //       build: (context) {
+    //         return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+    //       },
+    //     ),
+    //   );
+    // }
+
     for (int i = 0; i < widget.imageFiles.length; i++) {
       var map = widget.imageFiles[i];
       final File file = map['cropped']!;
 
-      // 1. Pehle image ki file ko bytes mein read karo
       var imageBytes = await file.readAsBytes();
 
-      // 2. 🚨 REAL ROTATION LOGIC: Check karo ki kya is page ka rotate icon click hua tha?
       int turns = _imageQuarterTurns[i];
-      if (turns != 0) {
-        // Agar photo rotate hui hai, toh real mein usko ghumao
+      String activeFilter = _pageFilters[i];
+      double activeBright = _pageBrightness[i];
+      double activeContrast = _pageContrast[i];
+
+      // 🚨 NAYA: Ab PDF me bhi Filter aur Adjust properly save honge!
+      if (turns != 0 || activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
         img.Image? decodedImage = img.decodeImage(imageBytes);
         if (decodedImage != null) {
-          // 1 turn = 90 degrees, 2 turns = 180 degrees
-          img.Image rotatedImage = img.copyRotate(
-            decodedImage,
-            angle: turns * 90,
-          );
-          // Ghumi hui photo ko wapas bytes mein convert karo
-          imageBytes = img.encodeJpg(rotatedImage, quality: 90);
+          decodedImage = _processImageSync(decodedImage, turns, activeFilter, activeBright, activeContrast);
+          imageBytes = img.encodeJpg(decodedImage, quality: 90);
         }
       }
 
-      // 3. Ab in final (ghumi hui) bytes ko PDF me dalo
       final image = pw.MemoryImage(imageBytes);
 
       pdf.addPage(
@@ -1400,6 +1486,218 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       showToast("Markup applied to Page ${currentPage + 1}");
     }
   }
+
+  // --- MARKUP LOGIC ---
+// // --- MARKUP LOGIC ---
+//   Future<void> _openMarkupScreen() async {
+//     File currentImage = widget.imageFiles[currentPage]['cropped']!;
+//
+//     // 1. Saare active changes check karo
+//     int turns = _imageQuarterTurns[currentPage];
+//     String activeFilter = _pageFilters[currentPage];
+//     double activeBright = _pageBrightness[currentPage];
+//     double activeContrast = _pageContrast[currentPage];
+//
+//     // 2. Conditions check karo ki kya file me sach me koi modification hua hai
+//     bool hasRotation = turns != 0;
+//     bool hasFilter = activeFilter != "Original color";
+//     bool hasAdjust = activeBright != 0.0 || activeContrast != 0.0;
+//
+//     // Agar koi bhi change (Rotate/Filter/Adjust) hua hai, toh pehle file ko "Bake" (save) karo
+//     if (hasRotation || hasFilter || hasAdjust) {
+//
+//       // Loading Indicator dikhao
+//       showDialog(
+//         context: context,
+//         barrierDismissible: false,
+//         builder: (BuildContext context) {
+//           return const Center(
+//             child: CircularProgressIndicator(color: Colors.blueAccent),
+//           );
+//         },
+//       );
+//
+//       try {
+//         final imageBytes = await currentImage.readAsBytes();
+//         img.Image? decodedImage = img.decodeImage(imageBytes);
+//
+//         if (decodedImage != null) {
+//
+//           // --- A. APPLY ROTATION ---
+//           if (hasRotation) {
+//             decodedImage = img.copyRotate(decodedImage, angle: turns * 90);
+//           }
+//
+//           // --- B. APPLY FILTERS & ADJUSTMENTS ---
+//           if (hasFilter || hasAdjust) {
+//             if (activeFilter == "Grayscale" || activeFilter == "Whiteboard" || activeFilter == "Light text") {
+//               decodedImage = img.grayscale(decodedImage);
+//             }
+//
+//             double finalBrightness = 1.0 + (activeBright / 100.0);
+//             double finalContrast = 1.0 + (activeContrast / 100.0);
+//
+//             if (activeFilter == "Whiteboard") {
+//               finalBrightness += 0.2;
+//               finalContrast += 0.5;
+//             } else if (activeFilter == "Light text") {
+//               finalBrightness += 0.1;
+//               finalContrast += 0.2;
+//             } else if (activeFilter == "Auto-color") {
+//               finalContrast += 0.15;
+//             }
+//
+//             if (finalBrightness != 1.0 || finalContrast != 1.0) {
+//               decodedImage = img.adjustColor(
+//                 decodedImage,
+//                 brightness: finalBrightness,
+//                 contrast: finalContrast,
+//               );
+//             }
+//           }
+//
+//           // --- C. SAVE NEW PROCESSED FILE ---
+//           // 🚨 FIX: Extension ka wait nahi karenge, direct parent folder nikal kar naya naam banayenge
+//           final String dirPath = currentImage.parent.path;
+//           final String newPath = "$dirPath/baked_${DateTime.now().millisecondsSinceEpoch}.jpg";
+//           File newBakedFile = File(newPath);
+//
+//           await newBakedFile.writeAsBytes(img.encodeJpg(decodedImage, quality: 100));
+//
+//           // 🚨 FIX: Flutter Cache Clear karo taaki hamesha naya image load ho
+//           await FileImage(newBakedFile).evict();
+//
+//           // --- D. STATE UPDATE AUR SETTINGS RESET ---
+//           setState(() {
+//             // Original aur cropped dono me daalo taaki Crop tool error na de
+//             widget.imageFiles[currentPage]['original'] = newBakedFile;
+//             widget.imageFiles[currentPage]['cropped'] = newBakedFile;
+//
+//             // Saari settings wapas 0 kardo
+//             _imageQuarterTurns[currentPage] = 0;
+//             _pageFilters[currentPage] = "Original color";
+//             _pageBrightness[currentPage] = 0.0;
+//             _pageContrast[currentPage] = 0.0;
+//             _savedCropPositions[currentPage] = null;
+//             _autoCropPositions[currentPage] = null;
+//           });
+//
+//           // Ab Markup Screen me yahi nayi file jayegi
+//           currentImage = newBakedFile;
+//         }
+//       } catch (e) {
+//         print("Baking Error: $e");
+//         showToast("Error applying edits to image");
+//       } finally {
+//         if (mounted) Navigator.pop(context);
+//       }
+//     }
+//
+//     // Ab tumhari properly Processed (Baked) file MarkupScreen me jayegi
+//     if (!mounted) return;
+//     final editedFile = await Navigator.push(
+//       context,
+//       MaterialPageRoute(
+//         builder: (context) => MarkupScreen(imageFile: currentImage),
+//       ),
+//     );
+//
+//     // Agar user ne wahan edit kiya aur save kiya, toh UI update kardo
+//     if (editedFile != null && editedFile is File) {
+//
+//       // 🚨 FIX: Markup se aane ke baad bhi purani cache hata do
+//       await FileImage(editedFile).evict();
+//
+//       setState(() {
+//         // Yahan bhi Original ko update karo, taaki drawn image par future edit sahi se ho
+//         widget.imageFiles[currentPage]['original'] = editedFile;
+//         widget.imageFiles[currentPage]['cropped'] = editedFile;
+//
+//         // Ek baar fir sab reset kardo strictly
+//         _imageQuarterTurns[currentPage] = 0;
+//         _pageFilters[currentPage] = "Original color";
+//         _pageBrightness[currentPage] = 0.0;
+//         _pageContrast[currentPage] = 0.0;
+//       });
+//       showToast("Markup applied to Page ${currentPage + 1}");
+//     }
+//   }
+
+  // // --- MARKUP LOGIC ---
+  // Future<void> _openMarkupScreen() async {
+  //   File currentImage = widget.imageFiles[currentPage]['cropped']!;
+  //   File fileToMarkup = currentImage;
+  //
+  //   int turns = _imageQuarterTurns[currentPage];
+  //   String activeFilter = _pageFilters[currentPage];
+  //   double activeBright = _pageBrightness[currentPage];
+  //   double activeContrast = _pageContrast[currentPage];
+  //
+  //   bool hasRotation = turns != 0;
+  //   bool hasFilter = activeFilter != "Original color";
+  //   bool hasAdjust = activeBright != 0.0 || activeContrast != 0.0;
+  //
+  //   if (hasRotation || hasFilter || hasAdjust) {
+  //     showDialog(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+  //     );
+  //
+  //     try {
+  //       final imageBytes = await currentImage.readAsBytes();
+  //       img.Image? decodedImage = img.decodeImage(imageBytes);
+  //
+  //       if (decodedImage != null) {
+  //         // 🚨 NAYA: Universal Sync logic chalaya! (UI ka exactly same copy hoga)
+  //         decodedImage = _processImageSync(decodedImage, turns, activeFilter, activeBright, activeContrast);
+  //
+  //         final String dirPath = currentImage.parent.path;
+  //         final String tempPath = "$dirPath/temp_markup_${DateTime.now().millisecondsSinceEpoch}.jpg";
+  //         File tempBakedFile = File(tempPath);
+  //         await tempBakedFile.writeAsBytes(img.encodeJpg(decodedImage, quality: 100));
+  //
+  //         fileToMarkup = tempBakedFile;
+  //       }
+  //     } catch (e) {
+  //       print("Temp Baking Error: $e");
+  //       showToast("Error preparing image for markup");
+  //       if (mounted) Navigator.pop(context);
+  //       return;
+  //     }
+  //
+  //     if (mounted) Navigator.pop(context);
+  //   }
+  //
+  //   if (!mounted) return;
+  //   final editedFile = await Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => MarkupScreen(imageFile: fileToMarkup)),
+  //   );
+  //
+  //   if (editedFile != null && editedFile is File) {
+  //     await FileImage(editedFile).evict();
+  //
+  //     setState(() {
+  //       widget.imageFiles[currentPage]['original'] = editedFile;
+  //       widget.imageFiles[currentPage]['cropped'] = editedFile;
+  //
+  //       _imageQuarterTurns[currentPage] = 0;
+  //       _pageFilters[currentPage] = "Original color";
+  //       _pageBrightness[currentPage] = 0.0;
+  //       _pageContrast[currentPage] = 0.0;
+  //       _savedCropPositions[currentPage] = null;
+  //       _autoCropPositions[currentPage] = null;
+  //     });
+  //     showToast("Markup applied");
+  //   } else {
+  //     if (fileToMarkup.path.contains('temp_markup_')) {
+  //       if (await fileToMarkup.exists()) {
+  //         await fileToMarkup.delete();
+  //       }
+  //     }
+  //   }
+  // }
 
   Widget _buildCropSubTools() {
     // FIX: Same size ka SizedBox taaki switcher me smooth transition ho
