@@ -14,6 +14,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'home_screen.dart';
 import 'markup_screen.dart';
 
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+
 class DocumentEditorScreen extends StatefulWidget {
   //final List<File> imageFiles; // Real images coming from ScannerScreen
   final List<Map<String, File>> imageFiles;
@@ -76,6 +79,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late List<double> _pageContrast;   // 🚨 Har page ka contrast
   String _activeAdjustTab = "Brightness"; // "Brightness" ya "Contrast" track karega
 
+  // Har image kitni baar rotate hui hai (0, 1, 2, ya 3) uski list
+  //late List<int> _imageQuarterTurns;
+
+  // 🚨 NAYA VARIABLE: Vector (Drawing/Shapes/Text) data store karne ke liye
+  late List<dynamic> _pageMarkups;
+
   @override
   void initState() {
     super.initState();
@@ -99,6 +108,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageFilters = List.filled(widget.imageFiles.length, "Original color"); // 🚨 Default filter set kiya
     _pageBrightness = List.filled(widget.imageFiles.length, 0.0); // Default 0
     _pageContrast = List.filled(widget.imageFiles.length, 0.0);   // Default 0
+
+    _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
+    _pageFilters = List.filled(widget.imageFiles.length, "Original color");
+    _pageBrightness = List.filled(widget.imageFiles.length, 0.0);
+    _pageContrast = List.filled(widget.imageFiles.length, 0.0);
+
+    // 🚨 NAYA: Empty markups list init
+    _pageMarkups = List.filled(widget.imageFiles.length, null);
   }
 
   @override
@@ -389,50 +406,101 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   // 3. Main PDF generate karne ka function (With Real Image Rotation)
+  // Future<void> _generateAndSavePdf() async {
+  //   showToast("Generating PDF...");
+  //
+  //   final pdf = pw.Document();
+  //   for (int i = 0; i < widget.imageFiles.length; i++) {
+  //     var map = widget.imageFiles[i];
+  //     final File file = map['cropped']!;
+  //
+  //     var imageBytes = await file.readAsBytes();
+  //
+  //     int turns = _imageQuarterTurns[i];
+  //     String activeFilter = _pageFilters[i];
+  //     double activeBright = _pageBrightness[i];
+  //     double activeContrast = _pageContrast[i];
+  //
+  //     // 🚨 NAYA: Ab PDF me bhi Filter aur Adjust properly save honge!
+  //     if (turns != 0 || activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
+  //       img.Image? decodedImage = img.decodeImage(imageBytes);
+  //       if (decodedImage != null) {
+  //         decodedImage = _processImageSync(decodedImage, turns, activeFilter, activeBright, activeContrast);
+  //         imageBytes = img.encodeJpg(decodedImage, quality: 90);
+  //       }
+  //     }
+  //
+  //     final image = pw.MemoryImage(imageBytes);
+  //
+  //     pdf.addPage(
+  //       pw.Page(
+  //         margin: pw.EdgeInsets.zero,
+  //         pageFormat: PdfPageFormat.a4,
+  //         build: (context) {
+  //           return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+  //         },
+  //       ),
+  //     );
+  //   }
+  //
+  //   try {
+  //     // 1. Storage Permission Manage Karo
+  //     if (await Permission.manageExternalStorage.isDenied) {
+  //       await Permission.manageExternalStorage.request();
+  //     }
+  //
+  //     if (!await Permission.manageExternalStorage.isGranted) {
+  //       showToast("Storage permission is required to save PDF");
+  //       return;
+  //     }
+  //
+  //     // 2. Public Documents folder ka path set karein
+  //     final Directory publicDir = Directory(
+  //       '/storage/emulated/0/Documents/PDF Scanner Pro',
+  //     );
+  //
+  //     // 3. Agar folder nahi hai, toh naya banao
+  //     if (!await publicDir.exists()) {
+  //       await publicDir.create(recursive: true);
+  //     }
+  //
+  //     // 4. Unique File Name Generator
+  //     String baseFilePath = "${publicDir.path}/$documentName";
+  //     String finalFilePath = "$baseFilePath.pdf";
+  //     File file = File(finalFilePath);
+  //
+  //     int counter = 1;
+  //     while (await file.exists()) {
+  //       finalFilePath = "$baseFilePath ($counter).pdf";
+  //       file = File(finalFilePath);
+  //       counter++;
+  //     }
+  //
+  //     // Safely save karein naye unique naam ke sath
+  //     await file.writeAsBytes(await pdf.save());
+  //
+  //     showToast("Saved in Documents/PDF Scanner Pro");
+  //
+  //     // 5. Seedhe Home Screen par redirect aur baaki sab close
+  //     if (mounted) {
+  //       Navigator.pushAndRemoveUntil(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //         (Route<dynamic> route) => false,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     showToast("Error saving PDF: $e");
+  //     print("Save Error: $e");
+  //   }
+  // }
+
+  // 3. Main PDF generate karne ka function (With Real Image Rotation & Markups)
+  // 3. Main PDF generate karne ka function (With Real Image Rotation & Markups)
   Future<void> _generateAndSavePdf() async {
     showToast("Generating PDF...");
 
     final pdf = pw.Document();
-
-    // 🚨 FIX: Yahan 'for in' loop ki jagah index (i) wala loop use kiya
-    // taaki hum check kar sakein ki kis photo ko kitna rotate karna hai
-    // for (int i = 0; i < widget.imageFiles.length; i++) {
-    //   var map = widget.imageFiles[i];
-    //   final File file = map['cropped']!;
-    //
-    //   // 1. Pehle image ki file ko bytes mein read karo
-    //   var imageBytes = await file.readAsBytes();
-    //
-    //   // 2. 🚨 REAL ROTATION LOGIC: Check karo ki kya is page ka rotate icon click hua tha?
-    //   int turns = _imageQuarterTurns[i];
-    //   if (turns != 0) {
-    //     // Agar photo rotate hui hai, toh real mein usko ghumao
-    //     img.Image? decodedImage = img.decodeImage(imageBytes);
-    //     if (decodedImage != null) {
-    //       // 1 turn = 90 degrees, 2 turns = 180 degrees
-    //       img.Image rotatedImage = img.copyRotate(
-    //         decodedImage,
-    //         angle: turns * 90,
-    //       );
-    //       // Ghumi hui photo ko wapas bytes mein convert karo
-    //       imageBytes = img.encodeJpg(rotatedImage, quality: 90);
-    //     }
-    //   }
-    //
-    //   // 3. Ab in final (ghumi hui) bytes ko PDF me dalo
-    //   final image = pw.MemoryImage(imageBytes);
-    //
-    //   pdf.addPage(
-    //     pw.Page(
-    //       margin: pw.EdgeInsets.zero,
-    //       pageFormat: PdfPageFormat.a4,
-    //       build: (context) {
-    //         return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-    //       },
-    //     ),
-    //   );
-    // }
-
     for (int i = 0; i < widget.imageFiles.length; i++) {
       var map = widget.imageFiles[i];
       final File file = map['cropped']!;
@@ -444,15 +512,61 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       double activeBright = _pageBrightness[i];
       double activeContrast = _pageContrast[i];
 
-      // 🚨 NAYA: Ab PDF me bhi Filter aur Adjust properly save honge!
-      if (turns != 0 || activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
+      // --- STEP 1: APPLY FILTERS ONLY (Bina Rotate Kiye) ---
+      if (activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
         img.Image? decodedImage = img.decodeImage(imageBytes);
         if (decodedImage != null) {
-          decodedImage = _processImageSync(decodedImage, turns, activeFilter, activeBright, activeContrast);
-          imageBytes = img.encodeJpg(decodedImage, quality: 90);
+          // 🚨 FIX: Yahan 'turns' ko 0 pass kar rahe hain taaki abhi photo na ghume
+          decodedImage = _processImageSync(decodedImage, 0, activeFilter, activeBright, activeContrast);
+          imageBytes = img.encodeJpg(decodedImage, quality: 100);
         }
       }
 
+      // --- STEP 2: STAMP VECTOR DRAWINGS (Bina Ghumi hui photo par) ---
+      if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
+        MarkupExportData exportData = _pageMarkups[i];
+
+        ui.Codec codec = await ui.instantiateImageCodec(imageBytes);
+        ui.FrameInfo frameInfo = await codec.getNextFrame();
+        ui.Image uiImg = frameInfo.image;
+
+        final ui.PictureRecorder recorder = ui.PictureRecorder();
+        final Canvas canvas = Canvas(recorder);
+        final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
+
+        canvas.drawImage(uiImg, Offset.zero, Paint());
+
+        DrawingPainter painter = DrawingPainter(
+          paths: exportData.paths,
+          currentPoints: [],
+          currentColor: Colors.transparent,
+          currentStrokeWidth: 0,
+          currentOpacity: 0,
+          isEraser: false,
+        );
+        painter.paint(canvas, size);
+
+        final ui.Picture picture = recorder.endRecording();
+        final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
+        final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
+
+        if (byteData != null) {
+          // Drawing photo me fix ho chuki hai
+          imageBytes = byteData.buffer.asUint8List();
+        }
+      }
+
+      // --- STEP 3: APPLY ROTATION LAST MEIN (Drawing lagne ke baad) ---
+      if (turns != 0) {
+        img.Image? decodedStampedImage = img.decodeImage(imageBytes);
+        if (decodedStampedImage != null) {
+          // 🚨 FIX: Ab photo aur drawing ek sath perfectly ghum jayenge (UI jaisa exact match)
+          decodedStampedImage = img.copyRotate(decodedStampedImage, angle: turns * 90);
+          imageBytes = img.encodeJpg(decodedStampedImage, quality: 90);
+        }
+      }
+
+      // --- STEP 4: ADD TO PDF ---
       final image = pw.MemoryImage(imageBytes);
 
       pdf.addPage(
@@ -509,7 +623,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (Route<dynamic> route) => false,
+              (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
@@ -517,6 +631,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       print("Save Error: $e");
     }
   }
+
+
 
   // Show toast notification
   void showToast(String msg) {
@@ -749,6 +865,29 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     if (_showFilterMenu) setState(() => _showFilterMenu = false);
                                     if (_showAdjustMenu) setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
                                   },
+                                  // child: InteractiveViewer(
+                                  //   minScale: 1.0, maxScale: 5.0, clipBehavior: Clip.none,
+                                  //   child: Center(
+                                  //     child: Padding(
+                                  //       padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                                  //       child: RotatedBox(
+                                  //         quarterTurns: _imageQuarterTurns[index],
+                                  //         // 🚨 FIX: Filter aur Adjust dono ka ColorFilter ek saath chain kiya
+                                  //         child: ColorFiltered(
+                                  //           colorFilter: _getAdjustColorFilter(_pageBrightness[index], _pageContrast[index]),
+                                  //           child: ColorFiltered(
+                                  //             colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                  //             child: Image.file(
+                                  //               widget.imageFiles[index]['cropped']!,
+                                  //               fit: BoxFit.contain,
+                                  //             ),
+                                  //           ),
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
+
                                   child: InteractiveViewer(
                                     minScale: 1.0, maxScale: 5.0, clipBehavior: Clip.none,
                                     child: Center(
@@ -756,16 +895,39 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
                                         child: RotatedBox(
                                           quarterTurns: _imageQuarterTurns[index],
-                                          // 🚨 FIX: Filter aur Adjust dono ka ColorFilter ek saath chain kiya
-                                          child: ColorFiltered(
-                                            colorFilter: _getAdjustColorFilter(_pageBrightness[index], _pageContrast[index]),
-                                            child: ColorFiltered(
-                                              colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                              child: Image.file(
-                                                widget.imageFiles[index]['cropped']!,
-                                                fit: BoxFit.contain,
+                                          // 🚨 NAYA: Stack add kiya taaki Image ke theek upar Drawing layer aa sake!
+                                          child: Stack(
+                                            alignment: Alignment.center,
+                                            children: [
+                                              // Layer 1: Base Image with Filters
+                                              ColorFiltered(
+                                                colorFilter: _getAdjustColorFilter(_pageBrightness[index], _pageContrast[index]),
+                                                child: ColorFiltered(
+                                                  colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                                  child: Image.file(
+                                                    widget.imageFiles[index]['cropped']!,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
                                               ),
-                                            ),
+
+                                              // Layer 2: Vector Markups (Drawing strokes sirf)
+                                              if (_pageMarkups[index] != null && _pageMarkups[index] is MarkupExportData)
+                                                Positioned.fill(
+                                                  child: CustomPaint(
+                                                    painter: DrawingPainter(
+                                                      paths: (_pageMarkups[index] as MarkupExportData).paths,
+                                                      currentPoints: [], // Main screen par koi live drawing nahi
+                                                      currentColor: Colors.transparent,
+                                                      currentStrokeWidth: 0,
+                                                      currentOpacity: 0,
+                                                      isEraser: false,
+                                                    ),
+                                                  ),
+                                                ),
+
+                                              // Future Layer 3: Yahan tum chaho toh Shapes aur Text bhi loop laga kar display kar sakte ho!
+                                            ],
                                           ),
                                         ),
                                       ),
@@ -1459,34 +1621,73 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   // --- MARKUP LOGIC ---
-  Future<void> _openMarkupScreen() async {
-    // Current image ko nayi screen me bhejo
-    File originalImage = widget.imageFiles[currentPage]['cropped']!;
+  // Future<void> _openMarkupScreen() async {
+  //   // Current image ko nayi screen me bhejo
+  //   File originalImage = widget.imageFiles[currentPage]['cropped']!;
+  //
+  //   final editedFile = await Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => MarkupScreen(imageFile: originalImage),
+  //     ),
+  //   );
+  //
+  //   // Agar user ne 'OK (Tick)' dabaya, toh edited image wapas aayegi
+  //   if (editedFile != null && editedFile is File) {
+  //     setState(() {
+  //       widget.imageFiles[currentPage]['cropped'] = editedFile;
+  //
+  //       // Nayi drawing aayi hai, toh purana crop/rotate settings reset kardo
+  //       _imageQuarterTurns[currentPage] = 0;
+  //       _savedCropPositions[currentPage] = null;
+  //       _autoCropPositions[currentPage] = null;
+  //       _pageFilters[currentPage] = "Original color";
+  //       _pageBrightness[currentPage] = 0.0;
+  //       _pageContrast[currentPage] = 0.0;
+  //     });
+  //     showToast("Markup applied to Page ${currentPage + 1}");
+  //   }
+  // }
 
-    final editedFile = await Navigator.push(
+  // --- MARKUP LOGIC (VECTOR APPROACH) ---
+  Future<void> _openMarkupScreen() async {
+    File currentImage = widget.imageFiles[currentPage]['cropped']!;
+
+    // 1. Saari current settings variables me save karo
+    int turns = _imageQuarterTurns[currentPage];
+    String activeFilter = _pageFilters[currentPage];
+    double activeBright = _pageBrightness[currentPage];
+    double activeContrast = _pageContrast[currentPage];
+    dynamic existingMarkups = _pageMarkups[currentPage];
+
+    // 2. INSTANT NAVIGATION: Bina kisi delay ke direct push karo aur parameters bhej do
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MarkupScreen(imageFile: originalImage),
+        builder: (context) => MarkupScreen(
+          imageFile: currentImage,
+          rotationTurns: turns,          // 🚨 Naye parameters jo Markup me UI sync karenge
+          filterName: activeFilter,
+          brightness: activeBright,
+          contrast: activeContrast,
+          existingMarkups: existingMarkups,
+        ),
       ),
     );
 
-    // Agar user ne 'OK (Tick)' dabaya, toh edited image wapas aayegi
-    if (editedFile != null && editedFile is File) {
+    // 3. RESULT: Jab user Save karke wapas aayega, toh Image nahi, Vectors aayenge!
+    if (result != null) {
       setState(() {
-        widget.imageFiles[currentPage]['cropped'] = editedFile;
-
-        // Nayi drawing aayi hai, toh purana crop/rotate settings reset kardo
-        _imageQuarterTurns[currentPage] = 0;
-        _savedCropPositions[currentPage] = null;
-        _autoCropPositions[currentPage] = null;
-        _pageFilters[currentPage] = "Original color";
-        _pageBrightness[currentPage] = 0.0;
-        _pageContrast[currentPage] = 0.0;
+        // Naye drawing/text vectors ko save kar lo. (Photo me koi pixel change nahi hua hai)
+        _pageMarkups[currentPage] = result;
       });
       showToast("Markup applied to Page ${currentPage + 1}");
     }
   }
 
+
+
+  ///old
   // --- MARKUP LOGIC ---
 // // --- MARKUP LOGIC ---
 //   Future<void> _openMarkupScreen() async {
