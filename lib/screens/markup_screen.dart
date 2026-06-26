@@ -1522,11 +1522,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 5),
               GestureDetector(
                 onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
@@ -1539,7 +1539,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               GestureDetector(
                 onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
@@ -1555,7 +1555,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               GestureDetector(
                 onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
@@ -1571,7 +1571,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               GestureDetector(
                 onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
@@ -1584,7 +1584,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 4),
 
               // 🚨 NAYA: Rotate Button (Copy button se pehle)
               GestureDetector(
@@ -1595,7 +1595,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 })
                     : null,
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: 36,
                   height: 36,
                   child: Icon(
@@ -1616,14 +1616,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       })
                     : null,
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: 36,
                   height: 36,
                   child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38),
                 ),
               ),
-
-
 
               GestureDetector(
                 onTap: hasActiveText
@@ -1633,7 +1631,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       })
                     : null,
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
                   width: 36,
                   height: 36,
                   child: Icon(
