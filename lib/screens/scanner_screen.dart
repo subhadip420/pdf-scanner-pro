@@ -752,6 +752,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
         return;
       }
 
+      // 🚨 FIX: Gallery me jane se pehle ML Kit background processing rok do taaki crash na ho
+      if (controller.value.isStreamingImages) {
+        await controller.stopImageStream();
+      }
+
       // 🚨 Puraane AssetPicker.pickAssets() ki jagah hum apni custom screen call karenge
       final List<File>? selectedFiles = await Navigator.push(
         context,
