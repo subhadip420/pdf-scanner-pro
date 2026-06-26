@@ -1859,7 +1859,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 0),
+
+        // 🚨 NAYA: Opacity Slider
+        _buildSlider("Opacity", active?.color.opacity ?? 1.0, 0.1, 1.0, (val) {
+          setState(() {
+            if (active != null) {
+              // Current color ko nayi opacity ke sath update karega
+              active.color = active.color.withOpacity(val);
+            }
+          });
+        }),
+
+        const SizedBox(height: 0),
 
         _buildSlider("Size", active?.size ?? 100.0, 20, 500, (val) {
           setState(() {
@@ -1867,7 +1879,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
           });
         }),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 0),
         // 4. 4th Row: Scrollable Shapes
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -1914,7 +1926,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 5),
       ],
     );
   }
