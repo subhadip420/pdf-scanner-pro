@@ -1481,7 +1481,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
           child: Row(
             children: [
               // Appearance (A) - 4 Modes
-              GestureDetector(
+            Tooltip(
+            message: "Text Appearance",
+              child: GestureDetector(
                 onTap: () => setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4),
                 child: Container(
                   width: 36,
@@ -1523,8 +1525,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                 ),
               ),
+              ),
               const SizedBox(width: 5),
-              GestureDetector(
+
+          Tooltip(
+            message: "Bold Text", // 👈 Yahan Tooltip add kiya gaya hai
+            child: GestureDetector(
                 onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1536,8 +1542,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                   child: Icon(Icons.format_bold_rounded, color: activeItem.isBold ? Colors.blueAccent : Colors.white),
                 ),
+            ),
               ),
-              GestureDetector(
+
+          Tooltip(
+            message: "Underline Text", // 👈 Yahan Tooltip add kiya gaya hai
+            child: GestureDetector(
                 onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1552,8 +1562,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     color: activeItem.isUnderline ? Colors.blueAccent : Colors.white,
                   ),
                 ),
+            ),
               ),
-              GestureDetector(
+
+          Tooltip(
+            message: "Italic", // 👈 Yahan Tooltip add kiya gaya hai
+            child: GestureDetector(
                 onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1568,8 +1582,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     color: activeItem.isItalic ? Colors.blueAccent : Colors.white,
                   ),
                 ),
+            ),
               ),
-              GestureDetector(
+
+          Tooltip(
+            message: "Strikethrough", // 👈 Yahan Tooltip add kiya gaya hai
+            child: GestureDetector(
                 onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1584,11 +1602,15 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     color: activeItem.isStrikethrough ? Colors.blueAccent : Colors.white,
                   ),
                 ),
+            ),
               ),
+
               const SizedBox(width: 4),
 
               // 🚨 NAYA: Rotate Button (Copy button se pehle)
-              GestureDetector(
+          Tooltip(
+            message: "Rotate 90°", // 👈 Yahan Tooltip add kiya gaya hai
+            child: GestureDetector(
                 onTap: hasActiveText
                     ? () => setState(() {
                   // Har click par text 90 degrees (π/2 radians) rotate hoga
@@ -1604,10 +1626,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     color: hasActiveText ? Colors.white : Colors.white38,
                   ),
                 ),
+            ),
               ),
 
               // Duplicate (Agar text select nahi hai, toh disable rahega)
-              GestureDetector(
+          Tooltip(
+            message: "Duplicate Text", // 👈 Yahan Tooltip add kiya gaya hai
+            child: GestureDetector(
                 onTap: hasActiveText
                     ? () => setState(() {
                         TextOverlayItem duplicateItem = _activeTextItem!.clone();
@@ -1622,9 +1647,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   height: 36,
                   child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38),
                 ),
+            ),
               ),
 
-              GestureDetector(
+          Tooltip(
+            message: "Delete Text", // 👈 Yahan Tooltip add kiya gaya hai
+            child: GestureDetector(
                 onTap: hasActiveText
                     ? () => setState(() {
                         _textItems.remove(_activeTextItem);
@@ -1640,6 +1668,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     color: hasActiveText ? Colors.redAccent : Colors.white38,
                   ),
                 ),
+            ),
               ),
             ],
           ),
