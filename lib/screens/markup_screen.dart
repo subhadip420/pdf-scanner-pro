@@ -6,6 +6,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math' as math;
 
 // 🚨 YAHAN ADD KARO (Lines 9-10 ke aas-paas)
 class MarkupExportData {
@@ -685,19 +686,37 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                             child: Transform.rotate(
                                               angle: item.rotation,
                                               child: GestureDetector(
+                                                // onPanUpdate: (details) {
+                                                //   if (_activeTab == "Text") {
+                                                //     setState(() {
+                                                //       RenderBox renderBox =
+                                                //           _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                //       Offset localDelta =
+                                                //           renderBox.globalToLocal(details.globalPosition) -
+                                                //           renderBox.globalToLocal(
+                                                //             details.globalPosition - details.delta,
+                                                //           );
+                                                //       item.offset += Offset(
+                                                //         localDelta.dx / renderBox.size.width,
+                                                //         localDelta.dy / renderBox.size.height,
+                                                //       );
+                                                //     });
+                                                //   }
+                                                // },
                                                 onPanUpdate: (details) {
                                                   if (_activeTab == "Text") {
                                                     setState(() {
                                                       RenderBox renderBox =
-                                                          _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                                      Offset localDelta =
-                                                          renderBox.globalToLocal(details.globalPosition) -
-                                                          renderBox.globalToLocal(
-                                                            details.globalPosition - details.delta,
-                                                          );
+                                                      _canvasKey.currentContext!.findRenderObject() as RenderBox;
+
+                                                      // 🚨 FIX: Dragging angle ko canvas rotation ke hisaab se reverse kiya
+                                                      double angle = -widget.rotationTurns * (math.pi / 2);
+                                                      double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
+                                                      double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
+
                                                       item.offset += Offset(
-                                                        localDelta.dx / renderBox.size.width,
-                                                        localDelta.dy / renderBox.size.height,
+                                                        dx / renderBox.size.width,
+                                                        dy / renderBox.size.height,
                                                       );
                                                     });
                                                   }
@@ -905,11 +924,24 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                               angle: shape.rotation,
                                               child: GestureDetector(
                                                 behavior: HitTestBehavior.translucent,
+                                                // onPanUpdate: (details) {
+                                                //   setState(() {
+                                                //     shape.offset += Offset(
+                                                //       details.delta.dx / canvasW,
+                                                //       details.delta.dy / canvasH,
+                                                //     );
+                                                //   });
+                                                // },
                                                 onPanUpdate: (details) {
                                                   setState(() {
+                                                    // 🚨 FIX: Shape dragging angle ko canvas rotation ke hisaab se reverse kiya
+                                                    double angle = -widget.rotationTurns * (math.pi / 2);
+                                                    double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
+                                                    double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
+
                                                     shape.offset += Offset(
-                                                      details.delta.dx / canvasW,
-                                                      details.delta.dy / canvasH,
+                                                      dx / canvasW,
+                                                      dy / canvasH,
                                                     );
                                                   });
                                                 },
@@ -1002,6 +1034,67 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                           ),
                                                         ),
                                                       // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
+                                                      // if (isActive)
+                                                      //   Positioned(
+                                                      //     left: -12,
+                                                      //     bottom: -12,
+                                                      //     child: GestureDetector(
+                                                      //       behavior: HitTestBehavior.opaque,
+                                                      //       // onPanUpdate: (details) {
+                                                      //       //   setState(() {
+                                                      //       //     double sensitivity = 0.01;
+                                                      //       //
+                                                      //       //     double newScaleX =
+                                                      //       //         shape.scaleX - (details.delta.dx * sensitivity);
+                                                      //       //     double newScaleY =
+                                                      //       //         shape.scaleY + (details.delta.dy * sensitivity);
+                                                      //       //
+                                                      //       //     // 🚨 FIX: Shape ko exactly 0 (invisible) hone se roko
+                                                      //       //     if (newScaleX.abs() < 0.1)
+                                                      //       //       newScaleX = newScaleX < 0 ? -0.1 : 0.1;
+                                                      //       //     if (newScaleY.abs() < 0.1)
+                                                      //       //       newScaleY = newScaleY < 0 ? -0.1 : 0.1;
+                                                      //       //
+                                                      //       //     shape.scaleX = newScaleX;
+                                                      //       //     shape.scaleY = newScaleY;
+                                                      //       //   });
+                                                      //       // },
+                                                      //       onPanUpdate: (details) {
+                                                      //         setState(() {
+                                                      //           double sensitivity = 0.01;
+                                                      //
+                                                      //           // 🚨 FIX: Resize handle dragging ko bhi reverse kiya
+                                                      //           double angle = -widget.rotationTurns * (math.pi / 2);
+                                                      //           double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
+                                                      //           double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
+                                                      //
+                                                      //           double newScaleX = shape.scaleX - (dx * sensitivity);
+                                                      //           double newScaleY = shape.scaleY + (dy * sensitivity);
+                                                      //
+                                                      //           if (newScaleX.abs() < 0.1) newScaleX = newScaleX < 0 ? -0.1 : 0.1;
+                                                      //           if (newScaleY.abs() < 0.1) newScaleY = newScaleY < 0 ? -0.1 : 0.1;
+                                                      //
+                                                      //           shape.scaleX = newScaleX;
+                                                      //           shape.scaleY = newScaleY;
+                                                      //         });
+                                                      //       },
+                                                      //       child: Container(
+                                                      //         padding: const EdgeInsets.all(5),
+                                                      //         decoration: BoxDecoration(
+                                                      //           color: Colors.white,
+                                                      //           shape: BoxShape.circle,
+                                                      //           border: Border.all(color: Colors.black, width: 1),
+                                                      //         ),
+                                                      //         child: const Icon(
+                                                      //           Icons.open_in_full_rounded,
+                                                      //           color: Colors.blueAccent,
+                                                      //           size: 14,
+                                                      //         ),
+                                                      //       ),
+                                                      //     ),
+                                                      //   ),
+
+                                                      // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
                                                       if (isActive)
                                                         Positioned(
                                                           left: -12,
@@ -1012,16 +1105,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                               setState(() {
                                                                 double sensitivity = 0.01;
 
-                                                                double newScaleX =
-                                                                    shape.scaleX - (details.delta.dx * sensitivity);
-                                                                double newScaleY =
-                                                                    shape.scaleY + (details.delta.dy * sensitivity);
+                                                                // 🚨 THE ULTIMATE FIX: Canvas ki rotation aur Shape ki apni rotation, DONO ko combine karke reverse karo!
+                                                                double totalAngle = (widget.rotationTurns * (math.pi / 2)) + shape.rotation;
+                                                                double angle = -totalAngle;
 
-                                                                // 🚨 FIX: Shape ko exactly 0 (invisible) hone se roko
-                                                                if (newScaleX.abs() < 0.1)
-                                                                  newScaleX = newScaleX < 0 ? -0.1 : 0.1;
-                                                                if (newScaleY.abs() < 0.1)
-                                                                  newScaleY = newScaleY < 0 ? -0.1 : 0.1;
+                                                                // Ab math.cos aur math.sin perfectly exact touch coordinate nikalenge
+                                                                double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
+                                                                double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
+
+                                                                double newScaleX = shape.scaleX - (dx * sensitivity);
+                                                                double newScaleY = shape.scaleY + (dy * sensitivity);
+
+                                                                if (newScaleX.abs() < 0.1) newScaleX = newScaleX < 0 ? -0.1 : 0.1;
+                                                                if (newScaleY.abs() < 0.1) newScaleY = newScaleY < 0 ? -0.1 : 0.1;
 
                                                                 shape.scaleX = newScaleX;
                                                                 shape.scaleY = newScaleY;
@@ -1370,6 +1466,23 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
             ),
 
+            // ElevatedButton.icon(
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: Colors.blueAccent,
+            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            //   ),
+            //   onPressed: () {
+            //     setState(() {
+            //       final newItem = activeItem.clone();
+            //       newItem.text = "";
+            //       // 🚨 MAIN FIX: Ab offset sirf percentage (0.5 = center) use karega
+            //       newItem.offset = const Offset(0.5, 0.5);
+            //       _textItems.add(newItem);
+            //       _activeTextItem = newItem;
+            //       _textEditorController.text = newItem.text;
+            //     });
+            //   },
+
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueAccent,
@@ -1379,8 +1492,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 setState(() {
                   final newItem = activeItem.clone();
                   newItem.text = "";
-                  // 🚨 MAIN FIX: Ab offset sirf percentage (0.5 = center) use karega
                   newItem.offset = const Offset(0.5, 0.5);
+                  // 🚨 FIX: Agar canvas rotated hai, toh text ko ulta ghuma do taaki user ko seedha dikhe!
+                  newItem.rotation = -widget.rotationTurns * (math.pi / 2);
+
                   _textItems.add(newItem);
                   _activeTextItem = newItem;
                   _textEditorController.text = newItem.text;
@@ -1804,23 +1919,40 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   // Shape Icon Helper
+  // Widget _buildShapeIcon(IconData icon) {
+  //   bool isSelected = _selectedShape == icon.toString(); // Tumhara shape state variable
+  //   return GestureDetector(
+  //     // onTap: () {
+  //     //   setState(() {
+  //     //     final newShape = ShapeItem(icon: icon, color: _selectedColor);
+  //     //     _shapeItems.add(newShape);
+  //     //     _activeShapeItem = newShape; // Isse shape select ho jayegi
+  //     //   });
+  //     // },
+  //     onTap: () {
+  //       setState(() {
+  //         // 🚨 FIX: Nayi shape banate waqt center offset ensure karo
+  //         final newShape = ShapeItem(
+  //           icon: icon,
+  //           color: _selectedColor,
+  //           offset: const Offset(0.5, 0.5), // Explicitly center
+  //         );
+  //         _shapeItems.add(newShape);
+  //         _activeShapeItem = newShape;
+  //       });
+  //     },
+
   Widget _buildShapeIcon(IconData icon) {
-    bool isSelected = _selectedShape == icon.toString(); // Tumhara shape state variable
+    bool isSelected = _selectedShape == icon.toString();
     return GestureDetector(
-      // onTap: () {
-      //   setState(() {
-      //     final newShape = ShapeItem(icon: icon, color: _selectedColor);
-      //     _shapeItems.add(newShape);
-      //     _activeShapeItem = newShape; // Isse shape select ho jayegi
-      //   });
-      // },
       onTap: () {
         setState(() {
-          // 🚨 FIX: Nayi shape banate waqt center offset ensure karo
           final newShape = ShapeItem(
             icon: icon,
             color: _selectedColor,
-            offset: const Offset(0.5, 0.5), // Explicitly center
+            offset: const Offset(0.5, 0.5),
+            // 🚨 FIX: Agar canvas rotated hai, toh shape ko ulta ghuma do taaki user ko seedha dikhe!
+            rotation: -widget.rotationTurns * (math.pi / 2),
           );
           _shapeItems.add(newShape);
           _activeShapeItem = newShape;
