@@ -14,11 +14,7 @@ class MarkupExportData {
   final List<TextOverlayItem> texts;
   final List<ShapeItem> shapes;
 
-  MarkupExportData({
-    required this.paths,
-    required this.texts,
-    required this.shapes,
-  });
+  MarkupExportData({required this.paths, required this.texts, required this.shapes});
 }
 
 class DrawnPath {
@@ -198,11 +194,59 @@ class _MarkupScreenState extends State<MarkupScreen> {
   // --- 🚨 NAYE FILTER LOGIC (Live Preview ke liye) ---
   ColorFilter? _getColorFilter(String filterName) {
     switch (filterName) {
-      case "Grayscale": return const ColorFilter.matrix([0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0, 0, 0, 1, 0,]);
-      case "Whiteboard": return const ColorFilter.matrix([1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0,]);
-      case "Light text": return const ColorFilter.matrix([1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0,]);
-      case "Auto-color": return const ColorFilter.matrix([1.2, -0.1, -0.1, 0, 10, -0.1, 1.2, -0.1, 0, 10, -0.1, -0.1, 1.2, 0, 10, 0, 0, 0, 1, 0,]);
-      case "Original color": default: return null;
+      case "Grayscale":
+        return const ColorFilter.matrix([
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+        ]);
+      case "Whiteboard":
+        return const ColorFilter.matrix([1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0]);
+      case "Light text":
+        return const ColorFilter.matrix([1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0]);
+      case "Auto-color":
+        return const ColorFilter.matrix([
+          1.2,
+          -0.1,
+          -0.1,
+          0,
+          10,
+          -0.1,
+          1.2,
+          -0.1,
+          0,
+          10,
+          -0.1,
+          -0.1,
+          1.2,
+          0,
+          10,
+          0,
+          0,
+          0,
+          1,
+          0,
+        ]);
+      case "Original color":
+      default:
+        return null;
     }
   }
 
@@ -210,9 +254,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     double b = brightness * 2.55;
     double c = 1.0 + (contrast / 100.0);
     double t = (1.0 - c) * 127.5;
-    return ColorFilter.matrix([
-      c, 0, 0, 0, t + b, 0, c, 0, 0, t + b, 0, 0, c, 0, t + b, 0, 0, 0, 1, 0,
-    ]);
+    return ColorFilter.matrix([c, 0, 0, 0, t + b, 0, c, 0, 0, t + b, 0, 0, c, 0, t + b, 0, 0, 0, 1, 0]);
   }
 
   void _unfocusAll() {
@@ -294,45 +336,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
     return discard ?? false;
   }
-
-  // Save the drawn canvas as a new image file
-  // Future<void> _saveMarkup() async {
-  //   setState(() {
-  //     _activeTextItem = null; // Text se selection border hatao
-  //     _activeShapeItem = null;
-  //     _textItems.removeWhere((item) => item.text.trim().isEmpty); // Khali text ko list se delete karo
-  //   });
-  //
-  //   // 🚨 MAIN FIX: Flutter ko screen update karne ke liye thoda time do (100ms)
-  //   // Warna UI refresh hone se pehle hi purani photo save ho jayegi!
-  //   await Future.delayed(const Duration(milliseconds: 100));
-  //
-  //   // Yahan loading indicator dikhana shuru hoga (Screen freeze hone se rokne ke liye wait use kiya)
-  //   if (!mounted) return;
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
-  //   );
-  //
-  //   try {
-  //     RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-  //     ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-  //     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  //     final pngBytes = byteData!.buffer.asUint8List();
-  //
-  //     final dir = await getTemporaryDirectory();
-  //     final newFile = File('${dir.path}/markup_${DateTime.now().millisecondsSinceEpoch}.png');
-  //     await newFile.writeAsBytes(pngBytes);
-  //
-  //     if (mounted) {
-  //       Navigator.pop(context);
-  //       Navigator.pop(context, newFile);
-  //     }
-  //   } catch (e) {
-  //     if (mounted) Navigator.pop(context);
-  //   }
-  // }
 
   // Save the drawn canvas as Data (No Image Save)
   void _saveMarkup() {
@@ -514,15 +517,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 20),
-                        // child: RepaintBoundary(
-                        //   key: _globalKey,
-                        //   // 🚨 FEVICOL FIX 1: Ab Canvas EXACTLY Image ke size ka banega. No empty letterbox space!
-                        //   child: Stack(
-                        //     key: _canvasKey,
-                        //     clipBehavior: Clip.none,
-                        //     children: [
-                        //       // 1. BASE IMAGE (Bina 'BoxFit' ke, ye khudko exact ratio me set karega)
-                        //       Image.file(widget.imageFile),
 
                         child: RepaintBoundary(
                           key: _globalKey,
@@ -537,223 +531,241 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                 ColorFiltered(
                                   colorFilter: _getAdjustColorFilter(widget.brightness, widget.contrast),
                                   child: ColorFiltered(
-                                    colorFilter: _getColorFilter(widget.filterName) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                    colorFilter:
+                                        _getColorFilter(widget.filterName) ??
+                                        const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                     child: Image.file(widget.imageFile),
                                   ),
                                 ),
 
-                              // 2. DRAWING LAYER
-                              Positioned.fill(
-                                child: Listener(
-                                  onPointerDown: (_) {
-                                    setState(() {
-                                      _pointerCount++;
-                                      if (_pointerCount > 1 && _currentPoints.isNotEmpty) {
-                                        _currentPoints.add(null);
-                                        _paths.add(
-                                          DrawnPath(
-                                            points: List.from(_currentPoints),
-                                            color: _selectedColor,
-                                            strokeWidth: _strokeWidth,
-                                            opacity: _opacity,
-                                            isEraser: _activeTab == "Eraser",
-                                          ),
-                                        );
-                                        _currentPoints.clear();
-                                      }
-                                    });
-                                  },
-                                  onPointerUp: (_) => setState(() => _pointerCount--),
-                                  onPointerCancel: (_) => setState(() => _pointerCount--),
-                                  child: GestureDetector(
-                                    onPanStart: _pointerCount > 1
-                                        ? null
-                                        : (details) {
-                                            if (_activeTab == "Drawing") {
-                                              setState(() {
-                                                RenderBox renderBox =
-                                                    _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                                Offset localPos = renderBox.globalToLocal(details.globalPosition);
-                                                _currentPoints = [
-                                                  Offset(
-                                                    localPos.dx / renderBox.size.width,
-                                                    localPos.dy / renderBox.size.height,
-                                                  ),
-                                                ];
-                                              });
-                                            }
-                                          },
-                                    onPanUpdate: _pointerCount > 1
-                                        ? null
-                                        : (details) {
-                                            if (_activeTab == "Drawing") {
-                                              setState(() {
-                                                RenderBox renderBox =
-                                                    _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                                Offset localPos = renderBox.globalToLocal(details.globalPosition);
-                                                _currentPoints.add(
-                                                  Offset(
-                                                    localPos.dx / renderBox.size.width,
-                                                    localPos.dy / renderBox.size.height,
-                                                  ),
-                                                );
-                                              });
-                                            }
-                                          },
-                                    onPanEnd: _pointerCount > 1
-                                        ? null
-                                        : (details) {
-                                            if (_activeTab == "Drawing") {
-                                              if (_currentPoints.isEmpty) return;
-                                              setState(() {
-                                                _currentPoints.add(null);
-                                                _paths.add(
-                                                  DrawnPath(
-                                                    points: List.from(_currentPoints),
-                                                    color: _selectedColor,
-                                                    strokeWidth: _strokeWidth,
-                                                    opacity: _opacity,
-                                                    isEraser: _isEraserMode,
-                                                  ),
-                                                );
-                                                _currentPoints.clear();
-                                                _undonePaths.clear();
-                                              });
-                                            }
-                                          },
-                                    child: CustomPaint(
-                                      painter: DrawingPainter(
-                                        paths: _paths,
-                                        currentPoints: _currentPoints,
-                                        currentColor: _selectedColor,
-                                        currentStrokeWidth: _strokeWidth,
-                                        currentOpacity: _opacity,
-                                        isEraser: _isEraserMode,
+                                // 2. DRAWING LAYER
+                                Positioned.fill(
+                                  child: Listener(
+                                    onPointerDown: (_) {
+                                      setState(() {
+                                        _pointerCount++;
+                                        if (_pointerCount > 1 && _currentPoints.isNotEmpty) {
+                                          _currentPoints.add(null);
+                                          _paths.add(
+                                            DrawnPath(
+                                              points: List.from(_currentPoints),
+                                              color: _selectedColor,
+                                              strokeWidth: _strokeWidth,
+                                              opacity: _opacity,
+                                              isEraser: _activeTab == "Eraser",
+                                            ),
+                                          );
+                                          _currentPoints.clear();
+                                        }
+                                      });
+                                    },
+                                    onPointerUp: (_) => setState(() => _pointerCount--),
+                                    onPointerCancel: (_) => setState(() => _pointerCount--),
+                                    child: GestureDetector(
+                                      onPanStart: _pointerCount > 1
+                                          ? null
+                                          : (details) {
+                                              if (_activeTab == "Drawing") {
+                                                setState(() {
+                                                  RenderBox renderBox =
+                                                      _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                  Offset localPos = renderBox.globalToLocal(details.globalPosition);
+                                                  _currentPoints = [
+                                                    Offset(
+                                                      localPos.dx / renderBox.size.width,
+                                                      localPos.dy / renderBox.size.height,
+                                                    ),
+                                                  ];
+                                                });
+                                              }
+                                            },
+                                      onPanUpdate: _pointerCount > 1
+                                          ? null
+                                          : (details) {
+                                              if (_activeTab == "Drawing") {
+                                                setState(() {
+                                                  RenderBox renderBox =
+                                                      _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                  Offset localPos = renderBox.globalToLocal(details.globalPosition);
+                                                  _currentPoints.add(
+                                                    Offset(
+                                                      localPos.dx / renderBox.size.width,
+                                                      localPos.dy / renderBox.size.height,
+                                                    ),
+                                                  );
+                                                });
+                                              }
+                                            },
+                                      onPanEnd: _pointerCount > 1
+                                          ? null
+                                          : (details) {
+                                              if (_activeTab == "Drawing") {
+                                                if (_currentPoints.isEmpty) return;
+                                                setState(() {
+                                                  _currentPoints.add(null);
+                                                  _paths.add(
+                                                    DrawnPath(
+                                                      points: List.from(_currentPoints),
+                                                      color: _selectedColor,
+                                                      strokeWidth: _strokeWidth,
+                                                      opacity: _opacity,
+                                                      isEraser: _isEraserMode,
+                                                    ),
+                                                  );
+                                                  _currentPoints.clear();
+                                                  _undonePaths.clear();
+                                                });
+                                              }
+                                            },
+                                      child: CustomPaint(
+                                        painter: DrawingPainter(
+                                          paths: _paths,
+                                          currentPoints: _currentPoints,
+                                          currentColor: _selectedColor,
+                                          currentStrokeWidth: _strokeWidth,
+                                          currentOpacity: _opacity,
+                                          isEraser: _isEraserMode,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
 
-                              // 3. TEXT LAYER (Auto Scale & Attached to Center)
-                              Positioned.fill(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    // Yahan canvas/image ka exact width & height aayega
-                                    double canvasW = constraints.maxWidth;
-                                    double canvasH = constraints.maxHeight;
+                                // 3. TEXT LAYER (Auto Scale & Attached to Center)
+                                Positioned.fill(
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      // Yahan canvas/image ka exact width & height aayega
+                                      double canvasW = constraints.maxWidth;
+                                      double canvasH = constraints.maxHeight;
 
-                                    // 🚨 FEVICOL FIX 2: Text ki size Image ki size ke sath badi-choti hogi!
-                                    double scaleRatio = canvasW / 400.0;
+                                      // 🚨 FEVICOL FIX 2: Text ki size Image ki size ke sath badi-choti hogi!
+                                      double scaleRatio = canvasW / 400.0;
 
-                                    return Stack(
-                                      clipBehavior: Clip.none,
-                                      children: _textItems.map((item) {
-                                        bool isActive = _activeTextItem == item;
-                                        // Text size automatically image ke mutabik scale hogi
-                                        double scaledFontSize = item.fontSize * scaleRatio;
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: _textItems.map((item) {
+                                          bool isActive = _activeTextItem == item;
+                                          // Text size automatically image ke mutabik scale hogi
+                                          double scaledFontSize = item.fontSize * scaleRatio;
 
-                                        Color textColor = item.appearance == 0
-                                            ? item.color
-                                            : (item.appearance == 1 || item.appearance == 2)
-                                            ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
-                                            : Colors.white;
-                                        Color bgColor = item.appearance == 1
-                                            ? item.color
-                                            : item.appearance == 2
-                                            ? item.color.withOpacity(0.5)
-                                            : Colors.transparent;
+                                          Color textColor = item.appearance == 0
+                                              ? item.color
+                                              : (item.appearance == 1 || item.appearance == 2)
+                                              ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                                              : Colors.white;
+                                          Color bgColor = item.appearance == 1
+                                              ? item.color
+                                              : item.appearance == 2
+                                              ? item.color.withOpacity(0.5)
+                                              : Colors.transparent;
 
-                                        TextDecoration decoration = TextDecoration.none;
-                                        if (item.isUnderline && item.isStrikethrough) {
-                                          decoration = TextDecoration.combine([
-                                            TextDecoration.underline,
-                                            TextDecoration.lineThrough,
-                                          ]);
-                                        } else if (item.isUnderline) {
-                                          decoration = TextDecoration.underline;
-                                        } else if (item.isStrikethrough) {
-                                          decoration = TextDecoration.lineThrough;
-                                        }
+                                          TextDecoration decoration = TextDecoration.none;
+                                          if (item.isUnderline && item.isStrikethrough) {
+                                            decoration = TextDecoration.combine([
+                                              TextDecoration.underline,
+                                              TextDecoration.lineThrough,
+                                            ]);
+                                          } else if (item.isUnderline) {
+                                            decoration = TextDecoration.underline;
+                                          } else if (item.isStrikethrough) {
+                                            decoration = TextDecoration.lineThrough;
+                                          }
 
-                                        return Positioned(
-                                          // Offset image size ke percentage par multiply hua
-                                          left: item.offset.dx * canvasW,
-                                          top: item.offset.dy * canvasH,
-                                          // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
-                                          child: FractionalTranslation(
-                                            translation: const Offset(-0.5, -0.5),
-                                            child: Transform.rotate(
-                                              angle: item.rotation,
-                                              child: GestureDetector(
-                                                // onPanUpdate: (details) {
-                                                //   if (_activeTab == "Text") {
-                                                //     setState(() {
-                                                //       RenderBox renderBox =
-                                                //           _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                                //       Offset localDelta =
-                                                //           renderBox.globalToLocal(details.globalPosition) -
-                                                //           renderBox.globalToLocal(
-                                                //             details.globalPosition - details.delta,
-                                                //           );
-                                                //       item.offset += Offset(
-                                                //         localDelta.dx / renderBox.size.width,
-                                                //         localDelta.dy / renderBox.size.height,
-                                                //       );
-                                                //     });
-                                                //   }
-                                                // },
-                                                onPanUpdate: (details) {
-                                                  if (_activeTab == "Text") {
-                                                    setState(() {
-                                                      RenderBox renderBox =
-                                                      _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                          return Positioned(
+                                            // Offset image size ke percentage par multiply hua
+                                            left: item.offset.dx * canvasW,
+                                            top: item.offset.dy * canvasH,
+                                            // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
+                                            child: FractionalTranslation(
+                                              translation: const Offset(-0.5, -0.5),
+                                              child: Transform.rotate(
+                                                angle: item.rotation,
+                                                child: GestureDetector(
+                                                  onPanUpdate: (details) {
+                                                    if (_activeTab == "Text") {
+                                                      setState(() {
+                                                        RenderBox renderBox =
+                                                            _canvasKey.currentContext!.findRenderObject() as RenderBox;
 
-                                                      // 🚨 FIX: Dragging angle ko canvas rotation ke hisaab se reverse kiya
-                                                      double angle = -widget.rotationTurns * (math.pi / 2);
-                                                      double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
-                                                      double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
+                                                        // 🚨 FIX: Dragging angle ko canvas rotation ke hisaab se reverse kiya
+                                                        double angle = -widget.rotationTurns * (math.pi / 2);
+                                                        double dx =
+                                                            details.delta.dx * math.cos(angle) -
+                                                            details.delta.dy * math.sin(angle);
+                                                        double dy =
+                                                            details.delta.dx * math.sin(angle) +
+                                                            details.delta.dy * math.cos(angle);
 
-                                                      item.offset += Offset(
-                                                        dx / renderBox.size.width,
-                                                        dy / renderBox.size.height,
-                                                      );
-                                                    });
-                                                  }
-                                                },
-                                                onTap: () {
-                                                  if (_activeTab == "Text") {
-                                                    setState(() {
-                                                      _activeTextItem = item;
-                                                      _textEditorController.text = item.text;
-                                                    });
-                                                  }
-                                                },
-                                                child: Stack(
-                                                  clipBehavior: Clip.none,
-                                                  alignment: Alignment.center,
-                                                  children: [
-                                                    Container(
-                                                      padding: EdgeInsets.symmetric(
-                                                        horizontal: 16 * scaleRatio,
-                                                        vertical: 8 * scaleRatio,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        color: bgColor,
-                                                        borderRadius: BorderRadius.circular(8 * scaleRatio),
-                                                        border: isActive
-                                                            ? Border.all(color: Colors.white, width: 2)
-                                                            : Border.all(color: Colors.transparent, width: 2),
-                                                      ),
-                                                      child: IntrinsicWidth(
-                                                        child: Stack(
-                                                          alignment: Alignment.center,
-                                                          children: [
-                                                            if (item.appearance == 3)
-                                                              Text(
-                                                                item.text.isEmpty ? "Text" : item.text,
+                                                        item.offset += Offset(
+                                                          dx / renderBox.size.width,
+                                                          dy / renderBox.size.height,
+                                                        );
+                                                      });
+                                                    }
+                                                  },
+                                                  onTap: () {
+                                                    if (_activeTab == "Text") {
+                                                      setState(() {
+                                                        _activeTextItem = item;
+                                                        _textEditorController.text = item.text;
+                                                      });
+                                                    }
+                                                  },
+                                                  child: Stack(
+                                                    clipBehavior: Clip.none,
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      Container(
+                                                        padding: EdgeInsets.symmetric(
+                                                          horizontal: 16 * scaleRatio,
+                                                          vertical: 8 * scaleRatio,
+                                                        ),
+                                                        decoration: BoxDecoration(
+                                                          color: bgColor,
+                                                          borderRadius: BorderRadius.circular(8 * scaleRatio),
+                                                          border: isActive
+                                                              ? Border.all(color: Colors.white, width: 2)
+                                                              : Border.all(color: Colors.transparent, width: 2),
+                                                        ),
+                                                        child: IntrinsicWidth(
+                                                          child: Stack(
+                                                            alignment: Alignment.center,
+                                                            children: [
+                                                              if (item.appearance == 3)
+                                                                Text(
+                                                                  item.text.isEmpty ? "Text" : item.text,
+                                                                  textAlign: item.alignment,
+                                                                  style: TextStyle(
+                                                                    fontSize: scaledFontSize,
+                                                                    fontFamily: item.font,
+                                                                    fontWeight: item.isBold
+                                                                        ? FontWeight.bold
+                                                                        : FontWeight.normal,
+                                                                    fontStyle: item.isItalic
+                                                                        ? FontStyle.italic
+                                                                        : FontStyle.normal,
+                                                                    decoration: decoration,
+                                                                    foreground: Paint()
+                                                                      ..style = PaintingStyle.stroke
+                                                                      ..strokeWidth = scaledFontSize * 0.25
+                                                                      ..strokeJoin = StrokeJoin.round
+                                                                      ..strokeCap = StrokeCap.round
+                                                                      ..color = item.color,
+                                                                  ),
+                                                                ),
+                                                              TextField(
+                                                                controller: isActive
+                                                                    ? _textEditorController
+                                                                    : TextEditingController(text: item.text),
+                                                                enabled: isActive,
+                                                                autofocus: isActive,
                                                                 textAlign: item.alignment,
+                                                                maxLines: null,
+                                                                cursorColor: textColor,
+                                                                onChanged: (val) => setState(() => item.text = val),
                                                                 style: TextStyle(
+                                                                  color: textColor,
                                                                   fontSize: scaledFontSize,
                                                                   fontFamily: item.font,
                                                                   fontWeight: item.isBold
@@ -763,398 +775,98 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                                       ? FontStyle.italic
                                                                       : FontStyle.normal,
                                                                   decoration: decoration,
-                                                                  foreground: Paint()
-                                                                    ..style = PaintingStyle.stroke
-                                                                    ..strokeWidth = scaledFontSize * 0.25
-                                                                    ..strokeJoin = StrokeJoin.round
-                                                                    ..strokeCap = StrokeCap.round
-                                                                    ..color = item.color,
+                                                                  decorationColor: textColor,
+                                                                  shadows: item.appearance == 0
+                                                                      ? [
+                                                                          Shadow(
+                                                                            color: Colors.black54,
+                                                                            blurRadius: 4,
+                                                                            offset: Offset(1, 1),
+                                                                          ),
+                                                                        ]
+                                                                      : null,
+                                                                ),
+                                                                decoration: InputDecoration(
+                                                                  isDense: true,
+                                                                  contentPadding: EdgeInsets.zero,
+                                                                  border: InputBorder.none,
+                                                                  hintText: isActive ? "Text" : "",
+                                                                  hintStyle: TextStyle(
+                                                                    color: item.appearance == 3
+                                                                        ? Colors.transparent
+                                                                        : Colors.white54,
+                                                                    fontSize: scaledFontSize,
+                                                                  ),
                                                                 ),
                                                               ),
-                                                            TextField(
-                                                              controller: isActive
-                                                                  ? _textEditorController
-                                                                  : TextEditingController(text: item.text),
-                                                              enabled: isActive,
-                                                              autofocus: isActive,
-                                                              textAlign: item.alignment,
-                                                              maxLines: null,
-                                                              cursorColor: textColor,
-                                                              onChanged: (val) => setState(() => item.text = val),
-                                                              style: TextStyle(
-                                                                color: textColor,
-                                                                fontSize: scaledFontSize,
-                                                                fontFamily: item.font,
-                                                                fontWeight: item.isBold
-                                                                    ? FontWeight.bold
-                                                                    : FontWeight.normal,
-                                                                fontStyle: item.isItalic
-                                                                    ? FontStyle.italic
-                                                                    : FontStyle.normal,
-                                                                decoration: decoration,
-                                                                decorationColor: textColor,
-                                                                shadows: item.appearance == 0
-                                                                    ? [
-                                                                        Shadow(
-                                                                          color: Colors.black54,
-                                                                          blurRadius: 4,
-                                                                          offset: Offset(1, 1),
-                                                                        ),
-                                                                      ]
-                                                                    : null,
-                                                              ),
-                                                              decoration: InputDecoration(
-                                                                isDense: true,
-                                                                contentPadding: EdgeInsets.zero,
-                                                                border: InputBorder.none,
-                                                                hintText: isActive ? "Text" : "",
-                                                                hintStyle: TextStyle(
-                                                                  color: item.appearance == 3
-                                                                      ? Colors.transparent
-                                                                      : Colors.white54,
-                                                                  fontSize: scaledFontSize,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    if (isActive)
-                                                      Positioned(
-                                                        bottom: -10,
-                                                        right: -10,
-                                                        child: GestureDetector(
-                                                          onPanUpdate: (details) {
-                                                            setState(() {
-                                                              item.rotation += details.delta.dx * 0.015;
-                                                            });
-                                                          },
-                                                          child: Transform.rotate(
-                                                            angle: -item.rotation,
-                                                            child: Container(
-                                                              width: 28,
-                                                              height: 28,
-                                                              decoration: BoxDecoration(
-                                                                color: Colors.white,
-                                                                shape: BoxShape.circle,
-                                                                border: Border.all(color: Colors.blueAccent, width: 2),
-                                                                boxShadow: const [
-                                                                  BoxShadow(color: Colors.black26, blurRadius: 4),
-                                                                ],
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons.rotate_right_rounded,
-                                                                color: Colors.blueAccent,
-                                                                size: 18,
-                                                              ),
-                                                            ),
+                                                            ],
                                                           ),
                                                         ),
                                                       ),
-                                                    if (isActive)
-                                                      Positioned(
-                                                        top: -10,
-                                                        left: -10,
-                                                        child: GestureDetector(
-                                                          onTap: () {
-                                                            setState(() {
-                                                              _textItems.remove(item);
-                                                              _activeTextItem = null;
-                                                            });
-                                                          },
-                                                          child: Transform.rotate(
-                                                            angle: -item.rotation,
-                                                            child: Container(
-                                                              width: 25,
-                                                              height: 25,
-                                                              decoration: BoxDecoration(
-                                                                color: Colors.redAccent,
-                                                                shape: BoxShape.circle,
-                                                                border: Border.all(color: Colors.white, width: 2),
-                                                                boxShadow: const [
-                                                                  BoxShadow(color: Colors.black26, blurRadius: 4),
-                                                                ],
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons.close_rounded,
-                                                                color: Colors.white,
-                                                                size: 16,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    );
-                                  },
-                                ),
-                              ),
-
-                              // 🚨 4. SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
-                              Positioned.fill(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    double canvasW = constraints.maxWidth;
-                                    double canvasH = constraints.maxHeight;
-
-                                    // 🚨 FIX: Text ke jaisa hi scale ratio calculate karo (400.0 tumhara base reference hai)
-                                    double scaleRatio = canvasW / 400.0;
-
-                                    return Stack(
-                                      clipBehavior: Clip.none,
-                                      children: _shapeItems.map((shape) {
-                                        bool isActive = _activeShapeItem == shape;
-
-                                        // 🚨 FIX: Icon size ko scaleRatio se multiply karo
-                                        double scaledIconSize = shape.size * scaleRatio;
-
-                                        return Positioned(
-                                          left: shape.offset.dx * canvasW,
-                                          top: shape.offset.dy * canvasH,
-                                          child: FractionalTranslation(
-                                            translation: const Offset(-0.5, -0.5),
-                                            child: Transform.rotate(
-                                              angle: shape.rotation,
-                                              child: GestureDetector(
-                                                behavior: HitTestBehavior.translucent,
-                                                // onPanUpdate: (details) {
-                                                //   setState(() {
-                                                //     shape.offset += Offset(
-                                                //       details.delta.dx / canvasW,
-                                                //       details.delta.dy / canvasH,
-                                                //     );
-                                                //   });
-                                                // },
-                                                onPanUpdate: (details) {
-                                                  // setState(() {
-                                                  //   // 🚨 FIX: Shape dragging angle ko canvas rotation ke hisaab se reverse kiya
-                                                  //   double angle = -widget.rotationTurns * (math.pi / 2);
-                                                  //   double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
-                                                  //   double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
-                                                  //
-                                                  //   shape.offset += Offset(
-                                                  //     dx / canvasW,
-                                                  //     dy / canvasH,
-                                                  //   );
-                                                  // });
-                                                  if (_activeTab == "Shapes") {
-                                                    setState(() {
-                                                      double angle = -widget.rotationTurns * (math.pi / 2);
-                                                      double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
-                                                      double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
-
-                                                      shape.offset += Offset(
-                                                        dx / canvasW,
-                                                        dy / canvasH,
-                                                      );
-                                                    });
-                                                  }
-                                                },
-                                                // onTap: () => setState(() {
-                                                //   _activeShapeItem = shape;
-                                                //   _activeTextItem = null;
-                                                // }),
-                                                onTap: () {
-                                                  // 🚨 FIX: Select sirf tab hoga jab "Shapes" tab active ho!
-                                                  if (_activeTab == "Shapes") {
-                                                    setState(() {
-                                                      _activeShapeItem = shape;
-                                                      _activeTextItem = null;
-                                                    });
-                                                  }
-                                                },
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(24),
-                                                  child: Stack(
-                                                    clipBehavior: Clip.none,
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      // Border aur Shape
-                                                      Container(
-                                                        padding: const EdgeInsets.all(8),
-                                                        decoration: isActive
-                                                            ? BoxDecoration(
-                                                                border: Border.all(color: Colors.white, width: 2),
-                                                              )
-                                                            : null,
-                                                        // 🚨 NAYA TAREKA (Shrink, Stretch, Mirror ke liye)
-                                                        child: SizedBox(
-                                                          // Canvas ke scale ratio ke saath height/width set kiya
-                                                          width: (shape.size * shape.scaleX.abs()) * (canvasW / 400.0),
-                                                          height: (shape.size * shape.scaleY.abs()) * (canvasW / 400.0),
-                                                          child: FittedBox(
-                                                            fit: BoxFit.fill,
-                                                            // Icon ko is box ke hisaab se stretch karega
-                                                            child: Transform.scale(
-                                                              // Agar negative hui width/height toh flip (mirror) ho jayega
-                                                              scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
-                                                              scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                              child: Icon(shape.icon, color: shape.color),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-
                                                       if (isActive)
                                                         Positioned(
                                                           bottom: -10,
                                                           right: -10,
                                                           child: GestureDetector(
-                                                            behavior: HitTestBehavior.opaque,
-                                                            onPanUpdate: (details) => setState(
-                                                              () => shape.rotation += details.delta.dx * 0.015,
-                                                            ),
-                                                            child: Container(
-                                                              width: 28,
-                                                              height: 28,
-                                                              decoration: BoxDecoration(
-                                                                color: Colors.white,
-                                                                shape: BoxShape.circle,
-                                                                border: Border.all(color: Colors.black, width: 1),
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons.rotate_right_rounded,
-                                                                color: Colors.blueAccent,
-                                                                size: 18,
+                                                            onPanUpdate: (details) {
+                                                              setState(() {
+                                                                item.rotation += details.delta.dx * 0.015;
+                                                              });
+                                                            },
+                                                            child: Transform.rotate(
+                                                              angle: -item.rotation,
+                                                              child: Container(
+                                                                width: 28,
+                                                                height: 28,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white,
+                                                                  shape: BoxShape.circle,
+                                                                  border: Border.all(
+                                                                    color: Colors.blueAccent,
+                                                                    width: 2,
+                                                                  ),
+                                                                  boxShadow: const [
+                                                                    BoxShadow(color: Colors.black26, blurRadius: 4),
+                                                                  ],
+                                                                ),
+                                                                child: const Icon(
+                                                                  Icons.rotate_right_rounded,
+                                                                  color: Colors.blueAccent,
+                                                                  size: 18,
+                                                                ),
                                                               ),
                                                             ),
                                                           ),
                                                         ),
-
                                                       if (isActive)
                                                         Positioned(
                                                           top: -10,
                                                           left: -10,
                                                           child: GestureDetector(
-                                                            behavior: HitTestBehavior.opaque,
-                                                            onTap: () => setState(() {
-                                                              _shapeItems.remove(shape);
-                                                              _activeShapeItem = null;
-                                                            }),
-                                                            child: Container(
-                                                              width: 24,
-                                                              height: 24,
-                                                              decoration: BoxDecoration(
-                                                                color: Colors.redAccent,
-                                                                shape: BoxShape.circle,
-                                                                border: Border.all(color: Colors.white, width: 1),
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons.close_rounded,
-                                                                color: Colors.white,
-                                                                size: 16,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
-                                                      // if (isActive)
-                                                      //   Positioned(
-                                                      //     left: -12,
-                                                      //     bottom: -12,
-                                                      //     child: GestureDetector(
-                                                      //       behavior: HitTestBehavior.opaque,
-                                                      //       // onPanUpdate: (details) {
-                                                      //       //   setState(() {
-                                                      //       //     double sensitivity = 0.01;
-                                                      //       //
-                                                      //       //     double newScaleX =
-                                                      //       //         shape.scaleX - (details.delta.dx * sensitivity);
-                                                      //       //     double newScaleY =
-                                                      //       //         shape.scaleY + (details.delta.dy * sensitivity);
-                                                      //       //
-                                                      //       //     // 🚨 FIX: Shape ko exactly 0 (invisible) hone se roko
-                                                      //       //     if (newScaleX.abs() < 0.1)
-                                                      //       //       newScaleX = newScaleX < 0 ? -0.1 : 0.1;
-                                                      //       //     if (newScaleY.abs() < 0.1)
-                                                      //       //       newScaleY = newScaleY < 0 ? -0.1 : 0.1;
-                                                      //       //
-                                                      //       //     shape.scaleX = newScaleX;
-                                                      //       //     shape.scaleY = newScaleY;
-                                                      //       //   });
-                                                      //       // },
-                                                      //       onPanUpdate: (details) {
-                                                      //         setState(() {
-                                                      //           double sensitivity = 0.01;
-                                                      //
-                                                      //           // 🚨 FIX: Resize handle dragging ko bhi reverse kiya
-                                                      //           double angle = -widget.rotationTurns * (math.pi / 2);
-                                                      //           double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
-                                                      //           double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
-                                                      //
-                                                      //           double newScaleX = shape.scaleX - (dx * sensitivity);
-                                                      //           double newScaleY = shape.scaleY + (dy * sensitivity);
-                                                      //
-                                                      //           if (newScaleX.abs() < 0.1) newScaleX = newScaleX < 0 ? -0.1 : 0.1;
-                                                      //           if (newScaleY.abs() < 0.1) newScaleY = newScaleY < 0 ? -0.1 : 0.1;
-                                                      //
-                                                      //           shape.scaleX = newScaleX;
-                                                      //           shape.scaleY = newScaleY;
-                                                      //         });
-                                                      //       },
-                                                      //       child: Container(
-                                                      //         padding: const EdgeInsets.all(5),
-                                                      //         decoration: BoxDecoration(
-                                                      //           color: Colors.white,
-                                                      //           shape: BoxShape.circle,
-                                                      //           border: Border.all(color: Colors.black, width: 1),
-                                                      //         ),
-                                                      //         child: const Icon(
-                                                      //           Icons.open_in_full_rounded,
-                                                      //           color: Colors.blueAccent,
-                                                      //           size: 14,
-                                                      //         ),
-                                                      //       ),
-                                                      //     ),
-                                                      //   ),
-
-                                                      // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
-                                                      if (isActive)
-                                                        Positioned(
-                                                          left: -12,
-                                                          bottom: -12,
-                                                          child: GestureDetector(
-                                                            behavior: HitTestBehavior.opaque,
-                                                            onPanUpdate: (details) {
+                                                            onTap: () {
                                                               setState(() {
-                                                                double sensitivity = 0.01;
-
-                                                                // 🚨 THE ULTIMATE FIX: Canvas ki rotation aur Shape ki apni rotation, DONO ko combine karke reverse karo!
-                                                                double totalAngle = (widget.rotationTurns * (math.pi / 2)) + shape.rotation;
-                                                                double angle = -totalAngle;
-
-                                                                // Ab math.cos aur math.sin perfectly exact touch coordinate nikalenge
-                                                                double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
-                                                                double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
-
-                                                                double newScaleX = shape.scaleX - (dx * sensitivity);
-                                                                double newScaleY = shape.scaleY + (dy * sensitivity);
-
-                                                                if (newScaleX.abs() < 0.1) newScaleX = newScaleX < 0 ? -0.1 : 0.1;
-                                                                if (newScaleY.abs() < 0.1) newScaleY = newScaleY < 0 ? -0.1 : 0.1;
-
-                                                                shape.scaleX = newScaleX;
-                                                                shape.scaleY = newScaleY;
+                                                                _textItems.remove(item);
+                                                                _activeTextItem = null;
                                                               });
                                                             },
-                                                            child: Container(
-                                                              padding: const EdgeInsets.all(5),
-                                                              decoration: BoxDecoration(
-                                                                color: Colors.white,
-                                                                shape: BoxShape.circle,
-                                                                border: Border.all(color: Colors.black, width: 1),
-                                                              ),
-                                                              child: const Icon(
-                                                                Icons.open_in_full_rounded,
-                                                                color: Colors.blueAccent,
-                                                                size: 14,
+                                                            child: Transform.rotate(
+                                                              angle: -item.rotation,
+                                                              child: Container(
+                                                                width: 25,
+                                                                height: 25,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.redAccent,
+                                                                  shape: BoxShape.circle,
+                                                                  border: Border.all(color: Colors.white, width: 2),
+                                                                  boxShadow: const [
+                                                                    BoxShadow(color: Colors.black26, blurRadius: 4),
+                                                                  ],
+                                                                ),
+                                                                child: const Icon(
+                                                                  Icons.close_rounded,
+                                                                  color: Colors.white,
+                                                                  size: 16,
+                                                                ),
                                                               ),
                                                             ),
                                                           ),
@@ -1164,20 +876,221 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    );
-                                  },
+                                          );
+                                        }).toList(),
+                                      );
+                                    },
+                                  ),
                                 ),
-                              ),
-                            ],
+
+                                // 🚨 4. SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
+                                Positioned.fill(
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      double canvasW = constraints.maxWidth;
+                                      double canvasH = constraints.maxHeight;
+
+                                      // 🚨 FIX: Text ke jaisa hi scale ratio calculate karo (400.0 tumhara base reference hai)
+                                      double scaleRatio = canvasW / 400.0;
+
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: _shapeItems.map((shape) {
+                                          bool isActive = _activeShapeItem == shape;
+
+                                          // 🚨 FIX: Icon size ko scaleRatio se multiply karo
+                                          double scaledIconSize = shape.size * scaleRatio;
+
+                                          return Positioned(
+                                            left: shape.offset.dx * canvasW,
+                                            top: shape.offset.dy * canvasH,
+                                            child: FractionalTranslation(
+                                              translation: const Offset(-0.5, -0.5),
+                                              child: Transform.rotate(
+                                                angle: shape.rotation,
+                                                child: GestureDetector(
+                                                  behavior: HitTestBehavior.translucent,
+                                                  onPanUpdate: (details) {
+                                                    if (_activeTab == "Shapes") {
+                                                      setState(() {
+                                                        double angle = -widget.rotationTurns * (math.pi / 2);
+                                                        double dx =
+                                                            details.delta.dx * math.cos(angle) -
+                                                            details.delta.dy * math.sin(angle);
+                                                        double dy =
+                                                            details.delta.dx * math.sin(angle) +
+                                                            details.delta.dy * math.cos(angle);
+
+                                                        shape.offset += Offset(dx / canvasW, dy / canvasH);
+                                                      });
+                                                    }
+                                                  },
+                                                  onTap: () {
+                                                    // 🚨 FIX: Select sirf tab hoga jab "Shapes" tab active ho!
+                                                    if (_activeTab == "Shapes") {
+                                                      setState(() {
+                                                        _activeShapeItem = shape;
+                                                        _activeTextItem = null;
+                                                      });
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(24),
+                                                    child: Stack(
+                                                      clipBehavior: Clip.none,
+                                                      alignment: Alignment.center,
+                                                      children: [
+                                                        // Border aur Shape
+                                                        Container(
+                                                          padding: const EdgeInsets.all(8),
+                                                          decoration: isActive
+                                                              ? BoxDecoration(
+                                                                  border: Border.all(color: Colors.white, width: 2),
+                                                                )
+                                                              : null,
+                                                          // 🚨 NAYA TAREKA (Shrink, Stretch, Mirror ke liye)
+                                                          child: SizedBox(
+                                                            // Canvas ke scale ratio ke saath height/width set kiya
+                                                            width:
+                                                                (shape.size * shape.scaleX.abs()) * (canvasW / 400.0),
+                                                            height:
+                                                                (shape.size * shape.scaleY.abs()) * (canvasW / 400.0),
+                                                            child: FittedBox(
+                                                              fit: BoxFit.fill,
+                                                              // Icon ko is box ke hisaab se stretch karega
+                                                              child: Transform.scale(
+                                                                // Agar negative hui width/height toh flip (mirror) ho jayega
+                                                                scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                                scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                                child: Icon(shape.icon, color: shape.color),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                        if (isActive)
+                                                          Positioned(
+                                                            bottom: -10,
+                                                            right: -10,
+                                                            child: GestureDetector(
+                                                              behavior: HitTestBehavior.opaque,
+                                                              onPanUpdate: (details) => setState(
+                                                                () => shape.rotation += details.delta.dx * 0.015,
+                                                              ),
+                                                              child: Container(
+                                                                width: 28,
+                                                                height: 28,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white,
+                                                                  shape: BoxShape.circle,
+                                                                  border: Border.all(color: Colors.black, width: 1),
+                                                                ),
+                                                                child: const Icon(
+                                                                  Icons.rotate_right_rounded,
+                                                                  color: Colors.blueAccent,
+                                                                  size: 18,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+
+                                                        if (isActive)
+                                                          Positioned(
+                                                            top: -10,
+                                                            left: -10,
+                                                            child: GestureDetector(
+                                                              behavior: HitTestBehavior.opaque,
+                                                              onTap: () => setState(() {
+                                                                _shapeItems.remove(shape);
+                                                                _activeShapeItem = null;
+                                                              }),
+                                                              child: Container(
+                                                                width: 24,
+                                                                height: 24,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.redAccent,
+                                                                  shape: BoxShape.circle,
+                                                                  border: Border.all(color: Colors.white, width: 1),
+                                                                ),
+                                                                child: const Icon(
+                                                                  Icons.close_rounded,
+                                                                  color: Colors.white,
+                                                                  size: 16,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
+                                                        if (isActive)
+                                                          Positioned(
+                                                            left: -12,
+                                                            bottom: -12,
+                                                            child: GestureDetector(
+                                                              behavior: HitTestBehavior.opaque,
+                                                              onPanUpdate: (details) {
+                                                                setState(() {
+                                                                  double sensitivity = 0.01;
+
+                                                                  // 🚨 THE ULTIMATE FIX: Canvas ki rotation aur Shape ki apni rotation, DONO ko combine karke reverse karo!
+                                                                  double totalAngle =
+                                                                      (widget.rotationTurns * (math.pi / 2)) +
+                                                                      shape.rotation;
+                                                                  double angle = -totalAngle;
+
+                                                                  // Ab math.cos aur math.sin perfectly exact touch coordinate nikalenge
+                                                                  double dx =
+                                                                      details.delta.dx * math.cos(angle) -
+                                                                      details.delta.dy * math.sin(angle);
+                                                                  double dy =
+                                                                      details.delta.dx * math.sin(angle) +
+                                                                      details.delta.dy * math.cos(angle);
+
+                                                                  double newScaleX = shape.scaleX - (dx * sensitivity);
+                                                                  double newScaleY = shape.scaleY + (dy * sensitivity);
+
+                                                                  if (newScaleX.abs() < 0.1)
+                                                                    newScaleX = newScaleX < 0 ? -0.1 : 0.1;
+                                                                  if (newScaleY.abs() < 0.1)
+                                                                    newScaleY = newScaleY < 0 ? -0.1 : 0.1;
+
+                                                                  shape.scaleX = newScaleX;
+                                                                  shape.scaleY = newScaleY;
+                                                                });
+                                                              },
+                                                              child: Container(
+                                                                padding: const EdgeInsets.all(5),
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white,
+                                                                  shape: BoxShape.circle,
+                                                                  border: Border.all(color: Colors.black, width: 1),
+                                                                ),
+                                                                child: const Icon(
+                                                                  Icons.open_in_full_rounded,
+                                                                  color: Colors.blueAccent,
+                                                                  size: 14,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
                 ),
               ),
 
@@ -1235,7 +1148,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ),
 
-
               // --- 3. BOTTOM TABS ---
               Container(
                 height: 60,
@@ -1250,7 +1162,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ],
                 ),
               ),
-        ],
+            ],
           ),
         ),
       ),
@@ -1319,15 +1231,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       decoration: BoxDecoration(color: _selectedColor, borderRadius: BorderRadius.circular(6)),
                     ),
                   ),
-                  // const SizedBox(width: 16),
-                  // GestureDetector(
-                  //   onTap: _openColorPicker,
-                  //   child: const Icon(
-                  //     Icons.colorize_rounded,
-                  //     color: Colors.white70,
-                  //     size: 24,
-                  //   ),
-                  // ),
                 ],
               )
             else
@@ -1486,23 +1389,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ),
             ),
-
-            // ElevatedButton.icon(
-            //   style: ElevatedButton.styleFrom(
-            //     backgroundColor: Colors.blueAccent,
-            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            //   ),
-            //   onPressed: () {
-            //     setState(() {
-            //       final newItem = activeItem.clone();
-            //       newItem.text = "";
-            //       // 🚨 MAIN FIX: Ab offset sirf percentage (0.5 = center) use karega
-            //       newItem.offset = const Offset(0.5, 0.5);
-            //       _textItems.add(newItem);
-            //       _activeTextItem = newItem;
-            //       _textEditorController.text = newItem.text;
-            //     });
-            //   },
 
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
@@ -1785,28 +1671,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ],
             ),
-            // Row(
-            //   children: [
-            //     IconButton(
-            //       icon: const Icon(
-            //         Icons.content_copy_rounded,
-            //         color: Colors.white,
-            //       ),
-            //       onPressed: () {
-            //         /* Copy logic */
-            //       },
-            //     ),
-            //     IconButton(
-            //       icon: const Icon(
-            //         Icons.delete_forever_rounded,
-            //         color: Colors.redAccent,
-            //       ),
-            //       onPressed: () {
-            //         /* Delete logic */
-            //       },
-            //     ),
-            //   ],
-            // ),
             Row(
               children: [
                 // --- COPY BUTTON ---
@@ -1938,30 +1802,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
       ],
     );
   }
-
-  // Shape Icon Helper
-  // Widget _buildShapeIcon(IconData icon) {
-  //   bool isSelected = _selectedShape == icon.toString(); // Tumhara shape state variable
-  //   return GestureDetector(
-  //     // onTap: () {
-  //     //   setState(() {
-  //     //     final newShape = ShapeItem(icon: icon, color: _selectedColor);
-  //     //     _shapeItems.add(newShape);
-  //     //     _activeShapeItem = newShape; // Isse shape select ho jayegi
-  //     //   });
-  //     // },
-  //     onTap: () {
-  //       setState(() {
-  //         // 🚨 FIX: Nayi shape banate waqt center offset ensure karo
-  //         final newShape = ShapeItem(
-  //           icon: icon,
-  //           color: _selectedColor,
-  //           offset: const Offset(0.5, 0.5), // Explicitly center
-  //         );
-  //         _shapeItems.add(newShape);
-  //         _activeShapeItem = newShape;
-  //       });
-  //     },
 
   Widget _buildShapeIcon(IconData icon) {
     bool isSelected = _selectedShape == icon.toString();
