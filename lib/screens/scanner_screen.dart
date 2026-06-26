@@ -94,39 +94,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // 🚨 FIX 1: Camera ka naya safety tracker
   bool _isCameraReady = false;
 
-  //@override
-  // void initState() {
-  //   super.initState();
-  //   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  //
-  //   controller = CameraController(
-  //     cameras.first,
-  //     ResolutionPreset.high,
-  //     enableAudio: false,
-  //     imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
-  //   );
-  //
-  //   controller.initialize().then((_) {
-  //     if (mounted) {
-  //       setState(() {});
-  //       // FIX 1: Screen khulte hi auto-detect start karna zaroori hai
-  //       if (isAutoDetectOn) _startMLAutoDetect();
-  //     }
-  //   });
-  //
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     scrollToDocument();
-  //   });
-  //
-  //   _sensorSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
-  //     if (!mounted) return;
-  //     setState(() {
-  //       if (event.x > 6) _iconTurns = 0.25;
-  //       else if (event.x < -6) _iconTurns = -0.25;
-  //       else if (event.y > 6) _iconTurns = 0.0;
-  //     });
-  //   });
-  // }
 
   @override
   void initState() {
@@ -228,22 +195,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         return 3 / 4;
     }
   }
-
-  // // Selected ratio ke hisaab se dynamic icon
-  // IconData _getRatioIcon() {
-  //   switch (selectedRatio) {
-  //     case "1:1":
-  //       return Symbols.crop_square_sharp;
-  //     case "16:9":
-  //       return Symbols.crop_16_9_sharp;
-  //     case "Full":
-  //       return Symbols.fullscreen_sharp;
-  //     case "4:3":
-  //     default:
-  //       return Symbols
-  //           .crop_5_4_sharp; // 4:3 ke liye sabse best aur similar icon
-  //   }
-  // }
 
   // Selected flash mode ke hisaab se icon return karega
   IconData _getFlashIcon([String? mode]) {
@@ -509,15 +460,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               children: [
                 CameraPreview(controller),
 
-                // // YEH NAYI LINE: Real-time Blue Overlay
-                // if (_detectedDocumentBox != null && isAutoDetectOn)
-                //   CustomPaint(
-                //     painter: DocumentOverlayPainter(
-                //       _detectedDocumentBox,
-                //       Size(controller.value.previewSize!.width, controller.value.previewSize!.height),
-                //     ),
-                //   ),
-
                 // YEH NAYI LINE: Real-time Blue Overlay
                 if (_detectedDocumentBox != null && isAutoDetectOn)
                   Positioned.fill(  // FIX 4: Isko Positioned.fill me wrap kiya
@@ -683,17 +625,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         _detectedDocumentBox = null;
       });
 
-      // if (mounted) {
-      //   Navigator.push(
-      //     context,
-      //     MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList)),
-      //   ).then((_) {
-      //     if (isAutoDetectOn && !controller.value.isStreamingImages) {
-      //       _startMLAutoDetect();
-      //     }
-      //   });
-      // }
-
       if (mounted) {
         _goToEditor(); // 🚨 Master Helper call kiya
       }
@@ -794,107 +725,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-///default media picker
-  // Future<void> _pickImagesFromGallery() async {
-  //   try {
-  //     // 🚨 FIX: PhotoManager ke version ke jhanjhat ko chhodo,
-  //     // permission_handler use karo jo tumhari file me pehle se imported hai!
-  //     // 🚨 SMART PERMISSION BLOCK 🚨
-  //     PermissionStatus status;
-  //
-  //     if (Platform.isAndroid) {
-  //       // Pehle Android 13+ ke hisab se photos permission mangega
-  //       status = await Permission.photos.request();
-  //
-  //       // Agar phone purana (Android 12 ya niche) hoga toh photos permission fail ho jayegi
-  //       // Tab hum purane storage permission ko mangenge
-  //       if (status.isDenied || status.isPermanentlyDenied) {
-  //         PermissionStatus storageStatus = await Permission.storage.request();
-  //         status = storageStatus; // Final status update kar diya
-  //       }
-  //     } else {
-  //       // iOS ke liye
-  //       status = await Permission.photos.request();
-  //     }
-  //
-  //     // Agar user ne 'Don't ask again' kar diya hai, toh seedhe Settings me bhejo
-  //     if (status.isPermanentlyDenied) {
-  //       showToast("Please allow gallery access from Settings");
-  //       await openAppSettings();
-  //       return;
-  //     }
-  //
-  //     // Final check
-  //     if (!status.isGranted && !status.isLimited) {
-  //       showToast("Gallery permission required to pick images.");
-  //       return;
-  //     }
-  //
-  //     // Iske niche tumhara AssetPicker.pickAssets() wala code chalega...
-  //
-  //     // Agar user ne permission nahi di, toh return ho jao
-  //     if (!status.isGranted && !status.isLimited) {
-  //       showToast("Gallery permission denied. Please enable it from settings.");
-  //       return;
-  //     }
-  //
-  //     // 🚨 Ab jab system level par permission mil gayi hai, picker bina kisi crash ke khulega
-  //     final List<AssetEntity>? selectedAssets = await AssetPicker.pickAssets(
-  //       context,
-  //       pickerConfig: const AssetPickerConfig(
-  //         requestType: RequestType.image,
-  //         maxAssets: 50, // Max 50 images ek baar mein pick ho sakti hain
-  //       ),
-  //     );
-  //
-  //     if (selectedAssets == null || selectedAssets.isEmpty) return;
-  //
-  //     // Loading screen dikhao jab tak assets file me convert ho rahe hon
-  //     showDialog(
-  //       context: context,
-  //       barrierDismissible: false,
-  //       builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
-  //     );
-  //
-  //     List<Map<String, File>> tempList = [];
-  //
-  //     for (var asset in selectedAssets) {
-  //       final File? file = await asset.file;
-  //       if (file != null) {
-  //         tempList.add({
-  //           'original': file,
-  //           'cropped': file,
-  //         });
-  //       }
-  //     }
-  //
-  //     if (mounted) Navigator.pop(context); // Loading close karo
-  //
-  //     setState(() {
-  //       capturedImagesList.addAll(tempList);
-  //       capturedPhotosCount = capturedImagesList.length; // Counter badge update
-  //     });
-  //
-  //     showToast("${selectedAssets.length} images imported serial wise");
-  //
-  //     if (mounted) {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList),
-  //         ),
-  //       ).then((_) {
-  //         if (isAutoDetectOn && !controller.value.isStreamingImages) {
-  //           _startMLAutoDetect();
-  //         }
-  //       });
-  //     }
-  //   } catch (e) {
-  //     if (mounted && Navigator.canPop(context)) Navigator.pop(context);
-  //     print("Gallery Pick Error: $e");
-  //     showToast("Error importing images");
-  //   }
-  // }
 
   /// custom media picker:
   Future<void> _pickImagesFromGallery() async {
@@ -950,18 +780,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       showToast("${selectedFiles.length} images imported serial wise");
 
-      // if (mounted) {
-      //   Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //       builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList),
-      //     ),
-      //   ).then((_) {
-      //     if (isAutoDetectOn && !controller.value.isStreamingImages) {
-      //       _startMLAutoDetect();
-      //     }
-      //   });
-      // }
 
       if (mounted) {
         _goToEditor(); // 🚨 Master Helper call kiya
@@ -975,12 +793,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //final screenWidth = MediaQuery.of(context).size.width;
-    //final itemWidth = screenWidth * 0.22;
 
-    // if (!controller.value.isInitialized) {
-    //   return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    // }
 
     // 🚨 FIX 4: Jab tak memory release/reload na ho jaye, safe loading screen dikhao
     if (!_isCameraReady || !controller.value.isInitialized) {
@@ -1108,18 +921,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // /// Center Indicator
-                      // Positioned(
-                      //   bottom: 0,
-                      //   child: Container(
-                      //     width: 20,
-                      //     height: 3,
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.blue,
-                      //       borderRadius: BorderRadius.circular(10),
-                      //     ),
-                      //   ),
-                      // ),
+
                       ScrollSnapList(
                         itemBuilder: (_, index) {
                           final bool isSelected = index == selectedIndex;
@@ -1239,34 +1041,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           ),
 
                           /// Capture Button
-                          // GestureDetector(
-                          //   onTap: () {
-                          //     showToast("Capture");
-                          //   },
-                          //   child: Container(
-                          //     width: 60,
-                          //     height: 60,
-                          //     decoration: BoxDecoration(
-                          //       shape: BoxShape.circle,
-                          //       border: Border.all(
-                          //         color: Colors.white,
-                          //         width: 4,
-                          //       ),
-                          //     ),
-                          //     child: Center(
-                          //       child: Container(
-                          //         width: 45,
-                          //         height: 45,
-                          //         decoration: const BoxDecoration(
-                          //           color: Colors.white,
-                          //           shape: BoxShape.circle,
-                          //         ),
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ),
-
-                          /// Capture Button
                           /// Dynamic & Animated Capture Button
                           GestureDetector(
                             onTap: _capturePhoto,
@@ -1351,46 +1125,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             ),
                           ),
 
-                          /// Last Photo
-                          // GestureDetector(
-                          //   onTap: () {
-                          //     showToast("Last Photo");
-                          //   },
-                          //   child: Container(
-                          //     width: 42,
-                          //     height: 42,
-                          //     decoration: BoxDecoration(
-                          //       color: Colors.white24,
-                          //       borderRadius: BorderRadius.circular(8),
-                          //     ),
-                          //     child: lastCapturedImage == null
-                          //         ? const SizedBox()
-                          //         : ClipRRect(
-                          //             borderRadius: BorderRadius.circular(8),
-                          //             child: Image.file(
-                          //               File(lastCapturedImage!.path),
-                          //               fit: BoxFit.cover,
-                          //             ),
-                          //           ),
-                          //   ),
-                          // ),
 
                           /// Last Photo with Counter Badge
                           GestureDetector(
-                            // onTap: () {
-                            //   if (capturedPhotosCount > 0) {
-                            //     // YAHAN NAVIGATOR ADD KIYA HAI
-                            //     Navigator.push(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //         builder: (context) => DocumentEditorScreen(
-                            //           imageFiles: capturedImagesList, // List pass kar di
-                            //         ),
-                            //       ),
-                            //     );
-                            //   }
-                            // },
-
                             onTap: () {
                               if (capturedPhotosCount > 0) {
                                 _goToEditor(); // 🚨 Master Helper call kiya
@@ -1540,38 +1277,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         );
 
-      // case "Ratio":
-      //   return Container(
-      //     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-      //     decoration: BoxDecoration(
-      //       color: Colors.black.withOpacity(0.35),
-      //       borderRadius: BorderRadius.circular(30),
-      //     ),
-      //     child: Row(
-      //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //       children: [
-      //         const Text(
-      //           "Aspect ratio",
-      //           style: TextStyle(
-      //             color: Colors.white,
-      //             fontSize: 14,
-      //             fontWeight: FontWeight.w500,
-      //           ),
-      //         ),
-      //         Row(
-      //           children: [
-      //             _buildRatioOption("1:1"),
-      //             const SizedBox(width: 8),
-      //             _buildRatioOption("4:3"),
-      //             const SizedBox(width: 8),
-      //             _buildRatioOption("16:9"),
-      //             const SizedBox(width: 8),
-      //             _buildRatioOption("Full"),
-      //           ],
-      //         ),
-      //       ],
-      //     ),
-      //   );
 
       case "Timer":
         return Container(
@@ -1631,14 +1336,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   size: 26,
                 ),
               ),
-              // IconButton(
-              //   onPressed: () => setState(() => activeMenu = "Ratio"),
-              //   icon: _buildRotatedIcon(
-              //     _getRatioIcon(),
-              //     color: Colors.white,
-              //     size: 26,
-              //   ),
-              // ),
               IconButton(
                 onPressed: _flipCamera,
                 icon: _buildRotatedIcon(
@@ -1662,36 +1359,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  // // Ratio menu ke options banane ke liye
-  // Widget _buildRatioOption(String label) {
-  //   final bool isSelected = selectedRatio == label;
-  //   final Color color = isSelected ? Colors.amber : Colors.white;
-  //
-  //   return GestureDetector(
-  //     onTap: () {
-  //       setState(() {
-  //         selectedRatio = label;
-  //         activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
-  //       });
-  //       //showToast("$label Ratio Selected");
-  //     },
-  //     child: Container(
-  //       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-  //       decoration: BoxDecoration(
-  //         border: Border.all(color: color, width: 1.5),
-  //         borderRadius: BorderRadius.circular(6),
-  //       ),
-  //       child: Text(
-  //         label,
-  //         style: TextStyle(
-  //           color: color,
-  //           fontSize: 12,
-  //           fontWeight: FontWeight.bold,
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
+
 
   // Flash menu ke icons banane ke liye
   Widget _buildFlashOption(String mode) {
