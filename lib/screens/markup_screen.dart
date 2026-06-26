@@ -678,37 +678,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                             left: item.offset.dx * canvasW,
                                             top: item.offset.dy * canvasH,
                                             // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
-                                            // child: FractionalTranslation(
-                                            //   translation: const Offset(-0.5, -0.5),
-                                            //   child: Transform.rotate(
-                                            //     angle: item.rotation,
-                                            //     child: GestureDetector(
-                                            //       onPanUpdate: (details) {
-                                            //         if (_activeTab == "Text") {
-                                            //           setState(() {
-                                            //             RenderBox renderBox =
-                                            //                 _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                            //
-                                            //             // 🚨 FIX: Dragging angle ko canvas rotation ke hisaab se reverse kiya
-                                            //             double angle = -widget.rotationTurns * (math.pi / 2);
-                                            //             double dx =
-                                            //                 details.delta.dx * math.cos(angle) -
-                                            //                 details.delta.dy * math.sin(angle);
-                                            //             double dy =
-                                            //                 details.delta.dx * math.sin(angle) +
-                                            //                 details.delta.dy * math.cos(angle);
-                                            //
-                                            //             item.offset += Offset(
-                                            //               dx / renderBox.size.width,
-                                            //               dy / renderBox.size.height,
-                                            //             );
-                                            //           });
-                                            //         }
-                                            //       },
-                                            //       onTap: () {
-
-                                            // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
-                                            // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
                                             child: FractionalTranslation(
                                               translation: const Offset(-0.5, -0.5),
                                               child: Transform.rotate(
@@ -1674,51 +1643,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
           ),
         ),
         const SizedBox(height: 12),
-
-        // --- 4TH ROW: Colors Array ---
-        // SingleChildScrollView(
-        //   scrollDirection: Axis.horizontal,
-        //   physics: const BouncingScrollPhysics(),
-        //   child: Row(
-        //     children:
-        //         [
-        //           Colors.white,
-        //           Colors.black,
-        //           Colors.grey.shade400,
-        //           Colors.redAccent,
-        //           Colors.pinkAccent,
-        //           Colors.purpleAccent,
-        //           Colors.blueAccent,
-        //           Colors.lightBlueAccent,
-        //           Colors.cyanAccent,
-        //           Colors.tealAccent,
-        //           Colors.greenAccent,
-        //           Colors.yellowAccent,
-        //           Colors.amberAccent,
-        //           Colors.orangeAccent,
-        //           Colors.brown,
-        //         ].map((c) {
-        //           bool isSelected = activeItem.color == c;
-        //           Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
-        //
-        //           return GestureDetector(
-        //             onTap: () => setState(() => activeItem.color = c),
-        //             child: AnimatedContainer(
-        //               duration: const Duration(milliseconds: 200),
-        //               margin: const EdgeInsets.symmetric(horizontal: 6),
-        //               width: isSelected ? 34 : 28,
-        //               height: isSelected ? 34 : 28,
-        //               decoration: BoxDecoration(
-        //                 color: c,
-        //                 shape: BoxShape.circle,
-        //                 border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
-        //               ),
-        //               child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
-        //             ),
-        //           );
-        //         }).toList(),
-        //   ),
-        // ),
         Row(
           children: [
             // 1. Scrollable Predefined Colors (Left side)
