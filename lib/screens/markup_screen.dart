@@ -1861,7 +1861,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         ),
         const SizedBox(height: 10),
 
-        _buildSlider("Size", active?.size ?? 100.0, 20, 200, (val) {
+        _buildSlider("Size", active?.size ?? 100.0, 20, 500, (val) {
           setState(() {
             if (active != null) active.size = val;
           });
