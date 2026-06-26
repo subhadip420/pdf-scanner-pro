@@ -320,6 +320,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // Handle the timer delay with a visual countdown
       if (selectedTimer > 0) {
         for (int i = selectedTimer; i > 0; i--) {
+          if (!mounted) return;
           setState(() {
             currentCountdown = i; // Update the UI with current second
           });
@@ -328,6 +329,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         }
 
         // Countdown finished, reset to 0 before capturing
+        if (!mounted) return;
         setState(() {
           currentCountdown = 0;
         });
