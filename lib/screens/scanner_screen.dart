@@ -183,6 +183,29 @@ class _ScannerScreenState extends State<ScannerScreen> {
     super.dispose();
   }
 
+
+  // 🚨 FIX: Hardware Back Button ko Handle Karne ke liye naya function
+  Future<bool> _onWillPop() async {
+    // 1. Agar Retake Mode hai toh normal back hone do
+    if (widget.isRetakeMode) {
+      return true;
+    }
+
+    // 2. Agar user ne photo le rakhi hai aur back dabata hai, toh use wapas Editor mein bhej do!
+    if (capturedImagesList.isNotEmpty) {
+      _goToEditor();
+      return false; // App close hone se rok dega
+    }
+
+    // 3. Agar koi photo nahi hai, toh back dabane par seedha HomeScreen par le jao
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+          (route) => false,
+    );
+    return false;
+  }
+
   // Portrait mode ke hisaab se ratios (width / height)
   double _getAspectRatio() {
     switch (selectedRatio) {
@@ -810,7 +833,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
     }
 
-    return Scaffold(
+    // return Scaffold(
+    return WillPopScope(
+        onWillPop: _onWillPop,
+        child: Scaffold(
       backgroundColor: const Color(0xFF2C2C2C),
       body: GestureDetector(
         onTap: () {
@@ -1235,6 +1261,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
         ),
       ),
+        ),
     );
   }
 
