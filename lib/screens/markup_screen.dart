@@ -677,6 +677,37 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                             left: item.offset.dx * canvasW,
                                             top: item.offset.dy * canvasH,
                                             // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
+                                            // child: FractionalTranslation(
+                                            //   translation: const Offset(-0.5, -0.5),
+                                            //   child: Transform.rotate(
+                                            //     angle: item.rotation,
+                                            //     child: GestureDetector(
+                                            //       onPanUpdate: (details) {
+                                            //         if (_activeTab == "Text") {
+                                            //           setState(() {
+                                            //             RenderBox renderBox =
+                                            //                 _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                            //
+                                            //             // 🚨 FIX: Dragging angle ko canvas rotation ke hisaab se reverse kiya
+                                            //             double angle = -widget.rotationTurns * (math.pi / 2);
+                                            //             double dx =
+                                            //                 details.delta.dx * math.cos(angle) -
+                                            //                 details.delta.dy * math.sin(angle);
+                                            //             double dy =
+                                            //                 details.delta.dx * math.sin(angle) +
+                                            //                 details.delta.dy * math.cos(angle);
+                                            //
+                                            //             item.offset += Offset(
+                                            //               dx / renderBox.size.width,
+                                            //               dy / renderBox.size.height,
+                                            //             );
+                                            //           });
+                                            //         }
+                                            //       },
+                                            //       onTap: () {
+
+                                            // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
+                                            // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
                                             child: FractionalTranslation(
                                               translation: const Offset(-0.5, -0.5),
                                               child: Transform.rotate(
@@ -686,16 +717,15 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                     if (_activeTab == "Text") {
                                                       setState(() {
                                                         RenderBox renderBox =
-                                                            _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                        _canvasKey.currentContext!.findRenderObject() as RenderBox;
 
-                                                        // 🚨 FIX: Dragging angle ko canvas rotation ke hisaab se reverse kiya
-                                                        double angle = -widget.rotationTurns * (math.pi / 2);
-                                                        double dx =
-                                                            details.delta.dx * math.cos(angle) -
-                                                            details.delta.dy * math.sin(angle);
-                                                        double dy =
-                                                            details.delta.dx * math.sin(angle) +
-                                                            details.delta.dy * math.cos(angle);
+                                                        // 🚨 FIX: Sirf aur sirf TEXT ki rotation (item.rotation) ko handle karna hai!
+                                                        // math.cos aur math.sin text ki ghoomi hui direction ko seedha (un-rotate) kar denge.
+                                                        double c = math.cos(item.rotation);
+                                                        double s = math.sin(item.rotation);
+
+                                                        double dx = details.delta.dx * c - details.delta.dy * s;
+                                                        double dy = details.delta.dx * s + details.delta.dy * c;
 
                                                         item.offset += Offset(
                                                           dx / renderBox.size.width,
@@ -1556,6 +1586,25 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
               const SizedBox(width: 12),
 
+              // 🚨 NAYA: Rotate Button (Copy button se pehle)
+              GestureDetector(
+                onTap: hasActiveText
+                    ? () => setState(() {
+                  // Har click par text 90 degrees (π/2 radians) rotate hoga
+                  _activeTextItem!.rotation += (math.pi / 2);
+                })
+                    : null,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 36,
+                  height: 36,
+                  child: Icon(
+                    Icons.rotate_right_rounded, // Tum chaho toh Icons.rotate_90_degrees_cw bhi use kar sakte ho
+                    color: hasActiveText ? Colors.white : Colors.white38,
+                  ),
+                ),
+              ),
+
               // Duplicate (Agar text select nahi hai, toh disable rahega)
               GestureDetector(
                 onTap: hasActiveText
@@ -1573,6 +1622,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38),
                 ),
               ),
+
+
 
               GestureDetector(
                 onTap: hasActiveText
