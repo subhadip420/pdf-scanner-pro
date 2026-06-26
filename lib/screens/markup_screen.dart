@@ -1468,18 +1468,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     children: [
                       if (activeItem.appearance == 3)
                         Text(
-                          "A",
+                          "T",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             foreground: Paint()
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2.5
-                              ..color = Colors.white,
+                              ..color = activeItem.color,
                           ),
                         ),
                       Text(
-                        "A",
+                        "T",
                         style: TextStyle(
                           color: (activeItem.appearance == 1 || activeItem.appearance == 2)
                               ? Colors.black
