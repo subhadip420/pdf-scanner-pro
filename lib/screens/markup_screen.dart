@@ -933,22 +933,43 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                 //   });
                                                 // },
                                                 onPanUpdate: (details) {
-                                                  setState(() {
-                                                    // 🚨 FIX: Shape dragging angle ko canvas rotation ke hisaab se reverse kiya
-                                                    double angle = -widget.rotationTurns * (math.pi / 2);
-                                                    double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
-                                                    double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
+                                                  // setState(() {
+                                                  //   // 🚨 FIX: Shape dragging angle ko canvas rotation ke hisaab se reverse kiya
+                                                  //   double angle = -widget.rotationTurns * (math.pi / 2);
+                                                  //   double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
+                                                  //   double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
+                                                  //
+                                                  //   shape.offset += Offset(
+                                                  //     dx / canvasW,
+                                                  //     dy / canvasH,
+                                                  //   );
+                                                  // });
+                                                  if (_activeTab == "Shapes") {
+                                                    setState(() {
+                                                      double angle = -widget.rotationTurns * (math.pi / 2);
+                                                      double dx = details.delta.dx * math.cos(angle) - details.delta.dy * math.sin(angle);
+                                                      double dy = details.delta.dx * math.sin(angle) + details.delta.dy * math.cos(angle);
 
-                                                    shape.offset += Offset(
-                                                      dx / canvasW,
-                                                      dy / canvasH,
-                                                    );
-                                                  });
+                                                      shape.offset += Offset(
+                                                        dx / canvasW,
+                                                        dy / canvasH,
+                                                      );
+                                                    });
+                                                  }
                                                 },
-                                                onTap: () => setState(() {
-                                                  _activeShapeItem = shape;
-                                                  _activeTextItem = null;
-                                                }),
+                                                // onTap: () => setState(() {
+                                                //   _activeShapeItem = shape;
+                                                //   _activeTextItem = null;
+                                                // }),
+                                                onTap: () {
+                                                  // 🚨 FIX: Select sirf tab hoga jab "Shapes" tab active ho!
+                                                  if (_activeTab == "Shapes") {
+                                                    setState(() {
+                                                      _activeShapeItem = shape;
+                                                      _activeTextItem = null;
+                                                    });
+                                                  }
+                                                },
                                                 child: Container(
                                                   padding: const EdgeInsets.all(24),
                                                   child: Stack(
