@@ -297,7 +297,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
   // Discard Dialog
   // Discard Dialog
   Future<bool> _onWillPop() async {
-    if (_paths.isEmpty) return true;
+    //if (_paths.isEmpty) return true;
+    if (_paths.isEmpty && _textItems.isEmpty && _shapeItems.isEmpty) return true;
 
     bool? discard = await showDialog<bool>(
       context: context,
