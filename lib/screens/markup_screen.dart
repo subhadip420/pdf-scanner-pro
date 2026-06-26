@@ -1597,48 +1597,135 @@ class _MarkupScreenState extends State<MarkupScreen> {
         const SizedBox(height: 12),
 
         // --- 4TH ROW: Colors Array ---
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children:
-                [
-                  Colors.white,
-                  Colors.black,
-                  Colors.grey.shade400,
-                  Colors.redAccent,
-                  Colors.pinkAccent,
-                  Colors.purpleAccent,
-                  Colors.blueAccent,
-                  Colors.lightBlueAccent,
-                  Colors.cyanAccent,
-                  Colors.tealAccent,
-                  Colors.greenAccent,
-                  Colors.yellowAccent,
-                  Colors.amberAccent,
-                  Colors.orangeAccent,
-                  Colors.brown,
-                ].map((c) {
-                  bool isSelected = activeItem.color == c;
-                  Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+        // SingleChildScrollView(
+        //   scrollDirection: Axis.horizontal,
+        //   physics: const BouncingScrollPhysics(),
+        //   child: Row(
+        //     children:
+        //         [
+        //           Colors.white,
+        //           Colors.black,
+        //           Colors.grey.shade400,
+        //           Colors.redAccent,
+        //           Colors.pinkAccent,
+        //           Colors.purpleAccent,
+        //           Colors.blueAccent,
+        //           Colors.lightBlueAccent,
+        //           Colors.cyanAccent,
+        //           Colors.tealAccent,
+        //           Colors.greenAccent,
+        //           Colors.yellowAccent,
+        //           Colors.amberAccent,
+        //           Colors.orangeAccent,
+        //           Colors.brown,
+        //         ].map((c) {
+        //           bool isSelected = activeItem.color == c;
+        //           Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+        //
+        //           return GestureDetector(
+        //             onTap: () => setState(() => activeItem.color = c),
+        //             child: AnimatedContainer(
+        //               duration: const Duration(milliseconds: 200),
+        //               margin: const EdgeInsets.symmetric(horizontal: 6),
+        //               width: isSelected ? 34 : 28,
+        //               height: isSelected ? 34 : 28,
+        //               decoration: BoxDecoration(
+        //                 color: c,
+        //                 shape: BoxShape.circle,
+        //                 border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
+        //               ),
+        //               child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
+        //             ),
+        //           );
+        //         }).toList(),
+        //   ),
+        // ),
+        Row(
+          children: [
+            // 1. Scrollable Predefined Colors (Left side)
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    Colors.white,
+                    Colors.black,
+                    Colors.grey.shade400,
+                    Colors.redAccent,
+                    Colors.pinkAccent,
+                    Colors.purpleAccent,
+                    Colors.blueAccent,
+                    Colors.lightBlueAccent,
+                    Colors.cyanAccent,
+                    Colors.tealAccent,
+                    Colors.greenAccent,
+                    Colors.yellowAccent,
+                    Colors.amberAccent,
+                    Colors.orangeAccent,
+                    Colors.brown,
+                  ].map((c) {
+                    bool isSelected = activeItem.color == c;
+                    Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
-                  return GestureDetector(
-                    onTap: () => setState(() => activeItem.color = c),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                      width: isSelected ? 34 : 26,
-                      height: isSelected ? 34 : 26,
-                      decoration: BoxDecoration(
-                        color: c,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
+                    return GestureDetector(
+                      onTap: () => setState(() => activeItem.color = c),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        width: isSelected ? 34 : 28,
+                        height: isSelected ? 34 : 28,
+                        decoration: BoxDecoration(
+                          color: c,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
+                        ),
+                        child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
                       ),
-                      child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
-                    ),
-                  );
-                }).toList(),
-          ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+
+            // 2. Vertical Divider (Premium Look ke liye)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              width: 1.5,
+              height: 28,
+              color: Colors.white24,
+            ),
+
+            // 3. Fixed Custom Color Picker (Right side)
+            GestureDetector(
+              onTap: () async {
+                await _openColorPicker();
+                setState(() {
+                  activeItem.color = _selectedColor;
+                });
+              },
+              child: Container(
+                margin: const EdgeInsets.only(right: 4),
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                  gradient: const SweepGradient(
+                    colors: [
+                      Colors.red, Colors.orange, Colors.yellow, Colors.green,
+                      Colors.blue, Colors.indigo, Colors.purple, Colors.red,
+                    ],
+                  ),
+                ),
+                child: const Icon(
+                  Icons.colorize_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
