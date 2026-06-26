@@ -687,7 +687,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                     if (_activeTab == "Text") {
                                                       setState(() {
                                                         RenderBox renderBox =
-                                                        _canvasKey.currentContext!.findRenderObject() as RenderBox;
+                                                            _canvasKey.currentContext!.findRenderObject() as RenderBox;
 
                                                         // 🚨 FIX: Sirf aur sirf TEXT ki rotation (item.rotation) ko handle karna hai!
                                                         // math.cos aur math.sin text ki ghoomi hui direction ko seedha (un-rotate) kar denge.
@@ -1450,194 +1450,194 @@ class _MarkupScreenState extends State<MarkupScreen> {
           child: Row(
             children: [
               // Appearance (A) - 4 Modes
-            Tooltip(
-            message: "Text Appearance",
-              child: GestureDetector(
-                onTap: () => setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: activeItem.appearance == 1
-                        ? Colors.white
-                        : (activeItem.appearance == 2 ? Colors.white38 : Colors.transparent),
-                    border: Border.all(color: Colors.white),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Stack(
+              Tooltip(
+                message: "Text Appearance",
+                child: GestureDetector(
+                  onTap: () => setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4),
+                  child: Container(
+                    width: 36,
+                    height: 36,
                     alignment: Alignment.center,
-                    children: [
-                      if (activeItem.appearance == 3)
+                    decoration: BoxDecoration(
+                      color: activeItem.appearance == 1
+                          ? Colors.white
+                          : (activeItem.appearance == 2 ? Colors.white38 : Colors.transparent),
+                      border: Border.all(color: Colors.white),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (activeItem.appearance == 3)
+                          Text(
+                            "T",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              foreground: Paint()
+                                ..style = PaintingStyle.stroke
+                                ..strokeWidth = 2.5
+                                ..color = activeItem.color,
+                            ),
+                          ),
                         Text(
                           "T",
                           style: TextStyle(
+                            color: (activeItem.appearance == 1 || activeItem.appearance == 2)
+                                ? Colors.black
+                                : Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            foreground: Paint()
-                              ..style = PaintingStyle.stroke
-                              ..strokeWidth = 2.5
-                              ..color = activeItem.color,
                           ),
                         ),
-                      Text(
-                        "T",
-                        style: TextStyle(
-                          color: (activeItem.appearance == 1 || activeItem.appearance == 2)
-                              ? Colors.black
-                              : Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
               ),
               const SizedBox(width: 5),
 
-          Tooltip(
-            message: "Bold Text", // 👈 Yahan Tooltip add kiya gaya hai
-            child: GestureDetector(
-                onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: activeItem.isBold ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
+              Tooltip(
+                message: "Bold Text", // 👈 Yahan Tooltip add kiya gaya hai
+                child: GestureDetector(
+                  onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: activeItem.isBold ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.format_bold_rounded, color: activeItem.isBold ? Colors.blueAccent : Colors.white),
                   ),
-                  child: Icon(Icons.format_bold_rounded, color: activeItem.isBold ? Colors.blueAccent : Colors.white),
                 ),
-            ),
               ),
 
-          Tooltip(
-            message: "Underline Text", // 👈 Yahan Tooltip add kiya gaya hai
-            child: GestureDetector(
-                onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: activeItem.isUnderline ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.format_underlined_rounded,
-                    color: activeItem.isUnderline ? Colors.blueAccent : Colors.white,
+              Tooltip(
+                message: "Underline Text", // 👈 Yahan Tooltip add kiya gaya hai
+                child: GestureDetector(
+                  onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: activeItem.isUnderline ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.format_underlined_rounded,
+                      color: activeItem.isUnderline ? Colors.blueAccent : Colors.white,
+                    ),
                   ),
                 ),
-            ),
               ),
 
-          Tooltip(
-            message: "Italic", // 👈 Yahan Tooltip add kiya gaya hai
-            child: GestureDetector(
-                onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: activeItem.isItalic ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.format_italic_rounded,
-                    color: activeItem.isItalic ? Colors.blueAccent : Colors.white,
+              Tooltip(
+                message: "Italic", // 👈 Yahan Tooltip add kiya gaya hai
+                child: GestureDetector(
+                  onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: activeItem.isItalic ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.format_italic_rounded,
+                      color: activeItem.isItalic ? Colors.blueAccent : Colors.white,
+                    ),
                   ),
                 ),
-            ),
               ),
 
-          Tooltip(
-            message: "Strikethrough", // 👈 Yahan Tooltip add kiya gaya hai
-            child: GestureDetector(
-                onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: activeItem.isStrikethrough ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.format_strikethrough_rounded,
-                    color: activeItem.isStrikethrough ? Colors.blueAccent : Colors.white,
+              Tooltip(
+                message: "Strikethrough", // 👈 Yahan Tooltip add kiya gaya hai
+                child: GestureDetector(
+                  onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: activeItem.isStrikethrough ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.format_strikethrough_rounded,
+                      color: activeItem.isStrikethrough ? Colors.blueAccent : Colors.white,
+                    ),
                   ),
                 ),
-            ),
               ),
 
               const SizedBox(width: 4),
 
               // 🚨 NAYA: Rotate Button (Copy button se pehle)
-          Tooltip(
-            message: "Rotate 90°", // 👈 Yahan Tooltip add kiya gaya hai
-            child: GestureDetector(
-                onTap: hasActiveText
-                    ? () => setState(() {
-                  // Har click par text 90 degrees (π/2 radians) rotate hoga
-                  _activeTextItem!.rotation += (math.pi / 2);
-                })
-                    : null,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 36,
-                  height: 36,
-                  child: Icon(
-                    Icons.rotate_right_rounded, // Tum chaho toh Icons.rotate_90_degrees_cw bhi use kar sakte ho
-                    color: hasActiveText ? Colors.white : Colors.white38,
+              Tooltip(
+                message: "Rotate 90°", // 👈 Yahan Tooltip add kiya gaya hai
+                child: GestureDetector(
+                  onTap: hasActiveText
+                      ? () => setState(() {
+                          // Har click par text 90 degrees (π/2 radians) rotate hoga
+                          _activeTextItem!.rotation += (math.pi / 2);
+                        })
+                      : null,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: 36,
+                    height: 36,
+                    child: Icon(
+                      Icons.rotate_right_rounded, // Tum chaho toh Icons.rotate_90_degrees_cw bhi use kar sakte ho
+                      color: hasActiveText ? Colors.white : Colors.white38,
+                    ),
                   ),
                 ),
-            ),
               ),
 
               // Duplicate (Agar text select nahi hai, toh disable rahega)
-          Tooltip(
-            message: "Duplicate Text", // 👈 Yahan Tooltip add kiya gaya hai
-            child: GestureDetector(
-                onTap: hasActiveText
-                    ? () => setState(() {
-                        TextOverlayItem duplicateItem = _activeTextItem!.clone();
-                        _textItems.add(duplicateItem);
-                        _activeTextItem = duplicateItem;
-                        _textEditorController.text = duplicateItem.text;
-                      })
-                    : null,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 36,
-                  height: 36,
-                  child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38),
-                ),
-            ),
-              ),
-
-          Tooltip(
-            message: "Delete Text", // 👈 Yahan Tooltip add kiya gaya hai
-            child: GestureDetector(
-                onTap: hasActiveText
-                    ? () => setState(() {
-                        _textItems.remove(_activeTextItem);
-                        _activeTextItem = null;
-                      })
-                    : null,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: 36,
-                  height: 36,
-                  child: Icon(
-                    Icons.delete_forever_rounded, // 🚨 Delete icon
-                    color: hasActiveText ? Colors.redAccent : Colors.white38,
+              Tooltip(
+                message: "Duplicate Text", // 👈 Yahan Tooltip add kiya gaya hai
+                child: GestureDetector(
+                  onTap: hasActiveText
+                      ? () => setState(() {
+                          TextOverlayItem duplicateItem = _activeTextItem!.clone();
+                          _textItems.add(duplicateItem);
+                          _activeTextItem = duplicateItem;
+                          _textEditorController.text = duplicateItem.text;
+                        })
+                      : null,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: 36,
+                    height: 36,
+                    child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38),
                   ),
                 ),
-            ),
+              ),
+
+              Tooltip(
+                message: "Delete Text", // 👈 Yahan Tooltip add kiya gaya hai
+                child: GestureDetector(
+                  onTap: hasActiveText
+                      ? () => setState(() {
+                          _textItems.remove(_activeTextItem);
+                          _activeTextItem = null;
+                        })
+                      : null,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: 36,
+                    height: 36,
+                    child: Icon(
+                      Icons.delete_forever_rounded, // 🚨 Delete icon
+                      color: hasActiveText ? Colors.redAccent : Colors.white38,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1651,53 +1651,49 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 child: Row(
-                  children: [
-                    Colors.white,
-                    Colors.black,
-                    Colors.grey.shade400,
-                    Colors.redAccent,
-                    Colors.pinkAccent,
-                    Colors.purpleAccent,
-                    Colors.blueAccent,
-                    Colors.lightBlueAccent,
-                    Colors.cyanAccent,
-                    Colors.tealAccent,
-                    Colors.greenAccent,
-                    Colors.yellowAccent,
-                    Colors.amberAccent,
-                    Colors.orangeAccent,
-                    Colors.brown,
-                  ].map((c) {
-                    bool isSelected = activeItem.color == c;
-                    Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+                  children:
+                      [
+                        Colors.white,
+                        Colors.black,
+                        Colors.grey.shade400,
+                        Colors.redAccent,
+                        Colors.pinkAccent,
+                        Colors.purpleAccent,
+                        Colors.blueAccent,
+                        Colors.lightBlueAccent,
+                        Colors.cyanAccent,
+                        Colors.tealAccent,
+                        Colors.greenAccent,
+                        Colors.yellowAccent,
+                        Colors.amberAccent,
+                        Colors.orangeAccent,
+                        Colors.brown,
+                      ].map((c) {
+                        bool isSelected = activeItem.color == c;
+                        Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
-                    return GestureDetector(
-                      onTap: () => setState(() => activeItem.color = c),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        width: isSelected ? 34 : 28,
-                        height: isSelected ? 34 : 28,
-                        decoration: BoxDecoration(
-                          color: c,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
-                        ),
-                        child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
-                      ),
-                    );
-                  }).toList(),
+                        return GestureDetector(
+                          onTap: () => setState(() => activeItem.color = c),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            width: isSelected ? 34 : 28,
+                            height: isSelected ? 34 : 28,
+                            decoration: BoxDecoration(
+                              color: c,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
+                            ),
+                            child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
+                          ),
+                        );
+                      }).toList(),
                 ),
               ),
             ),
 
             // 2. Vertical Divider (Premium Look ke liye)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-              width: 1.5,
-              height: 28,
-              color: Colors.white24,
-            ),
+            Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 1.5, height: 28, color: Colors.white24),
 
             // 3. Fixed Custom Color Picker (Right side)
             GestureDetector(
@@ -1716,16 +1712,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   border: Border.all(color: Colors.white, width: 1.5),
                   gradient: const SweepGradient(
                     colors: [
-                      Colors.red, Colors.orange, Colors.yellow, Colors.green,
-                      Colors.blue, Colors.indigo, Colors.purple, Colors.red,
+                      Colors.red,
+                      Colors.orange,
+                      Colors.yellow,
+                      Colors.green,
+                      Colors.blue,
+                      Colors.indigo,
+                      Colors.purple,
+                      Colors.red,
                     ],
                   ),
                 ),
-                child: const Icon(
-                  Icons.colorize_rounded,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                child: const Icon(Icons.colorize_rounded, color: Colors.white, size: 16),
               ),
             ),
           ],
