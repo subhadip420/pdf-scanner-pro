@@ -523,6 +523,40 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
 
       // --- STEP 2: STAMP VECTOR DRAWINGS (Bina Ghumi hui photo par) ---
+      // if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
+      //   MarkupExportData exportData = _pageMarkups[i];
+      //
+      //   ui.Codec codec = await ui.instantiateImageCodec(imageBytes);
+      //   ui.FrameInfo frameInfo = await codec.getNextFrame();
+      //   ui.Image uiImg = frameInfo.image;
+      //
+      //   final ui.PictureRecorder recorder = ui.PictureRecorder();
+      //   final Canvas canvas = Canvas(recorder);
+      //   final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
+      //
+      //   canvas.drawImage(uiImg, Offset.zero, Paint());
+      //
+      //   DrawingPainter painter = DrawingPainter(
+      //     paths: exportData.paths,
+      //     currentPoints: [],
+      //     currentColor: Colors.transparent,
+      //     currentStrokeWidth: 0,
+      //     currentOpacity: 0,
+      //     isEraser: false,
+      //   );
+      //   painter.paint(canvas, size);
+      //
+      //   final ui.Picture picture = recorder.endRecording();
+      //   final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
+      //   final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
+      //
+      //   if (byteData != null) {
+      //     // Drawing photo me fix ho chuki hai
+      //     imageBytes = byteData.buffer.asUint8List();
+      //   }
+      // }
+
+      // --- STEP 2: STAMP VECTOR DRAWINGS (Bina Ghumi hui photo par) ---
       if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
         MarkupExportData exportData = _pageMarkups[i];
 
@@ -533,26 +567,94 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         final ui.PictureRecorder recorder = ui.PictureRecorder();
         final Canvas canvas = Canvas(recorder);
         final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
+        double scaleRatio = size.width / 400.0;
 
         canvas.drawImage(uiImg, Offset.zero, Paint());
 
+        // A. Draw Strokes (Pen/Eraser)
         DrawingPainter painter = DrawingPainter(
-          paths: exportData.paths,
-          currentPoints: [],
-          currentColor: Colors.transparent,
-          currentStrokeWidth: 0,
-          currentOpacity: 0,
-          isEraser: false,
+          paths: exportData.paths, currentPoints: [], currentColor: Colors.transparent, currentStrokeWidth: 0, currentOpacity: 0, isEraser: false,
         );
         painter.paint(canvas, size);
+
+        // B. Draw Shapes (Icons)
+        for (var shape in exportData.shapes) {
+          canvas.save();
+          canvas.translate(shape.offset.dx * size.width, shape.offset.dy * size.height);
+          canvas.rotate(shape.rotation);
+          canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+
+          // Icon ko TextPainter ke through Canvas par draw karne ka hack
+          TextPainter tp = TextPainter(
+            text: TextSpan(
+              text: String.fromCharCode(shape.icon.codePoint),
+              style: TextStyle(
+                fontSize: shape.size * scaleRatio,
+                color: shape.color,
+                fontFamily: shape.icon.fontFamily,
+                package: shape.icon.fontPackage,
+              ),
+            ),
+            textDirection: TextDirection.ltr,
+          );
+          tp.layout();
+          tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+          canvas.restore();
+        }
+
+        // C. Draw Texts
+        for (var item in exportData.texts) {
+          canvas.save();
+          canvas.translate(item.offset.dx * size.width, item.offset.dy * size.height);
+          canvas.rotate(item.rotation);
+
+          double fontSize = item.fontSize * scaleRatio;
+          Color textColor = item.appearance == 0 ? item.color : (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) : Colors.white;
+          Color bgColor = item.appearance == 1 ? item.color : item.appearance == 2 ? item.color.withOpacity(0.5) : Colors.transparent;
+
+          TextDecoration decoration = TextDecoration.none;
+          if (item.isUnderline && item.isStrikethrough) decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+          else if (item.isUnderline) decoration = TextDecoration.underline;
+          else if (item.isStrikethrough) decoration = TextDecoration.lineThrough;
+
+          TextStyle style = TextStyle(
+            color: textColor, fontSize: fontSize, fontFamily: item.font,
+            fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+            fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+            decoration: decoration, decorationColor: textColor,
+            shadows: item.appearance == 0 ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
+          );
+
+          TextPainter tp = TextPainter(text: TextSpan(text: item.text, style: style), textAlign: item.alignment, textDirection: TextDirection.ltr);
+          tp.layout();
+
+          // Background box (Agar solid/transparent ho)
+          Rect bgRect = Rect.fromCenter(center: Offset.zero, width: tp.width + (32 * scaleRatio), height: tp.height + (16 * scaleRatio));
+          if (bgColor != Colors.transparent) {
+            canvas.drawRRect(RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)), Paint()..color = bgColor);
+          }
+
+          // Stroke text effect
+          if (item.appearance == 3) {
+            TextPainter strokeTp = TextPainter(
+              text: TextSpan(text: item.text, style: style.copyWith(foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = fontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color)),
+              textAlign: item.alignment, textDirection: TextDirection.ltr,
+            );
+            strokeTp.layout();
+            strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
+          }
+
+          // Main text paint
+          tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+          canvas.restore();
+        }
 
         final ui.Picture picture = recorder.endRecording();
         final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
         final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
 
         if (byteData != null) {
-          // Drawing photo me fix ho chuki hai
-          imageBytes = byteData.buffer.asUint8List();
+          imageBytes = byteData.buffer.asUint8List(); // Data replace kar do
         }
       }
 
@@ -888,6 +990,51 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   //   ),
                                   // ),
 
+                                  // child: InteractiveViewer(
+                                  //   minScale: 1.0, maxScale: 5.0, clipBehavior: Clip.none,
+                                  //   child: Center(
+                                  //     child: Padding(
+                                  //       padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                                  //       child: RotatedBox(
+                                  //         quarterTurns: _imageQuarterTurns[index],
+                                  //         // 🚨 NAYA: Stack add kiya taaki Image ke theek upar Drawing layer aa sake!
+                                  //         child: Stack(
+                                  //           alignment: Alignment.center,
+                                  //           children: [
+                                  //             // Layer 1: Base Image with Filters
+                                  //             ColorFiltered(
+                                  //               colorFilter: _getAdjustColorFilter(_pageBrightness[index], _pageContrast[index]),
+                                  //               child: ColorFiltered(
+                                  //                 colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                  //                 child: Image.file(
+                                  //                   widget.imageFiles[index]['cropped']!,
+                                  //                   fit: BoxFit.contain,
+                                  //                 ),
+                                  //               ),
+                                  //             ),
+                                  //
+                                  //             // Layer 2: Vector Markups (Drawing strokes sirf)
+                                  //             if (_pageMarkups[index] != null && _pageMarkups[index] is MarkupExportData)
+                                  //               Positioned.fill(
+                                  //                 child: CustomPaint(
+                                  //                   painter: DrawingPainter(
+                                  //                     paths: (_pageMarkups[index] as MarkupExportData).paths,
+                                  //                     currentPoints: [], // Main screen par koi live drawing nahi
+                                  //                     currentColor: Colors.transparent,
+                                  //                     currentStrokeWidth: 0,
+                                  //                     currentOpacity: 0,
+                                  //                     isEraser: false,
+                                  //                   ),
+                                  //                 ),
+                                  //               ),
+                                  //
+                                  //             // Future Layer 3: Yahan tum chaho toh Shapes aur Text bhi loop laga kar display kar sakte ho!
+                                  //           ],
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
                                   child: InteractiveViewer(
                                     minScale: 1.0, maxScale: 5.0, clipBehavior: Clip.none,
                                     child: Center(
@@ -895,7 +1042,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
                                         child: RotatedBox(
                                           quarterTurns: _imageQuarterTurns[index],
-                                          // 🚨 NAYA: Stack add kiya taaki Image ke theek upar Drawing layer aa sake!
                                           child: Stack(
                                             alignment: Alignment.center,
                                             children: [
@@ -911,22 +1057,100 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 ),
                                               ),
 
-                                              // Layer 2: Vector Markups (Drawing strokes sirf)
-                                              if (_pageMarkups[index] != null && _pageMarkups[index] is MarkupExportData)
+                                              // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
+                                              if (_pageMarkups[index] != null && _pageMarkups[index] is MarkupExportData) ...[
+
+                                                // --- DRAWING STROKES ---
                                                 Positioned.fill(
                                                   child: CustomPaint(
                                                     painter: DrawingPainter(
                                                       paths: (_pageMarkups[index] as MarkupExportData).paths,
-                                                      currentPoints: [], // Main screen par koi live drawing nahi
-                                                      currentColor: Colors.transparent,
-                                                      currentStrokeWidth: 0,
-                                                      currentOpacity: 0,
-                                                      isEraser: false,
+                                                      currentPoints: [],
+                                                      currentColor: Colors.transparent, currentStrokeWidth: 0, currentOpacity: 0, isEraser: false,
                                                     ),
                                                   ),
                                                 ),
 
-                                              // Future Layer 3: Yahan tum chaho toh Shapes aur Text bhi loop laga kar display kar sakte ho!
+                                                // --- TEXTS & SHAPES ---
+                                                Positioned.fill(
+                                                  child: LayoutBuilder(
+                                                    builder: (context, constraints) {
+                                                      double canvasW = constraints.maxWidth;
+                                                      double canvasH = constraints.maxHeight;
+                                                      double scaleRatio = canvasW / 400.0;
+                                                      MarkupExportData data = _pageMarkups[index];
+
+                                                      return Stack(
+                                                        clipBehavior: Clip.none,
+                                                        children: [
+                                                          // TEXTS LOOP
+                                                          ...data.texts.map((item) {
+                                                            double scaledFontSize = item.fontSize * scaleRatio;
+                                                            Color textColor = item.appearance == 0 ? item.color : (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) : Colors.white;
+                                                            Color bgColor = item.appearance == 1 ? item.color : item.appearance == 2 ? item.color.withOpacity(0.5) : Colors.transparent;
+                                                            TextDecoration decoration = TextDecoration.none;
+                                                            if (item.isUnderline && item.isStrikethrough) decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+                                                            else if (item.isUnderline) decoration = TextDecoration.underline;
+                                                            else if (item.isStrikethrough) decoration = TextDecoration.lineThrough;
+
+                                                            return Positioned(
+                                                              left: item.offset.dx * canvasW,
+                                                              top: item.offset.dy * canvasH,
+                                                              child: FractionalTranslation(
+                                                                translation: const Offset(-0.5, -0.5),
+                                                                child: Transform.rotate(
+                                                                  angle: item.rotation,
+                                                                  child: Container(
+                                                                    padding: EdgeInsets.symmetric(horizontal: 16 * scaleRatio, vertical: 8 * scaleRatio),
+                                                                    decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8 * scaleRatio)),
+                                                                    child: Stack(
+                                                                      alignment: Alignment.center,
+                                                                      children: [
+                                                                        if (item.appearance == 3)
+                                                                          Text(item.text, textAlign: item.alignment, style: TextStyle(fontSize: scaledFontSize, fontFamily: item.font, fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal, fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal, decoration: decoration, foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = scaledFontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color)),
+                                                                        Text(item.text, textAlign: item.alignment, style: TextStyle(color: textColor, fontSize: scaledFontSize, fontFamily: item.font, fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal, fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal, decoration: decoration, decorationColor: textColor, shadows: item.appearance == 0 ? const [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null)),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }),
+
+                                                          // SHAPES LOOP
+                                                          ...data.shapes.map((shape) {
+                                                            return Positioned(
+                                                              left: shape.offset.dx * canvasW,
+                                                              top: shape.offset.dy * canvasH,
+                                                              child: FractionalTranslation(
+                                                                translation: const Offset(-0.5, -0.5),
+                                                                child: Transform.rotate(
+                                                                  angle: shape.rotation,
+                                                                  child: Container(
+                                                                    padding: const EdgeInsets.all(24),
+                                                                    child: SizedBox(
+                                                                      width: (shape.size * shape.scaleX.abs()) * scaleRatio,
+                                                                      height: (shape.size * shape.scaleY.abs()) * scaleRatio,
+                                                                      child: FittedBox(
+                                                                        fit: BoxFit.fill,
+                                                                        child: Transform.scale(
+                                                                          scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                                          scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                                          child: Icon(shape.icon, color: shape.color),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            );
+                                                          }),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
                                             ],
                                           ),
                                         ),
