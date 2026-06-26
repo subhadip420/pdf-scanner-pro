@@ -22,8 +22,7 @@ class DocumentEditorScreen extends StatefulWidget {
   final List<Map<String, File>> imageFiles;
 
   //const DocumentEditorScreen({super.key, required this.imageFiles});
-  const DocumentEditorScreen({Key? key, required this.imageFiles})
-    : super(key: key);
+  const DocumentEditorScreen({Key? key, required this.imageFiles}) : super(key: key);
 
   @override
   State<DocumentEditorScreen> createState() => _DocumentEditorScreenState();
@@ -66,17 +65,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool _applyToAllPages = false;
   late List<String> _pageFilters; // 🚨 Har page ka alag filter track karega
   // 🚨 FIX: Filter ke saare options ki list define kardo
-  final List<String> _filterOptions = [
-    "Original color",
-    "Auto-color",
-    "Light text",
-    "Grayscale",
-    "Whiteboard"
-  ];
+  final List<String> _filterOptions = ["Original color", "Auto-color", "Light text", "Grayscale", "Whiteboard"];
 
   bool _showAdjustMenu = false; // 🚨 Naya Adjust menu track karne ke liye
   late List<double> _pageBrightness; // 🚨 Har page ki brightness
-  late List<double> _pageContrast;   // 🚨 Har page ka contrast
+  late List<double> _pageContrast; // 🚨 Har page ka contrast
   String _activeAdjustTab = "Brightness"; // "Brightness" ya "Contrast" track karega
 
   // Har image kitni baar rotate hui hai (0, 1, 2, ya 3) uski list
@@ -93,21 +86,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     currentPage = widget.imageFiles.length - 1;
     _pageController = PageController(initialPage: currentPage);
 
-    _savedCropPositions = List.generate(
-      widget.imageFiles.length,
-      (index) => null,
-    );
-    _autoCropPositions = List.generate(
-      widget.imageFiles.length,
-      (index) => null,
-    ); // Auto memory init
+    _savedCropPositions = List.generate(widget.imageFiles.length, (index) => null);
+    _autoCropPositions = List.generate(widget.imageFiles.length, (index) => null); // Auto memory init
 
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
 
     _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
     _pageFilters = List.filled(widget.imageFiles.length, "Original color"); // 🚨 Default filter set kiya
     _pageBrightness = List.filled(widget.imageFiles.length, 0.0); // Default 0
-    _pageContrast = List.filled(widget.imageFiles.length, 0.0);   // Default 0
+    _pageContrast = List.filled(widget.imageFiles.length, 0.0); // Default 0
 
     _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
     _pageFilters = List.filled(widget.imageFiles.length, "Original color");
@@ -129,38 +116,59 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     switch (filterName) {
       case "Grayscale":
         return const ColorFilter.matrix([
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0,      0,      0,      1, 0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ]);
       case "Whiteboard":
-        return const ColorFilter.matrix([
-          1.5, 0, 0, 0, 20,
-          0, 1.5, 0, 0, 20,
-          0, 0, 1.5, 0, 20,
-          0, 0, 0, 1, 0,
-        ]);
+        return const ColorFilter.matrix([1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0]);
       case "Light text":
-        return const ColorFilter.matrix([
-          1.2, 0, 0, 0, 10,
-          0, 1.2, 0, 0, 10,
-          0, 0, 1.2, 0, 10,
-          0, 0, 0, 1, 0,
-        ]);
+        return const ColorFilter.matrix([1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0]);
       case "Auto-color":
         return const ColorFilter.matrix([
-          1.2, -0.1, -0.1, 0, 10,
-          -0.1, 1.2, -0.1, 0, 10,
-          -0.1, -0.1, 1.2, 0, 10,
-          0, 0, 0, 1, 0,
+          1.2,
+          -0.1,
+          -0.1,
+          0,
+          10,
+          -0.1,
+          1.2,
+          -0.1,
+          0,
+          10,
+          -0.1,
+          -0.1,
+          1.2,
+          0,
+          10,
+          0,
+          0,
+          0,
+          1,
+          0,
         ]);
       case "Original color":
       default:
         return null;
     }
   }
-
 
   // --- 🚨 ADJUST LOGIC (Brightness & Contrast) ---
   ColorFilter _getAdjustColorFilter(double brightness, double contrast) {
@@ -171,12 +179,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     double c = 1.0 + (contrast / 100.0);
     double t = (1.0 - c) * 127.5; // Offset for contrast centering
 
-    return ColorFilter.matrix([
-      c, 0, 0, 0, t + b,
-      0, c, 0, 0, t + b,
-      0, 0, c, 0, t + b,
-      0, 0, 0, 1, 0,
-    ]);
+    return ColorFilter.matrix([c, 0, 0, 0, t + b, 0, c, 0, 0, t + b, 0, 0, c, 0, t + b, 0, 0, 0, 1, 0]);
   }
 
   // --- 🚨 NAYE HELPER FUNCTIONS (Exact UI Math Sync) ---
@@ -194,7 +197,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  img.Image _processImageSync(img.Image decodedImage, int turns, String activeFilter, double activeBright, double activeContrast) {
+  img.Image _processImageSync(
+    img.Image decodedImage,
+    int turns,
+    String activeFilter,
+    double activeBright,
+    double activeContrast,
+  ) {
     // 1. Apply Rotation
     if (turns != 0) {
       decodedImage = img.copyRotate(decodedImage, angle: turns * 90);
@@ -204,10 +213,39 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     if (activeFilter != "Original color") {
       List<double>? filterMatrix;
       switch (activeFilter) {
-        case "Grayscale": filterMatrix = [0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0.2126, 0.7152, 0.0722, 0, 0, 0, 0, 0, 1, 0]; break;
-        case "Whiteboard": filterMatrix = [1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0]; break;
-        case "Light text": filterMatrix = [1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0]; break;
-        case "Auto-color": filterMatrix = [1.2, -0.1, -0.1, 0, 10, -0.1, 1.2, -0.1, 0, 10, -0.1, -0.1, 1.2, 0, 10, 0, 0, 0, 1, 0]; break;
+        case "Grayscale":
+          filterMatrix = [
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0.2126,
+            0.7152,
+            0.0722,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+          ];
+          break;
+        case "Whiteboard":
+          filterMatrix = [1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0];
+          break;
+        case "Light text":
+          filterMatrix = [1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0];
+          break;
+        case "Auto-color":
+          filterMatrix = [1.2, -0.1, -0.1, 0, 10, -0.1, 1.2, -0.1, 0, 10, -0.1, -0.1, 1.2, 0, 10, 0, 0, 0, 1, 0];
+          break;
       }
       if (filterMatrix != null) {
         _applyColorMatrix(decodedImage, filterMatrix);
@@ -220,12 +258,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       double c = 1.0 + (activeContrast / 100.0);
       double t = (1.0 - c) * 127.5;
       double offset = t + b;
-      List<double> adjustMatrix = [
-        c, 0, 0, 0, offset,
-        0, c, 0, 0, offset,
-        0, 0, c, 0, offset,
-        0, 0, 0, 1, 0,
-      ];
+      List<double> adjustMatrix = [c, 0, 0, 0, offset, 0, c, 0, 0, offset, 0, 0, c, 0, offset, 0, 0, 0, 1, 0];
       _applyColorMatrix(decodedImage, adjustMatrix);
     }
 
@@ -307,20 +340,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // Generate default file name based on current date
   String _generateDefaultName() {
     final now = DateTime.now();
-    final months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
+    final months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return "Scanner Pro ${months[now.month - 1]} ${now.day}, ${now.year}";
   }
 
@@ -370,16 +390,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     showDialog(
       context: context,
       barrierDismissible: false, // User screen touch karke band na kar paye
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(color: Colors.blueAccent),
-      ),
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
     );
 
     // Max 2 seconds wait karna (100ms x 20 bar check karega)
     for (int i = 0; i < 20; i++) {
       await Future.delayed(const Duration(milliseconds: 100));
-      if (_rewardedAd != null)
-        break; // Agar wait karte time ad load ho gaya, toh loop break
+      if (_rewardedAd != null) break; // Agar wait karte time ad load ho gaya, toh loop break
     }
 
     // Wait khatam, Loading Dialog close karo
@@ -448,7 +465,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
         // A. Draw Strokes (Pen/Eraser)
         DrawingPainter painter = DrawingPainter(
-          paths: exportData.paths, currentPoints: [], currentColor: Colors.transparent, currentStrokeWidth: 0, currentOpacity: 0, isEraser: false,
+          paths: exportData.paths,
+          currentPoints: [],
+          currentColor: Colors.transparent,
+          currentStrokeWidth: 0,
+          currentOpacity: 0,
+          isEraser: false,
         );
         painter.paint(canvas, size);
 
@@ -484,36 +506,74 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           canvas.rotate(item.rotation);
 
           double fontSize = item.fontSize * scaleRatio;
-          Color textColor = item.appearance == 0 ? item.color : (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) : Colors.white;
-          Color bgColor = item.appearance == 1 ? item.color : item.appearance == 2 ? item.color.withOpacity(0.5) : Colors.transparent;
+          Color textColor = item.appearance == 0
+              ? item.color
+              : (item.appearance == 1 || item.appearance == 2)
+              ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+              : Colors.white;
+          Color bgColor = item.appearance == 1
+              ? item.color
+              : item.appearance == 2
+              ? item.color.withOpacity(0.5)
+              : Colors.transparent;
 
           TextDecoration decoration = TextDecoration.none;
-          if (item.isUnderline && item.isStrikethrough) decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
-          else if (item.isUnderline) decoration = TextDecoration.underline;
-          else if (item.isStrikethrough) decoration = TextDecoration.lineThrough;
+          if (item.isUnderline && item.isStrikethrough)
+            decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+          else if (item.isUnderline)
+            decoration = TextDecoration.underline;
+          else if (item.isStrikethrough)
+            decoration = TextDecoration.lineThrough;
 
           TextStyle style = TextStyle(
-            color: textColor, fontSize: fontSize, fontFamily: item.font,
+            color: textColor,
+            fontSize: fontSize,
+            fontFamily: item.font,
             fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
             fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
-            decoration: decoration, decorationColor: textColor,
-            shadows: item.appearance == 0 ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
+            decoration: decoration,
+            decorationColor: textColor,
+            shadows: item.appearance == 0
+                ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+                : null,
           );
 
-          TextPainter tp = TextPainter(text: TextSpan(text: item.text, style: style), textAlign: item.alignment, textDirection: TextDirection.ltr);
+          TextPainter tp = TextPainter(
+            text: TextSpan(text: item.text, style: style),
+            textAlign: item.alignment,
+            textDirection: TextDirection.ltr,
+          );
           tp.layout();
 
           // Background box (Agar solid/transparent ho)
-          Rect bgRect = Rect.fromCenter(center: Offset.zero, width: tp.width + (32 * scaleRatio), height: tp.height + (16 * scaleRatio));
+          Rect bgRect = Rect.fromCenter(
+            center: Offset.zero,
+            width: tp.width + (32 * scaleRatio),
+            height: tp.height + (16 * scaleRatio),
+          );
           if (bgColor != Colors.transparent) {
-            canvas.drawRRect(RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)), Paint()..color = bgColor);
+            canvas.drawRRect(
+              RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
+              Paint()..color = bgColor,
+            );
           }
 
           // Stroke text effect
           if (item.appearance == 3) {
             TextPainter strokeTp = TextPainter(
-              text: TextSpan(text: item.text, style: style.copyWith(foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = fontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color)),
-              textAlign: item.alignment, textDirection: TextDirection.ltr,
+              text: TextSpan(
+                text: item.text,
+                style: style.copyWith(
+                  foreground: Paint()
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = fontSize * 0.25
+                    ..strokeJoin = StrokeJoin.round
+                    ..strokeCap = StrokeCap.round
+                    ..color = item.color,
+                ),
+              ),
+              textAlign: item.alignment,
+              textDirection: TextDirection.ltr,
             );
             strokeTp.layout();
             strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
@@ -569,9 +629,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
 
       // 2. Public Documents folder ka path set karein
-      final Directory publicDir = Directory(
-        '/storage/emulated/0/Documents/PDF Scanner Pro',
-      );
+      final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
 
       // 3. Agar folder nahi hai, toh naya banao
       if (!await publicDir.exists()) {
@@ -600,7 +658,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
@@ -608,8 +666,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       print("Save Error: $e");
     }
   }
-
-
 
   // Show toast notification
   void showToast(String msg) {
@@ -625,10 +681,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // Go to previous page
   void _previousPage() {
     if (currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
       showToast("First page");
     }
@@ -637,10 +690,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // Go to next page
   void _nextPage() {
     if (currentPage < widget.imageFiles.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
+      _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
       showToast("Last page");
     }
@@ -654,8 +704,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // 2. Jo page abhi screen par hai, uska rotation 1 step badha do
       // % 4 isliye lagaya taaki 4 baar ghumne par wapas 0 (normal) ho jaye
       //_imageQuarterTurns[_currentPageIndex] = (_imageQuarterTurns[_currentPageIndex] + 1) % 4;
-      _imageQuarterTurns[currentPage] =
-          (_imageQuarterTurns[currentPage] + 1) % 4;
+      _imageQuarterTurns[currentPage] = (_imageQuarterTurns[currentPage] + 1) % 4;
     });
   }
 
@@ -665,19 +714,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // Yeh result variable mein us File ka wait karega jo wahan se pop hogi
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const ScannerScreen(isRetakeMode: true),
-        ),
+        MaterialPageRoute(builder: (context) => const ScannerScreen(isRetakeMode: true)),
       );
 
       // 2. Agar user ne photo click ki (ya gallery se li) aur 'result' me naya File wapas aaya
       if (result != null && result is File) {
         setState(() {
           // Current page par purani photo ki jagah nayi photo set kardo
-          widget.imageFiles[currentPage] = {
-            'original': result,
-            'cropped': result,
-          };
+          widget.imageFiles[currentPage] = {'original': result, 'cropped': result};
 
           // 🚨 ZAROORI: Is naye page ke liye purani settings (crop/rotate) RESET kardo
           _imageQuarterTurns[currentPage] = 0;
@@ -685,7 +729,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           _autoCropPositions[currentPage] = null;
           _pageFilters[currentPage] = "Original color"; // 🚨 Retake par filter wapas original hoga
           _pageBrightness[currentPage] = 0.0; // 🚨 Retake par brightness reset
-          _pageContrast[currentPage] = 0.0;   // 🚨 Retake par contrast reset
+          _pageContrast[currentPage] = 0.0; // 🚨 Retake par contrast reset
         });
 
         showToast("Page ${currentPage + 1} replaced successfully!");
@@ -744,11 +788,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           Tooltip(
             message: "Document Options",
             child: IconButton(
-              icon: const Icon(
-                Icons.edit_document,
-                color: Colors.white,
-                size: 24,
-              ),
+              icon: const Icon(Icons.edit_document, color: Colors.white, size: 24),
               onPressed: () {
                 showToast("Options tapped");
               },
@@ -794,11 +834,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                   onTap: () {
                                     if (_showFilterMenu) setState(() => _showFilterMenu = false);
-                                    if (_showAdjustMenu) setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+                                    if (_showAdjustMenu)
+                                      setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
                                   },
 
                                   child: InteractiveViewer(
-                                    minScale: 1.0, maxScale: 5.0, clipBehavior: Clip.none,
+                                    minScale: 1.0,
+                                    maxScale: 5.0,
+                                    clipBehavior: Clip.none,
                                     child: Center(
                                       child: Padding(
                                         padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
@@ -809,9 +852,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             children: [
                                               // Layer 1: Base Image with Filters
                                               ColorFiltered(
-                                                colorFilter: _getAdjustColorFilter(_pageBrightness[index], _pageContrast[index]),
+                                                colorFilter: _getAdjustColorFilter(
+                                                  _pageBrightness[index],
+                                                  _pageContrast[index],
+                                                ),
                                                 child: ColorFiltered(
-                                                  colorFilter: _getColorFilter(_pageFilters[index]) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                                  colorFilter:
+                                                      _getColorFilter(_pageFilters[index]) ??
+                                                      const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                                   child: Image.file(
                                                     widget.imageFiles[index]['cropped']!,
                                                     fit: BoxFit.contain,
@@ -820,15 +868,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                               ),
 
                                               // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
-                                              if (_pageMarkups[index] != null && _pageMarkups[index] is MarkupExportData) ...[
-
+                                              if (_pageMarkups[index] != null &&
+                                                  _pageMarkups[index] is MarkupExportData) ...[
                                                 // --- DRAWING STROKES ---
                                                 Positioned.fill(
                                                   child: CustomPaint(
                                                     painter: DrawingPainter(
                                                       paths: (_pageMarkups[index] as MarkupExportData).paths,
                                                       currentPoints: [],
-                                                      currentColor: Colors.transparent, currentStrokeWidth: 0, currentOpacity: 0, isEraser: false,
+                                                      currentColor: Colors.transparent,
+                                                      currentStrokeWidth: 0,
+                                                      currentOpacity: 0,
+                                                      isEraser: false,
                                                     ),
                                                   ),
                                                 ),
@@ -848,12 +899,28 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                           // TEXTS LOOP
                                                           ...data.texts.map((item) {
                                                             double scaledFontSize = item.fontSize * scaleRatio;
-                                                            Color textColor = item.appearance == 0 ? item.color : (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) : Colors.white;
-                                                            Color bgColor = item.appearance == 1 ? item.color : item.appearance == 2 ? item.color.withOpacity(0.5) : Colors.transparent;
+                                                            Color textColor = item.appearance == 0
+                                                                ? item.color
+                                                                : (item.appearance == 1 || item.appearance == 2)
+                                                                ? (item.color.computeLuminance() > 0.5
+                                                                      ? Colors.black
+                                                                      : Colors.white)
+                                                                : Colors.white;
+                                                            Color bgColor = item.appearance == 1
+                                                                ? item.color
+                                                                : item.appearance == 2
+                                                                ? item.color.withOpacity(0.5)
+                                                                : Colors.transparent;
                                                             TextDecoration decoration = TextDecoration.none;
-                                                            if (item.isUnderline && item.isStrikethrough) decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
-                                                            else if (item.isUnderline) decoration = TextDecoration.underline;
-                                                            else if (item.isStrikethrough) decoration = TextDecoration.lineThrough;
+                                                            if (item.isUnderline && item.isStrikethrough)
+                                                              decoration = TextDecoration.combine([
+                                                                TextDecoration.underline,
+                                                                TextDecoration.lineThrough,
+                                                              ]);
+                                                            else if (item.isUnderline)
+                                                              decoration = TextDecoration.underline;
+                                                            else if (item.isStrikethrough)
+                                                              decoration = TextDecoration.lineThrough;
 
                                                             return Positioned(
                                                               left: item.offset.dx * canvasW,
@@ -863,14 +930,67 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                 child: Transform.rotate(
                                                                   angle: item.rotation,
                                                                   child: Container(
-                                                                    padding: EdgeInsets.symmetric(horizontal: 16 * scaleRatio, vertical: 8 * scaleRatio),
-                                                                    decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8 * scaleRatio)),
+                                                                    padding: EdgeInsets.symmetric(
+                                                                      horizontal: 16 * scaleRatio,
+                                                                      vertical: 8 * scaleRatio,
+                                                                    ),
+                                                                    decoration: BoxDecoration(
+                                                                      color: bgColor,
+                                                                      borderRadius: BorderRadius.circular(
+                                                                        8 * scaleRatio,
+                                                                      ),
+                                                                    ),
                                                                     child: Stack(
                                                                       alignment: Alignment.center,
                                                                       children: [
                                                                         if (item.appearance == 3)
-                                                                          Text(item.text, textAlign: item.alignment, style: TextStyle(fontSize: scaledFontSize, fontFamily: item.font, fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal, fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal, decoration: decoration, foreground: Paint()..style = PaintingStyle.stroke..strokeWidth = scaledFontSize * 0.25..strokeJoin = StrokeJoin.round..strokeCap = StrokeCap.round..color = item.color)),
-                                                                        Text(item.text, textAlign: item.alignment, style: TextStyle(color: textColor, fontSize: scaledFontSize, fontFamily: item.font, fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal, fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal, decoration: decoration, decorationColor: textColor, shadows: item.appearance == 0 ? const [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null)),
+                                                                          Text(
+                                                                            item.text,
+                                                                            textAlign: item.alignment,
+                                                                            style: TextStyle(
+                                                                              fontSize: scaledFontSize,
+                                                                              fontFamily: item.font,
+                                                                              fontWeight: item.isBold
+                                                                                  ? FontWeight.bold
+                                                                                  : FontWeight.normal,
+                                                                              fontStyle: item.isItalic
+                                                                                  ? FontStyle.italic
+                                                                                  : FontStyle.normal,
+                                                                              decoration: decoration,
+                                                                              foreground: Paint()
+                                                                                ..style = PaintingStyle.stroke
+                                                                                ..strokeWidth = scaledFontSize * 0.25
+                                                                                ..strokeJoin = StrokeJoin.round
+                                                                                ..strokeCap = StrokeCap.round
+                                                                                ..color = item.color,
+                                                                            ),
+                                                                          ),
+                                                                        Text(
+                                                                          item.text,
+                                                                          textAlign: item.alignment,
+                                                                          style: TextStyle(
+                                                                            color: textColor,
+                                                                            fontSize: scaledFontSize,
+                                                                            fontFamily: item.font,
+                                                                            fontWeight: item.isBold
+                                                                                ? FontWeight.bold
+                                                                                : FontWeight.normal,
+                                                                            fontStyle: item.isItalic
+                                                                                ? FontStyle.italic
+                                                                                : FontStyle.normal,
+                                                                            decoration: decoration,
+                                                                            decorationColor: textColor,
+                                                                            shadows: item.appearance == 0
+                                                                                ? const [
+                                                                                    Shadow(
+                                                                                      color: Colors.black54,
+                                                                                      blurRadius: 4,
+                                                                                      offset: Offset(1, 1),
+                                                                                    ),
+                                                                                  ]
+                                                                                : null,
+                                                                          ),
+                                                                        ),
                                                                       ],
                                                                     ),
                                                                   ),
@@ -891,8 +1011,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                   child: Container(
                                                                     padding: const EdgeInsets.all(24),
                                                                     child: SizedBox(
-                                                                      width: (shape.size * shape.scaleX.abs()) * scaleRatio,
-                                                                      height: (shape.size * shape.scaleY.abs()) * scaleRatio,
+                                                                      width:
+                                                                          (shape.size * shape.scaleX.abs()) *
+                                                                          scaleRatio,
+                                                                      height:
+                                                                          (shape.size * shape.scaleY.abs()) *
+                                                                          scaleRatio,
                                                                       child: FittedBox(
                                                                         fit: BoxFit.fill,
                                                                         child: Transform.scale(
@@ -926,7 +1050,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             /// Overlay Controls (Arrows and Page Count)
                             if (!isCroppingMode)
                               Positioned(
-                                bottom: 20, left: 16, right: 16,
+                                bottom: 20,
+                                left: 16,
+                                right: 16,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
@@ -935,12 +1061,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       child: GestureDetector(
                                         onTap: currentPage > 0 ? _previousPage : null,
                                         child: Container(
-                                          width: 40, height: 40,
+                                          width: 40,
+                                          height: 40,
                                           decoration: BoxDecoration(
                                             color: currentPage > 0 ? Colors.black87 : Colors.black38,
                                             shape: BoxShape.circle,
                                           ),
-                                          child: Icon(Icons.arrow_back_ios_new_rounded, color: currentPage > 0 ? Colors.white : Colors.white30, size: 18),
+                                          child: Icon(
+                                            Icons.arrow_back_ios_new_rounded,
+                                            color: currentPage > 0 ? Colors.white : Colors.white30,
+                                            size: 18,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -951,8 +1082,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                           child: GestureDetector(
                                             onTap: () => showToast("Add new page"),
                                             child: Container(
-                                              width: 40, height: 40,
-                                              decoration: const BoxDecoration(color: Colors.black87, shape: BoxShape.circle),
+                                              width: 40,
+                                              height: 40,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.black87,
+                                                shape: BoxShape.circle,
+                                              ),
                                               child: const Icon(Icons.post_add_rounded, color: Colors.white, size: 20),
                                             ),
                                           ),
@@ -968,17 +1103,27 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             },
                                             child: Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                              decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(20)),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black87,
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
                                               child: Row(
                                                 children: [
                                                   Text(
                                                     "Page ${currentPage + 1} of ${widget.imageFiles.length}",
-                                                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
                                                   ),
                                                   const SizedBox(width: 6),
                                                   Icon(
-                                                    isThumbnailVisible ? Icons.keyboard_arrow_down_rounded : Icons.keyboard_arrow_up_rounded,
-                                                    color: Colors.white, size: 18,
+                                                    isThumbnailVisible
+                                                        ? Icons.keyboard_arrow_down_rounded
+                                                        : Icons.keyboard_arrow_up_rounded,
+                                                    color: Colors.white,
+                                                    size: 18,
                                                   ),
                                                 ],
                                               ),
@@ -992,12 +1137,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       child: GestureDetector(
                                         onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
                                         child: Container(
-                                          width: 40, height: 40,
+                                          width: 40,
+                                          height: 40,
                                           decoration: BoxDecoration(
-                                            color: currentPage < widget.imageFiles.length - 1 ? Colors.black87 : Colors.black38,
+                                            color: currentPage < widget.imageFiles.length - 1
+                                                ? Colors.black87
+                                                : Colors.black38,
                                             shape: BoxShape.circle,
                                           ),
-                                          child: Icon(Icons.arrow_forward_ios_rounded, color: currentPage < widget.imageFiles.length - 1 ? Colors.white : Colors.white30, size: 18),
+                                          child: Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            color: currentPage < widget.imageFiles.length - 1
+                                                ? Colors.white
+                                                : Colors.white30,
+                                            size: 18,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1015,7 +1169,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         height: isThumbnailVisible ? 90.0 : 0.0,
                         child: ClipRect(
                           child: Container(
-                            height: 90, color: const Color(0xFF1E1E1E),
+                            height: 90,
+                            color: const Color(0xFF1E1E1E),
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: widget.imageFiles.length,
@@ -1024,15 +1179,24 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 bool isSelected = currentPage == index;
                                 return GestureDetector(
                                   onTap: () {
-                                    _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                                    _pageController.animateToPage(
+                                      index,
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                    );
                                   },
                                   child: Container(
-                                    width: 60, margin: const EdgeInsets.only(right: 12),
+                                    width: 60,
+                                    margin: const EdgeInsets.only(right: 12),
                                     decoration: BoxDecoration(
                                       image: DecorationImage(
-                                        image: FileImage(widget.imageFiles[index]['cropped']!), fit: BoxFit.cover,
+                                        image: FileImage(widget.imageFiles[index]['cropped']!),
+                                        fit: BoxFit.cover,
                                       ),
-                                      border: Border.all(color: isSelected ? Colors.blue : Colors.transparent, width: 3),
+                                      border: Border.all(
+                                        color: isSelected ? Colors.blue : Colors.transparent,
+                                        width: 3,
+                                      ),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Stack(
@@ -1040,9 +1204,20 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         Align(
                                           alignment: Alignment.bottomCenter,
                                           child: Container(
-                                            margin: const EdgeInsets.all(4), padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(10)),
-                                            child: Text('${index + 1}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                            margin: const EdgeInsets.all(4),
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.black.withOpacity(0.6),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              '${index + 1}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -1059,22 +1234,27 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                   // --- LAYER 2: FILTER MENU ---
                   AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
-                    bottom: _showFilterMenu ? 0 : -200, left: 0, right: 0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    bottom: _showFilterMenu ? 0 : -200,
+                    left: 0,
+                    right: 0,
                     child: _buildFilterMenuWidget(),
                   ),
 
                   // --- 🚨 LAYER 3: ADJUST MENU ---
                   AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300), curve: Curves.easeInOut,
-                    bottom: _showAdjustMenu ? 0 : -200, left: 0, right: 0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    bottom: _showAdjustMenu ? 0 : -200,
+                    left: 0,
+                    right: 0,
                     child: _buildAdjustMenuWidget(), // Naya adjust menu call kiya
                   ),
                 ],
               ),
             ),
           ),
-
 
           /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
           Container(
@@ -1124,11 +1304,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     },
                     child: const Text(
                       "Keep scanning",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
 
@@ -1139,23 +1315,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       backgroundColor: Colors.blueAccent,
                       // Adobe scan jaisa blue
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     ),
                     child: const Row(
                       children: [
-                        Text(
-                          "Save PDF",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         SizedBox(width: 4),
                         // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
                       ],
@@ -1216,19 +1381,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       child: Column(
                         children: [
                           Container(
-                            width: 65, height: 65,
+                            width: 65,
+                            height: 65,
                             decoration: BoxDecoration(
-                              border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent, width: 2.5),
+                              border: Border.all(
+                                color: isSelected ? Colors.blueAccent : Colors.transparent,
+                                width: 2.5,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(5),
                               child: ColorFiltered(
-                                colorFilter: _getColorFilter(filterName) ?? const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                child: Image.file(
-                                  widget.imageFiles[currentPage]['cropped']!,
-                                  fit: BoxFit.cover,
-                                ),
+                                colorFilter:
+                                    _getColorFilter(filterName) ??
+                                    const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                child: Image.file(widget.imageFiles[currentPage]['cropped']!, fit: BoxFit.cover),
                               ),
                             ),
                           ),
@@ -1274,12 +1442,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             });
                           },
                           // ON hone par colors
-                          activeColor: Colors.white, // Gola (Thumb) white rahega
-                          activeTrackColor: Colors.blueAccent, // Line blue hogi
+                          activeColor: Colors.white,
+                          // Gola (Thumb) white rahega
+                          activeTrackColor: Colors.blueAccent,
+                          // Line blue hogi
 
                           // OFF hone par colors (Exactly tumhari image jaisa)
-                          inactiveThumbColor: const Color(0xFFC0C0C0), // Light grey gola
-                          inactiveTrackColor: const Color(0xFF505050), // Dark grey line
+                          inactiveThumbColor: const Color(0xFFC0C0C0),
+                          // Light grey gola
+                          inactiveTrackColor: const Color(0xFF505050),
+                          // Dark grey line
 
                           // Material 3 ka default black border hatane ke liye
                           trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
@@ -1295,10 +1467,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       icon: const Icon(Icons.settings, color: Colors.white70, size: 24),
                       onPressed: () => showToast("Settings coming soon!"),
                     ),
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -1311,8 +1483,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     double currentValue = isBrightness ? _pageBrightness[currentPage] : _pageContrast[currentPage];
 
     return GestureDetector(
-      behavior: HitTestBehavior.opaque, // Background tap roko
-      onTap: () {}, onHorizontalDragUpdate: (_) {}, onVerticalDragUpdate: (_) {},
+      behavior: HitTestBehavior.opaque,
+      // Background tap roko
+      onTap: () {},
+      onHorizontalDragUpdate: (_) {},
+      onVerticalDragUpdate: (_) {},
       child: Container(
         height: 180,
         decoration: const BoxDecoration(
@@ -1330,9 +1505,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   onTap: () => setState(() => _activeAdjustTab = "Brightness"),
                   child: Row(
                     children: [
-                      Icon(Icons.light_mode_outlined, color: isBrightness ? Colors.blueAccent : Colors.white70, size: 22),
+                      Icon(
+                        Icons.light_mode_outlined,
+                        color: isBrightness ? Colors.blueAccent : Colors.white70,
+                        size: 22,
+                      ),
                       const SizedBox(width: 8),
-                      Text("Brightness", style: TextStyle(color: isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15)),
+                      Text(
+                        "Brightness",
+                        style: TextStyle(color: isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15),
+                      ),
                     ],
                   ),
                 ),
@@ -1340,9 +1522,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   onTap: () => setState(() => _activeAdjustTab = "Contrast"),
                   child: Row(
                     children: [
-                      Icon(Icons.contrast_outlined, color: !isBrightness ? Colors.blueAccent : Colors.white70, size: 22),
+                      Icon(
+                        Icons.contrast_outlined,
+                        color: !isBrightness ? Colors.blueAccent : Colors.white70,
+                        size: 22,
+                      ),
                       const SizedBox(width: 8),
-                      Text("Contrast", style: TextStyle(color: !isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15)),
+                      Text(
+                        "Contrast",
+                        style: TextStyle(color: !isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15),
+                      ),
                     ],
                   ),
                 ),
@@ -1366,25 +1555,28 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             SliderTheme(
               data: SliderThemeData(
                 trackHeight: 2.5,
-                activeTrackColor: Colors.grey.shade500, // Screenshot jaisa grey track
+                activeTrackColor: Colors.grey.shade500,
+                // Screenshot jaisa grey track
                 inactiveTrackColor: Colors.grey.shade800,
-                thumbColor: Colors.grey.shade400, // Light grey thumb
+                thumbColor: Colors.grey.shade400,
+                // Light grey thumb
                 overlayShape: SliderComponentShape.noOverlay,
               ),
               child: Slider(
                 value: currentValue,
-                min: -100, max: 100,
+                min: -100,
+                max: 100,
                 onChanged: (val) {
                   setState(() {
                     if (isBrightness) {
                       if (_applyToAllPages) {
-                        for (int i=0; i<_pageBrightness.length; i++) _pageBrightness[i] = val;
+                        for (int i = 0; i < _pageBrightness.length; i++) _pageBrightness[i] = val;
                       } else {
                         _pageBrightness[currentPage] = val;
                       }
                     } else {
                       if (_applyToAllPages) {
-                        for (int i=0; i<_pageContrast.length; i++) _pageContrast[i] = val;
+                        for (int i = 0; i < _pageContrast.length; i++) _pageContrast[i] = val;
                       } else {
                         _pageContrast[currentPage] = val;
                       }
@@ -1414,15 +1606,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 // Sync current values to all pages
                                 double b = _pageBrightness[currentPage];
                                 double c = _pageContrast[currentPage];
-                                for (int i=0; i<_pageBrightness.length; i++) {
+                                for (int i = 0; i < _pageBrightness.length; i++) {
                                   _pageBrightness[i] = b;
                                   _pageContrast[i] = c;
                                 }
                               }
                             });
                           },
-                          activeColor: Colors.white, activeTrackColor: Colors.blueAccent,
-                          inactiveThumbColor: const Color(0xFFC0C0C0), inactiveTrackColor: const Color(0xFF505050),
+                          activeColor: Colors.white,
+                          activeTrackColor: Colors.blueAccent,
+                          inactiveThumbColor: const Color(0xFFC0C0C0),
+                          inactiveTrackColor: const Color(0xFF505050),
                           trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
                         ),
                       ),
@@ -1436,7 +1630,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     onPressed: () {
                       setState(() {
                         if (_applyToAllPages) {
-                          for (int i=0; i<_pageBrightness.length; i++) {
+                          for (int i = 0; i < _pageBrightness.length; i++) {
                             _pageBrightness[i] = 0.0;
                             _pageContrast[i] = 0.0;
                           }
@@ -1447,17 +1641,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       });
                       showToast("$_activeAdjustTab reset to 0");
                     },
-                    child: const Text("Reset", style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.w500)),
-                  )
+                    child: const Text(
+                      "Reset",
+                      style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.w500),
+                    ),
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
-
 
   // --- TOOLBAR WIDGETS ---
 
@@ -1495,9 +1691,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isRotate: true, // 🚨 Isko true pass karna zaroori hai tabhi ghumega
           ),
 
-
           _buildToolItem(
-            label: "Filter", icon: Symbols.masked_transitions_rounded, tooltipMessage: "Apply color filters",
+            label: "Filter",
+            icon: Symbols.masked_transitions_rounded,
+            tooltipMessage: "Apply color filters",
             isSelected: _showFilterMenu,
             onTap: () {
               setState(() {
@@ -1508,8 +1705,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
 
           _buildToolItem(
-            label: "Adjust", icon: Icons.tune_rounded, tooltipMessage: "Adjust brightness and contrast",
-            isSelected: _showAdjustMenu, // Open hone par icon blue higlight hoga
+            label: "Adjust",
+            icon: Icons.tune_rounded,
+            tooltipMessage: "Adjust brightness and contrast",
+            isSelected: _showAdjustMenu,
+            // Open hone par icon blue higlight hoga
             onTap: () {
               setState(() {
                 _showAdjustMenu = !_showAdjustMenu;
@@ -1518,7 +1718,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             },
           ),
 
-
           _buildToolItem(
             label: "Markup",
             icon: Icons.border_color_rounded,
@@ -1526,26 +1725,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             onTap: _openMarkupScreen, // 🚨 Naya function yahan cleanly call ho gaya
           ),
 
-          _buildToolItem(
-            label: "Cleanup",
-            icon: Icons.auto_fix_high_rounded,
-            tooltipMessage: "Erase unwanted areas",
-          ),
-          _buildToolItem(
-            label: "Resize",
-            icon: Icons.aspect_ratio_rounded,
-            tooltipMessage: "Change page layout size",
-          ),
+          _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
+          _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
           _buildToolItem(
             label: "Reorder",
             icon: Icons.swap_horizontal_circle_outlined,
             tooltipMessage: "Rearrange page sequence",
           ),
-          _buildToolItem(
-            label: "Delete",
-            icon: Icons.delete_outline_rounded,
-            tooltipMessage: "Delete current page",
-          ),
+          _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, tooltipMessage: "Delete current page"),
         ],
       ),
     );
@@ -1568,7 +1755,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       MaterialPageRoute(
         builder: (context) => MarkupScreen(
           imageFile: currentImage,
-          rotationTurns: turns,          // 🚨 Naye parameters jo Markup me UI sync karenge
+          rotationTurns: turns,
+          // 🚨 Naye parameters jo Markup me UI sync karenge
           filterName: activeFilter,
           brightness: activeBright,
           contrast: activeContrast,
@@ -1596,12 +1784,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildToolItem(
-            label: "Cancel",
-            icon: Icons.close_rounded,
-            tooltipMessage: "Cancel Crop",
-            onTap: _cancelCrop,
-          ),
+          _buildToolItem(label: "Cancel", icon: Icons.close_rounded, tooltipMessage: "Cancel Crop", onTap: _cancelCrop),
           _buildToolItem(
             label: "Auto",
             icon: Icons.auto_awesome_mosaic_rounded,
@@ -1651,9 +1834,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 isRotate
                     ? AnimatedRotation(
                         turns: _iconRotationTurns, // Animation variable
-                        duration: const Duration(
-                          milliseconds: 300,
-                        ), // Smooth time
+                        duration: const Duration(milliseconds: 300), // Smooth time
                         child: Icon(icon, color: Colors.white, size: 22),
                       )
                     : Icon(icon, color: Colors.white, size: 22),
@@ -1661,11 +1842,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 const SizedBox(height: 6),
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -1684,22 +1861,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       double currentLeft = cropLeftRatio * _cropAreaWidth;
       double currentRight = cropRightRatio * _cropAreaWidth;
 
-      currentTop = (currentTop + dt).clamp(
-        0.0,
-        _cropAreaHeight - currentBottom - 40.0,
-      );
-      currentBottom = (currentBottom + db).clamp(
-        0.0,
-        _cropAreaHeight - currentTop - 40.0,
-      );
-      currentLeft = (currentLeft + dl).clamp(
-        0.0,
-        _cropAreaWidth - currentRight - 40.0,
-      );
-      currentRight = (currentRight + dr).clamp(
-        0.0,
-        _cropAreaWidth - currentLeft - 40.0,
-      );
+      currentTop = (currentTop + dt).clamp(0.0, _cropAreaHeight - currentBottom - 40.0);
+      currentBottom = (currentBottom + db).clamp(0.0, _cropAreaHeight - currentTop - 40.0);
+      currentLeft = (currentLeft + dl).clamp(0.0, _cropAreaWidth - currentRight - 40.0);
+      currentRight = (currentRight + dr).clamp(0.0, _cropAreaWidth - currentLeft - 40.0);
 
       cropTopRatio = currentTop / _cropAreaHeight;
       cropBottomRatio = currentBottom / _cropAreaHeight;
@@ -1727,23 +1892,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       if (originalImage != null) {
         int x = (cropLeftRatio * originalImage.width).toInt();
         int y = (cropTopRatio * originalImage.height).toInt();
-        int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width)
-            .toInt();
-        int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height)
-            .toInt();
+        int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width).toInt();
+        int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height).toInt();
 
         x = x.clamp(0, originalImage.width);
         y = y.clamp(0, originalImage.height);
         w = w.clamp(10, originalImage.width - x);
         h = h.clamp(10, originalImage.height - y);
 
-        img.Image newlyCropped = img.copyCrop(
-          originalImage,
-          x: x,
-          y: y,
-          width: w,
-          height: h,
-        );
+        img.Image newlyCropped = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
 
         final String newPath = originalFile.path.replaceAll(
           '.jpg',
@@ -1829,52 +1986,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         ),
                         // Border
                         Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.blueAccent,
-                              width: 2.5,
-                            ),
-                          ),
+                          decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 2.5)),
                         ),
 
                         // Edge lines
-                        _buildEdgeHandle(
-                          Alignment.topCenter,
-                          (d) => _updateCropBounds(d.delta.dy, 0, 0, 0),
-                        ),
-                        _buildEdgeHandle(
-                          Alignment.bottomCenter,
-                          (d) => _updateCropBounds(0, -d.delta.dy, 0, 0),
-                        ),
-                        _buildEdgeHandle(
-                          Alignment.centerLeft,
-                          (d) => _updateCropBounds(0, 0, d.delta.dx, 0),
-                        ),
-                        _buildEdgeHandle(
-                          Alignment.centerRight,
-                          (d) => _updateCropBounds(0, 0, 0, -d.delta.dx),
-                        ),
+                        _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
+                        _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
+                        _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
+                        _buildEdgeHandle(Alignment.centerRight, (d) => _updateCropBounds(0, 0, 0, -d.delta.dx)),
 
                         // Corner Circles
-                        _buildDragCorner(
-                          Alignment.topLeft,
-                          (d) =>
-                              _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0),
-                        ),
-                        _buildDragCorner(
-                          Alignment.topRight,
-                          (d) =>
-                              _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx),
-                        ),
-                        _buildDragCorner(
-                          Alignment.bottomLeft,
-                          (d) =>
-                              _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0),
-                        ),
+                        _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
+                        _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
+                        _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
                         _buildDragCorner(
                           Alignment.bottomRight,
-                          (d) =>
-                              _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx),
+                          (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx),
                         ),
                       ],
                     ),
@@ -1888,12 +2015,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  Widget _buildEdgeHandle(
-    Alignment alignment,
-    Function(DragUpdateDetails) onPan,
-  ) {
-    bool isVertical =
-        alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
+  Widget _buildEdgeHandle(Alignment alignment, Function(DragUpdateDetails) onPan) {
+    bool isVertical = alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
     return Align(
       alignment: alignment,
       child: GestureDetector(
@@ -1908,10 +2031,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             child: Container(
               width: isVertical ? 6 : 24,
               height: isVertical ? 24 : 6,
-              decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.circular(3),
-              ),
+              decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(3)),
             ),
           ),
         ),
@@ -1919,10 +2039,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  Widget _buildDragCorner(
-    Alignment alignment,
-    Function(DragUpdateDetails) onPan,
-  ) {
+  Widget _buildDragCorner(Alignment alignment, Function(DragUpdateDetails) onPan) {
     return Align(
       alignment: alignment,
       child: GestureDetector(
