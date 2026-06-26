@@ -19,7 +19,9 @@ import 'dart:typed_data';
 
 class DocumentEditorScreen extends StatefulWidget {
   //final List<File> imageFiles; // Real images coming from ScannerScreen
-  final List<Map<String, File>> imageFiles;
+  //final List<Map<String, File>> imageFiles;
+  // 🚨 FIX 1: 'File' ko hata kar 'dynamic' likho
+  final List<Map<String, dynamic>> imageFiles;
 
   //const DocumentEditorScreen({super.key, required this.imageFiles});
   const DocumentEditorScreen({Key? key, required this.imageFiles}) : super(key: key);
@@ -96,19 +98,37 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageBrightness = List.filled(widget.imageFiles.length, 0.0); // Default 0
     _pageContrast = List.filled(widget.imageFiles.length, 0.0); // Default 0
 
-    _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
-    _pageFilters = List.filled(widget.imageFiles.length, "Original color");
-    _pageBrightness = List.filled(widget.imageFiles.length, 0.0);
-    _pageContrast = List.filled(widget.imageFiles.length, 0.0);
-
     // 🚨 NAYA: Empty markups list init
     _pageMarkups = List.filled(widget.imageFiles.length, null);
+
+    // 🚨 FIX 3: Default ki jagah Map se purana data read karein
+    _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
+    _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
+
+    _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
+    _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? "Original color");
+    _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
+    _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
+    _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  // 🚨 FIX 2: Back jaane se pehle saari settings ko map me save karne ka function
+  void _saveEditsToMemory() {
+    for (int i = 0; i < widget.imageFiles.length; i++) {
+      widget.imageFiles[i]['rotation'] = _imageQuarterTurns[i];
+      widget.imageFiles[i]['filter'] = _pageFilters[i];
+      widget.imageFiles[i]['brightness'] = _pageBrightness[i];
+      widget.imageFiles[i]['contrast'] = _pageContrast[i];
+      widget.imageFiles[i]['markups'] = _pageMarkups[i];
+      widget.imageFiles[i]['cropPosition'] = _savedCropPositions[i];
+      widget.imageFiles[i]['autoCropPosition'] = _autoCropPositions[i];
+    }
   }
 
   // --- FILTER LOGIC ---
@@ -429,7 +449,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     final pdf = pw.Document();
     for (int i = 0; i < widget.imageFiles.length; i++) {
       var map = widget.imageFiles[i];
-      final File file = map['cropped']!;
+      //final File file = map['cropped']!;
+      // PDF function me yaha update karna:
+      final File file = map['cropped'] as File;
 
       var imageBytes = await file.readAsBytes();
 
@@ -861,7 +883,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                       _getColorFilter(_pageFilters[index]) ??
                                                       const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                                   child: Image.file(
-                                                    widget.imageFiles[index]['cropped']!,
+                                                    widget.imageFiles[index]['cropped']as File,
                                                     fit: BoxFit.contain,
                                                   ),
                                                 ),
@@ -1299,6 +1321,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   // Keep Scanning Text Button
                   TextButton(
                     onPressed: () {
+                      _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
                       showToast("Keep scanning");
                       Navigator.pop(context); // Wapas camera par le jayega
                     },
@@ -1396,7 +1419,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 colorFilter:
                                     _getColorFilter(filterName) ??
                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                child: Image.file(widget.imageFiles[currentPage]['cropped']!, fit: BoxFit.cover),
+                                //child: Image.file(widget.imageFiles[currentPage]['cropped']!, fit: BoxFit.cover),
+                                child: Image.file(widget.imageFiles[currentPage]['cropped']as File, fit: BoxFit.cover),
                               ),
                             ),
                           ),

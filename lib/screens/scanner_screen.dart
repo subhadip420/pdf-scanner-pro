@@ -70,7 +70,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int currentCountdown = 0; // Tracks the active countdown (3, 2, 1)
   //List<File> capturedImagesList = []; // Nayi list jo saari photos store karegi
   // NAYI LINE:
-  List<Map<String, File>> capturedImagesList = [];
+  List<Map<String, dynamic>> capturedImagesList = [];
 // Focus ke liye variables
   Offset? _focusPointPosition;
   bool _showFocusIndicator = false;
@@ -377,10 +377,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
         // NAYI LINE: Click ki gayi photo ko list me add kar do
         //capturedImagesList.add(File(photo.path));
-        capturedImagesList.add({
+        // capturedImagesList.add({
+        //   'original': File(photo.path),
+        //   'cropped': File(photo.path),
+        // });
+
+        // NAYI LINE: Click ki gayi photo ko list me add kar do
+        capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
           'original': File(photo.path),
           'cropped': File(photo.path),
         });
+
         capturedPhotosCount = capturedImagesList.length; // Counter ko list ki length se update karo
         isCapturing = false;
       });
@@ -637,10 +644,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
         return;
       }
 
-      capturedImagesList.add({
+      // capturedImagesList.add({
+      //   'original': File(photo.path),
+      //   'cropped': croppedFile ?? File(photo.path),
+      // });
+      // NAYI LINE: Click ki gayi photo ko list me add kar do
+      capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
         'original': File(photo.path),
-        'cropped': croppedFile ?? File(photo.path),
+        'cropped': File(photo.path),
       });
+
       capturedPhotosCount = capturedImagesList.length;
 
       setState(() {
@@ -799,8 +812,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       setState(() {
+        // for (var file in selectedFiles) {
+        //   capturedImagesList.add({
+        //     'original': file,
+        //     'cropped': file,
+        //   });
+        // }
+
         for (var file in selectedFiles) {
-          capturedImagesList.add({
+          capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
             'original': file,
             'cropped': file,
           });
