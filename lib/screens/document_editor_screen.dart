@@ -12,6 +12,7 @@ import 'package:pdf_scanner_pro/screens/reorder_screen.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'custom_dialog.dart';
 import 'home_screen.dart';
 import 'markup_screen.dart';
 
@@ -120,6 +121,29 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+// 🚨 NEW: Discard Scan Logic (For PopScope)
+  Future<void> _promptDiscard() async {
+    bool discard = await showCustomConfirmDialog(
+      context,
+      title: "Discard this scan?",
+      message: "This will discard the scan you have captured. Are you sure?",
+      positiveBtnText: "Discard",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.redAccent,
+    );
+
+    // Agar user Discard confirm kare, tabhi Home par jao
+    if (discard) {
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+        );
+      }
+    }
   }
 
   // 🚨 NEW: State reload helper (Init aur Reorder dono me kaam aayega)
@@ -824,7 +848,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    //return Scaffold(
+
+    return PopScope(
+      canPop: false, // False ka matlab hai ki back button direct pop nahi karega
+      onPopInvoked: (bool didPop) async {
+        // Agar system ne naturally pop kar diya hai toh kuch mat karo
+        if (didPop) {
+          return;
+        }
+        // Warna humara discard dialog dikhao
+        await _promptDiscard();
+      },
+      child: Scaffold(
       backgroundColor: const Color(0xFF2C2C2C),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
@@ -1415,6 +1451,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
         ],
       ),
+        ),
     );
   }
 
