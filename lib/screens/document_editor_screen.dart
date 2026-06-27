@@ -1192,7 +1192,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Row(
                                         children: [
                                           Tooltip(
-                                      message: isSelectionMode ? "Cancel Selection" : "Select Page",
+                                            message: isSelectionMode ? "Cancel Selection" : "Select Page",
                                             child: GestureDetector(
                                               onTap: () {
                                                 setState(() {
@@ -1344,77 +1344,314 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     //     );
                                     //   }
                                     // },
-
                                     child: Container(
                                       width: 60,
                                       margin: const EdgeInsets.only(right: 12),
+
+                                      // decoration: BoxDecoration(
+                                      //   image: DecorationImage(
+                                      //     image: FileImage(widget.imageFiles[index]['cropped']!),
+                                      //     fit: BoxFit.cover,
+                                      //   ),
+                                      //   border: Border.all(
+                                      //     color: isSelected ? Colors.blue : Colors.transparent,
+                                      //     width: 3,
+                                      //   ),
+                                      //   // border: Border.all(
+                                      //   //   // Selection mode me main blue border hide rahega taaki sirf checkbox dikhe
+                                      //   //   color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
+                                      //   //   width: 3,
+                                      //   // ),
+                                      //   borderRadius: BorderRadius.circular(4),
+                                      //
                                       decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                          image: FileImage(widget.imageFiles[index]['cropped']!),
-                                          fit: BoxFit.cover,
-                                        ),
+                                        // 🚨 CHANGE: Yahan se decoration image hata di hai taaki custom widgets use kar sakein
                                         border: Border.all(
-                                          color: isSelected ? Colors.blue : Colors.transparent,
+                                          color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
                                           width: 3,
                                         ),
-                                        // border: Border.all(
-                                        //   // Selection mode me main blue border hide rahega taaki sirf checkbox dikhe
-                                        //   color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
-                                        //   width: 3,
-                                        // ),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Stack(
-                                        children: [
 
-                                          // 🚨 FIX 2: Top-Left Corner Checkbox (Sirf tab dikhega jab Selection Mode ON ho)
-                                          if (isSelectionMode)
-                                            Positioned(
-                                              top: 0,
-                                              left: 0,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          // Sirf yahan click karne se tick/untick hoga
-                                          setState(() {
-                                            selectedPagesList[index] = !selectedPagesList[index];
-                                          });
-                                        },
+                                      // child: Stack(
+                                      //   children: [
+                                      //
+                                      //     // 🚨 FIX 2: Top-Left Corner Checkbox (Sirf tab dikhega jab Selection Mode ON ho)
+                                      //     if (isSelectionMode)
+                                      //       Positioned(
+                                      //         top: 0,
+                                      //         left: 0,
+                                      // child: GestureDetector(
+                                      //   onTap: () {
+                                      //     // Sirf yahan click karne se tick/untick hoga
+                                      //     setState(() {
+                                      //       selectedPagesList[index] = !selectedPagesList[index];
+                                      //     });
+                                      //   },
+                                      //         child: Container(
+                                      //           padding: const EdgeInsets.all(2),
+                                      //           decoration: BoxDecoration(
+                                      //             color: isChecked ? Colors.blueAccent : Colors.black45,
+                                      //             borderRadius: BorderRadius.circular(2),
+                                      //             border: Border.all(color: Colors.white, width: 1.5),
+                                      //           ),
+                                      //           child: Icon(
+                                      //             Icons.check_rounded,
+                                      //             size: 16,
+                                      //             color: isChecked ? Colors.white : Colors.transparent,
+                                      //           ),
+                                      //         ),
+                                      // ),
+                                      //       ),
+                                      child: ClipRRect(
+                                        // ClipRRect lagaya taaki ghumne par image border ke bahar na nikle
+                                        borderRadius: BorderRadius.circular(2),
+                                        child: Stack(
+                                          children: [
+                                            // // 🚨 FIX: LIVE EDITED IMAGE LAYER (Hamesha updated preview dikhayega)
+                                            // Positioned.fill(
+                                            //   child: RotatedBox(
+                                            //     quarterTurns: _imageQuarterTurns[index], // Live Rotation
+                                            //     child: ColorFiltered(
+                                            //       colorFilter: _getAdjustColorFilter(
+                                            //         _pageBrightness[index], // Live Brightness
+                                            //         _pageContrast[index], // Live Contrast
+                                            //       ),
+                                            //       child: ColorFiltered(
+                                            //         colorFilter:
+                                            //             _getColorFilter(_pageFilters[index]) ??
+                                            //             const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                            //         // Live Filter
+                                            //         child: Image.file(
+                                            //           widget.imageFiles[index]['cropped'] as File,
+                                            //           fit: BoxFit.cover, // Poori space fill karega
+                                            //         ),
+                                            //       ),
+                                            //     ),
+                                            //   ),
+                                            // ),
+
+                                            // 🚨 FIX: LIVE EDITED IMAGE + MARKUPS LAYER
+                                            Positioned.fill(
+                                              child: RotatedBox(
+                                                quarterTurns: _imageQuarterTurns[index],
+                                                // 🚨 FIX: Image aur Markups ko ek Stack me daala taaki dono rotate hon
+                                                child: Stack(
+                                                  fit: StackFit.expand,
+                                                  children: [
+                                                    // Layer 1: Base Image with Filters & Adjustments
+                                                    ColorFiltered(
+                                                      colorFilter: _getAdjustColorFilter(
+                                                        _pageBrightness[index],
+                                                        _pageContrast[index],
+                                                      ),
+                                                      child: ColorFiltered(
+                                                        colorFilter: _getColorFilter(_pageFilters[index]) ??
+                                                            const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                                        child: Image.file(
+                                                          widget.imageFiles[index]['cropped'] as File,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
+                                                    ),
+
+                                                    // Layer 2: 🚨 Markups (Drawing, Text, Shapes) ab Thumbnail par bhi!
+                                                    if (_pageMarkups[index] != null &&
+                                                        _pageMarkups[index] is MarkupExportData) ...[
+
+                                                      // --- DRAWING STROKES ---
+                                                      CustomPaint(
+                                                        painter: DrawingPainter(
+                                                          paths: (_pageMarkups[index] as MarkupExportData).paths,
+                                                          currentPoints: [],
+                                                          currentColor: Colors.transparent,
+                                                          currentStrokeWidth: 0,
+                                                          currentOpacity: 0,
+                                                          isEraser: false,
+                                                        ),
+                                                      ),
+
+                                                      // --- TEXTS & SHAPES ---
+                                                      LayoutBuilder(
+                                                        builder: (context, constraints) {
+                                                          double canvasW = constraints.maxWidth;
+                                                          double canvasH = constraints.maxHeight;
+                                                          // Thumbnail ke hisaab se scaleRatio automatically chota ho jayega
+                                                          double scaleRatio = canvasW / 400.0;
+                                                          MarkupExportData data = _pageMarkups[index];
+
+                                                          return Stack(
+                                                            clipBehavior: Clip.none,
+                                                            children: [
+                                                              // TEXTS LOOP
+                                                              ...data.texts.map((item) {
+                                                                double scaledFontSize = item.fontSize * scaleRatio;
+                                                                Color textColor = item.appearance == 0
+                                                                    ? item.color
+                                                                    : (item.appearance == 1 || item.appearance == 2)
+                                                                    ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                                                                    : Colors.white;
+                                                                Color bgColor = item.appearance == 1
+                                                                    ? item.color
+                                                                    : item.appearance == 2
+                                                                    ? item.color.withOpacity(0.5)
+                                                                    : Colors.transparent;
+                                                                TextDecoration decoration = TextDecoration.none;
+                                                                if (item.isUnderline && item.isStrikethrough) {
+                                                                  decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+                                                                } else if (item.isUnderline) {
+                                                                  decoration = TextDecoration.underline;
+                                                                } else if (item.isStrikethrough) {
+                                                                  decoration = TextDecoration.lineThrough;
+                                                                }
+
+                                                                return Positioned(
+                                                                  left: item.offset.dx * canvasW,
+                                                                  top: item.offset.dy * canvasH,
+                                                                  child: FractionalTranslation(
+                                                                    translation: const Offset(-0.5, -0.5),
+                                                                    child: Transform.rotate(
+                                                                      angle: item.rotation,
+                                                                      child: Container(
+                                                                        padding: EdgeInsets.symmetric(
+                                                                          horizontal: 16 * scaleRatio,
+                                                                          vertical: 8 * scaleRatio,
+                                                                        ),
+                                                                        decoration: BoxDecoration(
+                                                                          color: bgColor,
+                                                                          borderRadius: BorderRadius.circular(8 * scaleRatio),
+                                                                        ),
+                                                                        child: Stack(
+                                                                          alignment: Alignment.center,
+                                                                          children: [
+                                                                            if (item.appearance == 3)
+                                                                              Text(
+                                                                                item.text,
+                                                                                textAlign: item.alignment,
+                                                                                style: TextStyle(
+                                                                                  fontSize: scaledFontSize,
+                                                                                  fontFamily: item.font,
+                                                                                  fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+                                                                                  fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+                                                                                  decoration: decoration,
+                                                                                  foreground: Paint()
+                                                                                    ..style = PaintingStyle.stroke
+                                                                                    ..strokeWidth = scaledFontSize * 0.25
+                                                                                    ..strokeJoin = StrokeJoin.round
+                                                                                    ..strokeCap = StrokeCap.round
+                                                                                    ..color = item.color,
+                                                                                ),
+                                                                              ),
+                                                                            Text(
+                                                                              item.text,
+                                                                              textAlign: item.alignment,
+                                                                              style: TextStyle(
+                                                                                color: textColor,
+                                                                                fontSize: scaledFontSize,
+                                                                                fontFamily: item.font,
+                                                                                fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+                                                                                fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+                                                                                decoration: decoration,
+                                                                                decorationColor: textColor,
+                                                                                shadows: item.appearance == 0
+                                                                                    ? const [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+                                                                                    : null,
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }),
+
+                                                              // SHAPES LOOP
+                                                              ...data.shapes.map((shape) {
+                                                                return Positioned(
+                                                                  left: shape.offset.dx * canvasW,
+                                                                  top: shape.offset.dy * canvasH,
+                                                                  child: FractionalTranslation(
+                                                                    translation: const Offset(-0.5, -0.5),
+                                                                    child: Transform.rotate(
+                                                                      angle: shape.rotation,
+                                                                      child: Container(
+                                                                        padding: const EdgeInsets.all(24),
+                                                                        child: SizedBox(
+                                                                          width: (shape.size * shape.scaleX.abs()) * scaleRatio,
+                                                                          height: (shape.size * shape.scaleY.abs()) * scaleRatio,
+                                                                          child: FittedBox(
+                                                                            fit: BoxFit.fill,
+                                                                            child: Transform.scale(
+                                                                              scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                                              scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                                              child: Icon(shape.icon, color: shape.color),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }),
+                                                            ],
+                                                          );
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+
+                                            // Top-Left Corner Checkbox
+                                            if (isSelectionMode)
+                                              Positioned(
+                                                top: 2,
+                                                left: 2,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      selectedPagesList[index] = !selectedPagesList[index];
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(2),
+                                                    decoration: BoxDecoration(
+                                                      color: isChecked ? Colors.blueAccent : Colors.black45,
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      border: Border.all(color: Colors.white, width: 1.5),
+                                                    ),
+                                                    child: Icon(
+                                                      Icons.check_rounded,
+                                                      size: 14,
+                                                      color: isChecked ? Colors.white : Colors.transparent,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+
+                                            Align(
+                                              alignment: Alignment.bottomCenter,
                                               child: Container(
-                                                padding: const EdgeInsets.all(2),
+                                                margin: const EdgeInsets.all(4),
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: isChecked ? Colors.blueAccent : Colors.black45,
-                                                  borderRadius: BorderRadius.circular(2),
-                                                  border: Border.all(color: Colors.white, width: 1.5),
+                                                  color: Colors.black.withOpacity(0.6),
+                                                  borderRadius: BorderRadius.circular(10),
                                                 ),
-                                                child: Icon(
-                                                  Icons.check_rounded,
-                                                  size: 16,
-                                                  color: isChecked ? Colors.white : Colors.transparent,
-                                                ),
-                                              ),
-                                      ),
-                                            ),
-
-                                          Align(
-                                            alignment: Alignment.bottomCenter,
-                                            child: Container(
-                                              margin: const EdgeInsets.all(4),
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.6),
-                                                borderRadius: BorderRadius.circular(10),
-                                              ),
-                                              child: Text(
-                                                '${index + 1}',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
+                                                child: Text(
+                                                  '${index + 1}',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   );
@@ -1485,7 +1722,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       offset: isSelectionMode ? Offset.zero : const Offset(0, 1.0),
                       child: _buildSelectedSubTools(),
                     ),
-
                   ],
                 ),
               ),
@@ -1684,139 +1920,139 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   //   );
   // }
 
-// // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
-//   Widget _buildFilterMenuWidget() {
-//     String currentFilter = _pageFilters[currentPage];
-//
-//     return GestureDetector(
-//       onTap: () {},
-//       onHorizontalDragUpdate: (_) {},
-//       onVerticalDragUpdate: (_) {},
-//       // 🚨 FIX 1: Container ki jagah AnimatedContainer use kiya taaki height smoothly choti ho
-//       child: AnimatedContainer(
-//         duration: const Duration(milliseconds: 300),
-//         curve: Curves.easeInOut,
-//         // 🚨 FIX 2: Selection mode me height sirf 124 hogi, warna 180
-//         height: isSelectionMode ? 124.0 : 180.0,
-//         decoration: const BoxDecoration(
-//           color: Color(0xFF1E1E1E),
-//           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-//         ),
-//         padding: const EdgeInsets.only(top: 16, bottom: 8),
-//         child: Column(
-//           children: [
-//             // Thumbnails Options
-//             SizedBox(
-//               height: 100,
-//               child: ListView.builder(
-//                 scrollDirection: Axis.horizontal,
-//                 padding: const EdgeInsets.symmetric(horizontal: 16),
-//                 itemCount: _filterOptions.length,
-//                 itemBuilder: (context, index) {
-//                   String filterName = _filterOptions[index];
-//                   bool isSelected = currentFilter == filterName;
-//
-//                   return GestureDetector(
-//                     onTap: () {
-//                       setState(() {
-//                         if (isSelectionMode) {
-//                           for (int i = 0; i < _pageFilters.length; i++) {
-//                             if (selectedPagesList[i] == true) {
-//                               _pageFilters[i] = filterName;
-//                             }
-//                           }
-//                         } else {
-//                           if (_applyToAllPages) {
-//                             for (int i = 0; i < _pageFilters.length; i++) {
-//                               _pageFilters[i] = filterName;
-//                             }
-//                           } else {
-//                             _pageFilters[currentPage] = filterName;
-//                           }
-//                         }
-//                       });
-//                     },
-//                     child: Padding(
-//                       padding: const EdgeInsets.only(right: 16),
-//                       child: Column(
-//                         children: [
-//                           Container(
-//                             width: 65,
-//                             height: 65,
-//                             decoration: BoxDecoration(
-//                               border: Border.all(
-//                                 color: isSelected ? Colors.blueAccent : Colors.transparent,
-//                                 width: 2.5,
-//                               ),
-//                               borderRadius: BorderRadius.circular(8),
-//                             ),
-//                             child: ClipRRect(
-//                               borderRadius: BorderRadius.circular(5),
-//                               child: ColorFiltered(
-//                                 colorFilter:
-//                                 _getColorFilter(filterName) ??
-//                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-//                                 child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
-//                               ),
-//                             ),
-//                           ),
-//                           const SizedBox(height: 8),
-//                           Text(
-//                             filterName,
-//                             style: TextStyle(
-//                               color: isSelected ? Colors.blueAccent : Colors.white70,
-//                               fontSize: 11,
-//                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   );
-//                 },
-//               ),
-//             ),
-//
-//             // 🚨 FIX 3: Agar selection mode ON hai, toh Spacer aur bottom toggle poori tarah hide ho jayenge
-//             if (!isSelectionMode) ...[
-//               const Spacer(),
-//               Padding(
-//                 padding: const EdgeInsets.symmetric(horizontal: 16),
-//                 child: Row(
-//                   children: [
-//                     Transform.scale(
-//                       scale: 0.85,
-//                       child: Switch(
-//                         value: _applyToAllPages,
-//                         onChanged: (val) {
-//                           setState(() {
-//                             _applyToAllPages = val;
-//                             if (val) {
-//                               String activeFilter = _pageFilters[currentPage];
-//                               for (int i = 0; i < _pageFilters.length; i++) {
-//                                 _pageFilters[i] = activeFilter;
-//                               }
-//                             }
-//                           });
-//                         },
-//                         activeColor: Colors.white,
-//                         activeTrackColor: Colors.blueAccent,
-//                         inactiveThumbColor: const Color(0xFFC0C0C0),
-//                         inactiveTrackColor: const Color(0xFF505050),
-//                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
-//                       ),
-//                     ),
-//                     const SizedBox(width: 8),
-//                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
-//                   ],
-//                 ),
-//               ),
-//             ],
-//           ],
-//         ),
-//       ),
-//     );
-//   }
+  // // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+  //   Widget _buildFilterMenuWidget() {
+  //     String currentFilter = _pageFilters[currentPage];
+  //
+  //     return GestureDetector(
+  //       onTap: () {},
+  //       onHorizontalDragUpdate: (_) {},
+  //       onVerticalDragUpdate: (_) {},
+  //       // 🚨 FIX 1: Container ki jagah AnimatedContainer use kiya taaki height smoothly choti ho
+  //       child: AnimatedContainer(
+  //         duration: const Duration(milliseconds: 300),
+  //         curve: Curves.easeInOut,
+  //         // 🚨 FIX 2: Selection mode me height sirf 124 hogi, warna 180
+  //         height: isSelectionMode ? 124.0 : 180.0,
+  //         decoration: const BoxDecoration(
+  //           color: Color(0xFF1E1E1E),
+  //           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //         ),
+  //         padding: const EdgeInsets.only(top: 16, bottom: 8),
+  //         child: Column(
+  //           children: [
+  //             // Thumbnails Options
+  //             SizedBox(
+  //               height: 100,
+  //               child: ListView.builder(
+  //                 scrollDirection: Axis.horizontal,
+  //                 padding: const EdgeInsets.symmetric(horizontal: 16),
+  //                 itemCount: _filterOptions.length,
+  //                 itemBuilder: (context, index) {
+  //                   String filterName = _filterOptions[index];
+  //                   bool isSelected = currentFilter == filterName;
+  //
+  //                   return GestureDetector(
+  //                     onTap: () {
+  //                       setState(() {
+  //                         if (isSelectionMode) {
+  //                           for (int i = 0; i < _pageFilters.length; i++) {
+  //                             if (selectedPagesList[i] == true) {
+  //                               _pageFilters[i] = filterName;
+  //                             }
+  //                           }
+  //                         } else {
+  //                           if (_applyToAllPages) {
+  //                             for (int i = 0; i < _pageFilters.length; i++) {
+  //                               _pageFilters[i] = filterName;
+  //                             }
+  //                           } else {
+  //                             _pageFilters[currentPage] = filterName;
+  //                           }
+  //                         }
+  //                       });
+  //                     },
+  //                     child: Padding(
+  //                       padding: const EdgeInsets.only(right: 16),
+  //                       child: Column(
+  //                         children: [
+  //                           Container(
+  //                             width: 65,
+  //                             height: 65,
+  //                             decoration: BoxDecoration(
+  //                               border: Border.all(
+  //                                 color: isSelected ? Colors.blueAccent : Colors.transparent,
+  //                                 width: 2.5,
+  //                               ),
+  //                               borderRadius: BorderRadius.circular(8),
+  //                             ),
+  //                             child: ClipRRect(
+  //                               borderRadius: BorderRadius.circular(5),
+  //                               child: ColorFiltered(
+  //                                 colorFilter:
+  //                                 _getColorFilter(filterName) ??
+  //                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+  //                                 child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                           const SizedBox(height: 8),
+  //                           Text(
+  //                             filterName,
+  //                             style: TextStyle(
+  //                               color: isSelected ? Colors.blueAccent : Colors.white70,
+  //                               fontSize: 11,
+  //                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   );
+  //                 },
+  //               ),
+  //             ),
+  //
+  //             // 🚨 FIX 3: Agar selection mode ON hai, toh Spacer aur bottom toggle poori tarah hide ho jayenge
+  //             if (!isSelectionMode) ...[
+  //               const Spacer(),
+  //               Padding(
+  //                 padding: const EdgeInsets.symmetric(horizontal: 16),
+  //                 child: Row(
+  //                   children: [
+  //                     Transform.scale(
+  //                       scale: 0.85,
+  //                       child: Switch(
+  //                         value: _applyToAllPages,
+  //                         onChanged: (val) {
+  //                           setState(() {
+  //                             _applyToAllPages = val;
+  //                             if (val) {
+  //                               String activeFilter = _pageFilters[currentPage];
+  //                               for (int i = 0; i < _pageFilters.length; i++) {
+  //                                 _pageFilters[i] = activeFilter;
+  //                               }
+  //                             }
+  //                           });
+  //                         },
+  //                         activeColor: Colors.white,
+  //                         activeTrackColor: Colors.blueAccent,
+  //                         inactiveThumbColor: const Color(0xFFC0C0C0),
+  //                         inactiveTrackColor: const Color(0xFF505050),
+  //                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+  //                       ),
+  //                     ),
+  //                     const SizedBox(width: 8),
+  //                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ],
+  //         ),
+  //       ),
+  //     );
+  //   }
 
   // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
   Widget _buildFilterMenuWidget() {
@@ -1888,7 +2124,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               borderRadius: BorderRadius.circular(5),
                               child: ColorFiltered(
                                 colorFilter:
-                                _getColorFilter(filterName) ??
+                                    _getColorFilter(filterName) ??
                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                 child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
                               ),
@@ -1919,36 +2155,36 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               child: isSelectionMode
                   ? const SizedBox(width: double.infinity) // Jab selection ON, toh ye height 0 kar lega
                   : Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-                child: Row(
-                  children: [
-                    Transform.scale(
-                      scale: 0.85,
-                      child: Switch(
-                        value: _applyToAllPages,
-                        onChanged: (val) {
-                          setState(() {
-                            _applyToAllPages = val;
-                            if (val) {
-                              String activeFilter = _pageFilters[currentPage];
-                              for (int i = 0; i < _pageFilters.length; i++) {
-                                _pageFilters[i] = activeFilter;
-                              }
-                            }
-                          });
-                        },
-                        activeColor: Colors.white,
-                        activeTrackColor: Colors.blueAccent,
-                        inactiveThumbColor: const Color(0xFFC0C0C0),
-                        inactiveTrackColor: const Color(0xFF505050),
-                        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+                      child: Row(
+                        children: [
+                          Transform.scale(
+                            scale: 0.85,
+                            child: Switch(
+                              value: _applyToAllPages,
+                              onChanged: (val) {
+                                setState(() {
+                                  _applyToAllPages = val;
+                                  if (val) {
+                                    String activeFilter = _pageFilters[currentPage];
+                                    for (int i = 0; i < _pageFilters.length; i++) {
+                                      _pageFilters[i] = activeFilter;
+                                    }
+                                  }
+                                });
+                              },
+                              activeColor: Colors.white,
+                              activeTrackColor: Colors.blueAccent,
+                              inactiveThumbColor: const Color(0xFFC0C0C0),
+                              inactiveTrackColor: const Color(0xFF505050),
+                              trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
@@ -2438,8 +2674,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildToolItem(
-            label: "Cancel", icon: Icons.close_rounded, tooltipMessage: "Cancel Crop", onTap: _cancelCrop,),
+          _buildToolItem(label: "Cancel", icon: Icons.close_rounded, tooltipMessage: "Cancel Crop", onTap: _cancelCrop),
           _buildToolItem(
             label: "Auto",
             icon: Icons.auto_awesome_mosaic_rounded,
@@ -2528,7 +2763,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
         children: [
-
           // 🚨 FIX 1: 1st Option (Select All / Deselect All) - Ye hamesha ACTIVE rahega
           _buildToolItem(
             label: allSelected ? "Deselect" : "Select All", // Text dynamic
@@ -2536,7 +2770,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             tooltipMessage: allSelected ? "Deselect all pages" : "Select all pages",
             onTap: () {
               setState(() {
-
                 _showFilterMenu = false;
                 _showAdjustMenu = false;
 
@@ -2565,7 +2798,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     icon: Icons.rotate_right_rounded,
                     tooltipMessage: "Rotate selected pages",
                     //onTap: () => showToast("Bulk rotate coming soon"),
-                    isRotate: true, // 🚨 FIX: Ye true karna zaroori hai taaki rotate icon smoothly ghume
+                    isRotate: true,
+                    // 🚨 FIX: Ye true karna zaroori hai taaki rotate icon smoothly ghume
                     onTap: _bulkRotateImages,
                   ),
                   _buildToolItem(
@@ -2602,7 +2836,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ),
             ),
           ),
-
         ],
       ),
     );
@@ -2721,7 +2954,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,
+            (route) => false,
           );
         }
       } else {
@@ -2795,7 +3028,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       showToast("Markup applied to Page ${currentPage + 1}");
     }
   }
-
 
   Widget _buildToolItem({
     required String label,
