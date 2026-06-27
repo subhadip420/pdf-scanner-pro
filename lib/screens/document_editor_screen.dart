@@ -2102,53 +2102,116 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   // --- 🚨 NAYA BLOCK: SELECTION MODE TOOLS ---
+  // Widget _buildSelectedSubTools() {
+  //   return SizedBox(
+  //     key: const ValueKey("SelectedSubTools"),
+  //     height: 75,
+  //     width: double.infinity,
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //       children: [
+  //         _buildToolItem(
+  //           label: "Rotate",
+  //           icon: Icons.rotate_right_rounded,
+  //           tooltipMessage: "Rotate selected pages",
+  //           // Abhi ke liye Toast lagaya hai, bulk rotate logic next step me add karenge
+  //           onTap: () => showToast("Bulk rotate coming soon"),
+  //         ),
+  //         _buildToolItem(
+  //           label: "Filter",
+  //           icon: Symbols.masked_transitions_rounded,
+  //           tooltipMessage: "Apply filter to selected pages",
+  //           isSelected: _showFilterMenu,
+  //           onTap: () {
+  //             setState(() {
+  //               _showFilterMenu = !_showFilterMenu;
+  //               if (_showFilterMenu) _showAdjustMenu = false; // Adjust menu band kardo
+  //             });
+  //           },
+  //         ),
+  //         _buildToolItem(
+  //           label: "Adjust",
+  //           icon: Icons.tune_rounded,
+  //           tooltipMessage: "Adjust selected pages",
+  //           isSelected: _showAdjustMenu,
+  //           onTap: () {
+  //             setState(() {
+  //               _showAdjustMenu = !_showAdjustMenu;
+  //               if (_showAdjustMenu) _showFilterMenu = false; // Filter menu band kardo
+  //             });
+  //           },
+  //         ),
+  //         _buildToolItem(
+  //           label: "Delete",
+  //           icon: Icons.delete_outline_rounded,
+  //           tooltipMessage: "Delete selected pages",
+  //           // Abhi ke liye Toast lagaya hai, bulk delete logic next step me add karenge
+  //           onTap: () => showToast("Bulk delete coming soon"),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  // --- 🚨 NAYA BLOCK: SELECTION MODE TOOLS ---
   Widget _buildSelectedSubTools() {
+    // 🚨 FIX 1: Check karo ki list me ek bhi 'true' (selected) hai ya nahi
+    bool hasSelection = selectedPagesList.contains(true);
+
     return SizedBox(
       key: const ValueKey("SelectedSubTools"),
       height: 75,
       width: double.infinity,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildToolItem(
-            label: "Rotate",
-            icon: Icons.rotate_right_rounded,
-            tooltipMessage: "Rotate selected pages",
-            // Abhi ke liye Toast lagaya hai, bulk rotate logic next step me add karenge
-            onTap: () => showToast("Bulk rotate coming soon"),
+      // 🚨 FIX 2: Agar selection nahi hai, toh opacity 0.4 (fade) ho jayegi
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: hasSelection ? 1.0 : 0.4,
+        // 🚨 FIX 3: IgnorePointer clicks ko block kar dega agar selection nahi hai
+        child: IgnorePointer(
+          ignoring: !hasSelection,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+            children: [
+              _buildToolItem(
+                label: "Rotate",
+                icon: Icons.rotate_right_rounded,
+                tooltipMessage: "Rotate selected pages",
+                onTap: () => showToast("Bulk rotate coming soon"),
+              ),
+              _buildToolItem(
+                label: "Filter",
+                icon: Symbols.masked_transitions_rounded,
+                tooltipMessage: "Apply filter to selected pages",
+                isSelected: _showFilterMenu,
+                onTap: () {
+                  setState(() {
+                    _showFilterMenu = !_showFilterMenu;
+                    if (_showFilterMenu) _showAdjustMenu = false;
+                  });
+                },
+              ),
+              _buildToolItem(
+                label: "Adjust",
+                icon: Icons.tune_rounded,
+                tooltipMessage: "Adjust selected pages",
+                isSelected: _showAdjustMenu,
+                onTap: () {
+                  setState(() {
+                    _showAdjustMenu = !_showAdjustMenu;
+                    if (_showAdjustMenu) _showFilterMenu = false;
+                  });
+                },
+              ),
+              _buildToolItem(
+                label: "Delete",
+                icon: Icons.delete_outline_rounded,
+                tooltipMessage: "Delete selected pages",
+                onTap: () => showToast("Bulk delete coming soon"),
+              ),
+            ],
           ),
-          _buildToolItem(
-            label: "Filter",
-            icon: Symbols.masked_transitions_rounded,
-            tooltipMessage: "Apply filter to selected pages",
-            isSelected: _showFilterMenu,
-            onTap: () {
-              setState(() {
-                _showFilterMenu = !_showFilterMenu;
-                if (_showFilterMenu) _showAdjustMenu = false; // Adjust menu band kardo
-              });
-            },
-          ),
-          _buildToolItem(
-            label: "Adjust",
-            icon: Icons.tune_rounded,
-            tooltipMessage: "Adjust selected pages",
-            isSelected: _showAdjustMenu,
-            onTap: () {
-              setState(() {
-                _showAdjustMenu = !_showAdjustMenu;
-                if (_showAdjustMenu) _showFilterMenu = false; // Filter menu band kardo
-              });
-            },
-          ),
-          _buildToolItem(
-            label: "Delete",
-            icon: Icons.delete_outline_rounded,
-            tooltipMessage: "Delete selected pages",
-            // Abhi ke liye Toast lagaya hai, bulk delete logic next step me add karenge
-            onTap: () => showToast("Bulk delete coming soon"),
-          ),
-        ],
+        ),
       ),
     );
   }
