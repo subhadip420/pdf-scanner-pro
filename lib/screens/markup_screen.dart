@@ -348,8 +348,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
       context,
       title: "Discard changes",
       message: "Changes you have made with the Markup tool will be discarded.",
-      positiveBtnText: "Discard",     // Custom Text
-      negativeBtnText: "Keep Editing", // Custom Text
+      positiveBtnText: "OK",     // Custom Text
+      negativeBtnText: "Cancel", // Custom Text
       positiveBtnColor: Colors.redAccent, // Custom Color for destructive action
     );
 
