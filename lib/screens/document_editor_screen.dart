@@ -103,18 +103,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     // 🚨 NAYA: Empty markups list init
     _pageMarkups = List.filled(widget.imageFiles.length, null);
 
-    // 🚨 FIX 3: Default ki jagah Map se purana data read karein
-    // _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
-    // _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
-    //
-    // _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
-    // _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? "Original color");
-    // _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
-    // _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
-    // _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
-
     _loadEditsFromMemory();
-
   }
 
   @override
@@ -123,7 +112,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     super.dispose();
   }
 
-// 🚨 NEW: Discard Scan Logic (For PopScope)
+  // 🚨 NEW: Discard Scan Logic (For PopScope)
   Future<void> _promptDiscard() async {
     bool discard = await showCustomConfirmDialog(
       context,
@@ -140,7 +129,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (route) => false,
+          (route) => false,
         );
       }
     }
@@ -625,7 +614,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
           } else if (item.isUnderline) {
             decoration = TextDecoration.underline;
-          } else if (item.isStrikethrough){
+          } else if (item.isStrikethrough) {
             decoration = TextDecoration.lineThrough;
           }
 
@@ -861,212 +850,234 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         await _promptDiscard();
       },
       child: Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
+        backgroundColor: const Color(0xFF2C2C2C),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF1E1E1E),
+          elevation: 0,
 
-        /// Left Icon (Home)
-        leading: Tooltip(
-          message: "Home",
-          child: IconButton(
-            icon: const Icon(Icons.home, color: Colors.white, size: 28),
-            onPressed: () {
-              //showToast("Home tapped");
-              _promptDiscard();
-            },
-          ),
-        ),
-
-        /// Middle: Clickable Auto-generated Name
-        title: Tooltip(
-          message: "Rename document",
-          child: GestureDetector(
-            onTap: () {
-              showToast("Rename document tapped");
-            },
-            child: Text(
-              documentName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                decoration: TextDecoration.underline,
-                decorationStyle: TextDecorationStyle.dotted,
-                decorationColor: Colors.white54,
-              ),
-            ),
-          ),
-        ),
-        centerTitle: true,
-
-        /// Right Icon
-        actions: [
-          Tooltip(
-            message: "Document Options",
+          /// Left Icon (Home)
+          leading: Tooltip(
+            message: "Home",
             child: IconButton(
-              icon: const Icon(Icons.edit_document, color: Colors.white, size: 24),
+              icon: const Icon(Icons.home, color: Colors.white, size: 28),
               onPressed: () {
-                showToast("Options tapped");
+                //showToast("Home tapped");
+                _promptDiscard();
               },
             ),
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
 
-      body: Column(
-        children: [
-          /// 🚨 FIX 1: MAIN PREVIEW AUR THUMBNAILS KO EK CLIP-RECT STACK ME RAKHA
-          /// Taaki Filter Menu peechhe se nikle aur uske clicks properly detect hon!
-          Expanded(
-            child: ClipRect(
-              child: Stack(
-                children: [
-                  // --- LAYER 1: Preview & Thumbnails ---
-                  Column(
-                    children: [
-                      // MAIN PREVIEW AREA
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            // Swipeable & Zoomable Images
-                            PageView.builder(
-                              controller: _pageController,
-                              physics: isCroppingMode
-                                  ? const NeverScrollableScrollPhysics()
-                                  : const BouncingScrollPhysics(),
-                              onPageChanged: (index) {
-                                setState(() {
-                                  currentPage = index;
-                                });
-                              },
-                              itemCount: widget.imageFiles.length,
-                              itemBuilder: (context, index) {
-                                if (isCroppingMode && index == currentPage) {
-                                  return _buildInPlaceCropView();
-                                }
-                                return GestureDetector(
-                                  behavior: HitTestBehavior.translucent,
+          /// Middle: Clickable Auto-generated Name
+          title: Tooltip(
+            message: "Rename document",
+            child: GestureDetector(
+              onTap: () {
+                showToast("Rename document tapped");
+              },
+              child: Text(
+                documentName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.underline,
+                  decorationStyle: TextDecorationStyle.dotted,
+                  decorationColor: Colors.white54,
+                ),
+              ),
+            ),
+          ),
+          centerTitle: true,
 
-                                  onTap: () {
-                                    if (_showFilterMenu) setState(() => _showFilterMenu = false);
-                                    if (_showAdjustMenu) {
-                                      setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
-                                    }
-                                  },
+          /// Right Icon
+          actions: [
+            Tooltip(
+              message: "Document Options",
+              child: IconButton(
+                icon: const Icon(Icons.edit_document, color: Colors.white, size: 24),
+                onPressed: () {
+                  showToast("Options tapped");
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
 
-                                  child: InteractiveViewer(
-                                    minScale: 1.0,
-                                    maxScale: 5.0,
-                                    clipBehavior: Clip.none,
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
-                                        child: RotatedBox(
-                                          quarterTurns: _imageQuarterTurns[index],
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              // Layer 1: Base Image with Filters
-                                              ColorFiltered(
-                                                colorFilter: _getAdjustColorFilter(
-                                                  _pageBrightness[index],
-                                                  _pageContrast[index],
-                                                ),
-                                                child: ColorFiltered(
-                                                  colorFilter:
-                                                      _getColorFilter(_pageFilters[index]) ??
-                                                      const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                                  child: Image.file(
-                                                    widget.imageFiles[index]['cropped']as File,
-                                                    fit: BoxFit.contain,
+        body: Column(
+          children: [
+            /// 🚨 FIX 1: MAIN PREVIEW AUR THUMBNAILS KO EK CLIP-RECT STACK ME RAKHA
+            /// Taaki Filter Menu peechhe se nikle aur uske clicks properly detect hon!
+            Expanded(
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    // --- LAYER 1: Preview & Thumbnails ---
+                    Column(
+                      children: [
+                        // MAIN PREVIEW AREA
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              // Swipeable & Zoomable Images
+                              PageView.builder(
+                                controller: _pageController,
+                                physics: isCroppingMode
+                                    ? const NeverScrollableScrollPhysics()
+                                    : const BouncingScrollPhysics(),
+                                onPageChanged: (index) {
+                                  setState(() {
+                                    currentPage = index;
+                                  });
+                                },
+                                itemCount: widget.imageFiles.length,
+                                itemBuilder: (context, index) {
+                                  if (isCroppingMode && index == currentPage) {
+                                    return _buildInPlaceCropView();
+                                  }
+                                  return GestureDetector(
+                                    behavior: HitTestBehavior.translucent,
+
+                                    onTap: () {
+                                      if (_showFilterMenu) setState(() => _showFilterMenu = false);
+                                      if (_showAdjustMenu) {
+                                        setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+                                      }
+                                    },
+
+                                    child: InteractiveViewer(
+                                      minScale: 1.0,
+                                      maxScale: 5.0,
+                                      clipBehavior: Clip.none,
+                                      child: Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
+                                          child: RotatedBox(
+                                            quarterTurns: _imageQuarterTurns[index],
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                // Layer 1: Base Image with Filters
+                                                ColorFiltered(
+                                                  colorFilter: _getAdjustColorFilter(
+                                                    _pageBrightness[index],
+                                                    _pageContrast[index],
                                                   ),
-                                                ),
-                                              ),
-
-                                              // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
-                                              if (_pageMarkups[index] != null &&
-                                                  _pageMarkups[index] is MarkupExportData) ...[
-                                                // --- DRAWING STROKES ---
-                                                Positioned.fill(
-                                                  child: CustomPaint(
-                                                    painter: DrawingPainter(
-                                                      paths: (_pageMarkups[index] as MarkupExportData).paths,
-                                                      currentPoints: [],
-                                                      currentColor: Colors.transparent,
-                                                      currentStrokeWidth: 0,
-                                                      currentOpacity: 0,
-                                                      isEraser: false,
+                                                  child: ColorFiltered(
+                                                    colorFilter:
+                                                        _getColorFilter(_pageFilters[index]) ??
+                                                        const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                                    child: Image.file(
+                                                      widget.imageFiles[index]['cropped'] as File,
+                                                      fit: BoxFit.contain,
                                                     ),
                                                   ),
                                                 ),
 
-                                                // --- TEXTS & SHAPES ---
-                                                Positioned.fill(
-                                                  child: LayoutBuilder(
-                                                    builder: (context, constraints) {
-                                                      double canvasW = constraints.maxWidth;
-                                                      double canvasH = constraints.maxHeight;
-                                                      double scaleRatio = canvasW / 400.0;
-                                                      MarkupExportData data = _pageMarkups[index];
+                                                // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
+                                                if (_pageMarkups[index] != null &&
+                                                    _pageMarkups[index] is MarkupExportData) ...[
+                                                  // --- DRAWING STROKES ---
+                                                  Positioned.fill(
+                                                    child: CustomPaint(
+                                                      painter: DrawingPainter(
+                                                        paths: (_pageMarkups[index] as MarkupExportData).paths,
+                                                        currentPoints: [],
+                                                        currentColor: Colors.transparent,
+                                                        currentStrokeWidth: 0,
+                                                        currentOpacity: 0,
+                                                        isEraser: false,
+                                                      ),
+                                                    ),
+                                                  ),
 
-                                                      return Stack(
-                                                        clipBehavior: Clip.none,
-                                                        children: [
-                                                          // TEXTS LOOP
-                                                          ...data.texts.map((item) {
-                                                            double scaledFontSize = item.fontSize * scaleRatio;
-                                                            Color textColor = item.appearance == 0
-                                                                ? item.color
-                                                                : (item.appearance == 1 || item.appearance == 2)
-                                                                ? (item.color.computeLuminance() > 0.5
-                                                                      ? Colors.black
-                                                                      : Colors.white)
-                                                                : Colors.white;
-                                                            Color bgColor = item.appearance == 1
-                                                                ? item.color
-                                                                : item.appearance == 2
-                                                                ? item.color.withOpacity(0.5)
-                                                                : Colors.transparent;
-                                                            TextDecoration decoration = TextDecoration.none;
-                                                            if (item.isUnderline && item.isStrikethrough) {
-                                                              decoration = TextDecoration.combine([
-                                                                TextDecoration.underline,
-                                                                TextDecoration.lineThrough,
-                                                              ]);
-                                                            } else if (item.isUnderline) {
-                                                              decoration = TextDecoration.underline;
-                                                            }else if (item.isStrikethrough) {
-                                                              decoration = TextDecoration.lineThrough;
-                                                            }
+                                                  // --- TEXTS & SHAPES ---
+                                                  Positioned.fill(
+                                                    child: LayoutBuilder(
+                                                      builder: (context, constraints) {
+                                                        double canvasW = constraints.maxWidth;
+                                                        double canvasH = constraints.maxHeight;
+                                                        double scaleRatio = canvasW / 400.0;
+                                                        MarkupExportData data = _pageMarkups[index];
 
-                                                            return Positioned(
-                                                              left: item.offset.dx * canvasW,
-                                                              top: item.offset.dy * canvasH,
-                                                              child: FractionalTranslation(
-                                                                translation: const Offset(-0.5, -0.5),
-                                                                child: Transform.rotate(
-                                                                  angle: item.rotation,
-                                                                  child: Container(
-                                                                    padding: EdgeInsets.symmetric(
-                                                                      horizontal: 16 * scaleRatio,
-                                                                      vertical: 8 * scaleRatio,
-                                                                    ),
-                                                                    decoration: BoxDecoration(
-                                                                      color: bgColor,
-                                                                      borderRadius: BorderRadius.circular(
-                                                                        8 * scaleRatio,
+                                                        return Stack(
+                                                          clipBehavior: Clip.none,
+                                                          children: [
+                                                            // TEXTS LOOP
+                                                            ...data.texts.map((item) {
+                                                              double scaledFontSize = item.fontSize * scaleRatio;
+                                                              Color textColor = item.appearance == 0
+                                                                  ? item.color
+                                                                  : (item.appearance == 1 || item.appearance == 2)
+                                                                  ? (item.color.computeLuminance() > 0.5
+                                                                        ? Colors.black
+                                                                        : Colors.white)
+                                                                  : Colors.white;
+                                                              Color bgColor = item.appearance == 1
+                                                                  ? item.color
+                                                                  : item.appearance == 2
+                                                                  ? item.color.withOpacity(0.5)
+                                                                  : Colors.transparent;
+                                                              TextDecoration decoration = TextDecoration.none;
+                                                              if (item.isUnderline && item.isStrikethrough) {
+                                                                decoration = TextDecoration.combine([
+                                                                  TextDecoration.underline,
+                                                                  TextDecoration.lineThrough,
+                                                                ]);
+                                                              } else if (item.isUnderline) {
+                                                                decoration = TextDecoration.underline;
+                                                              } else if (item.isStrikethrough) {
+                                                                decoration = TextDecoration.lineThrough;
+                                                              }
+
+                                                              return Positioned(
+                                                                left: item.offset.dx * canvasW,
+                                                                top: item.offset.dy * canvasH,
+                                                                child: FractionalTranslation(
+                                                                  translation: const Offset(-0.5, -0.5),
+                                                                  child: Transform.rotate(
+                                                                    angle: item.rotation,
+                                                                    child: Container(
+                                                                      padding: EdgeInsets.symmetric(
+                                                                        horizontal: 16 * scaleRatio,
+                                                                        vertical: 8 * scaleRatio,
                                                                       ),
-                                                                    ),
-                                                                    child: Stack(
-                                                                      alignment: Alignment.center,
-                                                                      children: [
-                                                                        if (item.appearance == 3)
+                                                                      decoration: BoxDecoration(
+                                                                        color: bgColor,
+                                                                        borderRadius: BorderRadius.circular(
+                                                                          8 * scaleRatio,
+                                                                        ),
+                                                                      ),
+                                                                      child: Stack(
+                                                                        alignment: Alignment.center,
+                                                                        children: [
+                                                                          if (item.appearance == 3)
+                                                                            Text(
+                                                                              item.text,
+                                                                              textAlign: item.alignment,
+                                                                              style: TextStyle(
+                                                                                fontSize: scaledFontSize,
+                                                                                fontFamily: item.font,
+                                                                                fontWeight: item.isBold
+                                                                                    ? FontWeight.bold
+                                                                                    : FontWeight.normal,
+                                                                                fontStyle: item.isItalic
+                                                                                    ? FontStyle.italic
+                                                                                    : FontStyle.normal,
+                                                                                decoration: decoration,
+                                                                                foreground: Paint()
+                                                                                  ..style = PaintingStyle.stroke
+                                                                                  ..strokeWidth = scaledFontSize * 0.25
+                                                                                  ..strokeJoin = StrokeJoin.round
+                                                                                  ..strokeCap = StrokeCap.round
+                                                                                  ..color = item.color,
+                                                                              ),
+                                                                            ),
                                                                           Text(
                                                                             item.text,
                                                                             textAlign: item.alignment,
                                                                             style: TextStyle(
+                                                                              color: textColor,
                                                                               fontSize: scaledFontSize,
                                                                               fontFamily: item.font,
                                                                               fontWeight: item.isBold
@@ -1076,383 +1087,365 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                                   ? FontStyle.italic
                                                                                   : FontStyle.normal,
                                                                               decoration: decoration,
-                                                                              foreground: Paint()
-                                                                                ..style = PaintingStyle.stroke
-                                                                                ..strokeWidth = scaledFontSize * 0.25
-                                                                                ..strokeJoin = StrokeJoin.round
-                                                                                ..strokeCap = StrokeCap.round
-                                                                                ..color = item.color,
+                                                                              decorationColor: textColor,
+                                                                              shadows: item.appearance == 0
+                                                                                  ? const [
+                                                                                      Shadow(
+                                                                                        color: Colors.black54,
+                                                                                        blurRadius: 4,
+                                                                                        offset: Offset(1, 1),
+                                                                                      ),
+                                                                                    ]
+                                                                                  : null,
                                                                             ),
                                                                           ),
-                                                                        Text(
-                                                                          item.text,
-                                                                          textAlign: item.alignment,
-                                                                          style: TextStyle(
-                                                                            color: textColor,
-                                                                            fontSize: scaledFontSize,
-                                                                            fontFamily: item.font,
-                                                                            fontWeight: item.isBold
-                                                                                ? FontWeight.bold
-                                                                                : FontWeight.normal,
-                                                                            fontStyle: item.isItalic
-                                                                                ? FontStyle.italic
-                                                                                : FontStyle.normal,
-                                                                            decoration: decoration,
-                                                                            decorationColor: textColor,
-                                                                            shadows: item.appearance == 0
-                                                                                ? const [
-                                                                                    Shadow(
-                                                                                      color: Colors.black54,
-                                                                                      blurRadius: 4,
-                                                                                      offset: Offset(1, 1),
-                                                                                    ),
-                                                                                  ]
-                                                                                : null,
-                                                                          ),
-                                                                        ),
-                                                                      ],
+                                                                        ],
+                                                                      ),
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            );
-                                                          }),
+                                                              );
+                                                            }),
 
-                                                          // SHAPES LOOP
-                                                          ...data.shapes.map((shape) {
-                                                            return Positioned(
-                                                              left: shape.offset.dx * canvasW,
-                                                              top: shape.offset.dy * canvasH,
-                                                              child: FractionalTranslation(
-                                                                translation: const Offset(-0.5, -0.5),
-                                                                child: Transform.rotate(
-                                                                  angle: shape.rotation,
-                                                                  child: Container(
-                                                                    padding: const EdgeInsets.all(24),
-                                                                    child: SizedBox(
-                                                                      width:
-                                                                          (shape.size * shape.scaleX.abs()) *
-                                                                          scaleRatio,
-                                                                      height:
-                                                                          (shape.size * shape.scaleY.abs()) *
-                                                                          scaleRatio,
-                                                                      child: FittedBox(
-                                                                        fit: BoxFit.fill,
-                                                                        child: Transform.scale(
-                                                                          scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
-                                                                          scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                                          child: Icon(shape.icon, color: shape.color),
+                                                            // SHAPES LOOP
+                                                            ...data.shapes.map((shape) {
+                                                              return Positioned(
+                                                                left: shape.offset.dx * canvasW,
+                                                                top: shape.offset.dy * canvasH,
+                                                                child: FractionalTranslation(
+                                                                  translation: const Offset(-0.5, -0.5),
+                                                                  child: Transform.rotate(
+                                                                    angle: shape.rotation,
+                                                                    child: Container(
+                                                                      padding: const EdgeInsets.all(24),
+                                                                      child: SizedBox(
+                                                                        width:
+                                                                            (shape.size * shape.scaleX.abs()) *
+                                                                            scaleRatio,
+                                                                        height:
+                                                                            (shape.size * shape.scaleY.abs()) *
+                                                                            scaleRatio,
+                                                                        child: FittedBox(
+                                                                          fit: BoxFit.fill,
+                                                                          child: Transform.scale(
+                                                                            scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                                            scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                                            child: Icon(shape.icon, color: shape.color),
+                                                                          ),
                                                                         ),
                                                                       ),
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            );
-                                                          }),
-                                                        ],
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-
-                            /// Overlay Controls (Arrows and Page Count)
-                            if (!isCroppingMode)
-                              Positioned(
-                                bottom: 20,
-                                left: 16,
-                                right: 16,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Tooltip(
-                                      message: "Previous Page",
-                                      child: GestureDetector(
-                                        onTap: currentPage > 0 ? _previousPage : null,
-                                        child: Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: currentPage > 0 ? Colors.black87 : Colors.black38,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
-                                            Icons.arrow_back_ios_new_rounded,
-                                            color: currentPage > 0 ? Colors.white : Colors.white30,
-                                            size: 18,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Tooltip(
-                                          message: "Add New Page",
-                                          child: GestureDetector(
-                                            onTap: () => showToast("Add new page"),
-                                            child: Container(
-                                              width: 40,
-                                              height: 40,
-                                              decoration: const BoxDecoration(
-                                                color: Colors.black87,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(Icons.post_add_rounded, color: Colors.white, size: 20),
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Tooltip(
-                                          message: "Jump to page",
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                isThumbnailVisible = !isThumbnailVisible;
-                                              });
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black87,
-                                                borderRadius: BorderRadius.circular(20),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Text(
-                                                    "Page ${currentPage + 1} of ${widget.imageFiles.length}",
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w500,
+                                                              );
+                                                            }),
+                                                          ],
+                                                        );
+                                                      },
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 6),
-                                                  Icon(
-                                                    isThumbnailVisible
-                                                        ? Icons.keyboard_arrow_down_rounded
-                                                        : Icons.keyboard_arrow_up_rounded,
-                                                    color: Colors.white,
-                                                    size: 18,
-                                                  ),
                                                 ],
-                                              ),
+                                              ],
                                             ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Tooltip(
-                                      message: "Next Page",
-                                      child: GestureDetector(
-                                        onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
-                                        child: Container(
-                                          width: 40,
-                                          height: 40,
-                                          decoration: BoxDecoration(
-                                            color: currentPage < widget.imageFiles.length - 1
-                                                ? Colors.black87
-                                                : Colors.black38,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            color: currentPage < widget.imageFiles.length - 1
-                                                ? Colors.white
-                                                : Colors.white30,
-                                            size: 18,
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
-                          ],
-                        ),
-                      ),
 
-                      // --- THUMBNAILS LIST ---
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        height: isThumbnailVisible ? 90.0 : 0.0,
-                        child: ClipRect(
-                          child: Container(
-                            height: 90,
-                            color: const Color(0xFF1E1E1E),
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: widget.imageFiles.length,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                              itemBuilder: (context, index) {
-                                bool isSelected = currentPage == index;
-                                return GestureDetector(
-                                  onTap: () {
-                                    _pageController.animateToPage(
-                                      index,
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                    );
-                                  },
-                                  child: Container(
-                                    width: 60,
-                                    margin: const EdgeInsets.only(right: 12),
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: FileImage(widget.imageFiles[index]['cropped']!),
-                                        fit: BoxFit.cover,
-                                      ),
-                                      border: Border.all(
-                                        color: isSelected ? Colors.blue : Colors.transparent,
-                                        width: 3,
-                                      ),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        Align(
-                                          alignment: Alignment.bottomCenter,
+                              /// Overlay Controls (Arrows and Page Count)
+                              if (!isCroppingMode)
+                                Positioned(
+                                  bottom: 20,
+                                  left: 16,
+                                  right: 16,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Tooltip(
+                                        message: "Previous Page",
+                                        child: GestureDetector(
+                                          onTap: currentPage > 0 ? _previousPage : null,
                                           child: Container(
-                                            margin: const EdgeInsets.all(4),
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            width: 40,
+                                            height: 40,
                                             decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.6),
-                                              borderRadius: BorderRadius.circular(10),
+                                              color: currentPage > 0 ? Colors.black87 : Colors.black38,
+                                              shape: BoxShape.circle,
                                             ),
-                                            child: Text(
-                                              '${index + 1}',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                            child: Icon(
+                                              Icons.arrow_back_ios_new_rounded,
+                                              color: currentPage > 0 ? Colors.white : Colors.white30,
+                                              size: 18,
                                             ),
                                           ),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      Row(
+                                        children: [
+                                          Tooltip(
+                                            message: "Add New Page",
+                                            child: GestureDetector(
+                                              onTap: () => showToast("Add new page"),
+                                              child: Container(
+                                                width: 40,
+                                                height: 40,
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.black87,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.post_add_rounded,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Tooltip(
+                                            message: "Jump to page",
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  isThumbnailVisible = !isThumbnailVisible;
+                                                });
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black87,
+                                                  borderRadius: BorderRadius.circular(20),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      "Page ${currentPage + 1} of ${widget.imageFiles.length}",
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 6),
+                                                    Icon(
+                                                      isThumbnailVisible
+                                                          ? Icons.keyboard_arrow_down_rounded
+                                                          : Icons.keyboard_arrow_up_rounded,
+                                                      color: Colors.white,
+                                                      size: 18,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Tooltip(
+                                        message: "Next Page",
+                                        child: GestureDetector(
+                                          onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
+                                          child: Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: currentPage < widget.imageFiles.length - 1
+                                                  ? Colors.black87
+                                                  : Colors.black38,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.arrow_forward_ios_rounded,
+                                              color: currentPage < widget.imageFiles.length - 1
+                                                  ? Colors.white
+                                                  : Colors.white30,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                );
-                              },
+                                ),
+                            ],
+                          ),
+                        ),
+
+                        // --- THUMBNAILS LIST ---
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          height: isThumbnailVisible ? 90.0 : 0.0,
+                          child: ClipRect(
+                            child: Container(
+                              height: 90,
+                              color: const Color(0xFF1E1E1E),
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: widget.imageFiles.length,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                itemBuilder: (context, index) {
+                                  bool isSelected = currentPage == index;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      _pageController.animateToPage(
+                                        index,
+                                        duration: const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 60,
+                                      margin: const EdgeInsets.only(right: 12),
+                                      decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                          image: FileImage(widget.imageFiles[index]['cropped']!),
+                                          fit: BoxFit.cover,
+                                        ),
+                                        border: Border.all(
+                                          color: isSelected ? Colors.blue : Colors.transparent,
+                                          width: 3,
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Align(
+                                            alignment: Alignment.bottomCenter,
+                                            child: Container(
+                                              margin: const EdgeInsets.all(4),
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.6),
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                '${index + 1}',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-
-                  // --- LAYER 2: FILTER MENU ---
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    bottom: _showFilterMenu ? 0 : -200,
-                    left: 0,
-                    right: 0,
-                    child: _buildFilterMenuWidget(),
-                  ),
-
-                  // --- 🚨 LAYER 3: ADJUST MENU ---
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    bottom: _showAdjustMenu ? 0 : -200,
-                    left: 0,
-                    right: 0,
-                    child: _buildAdjustMenuWidget(), // Naya adjust menu call kiya
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
-          Container(
-            height: 68,
-            color: const Color(0xFF151515),
-            child: ClipRect(
-              child: Stack(
-                children: [
-                  // NORMAL TOOLS:
-                  // Jab crop chalega, toh yeh (0, 1.0) matlab 100% niche jayega
-                  // Jab crop band hoga, toh (0, 0) matlab wapas original position par aayega
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isCroppingMode ? const Offset(0, 1.0) : Offset.zero,
-                    child: _buildNormalTools(),
-                  ),
-
-                  // CROP OPTIONS:
-                  // Jab crop chalega, toh yeh (0, 0) matlab upar original position par aayega
-                  // Jab crop band hoga, toh (0, 1.0) matlab wapas niche chhip jayega
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isCroppingMode ? Offset.zero : const Offset(0, 1.0),
-                    child: _buildCropSubTools(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          /// NAYA BOTTOM BAR: Keep Scanning & Save PDF
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            color: Colors.black, // Ekdum dark background
-            child: SafeArea(
-              top: false,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Keep Scanning Text Button
-                  TextButton(
-                    onPressed: () {
-                      _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
-                      showToast("Keep scanning");
-                      Navigator.pop(context); // Wapas camera par le jayega
-                    },
-                    child: const Text(
-                      "Keep scanning",
-                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-
-                  // Save PDF Button
-                  ElevatedButton(
-                    onPressed: _handleSaveClick,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      // Adobe scan jaisa blue
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
-                    child: const Row(
-                      children: [
-                        Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 4),
-                        // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
                       ],
                     ),
-                  ),
-                ],
+
+                    // --- LAYER 2: FILTER MENU ---
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      bottom: _showFilterMenu ? 0 : -200,
+                      left: 0,
+                      right: 0,
+                      child: _buildFilterMenuWidget(),
+                    ),
+
+                    // --- 🚨 LAYER 3: ADJUST MENU ---
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      bottom: _showAdjustMenu ? 0 : -200,
+                      left: 0,
+                      right: 0,
+                      child: _buildAdjustMenuWidget(), // Naya adjust menu call kiya
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+
+            /// NEW ACTION TOOLS BAR (Guaranteed Slide Up/Down Animation)
+            Container(
+              height: 68,
+              color: const Color(0xFF151515),
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    // NORMAL TOOLS:
+                    // Jab crop chalega, toh yeh (0, 1.0) matlab 100% niche jayega
+                    // Jab crop band hoga, toh (0, 0) matlab wapas original position par aayega
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isCroppingMode ? const Offset(0, 1.0) : Offset.zero,
+                      child: _buildNormalTools(),
+                    ),
+
+                    // CROP OPTIONS:
+                    // Jab crop chalega, toh yeh (0, 0) matlab upar original position par aayega
+                    // Jab crop band hoga, toh (0, 1.0) matlab wapas niche chhip jayega
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isCroppingMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildCropSubTools(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            /// NAYA BOTTOM BAR: Keep Scanning & Save PDF
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              color: Colors.black, // Ekdum dark background
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Keep Scanning Text Button
+                    TextButton(
+                      onPressed: () {
+                        _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
+                        showToast("Keep scanning");
+                        Navigator.pop(context); // Wapas camera par le jayega
+                      },
+                      child: const Text(
+                        "Keep scanning",
+                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+
+                    // Save PDF Button
+                    ElevatedButton(
+                      onPressed: _handleSaveClick,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        // Adobe scan jaisa blue
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          SizedBox(width: 4),
+                          // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
+      ),
     );
   }
 
@@ -1518,7 +1511,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     _getColorFilter(filterName) ??
                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                 //child: Image.file(widget.imageFiles[currentPage]['cropped']!, fit: BoxFit.cover),
-                                child: Image.file(widget.imageFiles[currentPage]['cropped']as File, fit: BoxFit.cover),
+                                child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
                               ),
                             ),
                           ),
@@ -1849,7 +1842,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
           // _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
           // _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
-
           _buildToolItem(
             label: "Reorder",
             icon: Icons.swap_horizontal_circle_outlined,
@@ -1866,7 +1858,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       ),
     );
   }
-
 
   // 🚨 FIXED: Delete Page Logic with Memory Sync
   Future<void> _promptDeletePage() async {
@@ -1892,7 +1883,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,
+            (route) => false,
           );
         }
       } else {
