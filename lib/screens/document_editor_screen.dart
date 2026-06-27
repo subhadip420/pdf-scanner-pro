@@ -2155,63 +2155,90 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // --- 🚨 NAYA BLOCK: SELECTION MODE TOOLS ---
   Widget _buildSelectedSubTools() {
-    // 🚨 FIX 1: Check karo ki list me ek bhi 'true' (selected) hai ya nahi
+    // Check karo ki list me ek bhi page selected hai ya nahi
     bool hasSelection = selectedPagesList.contains(true);
+
+    // Check karo ki kya saare ke saare pages selected hain?
+    bool allSelected = selectedPagesList.isNotEmpty && selectedPagesList.every((e) => e == true);
 
     return SizedBox(
       key: const ValueKey("SelectedSubTools"),
       height: 75,
       width: double.infinity,
-      // 🚨 FIX 2: Agar selection nahi hai, toh opacity 0.4 (fade) ho jayegi
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 200),
-        opacity: hasSelection ? 1.0 : 0.4,
-        // 🚨 FIX 3: IgnorePointer clicks ko block kar dega agar selection nahi hai
-        child: IgnorePointer(
-          ignoring: !hasSelection,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-            children: [
-              _buildToolItem(
-                label: "Rotate",
-                icon: Icons.rotate_right_rounded,
-                tooltipMessage: "Rotate selected pages",
-                onTap: () => showToast("Bulk rotate coming soon"),
-              ),
-              _buildToolItem(
-                label: "Filter",
-                icon: Symbols.masked_transitions_rounded,
-                tooltipMessage: "Apply filter to selected pages",
-                isSelected: _showFilterMenu,
-                onTap: () {
-                  setState(() {
-                    _showFilterMenu = !_showFilterMenu;
-                    if (_showFilterMenu) _showAdjustMenu = false;
-                  });
-                },
-              ),
-              _buildToolItem(
-                label: "Adjust",
-                icon: Icons.tune_rounded,
-                tooltipMessage: "Adjust selected pages",
-                isSelected: _showAdjustMenu,
-                onTap: () {
-                  setState(() {
-                    _showAdjustMenu = !_showAdjustMenu;
-                    if (_showAdjustMenu) _showFilterMenu = false;
-                  });
-                },
-              ),
-              _buildToolItem(
-                label: "Delete",
-                icon: Icons.delete_outline_rounded,
-                tooltipMessage: "Delete selected pages",
-                onTap: () => showToast("Bulk delete coming soon"),
-              ),
-            ],
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+        children: [
+
+          // 🚨 FIX 1: 1st Option (Select All / Deselect All) - Ye hamesha ACTIVE rahega
+          _buildToolItem(
+            label: allSelected ? "Deselect" : "Select All", // Text dynamic
+            icon: allSelected ? Icons.deselect_rounded : Icons.select_all_rounded, // Icon dynamic
+            tooltipMessage: allSelected ? "Deselect all pages" : "Select all pages",
+            onTap: () {
+              setState(() {
+                if (allSelected) {
+                  // Agar sab selected hain, toh sabko false (untick) kar do
+                  selectedPagesList.fillRange(0, selectedPagesList.length, false);
+                } else {
+                  // Agar sab selected nahi hain, toh sabko true (tick) kar do
+                  selectedPagesList.fillRange(0, selectedPagesList.length, true);
+                }
+              });
+            },
           ),
-        ),
+
+          // 🚨 FIX 2: Baaki ke tools ko ek Row me wrap karke sirf un par Fade/Disable lagaya
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: hasSelection ? 1.0 : 0.4,
+            child: IgnorePointer(
+              ignoring: !hasSelection,
+              child: Row(
+                mainAxisSize: MainAxisSize.min, // Taaki UI kharab na ho
+                children: [
+                  _buildToolItem(
+                    label: "Rotate",
+                    icon: Icons.rotate_right_rounded,
+                    tooltipMessage: "Rotate selected pages",
+                    onTap: () => showToast("Bulk rotate coming soon"),
+                  ),
+                  _buildToolItem(
+                    label: "Filter",
+                    icon: Symbols.masked_transitions_rounded,
+                    tooltipMessage: "Apply filter to selected pages",
+                    isSelected: _showFilterMenu,
+                    onTap: () {
+                      setState(() {
+                        _showFilterMenu = !_showFilterMenu;
+                        if (_showFilterMenu) _showAdjustMenu = false;
+                      });
+                    },
+                  ),
+                  _buildToolItem(
+                    label: "Adjust",
+                    icon: Icons.tune_rounded,
+                    tooltipMessage: "Adjust selected pages",
+                    isSelected: _showAdjustMenu,
+                    onTap: () {
+                      setState(() {
+                        _showAdjustMenu = !_showAdjustMenu;
+                        if (_showAdjustMenu) _showFilterMenu = false;
+                      });
+                    },
+                  ),
+                  _buildToolItem(
+                    label: "Delete",
+                    icon: Icons.delete_outline_rounded,
+                    tooltipMessage: "Delete selected pages",
+                    onTap: () => showToast("Bulk delete coming soon"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+        ],
       ),
     );
   }
