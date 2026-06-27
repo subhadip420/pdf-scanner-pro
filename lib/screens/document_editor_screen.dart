@@ -1669,7 +1669,141 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   //   );
   // }
 
-// --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+// // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+//   Widget _buildFilterMenuWidget() {
+//     String currentFilter = _pageFilters[currentPage];
+//
+//     return GestureDetector(
+//       onTap: () {},
+//       onHorizontalDragUpdate: (_) {},
+//       onVerticalDragUpdate: (_) {},
+//       // 🚨 FIX 1: Container ki jagah AnimatedContainer use kiya taaki height smoothly choti ho
+//       child: AnimatedContainer(
+//         duration: const Duration(milliseconds: 300),
+//         curve: Curves.easeInOut,
+//         // 🚨 FIX 2: Selection mode me height sirf 124 hogi, warna 180
+//         height: isSelectionMode ? 124.0 : 180.0,
+//         decoration: const BoxDecoration(
+//           color: Color(0xFF1E1E1E),
+//           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+//         ),
+//         padding: const EdgeInsets.only(top: 16, bottom: 8),
+//         child: Column(
+//           children: [
+//             // Thumbnails Options
+//             SizedBox(
+//               height: 100,
+//               child: ListView.builder(
+//                 scrollDirection: Axis.horizontal,
+//                 padding: const EdgeInsets.symmetric(horizontal: 16),
+//                 itemCount: _filterOptions.length,
+//                 itemBuilder: (context, index) {
+//                   String filterName = _filterOptions[index];
+//                   bool isSelected = currentFilter == filterName;
+//
+//                   return GestureDetector(
+//                     onTap: () {
+//                       setState(() {
+//                         if (isSelectionMode) {
+//                           for (int i = 0; i < _pageFilters.length; i++) {
+//                             if (selectedPagesList[i] == true) {
+//                               _pageFilters[i] = filterName;
+//                             }
+//                           }
+//                         } else {
+//                           if (_applyToAllPages) {
+//                             for (int i = 0; i < _pageFilters.length; i++) {
+//                               _pageFilters[i] = filterName;
+//                             }
+//                           } else {
+//                             _pageFilters[currentPage] = filterName;
+//                           }
+//                         }
+//                       });
+//                     },
+//                     child: Padding(
+//                       padding: const EdgeInsets.only(right: 16),
+//                       child: Column(
+//                         children: [
+//                           Container(
+//                             width: 65,
+//                             height: 65,
+//                             decoration: BoxDecoration(
+//                               border: Border.all(
+//                                 color: isSelected ? Colors.blueAccent : Colors.transparent,
+//                                 width: 2.5,
+//                               ),
+//                               borderRadius: BorderRadius.circular(8),
+//                             ),
+//                             child: ClipRRect(
+//                               borderRadius: BorderRadius.circular(5),
+//                               child: ColorFiltered(
+//                                 colorFilter:
+//                                 _getColorFilter(filterName) ??
+//                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+//                                 child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
+//                               ),
+//                             ),
+//                           ),
+//                           const SizedBox(height: 8),
+//                           Text(
+//                             filterName,
+//                             style: TextStyle(
+//                               color: isSelected ? Colors.blueAccent : Colors.white70,
+//                               fontSize: 11,
+//                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                   );
+//                 },
+//               ),
+//             ),
+//
+//             // 🚨 FIX 3: Agar selection mode ON hai, toh Spacer aur bottom toggle poori tarah hide ho jayenge
+//             if (!isSelectionMode) ...[
+//               const Spacer(),
+//               Padding(
+//                 padding: const EdgeInsets.symmetric(horizontal: 16),
+//                 child: Row(
+//                   children: [
+//                     Transform.scale(
+//                       scale: 0.85,
+//                       child: Switch(
+//                         value: _applyToAllPages,
+//                         onChanged: (val) {
+//                           setState(() {
+//                             _applyToAllPages = val;
+//                             if (val) {
+//                               String activeFilter = _pageFilters[currentPage];
+//                               for (int i = 0; i < _pageFilters.length; i++) {
+//                                 _pageFilters[i] = activeFilter;
+//                               }
+//                             }
+//                           });
+//                         },
+//                         activeColor: Colors.white,
+//                         activeTrackColor: Colors.blueAccent,
+//                         inactiveThumbColor: const Color(0xFFC0C0C0),
+//                         inactiveTrackColor: const Color(0xFF505050),
+//                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+//                       ),
+//                     ),
+//                     const SizedBox(width: 8),
+//                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+//                   ],
+//                 ),
+//               ),
+//             ],
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+  // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
   Widget _buildFilterMenuWidget() {
     String currentFilter = _pageFilters[currentPage];
 
@@ -1677,18 +1811,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       onTap: () {},
       onHorizontalDragUpdate: (_) {},
       onVerticalDragUpdate: (_) {},
-      // 🚨 FIX 1: Container ki jagah AnimatedContainer use kiya taaki height smoothly choti ho
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        // 🚨 FIX 2: Selection mode me height sirf 124 hogi, warna 180
-        height: isSelectionMode ? 124.0 : 180.0,
+
+      // 🚨 FIX 1: AnimatedContainer ki jagah normal Container lagaya aur height hata di
+      child: Container(
         decoration: const BoxDecoration(
           color: Color(0xFF1E1E1E),
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         padding: const EdgeInsets.only(top: 16, bottom: 8),
+
+        // 🚨 FIX 2: Column ko 'min' size diya taaki ye content ke hisaab se shrink/grow ho
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Thumbnails Options
             SizedBox(
@@ -1762,11 +1896,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ),
             ),
 
-            // 🚨 FIX 3: Agar selection mode ON hai, toh Spacer aur bottom toggle poori tarah hide ho jayenge
-            if (!isSelectionMode) ...[
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+            // 🚨 FIX 3: Spacer hata kar yahan AnimatedSize lagaya.
+            // Ye bina crash kare smooth height transition dega!
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: isSelectionMode
+                  ? const SizedBox(width: double.infinity) // Jab selection ON, toh ye height 0 kar lega
+                  : Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
                 child: Row(
                   children: [
                     Transform.scale(
@@ -1788,7 +1926,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         activeTrackColor: Colors.blueAccent,
                         inactiveThumbColor: const Color(0xFFC0C0C0),
                         inactiveTrackColor: const Color(0xFF505050),
-                        trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+                        trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1796,7 +1934,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   ],
                 ),
               ),
-            ],
+            ),
           ],
         ),
       ),
