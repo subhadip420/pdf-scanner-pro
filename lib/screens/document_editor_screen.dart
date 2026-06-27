@@ -8,6 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:open_file/open_file.dart';
+import 'package:pdf_scanner_pro/screens/reorder_screen.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -102,20 +103,41 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageMarkups = List.filled(widget.imageFiles.length, null);
 
     // 🚨 FIX 3: Default ki jagah Map se purana data read karein
-    _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
-    _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
+    // _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
+    // _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
+    //
+    // _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
+    // _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? "Original color");
+    // _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
+    // _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
+    // _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
 
-    _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
-    _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? "Original color");
-    _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
-    _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
-    _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
+    _loadEditsFromMemory();
+
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  // 🚨 NEW: State reload helper (Init aur Reorder dono me kaam aayega)
+  void _loadEditsFromMemory() {
+    setState(() {
+      _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
+      _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
+      _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
+      _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? "Original color");
+      _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
+      _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
+      _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
+
+      // Safety check: Agar current page bounds se bahar ho jaye toh 0 pe set kar do
+      if (currentPage >= widget.imageFiles.length) {
+        currentPage = 0;
+      }
+    });
   }
 
   // 🚨 FIX 2: Back jaane se pehle saari settings ko map me save karne ka function
@@ -355,6 +377,41 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         cropRightRatio = _autoCropPositions[currentPage]!['right']!;
       }
     });
+  }
+
+  // 🚨 NEW: Reorder logic
+  Future<void> _openReorderScreen() async {
+    if (widget.imageFiles.length <= 1) {
+      showToast("Only one page available");
+      return;
+    }
+
+    // Wahan jaane se pehle current changes memory me save karo
+    _saveEditsToMemory();
+
+    // Reorder screen kholo aur nai list ka wait karo
+    final reorderedList = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReorderScreen(
+          // List ki copy bhej rahe hain taaki original safe rahe
+          imageFiles: List.from(widget.imageFiles),
+        ),
+      ),
+    );
+
+    // Jab user OK (Checkmark) dabayega toh nai list yahan aayegi
+    if (reorderedList != null && reorderedList is List<Map<String, dynamic>>) {
+      widget.imageFiles.clear();
+      widget.imageFiles.addAll(reorderedList);
+
+      // Naye order ke hisab se memory wapas load karo
+      _loadEditsFromMemory();
+
+      // PageView ko naye order ki first image pe bhej do
+      _pageController.jumpToPage(0);
+      showToast("Pages reordered successfully");
+    }
   }
 
   // Generate default file name based on current date
@@ -1758,6 +1815,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Reorder",
             icon: Icons.swap_horizontal_circle_outlined,
             tooltipMessage: "Rearrange page sequence",
+            onTap: _openReorderScreen,
           ),
           _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, tooltipMessage: "Delete current page"),
         ],
