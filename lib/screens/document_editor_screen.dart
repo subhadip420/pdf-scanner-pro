@@ -1856,10 +1856,70 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             tooltipMessage: "Rearrange page sequence",
             onTap: _openReorderScreen,
           ),
-          _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, tooltipMessage: "Delete current page"),
+          _buildToolItem(
+            label: "Delete",
+            icon: Icons.delete_outline_rounded,
+            tooltipMessage: "Delete current page",
+            onTap: _promptDeletePage, // 🚨 FIX: Yahan function attach kiya
+          ),
         ],
       ),
     );
+  }
+
+
+  // 🚨 FIXED: Delete Page Logic with Memory Sync
+  Future<void> _promptDeletePage() async {
+    // 🚨 FIX: Delete karne se pehle sabhi pages ki current settings ko map me save karo
+    _saveEditsToMemory();
+
+    // 1. Custom Dialog Dikhayenge
+    bool confirmDelete = await showCustomConfirmDialog(
+      context,
+      title: "Delete page",
+      message: "Are you sure you want to delete this page from your scan?",
+      positiveBtnText: "Delete",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.redAccent,
+    );
+
+    // 2. Agar user ne 'Delete' confirm kiya
+    if (confirmDelete) {
+      if (widget.imageFiles.length == 1) {
+        // CASE A: Agar sirf 1 hi page tha aur usko delete kar diya
+        showToast("Document deleted");
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false,
+          );
+        }
+      } else {
+        // CASE B: Agar 1 se zyada pages hain
+        setState(() {
+          // Main list se wo specific page hata do
+          widget.imageFiles.removeAt(currentPage);
+
+          // Agar user aakhri page pe tha, toh current page ko 1 step peeche kar do
+          if (currentPage >= widget.imageFiles.length) {
+            currentPage = widget.imageFiles.length - 1;
+          }
+        });
+
+        // Nayi list ke hisaab se memory wapas load karo (Ab baaki pages ka data safe rahega)
+        _loadEditsFromMemory();
+
+        // PageView UI ko naye index par set karne ke liye
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(currentPage);
+          }
+        });
+
+        showToast("Page deleted");
+      }
+    }
   }
 
   // --- MARKUP LOGIC (VECTOR APPROACH) ---
