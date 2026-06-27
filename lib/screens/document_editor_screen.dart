@@ -540,12 +540,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               : Colors.transparent;
 
           TextDecoration decoration = TextDecoration.none;
-          if (item.isUnderline && item.isStrikethrough)
+          if (item.isUnderline && item.isStrikethrough) {
             decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
-          else if (item.isUnderline)
+          } else if (item.isUnderline) {
             decoration = TextDecoration.underline;
-          else if (item.isStrikethrough)
+          } else if (item.isStrikethrough){
             decoration = TextDecoration.lineThrough;
+          }
 
           TextStyle style = TextStyle(
             color: textColor,
@@ -856,8 +857,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                   onTap: () {
                                     if (_showFilterMenu) setState(() => _showFilterMenu = false);
-                                    if (_showAdjustMenu)
+                                    if (_showAdjustMenu) {
                                       setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+                                    }
                                   },
 
                                   child: InteractiveViewer(
@@ -934,15 +936,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                 ? item.color.withOpacity(0.5)
                                                                 : Colors.transparent;
                                                             TextDecoration decoration = TextDecoration.none;
-                                                            if (item.isUnderline && item.isStrikethrough)
+                                                            if (item.isUnderline && item.isStrikethrough) {
                                                               decoration = TextDecoration.combine([
                                                                 TextDecoration.underline,
                                                                 TextDecoration.lineThrough,
                                                               ]);
-                                                            else if (item.isUnderline)
+                                                            } else if (item.isUnderline) {
                                                               decoration = TextDecoration.underline;
-                                                            else if (item.isStrikethrough)
+                                                            }else if (item.isStrikethrough) {
                                                               decoration = TextDecoration.lineThrough;
+                                                            }
 
                                                             return Positioned(
                                                               left: item.offset.dx * canvasW,
