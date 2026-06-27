@@ -872,7 +872,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           child: IconButton(
             icon: const Icon(Icons.home, color: Colors.white, size: 28),
             onPressed: () {
-              showToast("Home tapped");
+              //showToast("Home tapped");
+              _promptDiscard();
             },
           ),
         ),
