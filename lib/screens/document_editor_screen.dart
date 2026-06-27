@@ -1315,35 +1315,36 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   bool isSelected = currentPage == index;
                                   bool isChecked = selectedPagesList[index];
                                   return GestureDetector(
+                                    onTap: () {
+                                      _pageController.animateToPage(
+                                        index,
+                                        duration: const Duration(milliseconds: 300),
+                                        curve: Curves.easeInOut,
+                                      );
+                                    },
+
                                     // onTap: () {
-                                    //   _pageController.animateToPage(
-                                    //     index,
-                                    //     duration: const Duration(milliseconds: 300),
-                                    //     curve: Curves.easeInOut,
-                                    //   );
+                                    //   if (isSelectionMode) {
+                                    //     // 🚨 Agar selection mode ON hai, toh tick/untick karo
+                                    //     setState(() {
+                                    //       selectedPagesList[index] = !selectedPagesList[index];
+                                    //     });
+                                    //
+                                    //     _pageController.animateToPage(
+                                    //       index,
+                                    //       duration: const Duration(milliseconds: 300),
+                                    //       curve: Curves.easeInOut,
+                                    //     );
+                                    //   } else {
+                                    //     // Normal mode me page swipe karo
+                                    //     _pageController.animateToPage(
+                                    //       index,
+                                    //       duration: const Duration(milliseconds: 300),
+                                    //       curve: Curves.easeInOut,
+                                    //     );
+                                    //   }
                                     // },
 
-                                    onTap: () {
-                                      if (isSelectionMode) {
-                                        // 🚨 Agar selection mode ON hai, toh tick/untick karo
-                                        setState(() {
-                                          selectedPagesList[index] = !selectedPagesList[index];
-                                        });
-
-                                        _pageController.animateToPage(
-                                          index,
-                                          duration: const Duration(milliseconds: 300),
-                                          curve: Curves.easeInOut,
-                                        );
-                                      } else {
-                                        // Normal mode me page swipe karo
-                                        _pageController.animateToPage(
-                                          index,
-                                          duration: const Duration(milliseconds: 300),
-                                          curve: Curves.easeInOut,
-                                        );
-                                      }
-                                    },
                                     child: Container(
                                       width: 60,
                                       margin: const EdgeInsets.only(right: 12),
@@ -1356,6 +1357,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                           color: isSelected ? Colors.blue : Colors.transparent,
                                           width: 3,
                                         ),
+                                        // border: Border.all(
+                                        //   // Selection mode me main blue border hide rahega taaki sirf checkbox dikhe
+                                        //   color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
+                                        //   width: 3,
+                                        // ),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Stack(
@@ -1366,7 +1372,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             Positioned(
                                               top: 0,
                                               left: 0,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          // Sirf yahan click karne se tick/untick hoga
+                                          setState(() {
+                                            selectedPagesList[index] = !selectedPagesList[index];
+                                          });
+                                        },
                                               child: Container(
+                                                padding: const EdgeInsets.all(2),
                                                 decoration: BoxDecoration(
                                                   color: isChecked ? Colors.blueAccent : Colors.black45,
                                                   borderRadius: BorderRadius.circular(2),
@@ -1378,6 +1392,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                   color: isChecked ? Colors.white : Colors.transparent,
                                                 ),
                                               ),
+                                      ),
                                             ),
 
                                           Align(
