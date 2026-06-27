@@ -1526,17 +1526,163 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+  // // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+  // Widget _buildFilterMenuWidget() {
+  //   String currentFilter = _pageFilters[currentPage];
+  //
+  //   // 🚨 FIX: GestureDetector lagaya taaki touches/swipes background me leak na ho
+  //   return GestureDetector(
+  //     onTap: () {}, // Clicks ko yahan block karega
+  //     onHorizontalDragUpdate: (_) {}, // Horizontal swipe (PageView scroll) ko block karega
+  //     onVerticalDragUpdate: (_) {}, // Vertical scroll ko block karega
+  //     child: Container(
+  //       height: 180,
+  //       decoration: const BoxDecoration(
+  //         color: Color(0xFF1E1E1E),
+  //         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //       ),
+  //       padding: const EdgeInsets.only(top: 16, bottom: 8),
+  //       child: Column(
+  //         children: [
+  //           // Thumbnails Options
+  //           SizedBox(
+  //             height: 100,
+  //             child: ListView.builder(
+  //               scrollDirection: Axis.horizontal,
+  //               padding: const EdgeInsets.symmetric(horizontal: 16),
+  //               itemCount: _filterOptions.length,
+  //               itemBuilder: (context, index) {
+  //                 String filterName = _filterOptions[index];
+  //                 bool isSelected = currentFilter == filterName;
+  //
+  //                 return GestureDetector(
+  //                   onTap: () {
+  //                     setState(() {
+  //                       if (_applyToAllPages) {
+  //                         for (int i = 0; i < _pageFilters.length; i++) {
+  //                           _pageFilters[i] = filterName;
+  //                         }
+  //                       } else {
+  //                         _pageFilters[currentPage] = filterName;
+  //                       }
+  //                     });
+  //                   },
+  //                   child: Padding(
+  //                     padding: const EdgeInsets.only(right: 16),
+  //                     child: Column(
+  //                       children: [
+  //                         Container(
+  //                           width: 65,
+  //                           height: 65,
+  //                           decoration: BoxDecoration(
+  //                             border: Border.all(
+  //                               color: isSelected ? Colors.blueAccent : Colors.transparent,
+  //                               width: 2.5,
+  //                             ),
+  //                             borderRadius: BorderRadius.circular(8),
+  //                           ),
+  //                           child: ClipRRect(
+  //                             borderRadius: BorderRadius.circular(5),
+  //                             child: ColorFiltered(
+  //                               colorFilter:
+  //                                   _getColorFilter(filterName) ??
+  //                                   const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+  //                               //child: Image.file(widget.imageFiles[currentPage]['cropped']!, fit: BoxFit.cover),
+  //                               child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
+  //                             ),
+  //                           ),
+  //                         ),
+  //                         const SizedBox(height: 8),
+  //                         Text(
+  //                           filterName,
+  //                           style: TextStyle(
+  //                             color: isSelected ? Colors.blueAccent : Colors.white70,
+  //                             fontSize: 11,
+  //                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //           const Spacer(),
+  //           // Bottom Toggle
+  //           Padding(
+  //             padding: const EdgeInsets.symmetric(horizontal: 16),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Row(
+  //                   children: [
+  //                     // 🚨 FIX: Image jaisa design aur size dene ke liye Transform.scale lagaya
+  //                     Transform.scale(
+  //                       scale: 0.85,
+  //                       child: Switch(
+  //                         value: _applyToAllPages,
+  //                         onChanged: (val) {
+  //                           setState(() {
+  //                             _applyToAllPages = val;
+  //                             if (val) {
+  //                               String activeFilter = _pageFilters[currentPage];
+  //                               for (int i = 0; i < _pageFilters.length; i++) {
+  //                                 _pageFilters[i] = activeFilter;
+  //                               }
+  //                             }
+  //                           });
+  //                         },
+  //                         // ON hone par colors
+  //                         activeColor: Colors.white,
+  //                         // Gola (Thumb) white rahega
+  //                         activeTrackColor: Colors.blueAccent,
+  //                         // Line blue hogi
+  //
+  //                         // OFF hone par colors (Exactly tumhari image jaisa)
+  //                         inactiveThumbColor: const Color(0xFFC0C0C0),
+  //                         // Light grey gola
+  //                         inactiveTrackColor: const Color(0xFF505050),
+  //                         // Dark grey line
+  //
+  //                         // Material 3 ka default black border hatane ke liye
+  //                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+  //                       ),
+  //                     ),
+  //                     const SizedBox(width: 8),
+  //                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+  //                   ],
+  //                 ),
+  //                 Tooltip(
+  //                   message: "Filter Settings",
+  //                   child: IconButton(
+  //                     icon: const Icon(Icons.settings, color: Colors.white70, size: 24),
+  //                     onPressed: () => showToast("Settings coming soon!"),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+// --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
   Widget _buildFilterMenuWidget() {
     String currentFilter = _pageFilters[currentPage];
 
-    // 🚨 FIX: GestureDetector lagaya taaki touches/swipes background me leak na ho
     return GestureDetector(
-      onTap: () {}, // Clicks ko yahan block karega
-      onHorizontalDragUpdate: (_) {}, // Horizontal swipe (PageView scroll) ko block karega
-      onVerticalDragUpdate: (_) {}, // Vertical scroll ko block karega
-      child: Container(
-        height: 180,
+      onTap: () {},
+      onHorizontalDragUpdate: (_) {},
+      onVerticalDragUpdate: (_) {},
+      // 🚨 FIX 1: Container ki jagah AnimatedContainer use kiya taaki height smoothly choti ho
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        // 🚨 FIX 2: Selection mode me height sirf 124 hogi, warna 180
+        height: isSelectionMode ? 124.0 : 180.0,
         decoration: const BoxDecoration(
           color: Color(0xFF1E1E1E),
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -1558,12 +1704,20 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                        if (_applyToAllPages) {
+                        if (isSelectionMode) {
                           for (int i = 0; i < _pageFilters.length; i++) {
-                            _pageFilters[i] = filterName;
+                            if (selectedPagesList[i] == true) {
+                              _pageFilters[i] = filterName;
+                            }
                           }
                         } else {
-                          _pageFilters[currentPage] = filterName;
+                          if (_applyToAllPages) {
+                            for (int i = 0; i < _pageFilters.length; i++) {
+                              _pageFilters[i] = filterName;
+                            }
+                          } else {
+                            _pageFilters[currentPage] = filterName;
+                          }
                         }
                       });
                     },
@@ -1585,9 +1739,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               borderRadius: BorderRadius.circular(5),
                               child: ColorFiltered(
                                 colorFilter:
-                                    _getColorFilter(filterName) ??
+                                _getColorFilter(filterName) ??
                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                //child: Image.file(widget.imageFiles[currentPage]['cropped']!, fit: BoxFit.cover),
                                 child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
                               ),
                             ),
@@ -1608,61 +1761,42 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 },
               ),
             ),
-            const Spacer(),
-            // Bottom Toggle
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      // 🚨 FIX: Image jaisa design aur size dene ke liye Transform.scale lagaya
-                      Transform.scale(
-                        scale: 0.85,
-                        child: Switch(
-                          value: _applyToAllPages,
-                          onChanged: (val) {
-                            setState(() {
-                              _applyToAllPages = val;
-                              if (val) {
-                                String activeFilter = _pageFilters[currentPage];
-                                for (int i = 0; i < _pageFilters.length; i++) {
-                                  _pageFilters[i] = activeFilter;
-                                }
+
+            // 🚨 FIX 3: Agar selection mode ON hai, toh Spacer aur bottom toggle poori tarah hide ho jayenge
+            if (!isSelectionMode) ...[
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Transform.scale(
+                      scale: 0.85,
+                      child: Switch(
+                        value: _applyToAllPages,
+                        onChanged: (val) {
+                          setState(() {
+                            _applyToAllPages = val;
+                            if (val) {
+                              String activeFilter = _pageFilters[currentPage];
+                              for (int i = 0; i < _pageFilters.length; i++) {
+                                _pageFilters[i] = activeFilter;
                               }
-                            });
-                          },
-                          // ON hone par colors
-                          activeColor: Colors.white,
-                          // Gola (Thumb) white rahega
-                          activeTrackColor: Colors.blueAccent,
-                          // Line blue hogi
-
-                          // OFF hone par colors (Exactly tumhari image jaisa)
-                          inactiveThumbColor: const Color(0xFFC0C0C0),
-                          // Light grey gola
-                          inactiveTrackColor: const Color(0xFF505050),
-                          // Dark grey line
-
-                          // Material 3 ka default black border hatane ke liye
-                          trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
-                        ),
+                            }
+                          });
+                        },
+                        activeColor: Colors.white,
+                        activeTrackColor: Colors.blueAccent,
+                        inactiveThumbColor: const Color(0xFFC0C0C0),
+                        inactiveTrackColor: const Color(0xFF505050),
+                        trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
                       ),
-                      const SizedBox(width: 8),
-                      const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
-                    ],
-                  ),
-                  Tooltip(
-                    message: "Filter Settings",
-                    child: IconButton(
-                      icon: const Icon(Icons.settings, color: Colors.white70, size: 24),
-                      onPressed: () => showToast("Settings coming soon!"),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
