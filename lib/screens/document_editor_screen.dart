@@ -2564,7 +2564,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     label: "Rotate",
                     icon: Icons.rotate_right_rounded,
                     tooltipMessage: "Rotate selected pages",
-                    onTap: () => showToast("Bulk rotate coming soon"),
+                    //onTap: () => showToast("Bulk rotate coming soon"),
+                    isRotate: true, // 🚨 FIX: Ye true karna zaroori hai taaki rotate icon smoothly ghume
+                    onTap: _bulkRotateImages,
                   ),
                   _buildToolItem(
                     label: "Filter",
@@ -2604,6 +2606,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ],
       ),
     );
+  }
+
+  // 🚨 NAYA: Bulk Rotate Logic
+  void _bulkRotateImages() {
+    setState(() {
+      // 1. Icon ko smoothly ghumane ke liye animation
+      _iconRotationTurns += 0.25;
+
+      // 2. Loop chala kar sirf selected pages ko rotate karo
+      for (int i = 0; i < widget.imageFiles.length; i++) {
+        if (selectedPagesList[i] == true) {
+          // % 4 ensures ki 4 baar ghumne par wapas 0 (normal) ho jaye
+          _imageQuarterTurns[i] = (_imageQuarterTurns[i] + 1) % 4;
+        }
+      }
+    });
+
+    // Optional: User ko confirmation dikhane ke liye
+    int selectedCount = selectedPagesList.where((e) => e == true).length;
+    showToast("$selectedCount page(s) rotated");
   }
 
   // 🚨 FIXED: Delete Page Logic with Memory Sync
