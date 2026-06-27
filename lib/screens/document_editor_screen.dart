@@ -2315,6 +2315,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             tooltipMessage: allSelected ? "Deselect all pages" : "Select all pages",
             onTap: () {
               setState(() {
+
+                _showFilterMenu = false;
+                _showAdjustMenu = false;
+
                 if (allSelected) {
                   // Agar sab selected hain, toh sabko false (untick) kar do
                   selectedPagesList.fillRange(0, selectedPagesList.length, false);
@@ -2440,6 +2444,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     // 1. Check karo kitne pages selected hain
     int selectedCount = selectedPagesList.where((e) => e == true).length;
     if (selectedCount == 0) return;
+
+    // 🚨 FIX: Delete button dabate hi pehle khule hue menus band kar do
+    setState(() {
+      _showFilterMenu = false;
+      _showAdjustMenu = false;
+    });
 
     // 2. Pehle memory save karo
     _saveEditsToMemory();
