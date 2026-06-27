@@ -1186,9 +1186,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Row(
                                         children: [
                                           Tooltip(
-                                            message: "Add New Page",
+                                            message: "Select Page",
                                             child: GestureDetector(
-                                              onTap: () => showToast("Add new page"),
+                                              onTap: () => showToast("Select page"),
                                               child: Container(
                                                 width: 40,
                                                 height: 40,
@@ -1197,7 +1197,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: const Icon(
-                                                  Icons.post_add_rounded,
+                                                  Icons.library_add_check_rounded,
                                                   color: Colors.white,
                                                   size: 20,
                                                 ),
