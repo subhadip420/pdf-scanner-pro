@@ -82,6 +82,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // 🚨 NAYA VARIABLE: Vector (Drawing/Shapes/Text) data store karne ke liye
   late List<dynamic> _pageMarkups;
 
+  // 🚨 NEW: Selection tracking variables
+  bool isSelectionMode = false;
+  late List<bool> selectedPagesList;
+
   @override
   void initState() {
     super.initState();
@@ -102,6 +106,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     // 🚨 NAYA: Empty markups list init
     _pageMarkups = List.filled(widget.imageFiles.length, null);
+
+    selectedPagesList = List.filled(widget.imageFiles.length, false);
 
     _loadEditsFromMemory();
   }
@@ -1186,14 +1192,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Row(
                                         children: [
                                           Tooltip(
-                                            message: "Select Page",
+                                      message: isSelectionMode ? "Cancel Selection" : "Select Page",
                                             child: GestureDetector(
-                                              onTap: () => showToast("Select page"),
+                                              onTap: () {
+                                                setState(() {
+                                                  isSelectionMode = !isSelectionMode;
+                                                  // Agar selection mode band kiya, toh saare checkboxes clear kar do
+                                                  if (!isSelectionMode) {
+                                                    selectedPagesList.fillRange(0, selectedPagesList.length, false);
+                                                  }
+                                                });
+                                              },
                                               child: Container(
                                                 width: 40,
                                                 height: 40,
-                                                decoration: const BoxDecoration(
-                                                  color: Colors.black87,
+                                                decoration: BoxDecoration(
+                                                  color: isSelectionMode ? Colors.blueAccent : Colors.black87,
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: const Icon(
@@ -1206,7 +1220,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                           ),
                                           const SizedBox(width: 12),
                                           Tooltip(
-                                            message: "Jump to page",
+                                            message: "Pages",
                                             child: GestureDetector(
                                               onTap: () {
                                                 setState(() {
@@ -1221,8 +1235,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 ),
                                                 child: Row(
                                                   children: [
+                                                    // Text(
+                                                    //   "Page ${currentPage + 1} of ${widget.imageFiles.length}",
+                                                    //   style: const TextStyle(
+                                                    //     color: Colors.white,
+                                                    //     fontSize: 14,
+                                                    //     fontWeight: FontWeight.w500,
+                                                    //   ),
+                                                    // ),
                                                     Text(
-                                                      "Page ${currentPage + 1} of ${widget.imageFiles.length}",
+                                                      isSelectionMode
+                                                          ? "${selectedPagesList.where((e) => e == true).length} selected"
+                                                          : "Page ${currentPage + 1} of ${widget.imageFiles.length}",
                                                       style: const TextStyle(
                                                         color: Colors.white,
                                                         fontSize: 14,
@@ -1289,13 +1313,36 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 itemBuilder: (context, index) {
                                   bool isSelected = currentPage == index;
+                                  bool isChecked = selectedPagesList[index];
                                   return GestureDetector(
+                                    // onTap: () {
+                                    //   _pageController.animateToPage(
+                                    //     index,
+                                    //     duration: const Duration(milliseconds: 300),
+                                    //     curve: Curves.easeInOut,
+                                    //   );
+                                    // },
+
                                     onTap: () {
-                                      _pageController.animateToPage(
-                                        index,
-                                        duration: const Duration(milliseconds: 300),
-                                        curve: Curves.easeInOut,
-                                      );
+                                      if (isSelectionMode) {
+                                        // 🚨 Agar selection mode ON hai, toh tick/untick karo
+                                        setState(() {
+                                          selectedPagesList[index] = !selectedPagesList[index];
+                                        });
+
+                                        _pageController.animateToPage(
+                                          index,
+                                          duration: const Duration(milliseconds: 300),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      } else {
+                                        // Normal mode me page swipe karo
+                                        _pageController.animateToPage(
+                                          index,
+                                          duration: const Duration(milliseconds: 300),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      }
                                     },
                                     child: Container(
                                       width: 60,
@@ -1313,6 +1360,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       ),
                                       child: Stack(
                                         children: [
+
+                                          // 🚨 FIX 2: Top-Left Corner Checkbox (Sirf tab dikhega jab Selection Mode ON ho)
+                                          if (isSelectionMode)
+                                            Positioned(
+                                              top: 0,
+                                              left: 0,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: isChecked ? Colors.blueAccent : Colors.black45,
+                                                  borderRadius: BorderRadius.circular(2),
+                                                  border: Border.all(color: Colors.white, width: 1.5),
+                                                ),
+                                                child: Icon(
+                                                  Icons.check_rounded,
+                                                  size: 16,
+                                                  color: isChecked ? Colors.white : Colors.transparent,
+                                                ),
+                                              ),
+                                            ),
+
                                           Align(
                                             alignment: Alignment.bottomCenter,
                                             child: Container(
@@ -1381,7 +1448,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
-                      offset: isCroppingMode ? const Offset(0, 1.0) : Offset.zero,
+                      //offset: isCroppingMode ? const Offset(0, 1.0) : Offset.zero,
+                      offset: (isCroppingMode || isSelectionMode) ? const Offset(0, 1.0) : Offset.zero,
                       child: _buildNormalTools(),
                     ),
 
@@ -1394,6 +1462,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       offset: isCroppingMode ? Offset.zero : const Offset(0, 1.0),
                       child: _buildCropSubTools(),
                     ),
+
+                    // Jab isSelectionMode true hoga, tab ye upar aayega
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isSelectionMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildSelectedSubTools(),
+                    ),
+
                   ],
                 ),
               ),
@@ -1859,6 +1936,89 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+  Widget _buildCropSubTools() {
+    // FIX: Same size ka SizedBox taaki switcher me smooth transition ho
+    return SizedBox(
+      key: const ValueKey("CropSubTools"),
+      height: 75,
+      width: double.infinity,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildToolItem(
+            label: "Cancel", icon: Icons.close_rounded, tooltipMessage: "Cancel Crop", onTap: _cancelCrop,),
+          _buildToolItem(
+            label: "Auto",
+            icon: Icons.auto_awesome_mosaic_rounded,
+            tooltipMessage: "Reset to auto detect",
+            onTap: _resetToAutoCrop,
+          ),
+          _buildToolItem(
+            label: "Done",
+            icon: Icons.check_rounded,
+            tooltipMessage: "Save crop",
+            isSelected: true,
+            onTap: () async {
+              await _saveNewCrop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 🚨 NAYA BLOCK: SELECTION MODE TOOLS ---
+  Widget _buildSelectedSubTools() {
+    return SizedBox(
+      key: const ValueKey("SelectedSubTools"),
+      height: 75,
+      width: double.infinity,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildToolItem(
+            label: "Rotate",
+            icon: Icons.rotate_right_rounded,
+            tooltipMessage: "Rotate selected pages",
+            // Abhi ke liye Toast lagaya hai, bulk rotate logic next step me add karenge
+            onTap: () => showToast("Bulk rotate coming soon"),
+          ),
+          _buildToolItem(
+            label: "Filter",
+            icon: Symbols.masked_transitions_rounded,
+            tooltipMessage: "Apply filter to selected pages",
+            isSelected: _showFilterMenu,
+            onTap: () {
+              setState(() {
+                _showFilterMenu = !_showFilterMenu;
+                if (_showFilterMenu) _showAdjustMenu = false; // Adjust menu band kardo
+              });
+            },
+          ),
+          _buildToolItem(
+            label: "Adjust",
+            icon: Icons.tune_rounded,
+            tooltipMessage: "Adjust selected pages",
+            isSelected: _showAdjustMenu,
+            onTap: () {
+              setState(() {
+                _showAdjustMenu = !_showAdjustMenu;
+                if (_showAdjustMenu) _showFilterMenu = false; // Filter menu band kardo
+              });
+            },
+          ),
+          _buildToolItem(
+            label: "Delete",
+            icon: Icons.delete_outline_rounded,
+            tooltipMessage: "Delete selected pages",
+            // Abhi ke liye Toast lagaya hai, bulk delete logic next step me add karenge
+            onTap: () => showToast("Bulk delete coming soon"),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🚨 FIXED: Delete Page Logic with Memory Sync
   Future<void> _promptDeletePage() async {
     // 🚨 FIX: Delete karne se pehle sabhi pages ki current settings ko map me save karo
@@ -1891,7 +2051,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         setState(() {
           // Main list se wo specific page hata do
           widget.imageFiles.removeAt(currentPage);
-
+          //selectedPagesList.removeAt(currentPage);
           // Agar user aakhri page pe tha, toh current page ko 1 step peeche kar do
           if (currentPage >= widget.imageFiles.length) {
             currentPage = widget.imageFiles.length - 1;
@@ -1950,35 +2110,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  Widget _buildCropSubTools() {
-    // FIX: Same size ka SizedBox taaki switcher me smooth transition ho
-    return SizedBox(
-      key: const ValueKey("CropSubTools"),
-      height: 75,
-      width: double.infinity,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildToolItem(label: "Cancel", icon: Icons.close_rounded, tooltipMessage: "Cancel Crop", onTap: _cancelCrop),
-          _buildToolItem(
-            label: "Auto",
-            icon: Icons.auto_awesome_mosaic_rounded,
-            tooltipMessage: "Reset to auto detect",
-            onTap: _resetToAutoCrop,
-          ),
-          _buildToolItem(
-            label: "Done",
-            icon: Icons.check_rounded,
-            tooltipMessage: "Save crop",
-            isSelected: true,
-            onTap: () async {
-              await _saveNewCrop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildToolItem({
     required String label,
