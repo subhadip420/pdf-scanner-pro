@@ -1942,24 +1942,203 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   // --- 🚨 NAYA BLOCK: ADJUST MENU WIDGET UI ---
+  // Widget _buildAdjustMenuWidget() {
+  //   bool isBrightness = _activeAdjustTab == "Brightness";
+  //   double currentValue = isBrightness ? _pageBrightness[currentPage] : _pageContrast[currentPage];
+  //
+  //   return GestureDetector(
+  //     behavior: HitTestBehavior.opaque,
+  //     // Background tap roko
+  //     onTap: () {},
+  //     onHorizontalDragUpdate: (_) {},
+  //     onVerticalDragUpdate: (_) {},
+  //     child: Container(
+  //       height: 180,
+  //       decoration: const BoxDecoration(
+  //         color: Color(0xFF1E1E1E),
+  //         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //       ),
+  //       padding: const EdgeInsets.only(top: 16, bottom: 8),
+  //       child: Column(
+  //         children: [
+  //           // --- TOP TABS (Brightness | Contrast) ---
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //             children: [
+  //               GestureDetector(
+  //                 onTap: () => setState(() => _activeAdjustTab = "Brightness"),
+  //                 child: Row(
+  //                   children: [
+  //                     Icon(
+  //                       Icons.light_mode_outlined,
+  //                       color: isBrightness ? Colors.blueAccent : Colors.white70,
+  //                       size: 22,
+  //                     ),
+  //                     const SizedBox(width: 8),
+  //                     Text(
+  //                       "Brightness",
+  //                       style: TextStyle(color: isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //               GestureDetector(
+  //                 onTap: () => setState(() => _activeAdjustTab = "Contrast"),
+  //                 child: Row(
+  //                   children: [
+  //                     Icon(
+  //                       Icons.contrast_outlined,
+  //                       color: !isBrightness ? Colors.blueAccent : Colors.white70,
+  //                       size: 22,
+  //                     ),
+  //                     const SizedBox(width: 8),
+  //                     Text(
+  //                       "Contrast",
+  //                       style: TextStyle(color: !isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //           const SizedBox(height: 16),
+  //
+  //           // --- VALUE TEXT ROW ---
+  //           Padding(
+  //             padding: const EdgeInsets.symmetric(horizontal: 24),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Text(_activeAdjustTab, style: const TextStyle(color: Colors.white, fontSize: 14)),
+  //                 Text("${currentValue.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
+  //               ],
+  //             ),
+  //           ),
+  //
+  //           // --- MAIN SLIDER ---
+  //           SliderTheme(
+  //             data: SliderThemeData(
+  //               trackHeight: 2.5,
+  //               activeTrackColor: Colors.grey.shade500,
+  //               // Screenshot jaisa grey track
+  //               inactiveTrackColor: Colors.grey.shade800,
+  //               thumbColor: Colors.grey.shade400,
+  //               // Light grey thumb
+  //               overlayShape: SliderComponentShape.noOverlay,
+  //             ),
+  //             child: Slider(
+  //               value: currentValue,
+  //               min: -100,
+  //               max: 100,
+  //               onChanged: (val) {
+  //                 setState(() {
+  //                   if (isBrightness) {
+  //                     if (_applyToAllPages) {
+  //                       for (int i = 0; i < _pageBrightness.length; i++) _pageBrightness[i] = val;
+  //                     } else {
+  //                       _pageBrightness[currentPage] = val;
+  //                     }
+  //                   } else {
+  //                     if (_applyToAllPages) {
+  //                       for (int i = 0; i < _pageContrast.length; i++) _pageContrast[i] = val;
+  //                     } else {
+  //                       _pageContrast[currentPage] = val;
+  //                     }
+  //                   }
+  //                 });
+  //               },
+  //             ),
+  //           ),
+  //           const Spacer(),
+  //
+  //           // --- BOTTOM TOGGLE & RESET ---
+  //           Padding(
+  //             padding: const EdgeInsets.symmetric(horizontal: 16),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 Row(
+  //                   children: [
+  //                     Transform.scale(
+  //                       scale: 0.85,
+  //                       child: Switch(
+  //                         value: _applyToAllPages,
+  //                         onChanged: (val) {
+  //                           setState(() {
+  //                             _applyToAllPages = val;
+  //                             if (val) {
+  //                               // Sync current values to all pages
+  //                               double b = _pageBrightness[currentPage];
+  //                               double c = _pageContrast[currentPage];
+  //                               for (int i = 0; i < _pageBrightness.length; i++) {
+  //                                 _pageBrightness[i] = b;
+  //                                 _pageContrast[i] = c;
+  //                               }
+  //                             }
+  //                           });
+  //                         },
+  //                         activeColor: Colors.white,
+  //                         activeTrackColor: Colors.blueAccent,
+  //                         inactiveThumbColor: const Color(0xFFC0C0C0),
+  //                         inactiveTrackColor: const Color(0xFF505050),
+  //                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+  //                       ),
+  //                     ),
+  //                     const SizedBox(width: 8),
+  //                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+  //                   ],
+  //                 ),
+  //
+  //                 // 🚨 RESET BUTTON
+  //                 TextButton(
+  //                   onPressed: () {
+  //                     setState(() {
+  //                       if (_applyToAllPages) {
+  //                         for (int i = 0; i < _pageBrightness.length; i++) {
+  //                           _pageBrightness[i] = 0.0;
+  //                           _pageContrast[i] = 0.0;
+  //                         }
+  //                       } else {
+  //                         _pageBrightness[currentPage] = 0.0;
+  //                         _pageContrast[currentPage] = 0.0;
+  //                       }
+  //                     });
+  //                     showToast("$_activeAdjustTab reset to 0");
+  //                   },
+  //                   child: const Text(
+  //                     "Reset",
+  //                     style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.w500),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // --- 🚨 NAYA BLOCK: ADJUST MENU WIDGET UI ---
   Widget _buildAdjustMenuWidget() {
     bool isBrightness = _activeAdjustTab == "Brightness";
     double currentValue = isBrightness ? _pageBrightness[currentPage] : _pageContrast[currentPage];
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      // Background tap roko
       onTap: () {},
       onHorizontalDragUpdate: (_) {},
       onVerticalDragUpdate: (_) {},
       child: Container(
-        height: 180,
+        // 🚨 FIX 1: Fixed height (180) hata di taaki overflow na ho
         decoration: const BoxDecoration(
           color: Color(0xFF1E1E1E),
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         padding: const EdgeInsets.only(top: 16, bottom: 8),
+        // 🚨 FIX 2: Column ka size 'min' rakha taaki content ke hisaab se adjust ho jaye
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // --- TOP TABS (Brightness | Contrast) ---
             Row(
@@ -2020,10 +2199,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               data: SliderThemeData(
                 trackHeight: 2.5,
                 activeTrackColor: Colors.grey.shade500,
-                // Screenshot jaisa grey track
                 inactiveTrackColor: Colors.grey.shade800,
                 thumbColor: Colors.grey.shade400,
-                // Light grey thumb
                 overlayShape: SliderComponentShape.noOverlay,
               ),
               child: Slider(
@@ -2032,75 +2209,104 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 max: 100,
                 onChanged: (val) {
                   setState(() {
-                    if (isBrightness) {
-                      if (_applyToAllPages) {
-                        for (int i = 0; i < _pageBrightness.length; i++) _pageBrightness[i] = val;
-                      } else {
-                        _pageBrightness[currentPage] = val;
+                    // 🚨 FIX 3: Bulk Adjust Logic for Selection Mode
+                    if (isSelectionMode) {
+                      for (int i = 0; i < widget.imageFiles.length; i++) {
+                        if (selectedPagesList[i] == true) {
+                          if (isBrightness) {
+                            _pageBrightness[i] = val;
+                          } else {
+                            _pageContrast[i] = val;
+                          }
+                        }
                       }
                     } else {
-                      if (_applyToAllPages) {
-                        for (int i = 0; i < _pageContrast.length; i++) _pageContrast[i] = val;
+                      // Normal Mode
+                      if (isBrightness) {
+                        if (_applyToAllPages) {
+                          for (int i = 0; i < _pageBrightness.length; i++) _pageBrightness[i] = val;
+                        } else {
+                          _pageBrightness[currentPage] = val;
+                        }
                       } else {
-                        _pageContrast[currentPage] = val;
+                        if (_applyToAllPages) {
+                          for (int i = 0; i < _pageContrast.length; i++) _pageContrast[i] = val;
+                        } else {
+                          _pageContrast[currentPage] = val;
+                        }
                       }
                     }
                   });
                 },
               ),
             ),
-            const Spacer(),
+
+            // 🚨 FIX 4: Spacer hata kar SizedBox lagaya taaki ui collapse na ho
+            const SizedBox(height: 12),
 
             // --- BOTTOM TOGGLE & RESET ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 🚨 FIX 5: Agar selection ON hai, toh Reset button ko end me right-align kardo
+                mainAxisAlignment: isSelectionMode ? MainAxisAlignment.end : MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Transform.scale(
-                        scale: 0.85,
-                        child: Switch(
-                          value: _applyToAllPages,
-                          onChanged: (val) {
-                            setState(() {
-                              _applyToAllPages = val;
-                              if (val) {
-                                // Sync current values to all pages
-                                double b = _pageBrightness[currentPage];
-                                double c = _pageContrast[currentPage];
-                                for (int i = 0; i < _pageBrightness.length; i++) {
-                                  _pageBrightness[i] = b;
-                                  _pageContrast[i] = c;
+                  // 🚨 FIX 6: Selection Mode me Apply to all switch hide ho jayega
+                  if (!isSelectionMode)
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 0.85,
+                          child: Switch(
+                            value: _applyToAllPages,
+                            onChanged: (val) {
+                              setState(() {
+                                _applyToAllPages = val;
+                                if (val) {
+                                  double b = _pageBrightness[currentPage];
+                                  double c = _pageContrast[currentPage];
+                                  for (int i = 0; i < _pageBrightness.length; i++) {
+                                    _pageBrightness[i] = b;
+                                    _pageContrast[i] = c;
+                                  }
                                 }
-                              }
-                            });
-                          },
-                          activeColor: Colors.white,
-                          activeTrackColor: Colors.blueAccent,
-                          inactiveThumbColor: const Color(0xFFC0C0C0),
-                          inactiveTrackColor: const Color(0xFF505050),
-                          trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+                              });
+                            },
+                            activeColor: Colors.white,
+                            activeTrackColor: Colors.blueAccent,
+                            inactiveThumbColor: const Color(0xFFC0C0C0),
+                            inactiveTrackColor: const Color(0xFF505050),
+                            trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
-                    ],
-                  ),
+                        const SizedBox(width: 8),
+                        const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+                      ],
+                    ),
 
-                  // 🚨 RESET BUTTON
+                  // 🚨 RESET BUTTON (Bulk logic updated)
                   TextButton(
                     onPressed: () {
                       setState(() {
-                        if (_applyToAllPages) {
-                          for (int i = 0; i < _pageBrightness.length; i++) {
-                            _pageBrightness[i] = 0.0;
-                            _pageContrast[i] = 0.0;
+                        if (isSelectionMode) {
+                          // Agar selection mode ON hai, toh sirf selected ko reset karo
+                          for (int i = 0; i < widget.imageFiles.length; i++) {
+                            if (selectedPagesList[i] == true) {
+                              _pageBrightness[i] = 0.0;
+                              _pageContrast[i] = 0.0;
+                            }
                           }
                         } else {
-                          _pageBrightness[currentPage] = 0.0;
-                          _pageContrast[currentPage] = 0.0;
+                          // Normal mode logic
+                          if (_applyToAllPages) {
+                            for (int i = 0; i < _pageBrightness.length; i++) {
+                              _pageBrightness[i] = 0.0;
+                              _pageContrast[i] = 0.0;
+                            }
+                          } else {
+                            _pageBrightness[currentPage] = 0.0;
+                            _pageContrast[currentPage] = 0.0;
+                          }
                         }
                       });
                       showToast("$_activeAdjustTab reset to 0");
