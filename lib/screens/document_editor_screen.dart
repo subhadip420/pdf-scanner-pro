@@ -1450,7 +1450,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                             const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
                                                         child: Image.file(
                                                           widget.imageFiles[index]['cropped'] as File,
-                                                          fit: BoxFit.cover,
+                                                          fit: BoxFit.contain,
                                                         ),
                                                       ),
                                                     ),
