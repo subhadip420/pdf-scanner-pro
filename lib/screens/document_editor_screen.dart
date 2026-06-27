@@ -2231,7 +2231,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     label: "Delete",
                     icon: Icons.delete_outline_rounded,
                     tooltipMessage: "Delete selected pages",
-                    onTap: () => showToast("Bulk delete coming soon"),
+                    onTap: _promptBulkDelete,
                   ),
                 ],
               ),
@@ -2293,6 +2293,77 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         });
 
         showToast("Page deleted");
+      }
+    }
+  }
+
+  // 🚨 NAYA: Bulk Delete Logic
+  Future<void> _promptBulkDelete() async {
+    // 1. Check karo kitne pages selected hain
+    int selectedCount = selectedPagesList.where((e) => e == true).length;
+    if (selectedCount == 0) return;
+
+    // 2. Pehle memory save karo
+    _saveEditsToMemory();
+
+    // 3. Dynamic text (1 page ke liye alag, multiple ke liye alag)
+    String titleText = selectedCount == 1 ? "Delete page" : "Delete $selectedCount pages";
+    String messageText = selectedCount == 1
+        ? "Are you sure you want to delete this page from your scan?"
+        : "Are you sure you want to delete these $selectedCount pages from your scan?";
+
+    // 4. Custom Dialog
+    bool confirmDelete = await showCustomConfirmDialog(
+      context,
+      title: titleText,
+      message: messageText,
+      positiveBtnText: "Delete",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.redAccent,
+    );
+
+    if (confirmDelete) {
+      if (selectedCount == widget.imageFiles.length) {
+        // CASE A: Agar saare hi select karke delete kar diye
+        showToast("Document deleted");
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false,
+          );
+        }
+      } else {
+        // CASE B: Agar kuch pages bache hain
+        setState(() {
+          // 🚨 MAGIC: Hamesha pichhe se (reverse) delete karna chahiye taaki index shift na ho
+          for (int i = widget.imageFiles.length - 1; i >= 0; i--) {
+            if (selectedPagesList[i] == true) {
+              widget.imageFiles.removeAt(i);
+            }
+          }
+
+          // Agar current page out of bounds ho gaya, toh usko adjust karo
+          if (currentPage >= widget.imageFiles.length) {
+            currentPage = widget.imageFiles.length - 1;
+          }
+
+          // Delete hone ke baad selection mode band kar do aur list clear kar do
+          isSelectionMode = false;
+          selectedPagesList = List.filled(widget.imageFiles.length, false);
+        });
+
+        // Nayi list ke hisaab se memory wapas load karo
+        _loadEditsFromMemory();
+
+        // PageView UI ko naye index par bhejo
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_pageController.hasClients) {
+            _pageController.jumpToPage(currentPage);
+          }
+        });
+
+        showToast("$selectedCount page(s) deleted");
       }
     }
   }
