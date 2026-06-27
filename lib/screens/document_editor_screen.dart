@@ -1809,8 +1809,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             onTap: _openMarkupScreen, // 🚨 Naya function yahan cleanly call ho gaya
           ),
 
-          _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
-          _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
+          // _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
+          // _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
+
           _buildToolItem(
             label: "Reorder",
             icon: Icons.swap_horizontal_circle_outlined,
