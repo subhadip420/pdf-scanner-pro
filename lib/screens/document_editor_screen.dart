@@ -19,6 +19,8 @@ import 'markup_screen.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 
+
+
 class DocumentEditorScreen extends StatefulWidget {
   //final List<File> imageFiles; // Real images coming from ScannerScreen
   //final List<Map<String, File>> imageFiles;
@@ -86,6 +88,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool isSelectionMode = false;
   late List<bool> selectedPagesList;
   bool isResizeMode = false;
+  String _selectedPageSize = "Auto Fit";
 
   @override
   void initState() {
@@ -117,6 +120,40 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  // 1. Screen Preview ke liye Aspect Ratio (Width / Height)
+  double? _getPreviewAspectRatio(String size) {
+    switch (size) {
+      case "Letter (P)": return 8.5 / 11;
+      case "Letter (L)": return 11 / 8.5;
+      case "Legal (P)": return 8.5 / 14;
+      case "Legal (L)": return 14 / 8.5;
+      case "A4 (P)": return 210 / 297;
+      case "A4 (L)": return 297 / 210;
+      case "A3 (P)": return 297 / 420;
+      case "A3 (L)": return 420 / 297;
+      case "A5 (P)": return 148 / 210;
+      case "A5 (L)": return 210 / 148;
+      default: return null; // Auto Fit ke liye null return hoga
+    }
+  }
+
+  // 2. Final PDF banate waqt usko original format dena
+  PdfPageFormat? _getPdfPageFormat(String size) {
+    switch (size) {
+      case "Letter (P)": return PdfPageFormat.letter;
+      case "Letter (L)": return PdfPageFormat.letter.landscape;
+      case "Legal (P)": return PdfPageFormat.legal;
+      case "Legal (L)": return PdfPageFormat.legal.landscape;
+      case "A4 (P)": return PdfPageFormat.a4;
+      case "A4 (L)": return PdfPageFormat.a4.landscape;
+      case "A3 (P)": return PdfPageFormat.a3;
+      case "A3 (L)": return PdfPageFormat.a3.landscape;
+      case "A5 (P)": return PdfPageFormat.a5;
+      case "A5 (L)": return PdfPageFormat.a5.landscape;
+      default: return null; // Auto Fit
+    }
   }
 
   // 🚨 NEW: Discard Scan Logic (For PopScope)
@@ -706,10 +743,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // --- STEP 4: ADD TO PDF ---
       final image = pw.MemoryImage(imageBytes);
 
+      // 🚨 FIX: User ka select kiya hua format uthao
+      PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
+
+      // pdf.addPage(
+      //   pw.Page(
+      //     margin: pw.EdgeInsets.zero,
+      //     pageFormat: PdfPageFormat.a4,
+      //     build: (context) {
+      //       return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+      //     },
+      //   ),
+      // );
       pdf.addPage(
         pw.Page(
           margin: pw.EdgeInsets.zero,
-          pageFormat: PdfPageFormat.a4,
+          // 🚨 FIX: Agar auto fit hai (null), toh image ka size use karega, warna user ka A4/Letter
+          pageFormat: selectedFormat ?? PdfPageFormat(
+              image.width!.toDouble(),
+              image.height!.toDouble()
+          ),
           build: (context) {
             return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
           },
@@ -959,201 +1012,229 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       child: Center(
                                         child: Padding(
                                           padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
-                                          child: RotatedBox(
-                                            quarterTurns: _imageQuarterTurns[index],
-                                            child: Stack(
-                                              alignment: Alignment.center,
-                                              children: [
-                                                // Layer 1: Base Image with Filters
-                                                ColorFiltered(
-                                                  colorFilter: _getAdjustColorFilter(
-                                                    _pageBrightness[index],
-                                                    _pageContrast[index],
-                                                  ),
-                                                  child: ColorFiltered(
-                                                    colorFilter:
-                                                        _getColorFilter(_pageFilters[index]) ??
-                                                        const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                                    child: Image.file(
-                                                      widget.imageFiles[index]['cropped'] as File,
-                                                      fit: BoxFit.contain,
-                                                    ),
-                                                  ),
-                                                ),
+                                          //child: RotatedBox(
 
-                                                // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
-                                                if (_pageMarkups[index] != null &&
-                                                    _pageMarkups[index] is MarkupExportData) ...[
-                                                  // --- DRAWING STROKES ---
-                                                  Positioned.fill(
-                                                    child: CustomPaint(
-                                                      painter: DrawingPainter(
-                                                        paths: (_pageMarkups[index] as MarkupExportData).paths,
-                                                        currentPoints: [],
-                                                        currentColor: Colors.transparent,
-                                                        currentStrokeWidth: 0,
-                                                        currentOpacity: 0,
-                                                        isEraser: false,
+                                            child: LayoutBuilder(
+                                              builder: (context, constraints) {
+                                                // 🚨 FIX 2: Tumhara pura original code (RotatedBox + Stack) ek variable me save kiya
+                                                Widget pagePreviewContent = RotatedBox(
+                                                  quarterTurns: _imageQuarterTurns[index],
+                                                  child: Stack(
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      // Layer 1: Base Image with Filters
+                                                      ColorFiltered(
+                                                        colorFilter: _getAdjustColorFilter(
+                                                          _pageBrightness[index],
+                                                          _pageContrast[index],
+                                                        ),
+                                                        child: ColorFiltered(
+                                                          colorFilter:
+                                                          _getColorFilter(_pageFilters[index]) ??
+                                                              const ColorFilter.mode(
+                                                                  Colors.transparent, BlendMode.multiply),
+                                                          child: Image.file(
+                                                            widget.imageFiles[index]['cropped'] as File,
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ),
 
-                                                  // --- TEXTS & SHAPES ---
-                                                  Positioned.fill(
-                                                    child: LayoutBuilder(
-                                                      builder: (context, constraints) {
-                                                        double canvasW = constraints.maxWidth;
-                                                        double canvasH = constraints.maxHeight;
-                                                        double scaleRatio = canvasW / 400.0;
-                                                        MarkupExportData data = _pageMarkups[index];
+                                                      // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
+                                                      if (_pageMarkups[index] != null &&
+                                                          _pageMarkups[index] is MarkupExportData) ...[
+                                                        // --- DRAWING STROKES ---
+                                                        Positioned.fill(
+                                                          child: CustomPaint(
+                                                            painter: DrawingPainter(
+                                                              paths: (_pageMarkups[index] as MarkupExportData).paths,
+                                                              currentPoints: [],
+                                                              currentColor: Colors.transparent,
+                                                              currentStrokeWidth: 0,
+                                                              currentOpacity: 0,
+                                                              isEraser: false,
+                                                            ),
+                                                          ),
+                                                        ),
 
-                                                        return Stack(
-                                                          clipBehavior: Clip.none,
-                                                          children: [
-                                                            // TEXTS LOOP
-                                                            ...data.texts.map((item) {
-                                                              double scaledFontSize = item.fontSize * scaleRatio;
-                                                              Color textColor = item.appearance == 0
-                                                                  ? item.color
-                                                                  : (item.appearance == 1 || item.appearance == 2)
-                                                                  ? (item.color.computeLuminance() > 0.5
+                                                        // --- TEXTS & SHAPES ---
+                                                        Positioned.fill(
+                                                          child: LayoutBuilder(
+                                                            builder: (context, constraints) {
+                                                              double canvasW = constraints.maxWidth;
+                                                              double canvasH = constraints.maxHeight;
+                                                              double scaleRatio = canvasW / 400.0;
+                                                              MarkupExportData data = _pageMarkups[index];
+
+                                                              return Stack(
+                                                                clipBehavior: Clip.none,
+                                                                children: [
+                                                                  // TEXTS LOOP
+                                                                  ...data.texts.map((item) {
+                                                                    double scaledFontSize = item.fontSize * scaleRatio;
+                                                                    Color textColor = item.appearance == 0
+                                                                        ? item.color
+                                                                        : (item.appearance == 1 || item.appearance == 2)
+                                                                        ? (item.color.computeLuminance() > 0.5
                                                                         ? Colors.black
                                                                         : Colors.white)
-                                                                  : Colors.white;
-                                                              Color bgColor = item.appearance == 1
-                                                                  ? item.color
-                                                                  : item.appearance == 2
-                                                                  ? item.color.withOpacity(0.5)
-                                                                  : Colors.transparent;
-                                                              TextDecoration decoration = TextDecoration.none;
-                                                              if (item.isUnderline && item.isStrikethrough) {
-                                                                decoration = TextDecoration.combine([
-                                                                  TextDecoration.underline,
-                                                                  TextDecoration.lineThrough,
-                                                                ]);
-                                                              } else if (item.isUnderline) {
-                                                                decoration = TextDecoration.underline;
-                                                              } else if (item.isStrikethrough) {
-                                                                decoration = TextDecoration.lineThrough;
-                                                              }
+                                                                        : Colors.white;
+                                                                    Color bgColor = item.appearance == 1
+                                                                        ? item.color
+                                                                        : item.appearance == 2
+                                                                        ? item.color.withOpacity(0.5)
+                                                                        : Colors.transparent;
+                                                                    TextDecoration decoration = TextDecoration.none;
+                                                                    if (item.isUnderline && item.isStrikethrough) {
+                                                                      decoration = TextDecoration.combine([
+                                                                        TextDecoration.underline,
+                                                                        TextDecoration.lineThrough,
+                                                                      ]);
+                                                                    } else if (item.isUnderline) {
+                                                                      decoration = TextDecoration.underline;
+                                                                    } else if (item.isStrikethrough) {
+                                                                      decoration = TextDecoration.lineThrough;
+                                                                    }
 
-                                                              return Positioned(
-                                                                left: item.offset.dx * canvasW,
-                                                                top: item.offset.dy * canvasH,
-                                                                child: FractionalTranslation(
-                                                                  translation: const Offset(-0.5, -0.5),
-                                                                  child: Transform.rotate(
-                                                                    angle: item.rotation,
-                                                                    child: Container(
-                                                                      padding: EdgeInsets.symmetric(
-                                                                        horizontal: 16 * scaleRatio,
-                                                                        vertical: 8 * scaleRatio,
-                                                                      ),
-                                                                      decoration: BoxDecoration(
-                                                                        color: bgColor,
-                                                                        borderRadius: BorderRadius.circular(
-                                                                          8 * scaleRatio,
-                                                                        ),
-                                                                      ),
-                                                                      child: Stack(
-                                                                        alignment: Alignment.center,
-                                                                        children: [
-                                                                          if (item.appearance == 3)
-                                                                            Text(
-                                                                              item.text,
-                                                                              textAlign: item.alignment,
-                                                                              style: TextStyle(
-                                                                                fontSize: scaledFontSize,
-                                                                                fontFamily: item.font,
-                                                                                fontWeight: item.isBold
-                                                                                    ? FontWeight.bold
-                                                                                    : FontWeight.normal,
-                                                                                fontStyle: item.isItalic
-                                                                                    ? FontStyle.italic
-                                                                                    : FontStyle.normal,
-                                                                                decoration: decoration,
-                                                                                foreground: Paint()
-                                                                                  ..style = PaintingStyle.stroke
-                                                                                  ..strokeWidth = scaledFontSize * 0.25
-                                                                                  ..strokeJoin = StrokeJoin.round
-                                                                                  ..strokeCap = StrokeCap.round
-                                                                                  ..color = item.color,
+                                                                    return Positioned(
+                                                                      left: item.offset.dx * canvasW,
+                                                                      top: item.offset.dy * canvasH,
+                                                                      child: FractionalTranslation(
+                                                                        translation: const Offset(-0.5, -0.5),
+                                                                        child: Transform.rotate(
+                                                                          angle: item.rotation,
+                                                                          child: Container(
+                                                                            padding: EdgeInsets.symmetric(
+                                                                              horizontal: 16 * scaleRatio,
+                                                                              vertical: 8 * scaleRatio,
+                                                                            ),
+                                                                            decoration: BoxDecoration(
+                                                                              color: bgColor,
+                                                                              borderRadius: BorderRadius.circular(
+                                                                                8 * scaleRatio,
                                                                               ),
                                                                             ),
-                                                                          Text(
-                                                                            item.text,
-                                                                            textAlign: item.alignment,
-                                                                            style: TextStyle(
-                                                                              color: textColor,
-                                                                              fontSize: scaledFontSize,
-                                                                              fontFamily: item.font,
-                                                                              fontWeight: item.isBold
-                                                                                  ? FontWeight.bold
-                                                                                  : FontWeight.normal,
-                                                                              fontStyle: item.isItalic
-                                                                                  ? FontStyle.italic
-                                                                                  : FontStyle.normal,
-                                                                              decoration: decoration,
-                                                                              decorationColor: textColor,
-                                                                              shadows: item.appearance == 0
-                                                                                  ? const [
+                                                                            child: Stack(
+                                                                              alignment: Alignment.center,
+                                                                              children: [
+                                                                                if (item.appearance == 3)
+                                                                                  Text(
+                                                                                    item.text,
+                                                                                    textAlign: item.alignment,
+                                                                                    style: TextStyle(
+                                                                                      fontSize: scaledFontSize,
+                                                                                      fontFamily: item.font,
+                                                                                      fontWeight: item.isBold
+                                                                                          ? FontWeight.bold
+                                                                                          : FontWeight.normal,
+                                                                                      fontStyle: item.isItalic
+                                                                                          ? FontStyle.italic
+                                                                                          : FontStyle.normal,
+                                                                                      decoration: decoration,
+                                                                                      foreground: Paint()
+                                                                                        ..style = PaintingStyle.stroke
+                                                                                        ..strokeWidth = scaledFontSize *
+                                                                                            0.25
+                                                                                        ..strokeJoin = StrokeJoin.round
+                                                                                        ..strokeCap = StrokeCap.round
+                                                                                        ..color = item.color,
+                                                                                    ),
+                                                                                  ),
+                                                                                Text(
+                                                                                  item.text,
+                                                                                  textAlign: item.alignment,
+                                                                                  style: TextStyle(
+                                                                                    color: textColor,
+                                                                                    fontSize: scaledFontSize,
+                                                                                    fontFamily: item.font,
+                                                                                    fontWeight: item.isBold
+                                                                                        ? FontWeight.bold
+                                                                                        : FontWeight.normal,
+                                                                                    fontStyle: item.isItalic
+                                                                                        ? FontStyle.italic
+                                                                                        : FontStyle.normal,
+                                                                                    decoration: decoration,
+                                                                                    decorationColor: textColor,
+                                                                                    shadows: item.appearance == 0
+                                                                                        ? const [
                                                                                       Shadow(
                                                                                         color: Colors.black54,
                                                                                         blurRadius: 4,
                                                                                         offset: Offset(1, 1),
                                                                                       ),
                                                                                     ]
-                                                                                  : null,
+                                                                                        : null,
+                                                                                  ),
+                                                                                ),
+                                                                              ],
                                                                             ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            }),
-
-                                                            // SHAPES LOOP
-                                                            ...data.shapes.map((shape) {
-                                                              return Positioned(
-                                                                left: shape.offset.dx * canvasW,
-                                                                top: shape.offset.dy * canvasH,
-                                                                child: FractionalTranslation(
-                                                                  translation: const Offset(-0.5, -0.5),
-                                                                  child: Transform.rotate(
-                                                                    angle: shape.rotation,
-                                                                    child: Container(
-                                                                      padding: const EdgeInsets.all(24),
-                                                                      child: SizedBox(
-                                                                        width:
-                                                                            (shape.size * shape.scaleX.abs()) *
-                                                                            scaleRatio,
-                                                                        height:
-                                                                            (shape.size * shape.scaleY.abs()) *
-                                                                            scaleRatio,
-                                                                        child: FittedBox(
-                                                                          fit: BoxFit.fill,
-                                                                          child: Transform.scale(
-                                                                            scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
-                                                                            scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                                            child: Icon(shape.icon, color: shape.color),
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                    ),
-                                                                  ),
-                                                                ),
+                                                                    );
+                                                                  }),
+
+                                                                  // SHAPES LOOP
+                                                                  ...data.shapes.map((shape) {
+                                                                    return Positioned(
+                                                                      left: shape.offset.dx * canvasW,
+                                                                      top: shape.offset.dy * canvasH,
+                                                                      child: FractionalTranslation(
+                                                                        translation: const Offset(-0.5, -0.5),
+                                                                        child: Transform.rotate(
+                                                                          angle: shape.rotation,
+                                                                          child: Container(
+                                                                            padding: const EdgeInsets.all(24),
+                                                                            child: SizedBox(
+                                                                              width:
+                                                                              (shape.size * shape.scaleX.abs()) *
+                                                                                  scaleRatio,
+                                                                              height:
+                                                                              (shape.size * shape.scaleY.abs()) *
+                                                                                  scaleRatio,
+                                                                              child: FittedBox(
+                                                                                fit: BoxFit.fill,
+                                                                                child: Transform.scale(
+                                                                                  scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                                                  scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                                                  child: Icon(
+                                                                                      shape.icon, color: shape.color),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  }),
+                                                                ],
                                                               );
-                                                            }),
-                                                          ],
-                                                        );
-                                                      },
-                                                    ),
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ],
                                                   ),
-                                                ],
-                                              ],
-                                            ),
+                                                );
+
+                                                // 🚨 NAYA: LayoutBuilder ka return logic yahan aayega
+                                                double? targetRatio = _getPreviewAspectRatio(_selectedPageSize);
+
+                                                if (targetRatio != null) {
+                                                  return Center(
+                                                    child: AspectRatio(
+                                                      aspectRatio: targetRatio,
+                                                      child: Container(
+                                                        color: Colors.white, // Paper ka white background
+                                                        child: pagePreviewContent,
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+
+                                                // Agar "Auto Fit" hai toh default return kardo
+                                                return pagePreviewContent;
+                                              },
                                           ),
                                         ),
                                       ),
@@ -2355,7 +2436,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "Auto Fit",
                   icon: Icons.fit_screen_rounded,
                   tooltipMessage: "Auto fit to image size",
-                  onTap: () => showToast("Auto fit applied"),
+                  //onTap: () => showToast("Auto fit applied"),
+                  isSelected: _selectedPageSize == "Auto Fit", // 🚨 NAYA: Highlight hoga
+                  onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
                 ),
 
                 // 2. US Letter
@@ -2363,13 +2446,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "Letter (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "US Letter Portrait",
-                  onTap: () => showToast("US Letter Portrait applied"),
+                  //onTap: () => showToast("US Letter Portrait applied"),
+                  isSelected: _selectedPageSize == "Letter (P)",
+                  onTap: () => setState(() => _selectedPageSize = "Letter (P)"),
                 ),
                 _buildToolItem(
                   label: "Letter (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Letter Landscape",
-                  onTap: () => showToast("US Letter Landscape applied"),
+                  //onTap: () => showToast("US Letter Landscape applied"),
+                  isSelected: _selectedPageSize == "Letter (L)",
+                  onTap: () => setState(() => _selectedPageSize = "Letter (L)"),
                 ),
 
                 // 3. US Legal
@@ -2377,13 +2464,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "Legal (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "US Legal Portrait",
-                  onTap: () => showToast("US Legal Portrait applied"),
+                  //onTap: () => showToast("US Legal Portrait applied"),
+                  isSelected: _selectedPageSize == "Legal (P)",
+                  onTap: () => setState(() => _selectedPageSize = "Legal (P)"),
                 ),
                 _buildToolItem(
                   label: "Legal (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Legal Landscape",
-                  onTap: () => showToast("US Legal Landscape applied"),
+                  //onTap: () => showToast("US Legal Landscape applied"),
+                  isSelected: _selectedPageSize == "Legal (L)",
+                  onTap: () => setState(() => _selectedPageSize = "Legal (L)"),
                 ),
 
                 // 4. A4 Size
@@ -2391,13 +2482,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "A4 (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A4 Portrait",
-                  onTap: () => showToast("A4 Portrait applied"),
+                  //onTap: () => showToast("A4 Portrait applied"),
+                  isSelected: _selectedPageSize == "A4 (P)",
+                  onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
                 ),
                 _buildToolItem(
                   label: "A4 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A4 Landscape",
-                  onTap: () => showToast("A4 Landscape applied"),
+                  //onTap: () => showToast("A4 Landscape applied"),
+                  isSelected: _selectedPageSize == "A4 (L)",
+                  onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
                 ),
 
                 // 5. A3 Size
@@ -2405,13 +2500,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "A3 (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A3 Portrait",
-                  onTap: () => showToast("A3 Portrait applied"),
+                  //onTap: () => showToast("A3 Portrait applied"),
+                  isSelected: _selectedPageSize == "A3 (P)",
+                  onTap: () => setState(() => _selectedPageSize = "A3 (P)"),
+
                 ),
                 _buildToolItem(
                   label: "A3 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A3 Landscape",
-                  onTap: () => showToast("A3 Landscape applied"),
+                  //onTap: () => showToast("A3 Landscape applied"),
+                  isSelected: _selectedPageSize == "A3 (L)",
+                  onTap: () => setState(() => _selectedPageSize = "A3 (L)"),
                 ),
 
                 // 6. A5 Size
@@ -2419,13 +2519,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "A5 (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A5 Portrait",
-                  onTap: () => showToast("A5 Portrait applied"),
+                  //onTap: () => showToast("A5 Portrait applied"),
+                  isSelected: _selectedPageSize == "A5 (P)",
+                  onTap: () => setState(() => _selectedPageSize = "A5 (P)"),
                 ),
                 _buildToolItem(
                   label: "A5 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A5 Landscape",
-                  onTap: () => showToast("A5 Landscape applied"),
+                  //onTap: () => showToast("A5 Landscape applied"),
+                  isSelected: _selectedPageSize == "A5 (L)",
+                  onTap: () => setState(() => _selectedPageSize = "A5 (L)"),
+
                 ),
               ],
             ),
