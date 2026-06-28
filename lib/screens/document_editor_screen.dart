@@ -1017,8 +1017,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                     onTap: () {
                                       if (_showFilterMenu) setState(() => _showFilterMenu = false);
-                                      if (_showAdjustMenu) {
-                                        setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+                                      if (_showAdjustMenu) setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+
+                                      if (isResizeMode) {
+                                        setState(() {
+                                          isResizeMode = false;
+                                          isThumbnailVisible = true;
+                                        });
                                       }
                                     },
 
