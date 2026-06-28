@@ -1443,7 +1443,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       decoration: BoxDecoration(
                                         // 🚨 CHANGE: Yahan se decoration image hata di hai taaki custom widgets use kar sakein
                                         border: Border.all(
-                                          color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
+                                          //color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
+                                          color: isSelected ? Colors.blue : Colors.transparent,
                                           width: 3,
                                         ),
                                         borderRadius: BorderRadius.circular(4),
