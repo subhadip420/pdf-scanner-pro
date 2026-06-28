@@ -88,7 +88,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool isSelectionMode = false;
   late List<bool> selectedPagesList;
   bool isResizeMode = false;
-  String _selectedPageSize = "Auto Fit";
+  static String _selectedPageSize = "Auto Fit";
 
   @override
   void initState() {
