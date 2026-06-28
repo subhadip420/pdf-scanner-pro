@@ -1310,6 +1310,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                   if (!isSelectionMode) {
                                                     selectedPagesList.fillRange(0, selectedPagesList.length, false);
                                                   }
+
+                                                  isResizeMode = false;
+                                                  isThumbnailVisible = true;
                                                 });
                                               },
                                               child: Container(
