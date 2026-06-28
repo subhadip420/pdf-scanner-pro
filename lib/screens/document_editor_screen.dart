@@ -1226,7 +1226,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                       aspectRatio: targetRatio,
                                                       child: Container(
                                                         color: Colors.white, // Paper ka white background
-                                                        child: pagePreviewContent,
+                                                        //child: pagePreviewContent,
+                                                        child: Center(
+                                                          child: pagePreviewContent,
+                                                        ),
                                                       ),
                                                     ),
                                                   );
