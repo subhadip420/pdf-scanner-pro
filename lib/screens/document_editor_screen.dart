@@ -85,6 +85,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // 🚨 NEW: Selection tracking variables
   bool isSelectionMode = false;
   late List<bool> selectedPagesList;
+  bool isResizeMode = false;
 
   @override
   void initState() {
@@ -1641,7 +1642,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                       //offset: isCroppingMode ? const Offset(0, 1.0) : Offset.zero,
-                      offset: (isCroppingMode || isSelectionMode) ? const Offset(0, 1.0) : Offset.zero,
+                      offset: (isCroppingMode || isSelectionMode || isResizeMode) ? const Offset(0, 1.0) : Offset.zero,
                       child: _buildNormalTools(),
                     ),
 
@@ -1661,6 +1662,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       curve: Curves.easeInOut,
                       offset: isSelectionMode ? Offset.zero : const Offset(0, 1.0),
                       child: _buildSelectedSubTools(),
+                    ),
+
+                    // 4. 🚨 NEW: RESIZE OPTIONS:
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isResizeMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildResizeSubTools(),
                     ),
                   ],
                 ),
@@ -2131,6 +2140,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             onTap: _openMarkupScreen, // 🚨 Naya function yahan cleanly call ho gaya
           ),
 
+          _buildToolItem(
+            label: "Resize",
+            icon: Icons.aspect_ratio_rounded,
+            tooltipMessage: "Change page layout size",
+            isSelected: isResizeMode,
+            onTap: () {
+              setState(() {
+                isResizeMode = true; // 🚨 Click hone par mode ON ho jayega
+                _showFilterMenu = false; // Agar kuch aur khula hai toh band kardo
+                _showAdjustMenu = false;
+                isThumbnailVisible = false;
+              });
+            },
+          ),
+
           // _buildToolItem(label: "Cleanup", icon: Icons.auto_fix_high_rounded, tooltipMessage: "Erase unwanted areas"),
           // _buildToolItem(label: "Resize", icon: Icons.aspect_ratio_rounded, tooltipMessage: "Change page layout size"),
           _buildToolItem(
@@ -2174,6 +2198,113 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             onTap: () async {
               await _saveNewCrop();
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 🚨 NAYA BLOCK: RESIZE SUB TOOLS ---
+  Widget _buildResizeSubTools() {
+    return SizedBox(
+      key: const ValueKey("ResizeSubTools"),
+      height: 75,
+      width: double.infinity,
+      // 🚨 FIX: ListView lagaya hai taaki ye perfectly horizontal scroll ho sake
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+        children: [
+
+          // 🚨 FIX: Close Button (Resize mode se bahar aane ke liye)
+          _buildToolItem(
+            label: "Close",
+            icon: Icons.close_rounded,
+            tooltipMessage: "Close resize options",
+            onTap: () {
+              setState(() {
+                isResizeMode = false;
+                isThumbnailVisible = true;
+              });
+            },
+          ),
+
+          // 1. Auto Fit
+          _buildToolItem(
+            label: "Auto Fit",
+            icon: Icons.fit_screen_rounded,
+            tooltipMessage: "Auto fit to image size",
+            onTap: () => showToast("Auto fit applied"),
+          ),
+
+          // 2. US Letter
+          _buildToolItem(
+            label: "Letter (P)",
+            icon: Icons.crop_portrait_rounded,
+            tooltipMessage: "US Letter Portrait",
+            onTap: () => showToast("US Letter Portrait applied"),
+          ),
+          _buildToolItem(
+            label: "Letter (L)",
+            icon: Icons.crop_landscape_rounded,
+            tooltipMessage: "US Letter Landscape",
+            onTap: () => showToast("US Letter Landscape applied"),
+          ),
+
+          // 3. US Legal
+          _buildToolItem(
+            label: "Legal (P)",
+            icon: Icons.crop_portrait_rounded,
+            tooltipMessage: "US Legal Portrait",
+            onTap: () => showToast("US Legal Portrait applied"),
+          ),
+          _buildToolItem(
+            label: "Legal (L)",
+            icon: Icons.crop_landscape_rounded,
+            tooltipMessage: "US Legal Landscape",
+            onTap: () => showToast("US Legal Landscape applied"),
+          ),
+
+          // 4. A4 Size
+          _buildToolItem(
+            label: "A4 (P)",
+            icon: Icons.crop_portrait_rounded,
+            tooltipMessage: "A4 Portrait",
+            onTap: () => showToast("A4 Portrait applied"),
+          ),
+          _buildToolItem(
+            label: "A4 (L)",
+            icon: Icons.crop_landscape_rounded,
+            tooltipMessage: "A4 Landscape",
+            onTap: () => showToast("A4 Landscape applied"),
+          ),
+
+          // 5. A3 Size
+          _buildToolItem(
+            label: "A3 (P)",
+            icon: Icons.crop_portrait_rounded,
+            tooltipMessage: "A3 Portrait",
+            onTap: () => showToast("A3 Portrait applied"),
+          ),
+          _buildToolItem(
+            label: "A3 (L)",
+            icon: Icons.crop_landscape_rounded,
+            tooltipMessage: "A3 Landscape",
+            onTap: () => showToast("A3 Landscape applied"),
+          ),
+
+          // 6. A5 Size
+          _buildToolItem(
+            label: "A5 (P)",
+            icon: Icons.crop_portrait_rounded,
+            tooltipMessage: "A5 Portrait",
+            onTap: () => showToast("A5 Portrait applied"),
+          ),
+          _buildToolItem(
+            label: "A5 (L)",
+            icon: Icons.crop_landscape_rounded,
+            tooltipMessage: "A5 Landscape",
+            onTap: () => showToast("A5 Landscape applied"),
           ),
         ],
       ),
