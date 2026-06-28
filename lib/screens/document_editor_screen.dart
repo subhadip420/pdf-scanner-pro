@@ -2394,6 +2394,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // --- 🚨 NAYA BLOCK: RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildResizeSubTools() {
+    // 🚨 FIX 1: Check karo ki custom size apply hua hai ya original 'Auto Fit' par hai
+    bool hasCustomSize = _selectedPageSize != "Auto Fit";
+
     return SizedBox(
       key: const ValueKey("ResizeSubTools"),
       height: 75,
@@ -2402,12 +2405,32 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       child: Row(
         children: [
           // --- 1. FIXED CLOSE BUTTON (Scroll ke bahar) ---
+          // Padding(
+          //   padding: const EdgeInsets.only(left: 8.0),
+          //   child: _buildToolItem(
+          //     label: "Close",
+          //     icon: Icons.close_rounded,
+          //     tooltipMessage: "Close resize options",
+          //     onTap: () {
+          //       setState(() {
+          //         isResizeMode = false;
+          //         isThumbnailVisible = true;
+          //       });
+          //     },
+          //   ),
+          // ),
+
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: _buildToolItem(
-              label: "Close",
-              icon: Icons.close_rounded,
-              tooltipMessage: "Close resize options",
+              // 🚨 FIX 2: Condition ke hisaab se label, icon aur tooltip change hoga
+              label: hasCustomSize ? "Done" : "Close",
+              icon: hasCustomSize ? Icons.check_rounded : Icons.close_rounded,
+              tooltipMessage: hasCustomSize ? "Apply changes" : "Close resize options",
+
+              // 🚨 MAGIC: isSelected true hote hi icon aur text automatically BLUE ho jayega!
+              isSelected: hasCustomSize,
+
               onTap: () {
                 setState(() {
                   isResizeMode = false;
