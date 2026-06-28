@@ -1322,48 +1322,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         curve: Curves.easeInOut,
                                       );
                                     },
-
-                                    // onTap: () {
-                                    //   if (isSelectionMode) {
-                                    //     // 🚨 Agar selection mode ON hai, toh tick/untick karo
-                                    //     setState(() {
-                                    //       selectedPagesList[index] = !selectedPagesList[index];
-                                    //     });
-                                    //
-                                    //     _pageController.animateToPage(
-                                    //       index,
-                                    //       duration: const Duration(milliseconds: 300),
-                                    //       curve: Curves.easeInOut,
-                                    //     );
-                                    //   } else {
-                                    //     // Normal mode me page swipe karo
-                                    //     _pageController.animateToPage(
-                                    //       index,
-                                    //       duration: const Duration(milliseconds: 300),
-                                    //       curve: Curves.easeInOut,
-                                    //     );
-                                    //   }
-                                    // },
                                     child: Container(
                                       width: 60,
                                       margin: const EdgeInsets.only(right: 12),
-
-                                      // decoration: BoxDecoration(
-                                      //   image: DecorationImage(
-                                      //     image: FileImage(widget.imageFiles[index]['cropped']!),
-                                      //     fit: BoxFit.cover,
-                                      //   ),
-                                      //   border: Border.all(
-                                      //     color: isSelected ? Colors.blue : Colors.transparent,
-                                      //     width: 3,
-                                      //   ),
-                                      //   // border: Border.all(
-                                      //   //   // Selection mode me main blue border hide rahega taaki sirf checkbox dikhe
-                                      //   //   color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
-                                      //   //   width: 3,
-                                      //   // ),
-                                      //   borderRadius: BorderRadius.circular(4),
-                                      //
                                       decoration: BoxDecoration(
                                         // 🚨 CHANGE: Yahan se decoration image hata di hai taaki custom widgets use kar sakein
                                         border: Border.all(
@@ -1373,64 +1334,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
 
-                                      // child: Stack(
-                                      //   children: [
-                                      //
-                                      //     // 🚨 FIX 2: Top-Left Corner Checkbox (Sirf tab dikhega jab Selection Mode ON ho)
-                                      //     if (isSelectionMode)
-                                      //       Positioned(
-                                      //         top: 0,
-                                      //         left: 0,
-                                      // child: GestureDetector(
-                                      //   onTap: () {
-                                      //     // Sirf yahan click karne se tick/untick hoga
-                                      //     setState(() {
-                                      //       selectedPagesList[index] = !selectedPagesList[index];
-                                      //     });
-                                      //   },
-                                      //         child: Container(
-                                      //           padding: const EdgeInsets.all(2),
-                                      //           decoration: BoxDecoration(
-                                      //             color: isChecked ? Colors.blueAccent : Colors.black45,
-                                      //             borderRadius: BorderRadius.circular(2),
-                                      //             border: Border.all(color: Colors.white, width: 1.5),
-                                      //           ),
-                                      //           child: Icon(
-                                      //             Icons.check_rounded,
-                                      //             size: 16,
-                                      //             color: isChecked ? Colors.white : Colors.transparent,
-                                      //           ),
-                                      //         ),
-                                      // ),
-                                      //       ),
                                       child: ClipRRect(
                                         // ClipRRect lagaya taaki ghumne par image border ke bahar na nikle
                                         borderRadius: BorderRadius.circular(2),
                                         child: Stack(
                                           children: [
-                                            // // 🚨 FIX: LIVE EDITED IMAGE LAYER (Hamesha updated preview dikhayega)
-                                            // Positioned.fill(
-                                            //   child: RotatedBox(
-                                            //     quarterTurns: _imageQuarterTurns[index], // Live Rotation
-                                            //     child: ColorFiltered(
-                                            //       colorFilter: _getAdjustColorFilter(
-                                            //         _pageBrightness[index], // Live Brightness
-                                            //         _pageContrast[index], // Live Contrast
-                                            //       ),
-                                            //       child: ColorFiltered(
-                                            //         colorFilter:
-                                            //             _getColorFilter(_pageFilters[index]) ??
-                                            //             const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                            //         // Live Filter
-                                            //         child: Image.file(
-                                            //           widget.imageFiles[index]['cropped'] as File,
-                                            //           fit: BoxFit.cover, // Poori space fill karega
-                                            //         ),
-                                            //       ),
-                                            //     ),
-                                            //   ),
-                                            // ),
-
                                             // 🚨 FIX: LIVE EDITED IMAGE + MARKUPS LAYER
                                             Positioned.fill(
                                               child: RotatedBox(
@@ -1446,8 +1354,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                         _pageContrast[index],
                                                       ),
                                                       child: ColorFiltered(
-                                                        colorFilter: _getColorFilter(_pageFilters[index]) ??
-                                                            const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                                                        colorFilter:
+                                                            _getColorFilter(_pageFilters[index]) ??
+                                                            const ColorFilter.mode(
+                                                              Colors.transparent,
+                                                              BlendMode.multiply,
+                                                            ),
                                                         child: Image.file(
                                                           widget.imageFiles[index]['cropped'] as File,
                                                           fit: BoxFit.contain,
@@ -1458,7 +1370,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                     // Layer 2: 🚨 Markups (Drawing, Text, Shapes) ab Thumbnail par bhi!
                                                     if (_pageMarkups[index] != null &&
                                                         _pageMarkups[index] is MarkupExportData) ...[
-
                                                       // --- DRAWING STROKES ---
                                                       CustomPaint(
                                                         painter: DrawingPainter(
@@ -1489,7 +1400,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                 Color textColor = item.appearance == 0
                                                                     ? item.color
                                                                     : (item.appearance == 1 || item.appearance == 2)
-                                                                    ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                                                                    ? (item.color.computeLuminance() > 0.5
+                                                                          ? Colors.black
+                                                                          : Colors.white)
                                                                     : Colors.white;
                                                                 Color bgColor = item.appearance == 1
                                                                     ? item.color
@@ -1498,7 +1411,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                     : Colors.transparent;
                                                                 TextDecoration decoration = TextDecoration.none;
                                                                 if (item.isUnderline && item.isStrikethrough) {
-                                                                  decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+                                                                  decoration = TextDecoration.combine([
+                                                                    TextDecoration.underline,
+                                                                    TextDecoration.lineThrough,
+                                                                  ]);
                                                                 } else if (item.isUnderline) {
                                                                   decoration = TextDecoration.underline;
                                                                 } else if (item.isStrikethrough) {
@@ -1519,7 +1435,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                         ),
                                                                         decoration: BoxDecoration(
                                                                           color: bgColor,
-                                                                          borderRadius: BorderRadius.circular(8 * scaleRatio),
+                                                                          borderRadius: BorderRadius.circular(
+                                                                            8 * scaleRatio,
+                                                                          ),
                                                                         ),
                                                                         child: Stack(
                                                                           alignment: Alignment.center,
@@ -1531,12 +1449,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                                 style: TextStyle(
                                                                                   fontSize: scaledFontSize,
                                                                                   fontFamily: item.font,
-                                                                                  fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
-                                                                                  fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+                                                                                  fontWeight: item.isBold
+                                                                                      ? FontWeight.bold
+                                                                                      : FontWeight.normal,
+                                                                                  fontStyle: item.isItalic
+                                                                                      ? FontStyle.italic
+                                                                                      : FontStyle.normal,
                                                                                   decoration: decoration,
                                                                                   foreground: Paint()
                                                                                     ..style = PaintingStyle.stroke
-                                                                                    ..strokeWidth = scaledFontSize * 0.25
+                                                                                    ..strokeWidth =
+                                                                                        scaledFontSize * 0.25
                                                                                     ..strokeJoin = StrokeJoin.round
                                                                                     ..strokeCap = StrokeCap.round
                                                                                     ..color = item.color,
@@ -1549,12 +1472,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                                 color: textColor,
                                                                                 fontSize: scaledFontSize,
                                                                                 fontFamily: item.font,
-                                                                                fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
-                                                                                fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+                                                                                fontWeight: item.isBold
+                                                                                    ? FontWeight.bold
+                                                                                    : FontWeight.normal,
+                                                                                fontStyle: item.isItalic
+                                                                                    ? FontStyle.italic
+                                                                                    : FontStyle.normal,
                                                                                 decoration: decoration,
                                                                                 decorationColor: textColor,
                                                                                 shadows: item.appearance == 0
-                                                                                    ? const [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+                                                                                    ? const [
+                                                                                        Shadow(
+                                                                                          color: Colors.black54,
+                                                                                          blurRadius: 4,
+                                                                                          offset: Offset(1, 1),
+                                                                                        ),
+                                                                                      ]
                                                                                     : null,
                                                                               ),
                                                                             ),
@@ -1578,14 +1511,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                       child: Container(
                                                                         padding: const EdgeInsets.all(24),
                                                                         child: SizedBox(
-                                                                          width: (shape.size * shape.scaleX.abs()) * scaleRatio,
-                                                                          height: (shape.size * shape.scaleY.abs()) * scaleRatio,
+                                                                          width:
+                                                                              (shape.size * shape.scaleX.abs()) *
+                                                                              scaleRatio,
+                                                                          height:
+                                                                              (shape.size * shape.scaleY.abs()) *
+                                                                              scaleRatio,
                                                                           child: FittedBox(
                                                                             fit: BoxFit.fill,
                                                                             child: Transform.scale(
                                                                               scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
                                                                               scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                                              child: Icon(shape.icon, color: shape.color),
+                                                                              child: Icon(
+                                                                                shape.icon,
+                                                                                color: shape.color,
+                                                                              ),
                                                                             ),
                                                                           ),
                                                                         ),
@@ -1777,283 +1717,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
-  // Widget _buildFilterMenuWidget() {
-  //   String currentFilter = _pageFilters[currentPage];
-  //
-  //   // 🚨 FIX: GestureDetector lagaya taaki touches/swipes background me leak na ho
-  //   return GestureDetector(
-  //     onTap: () {}, // Clicks ko yahan block karega
-  //     onHorizontalDragUpdate: (_) {}, // Horizontal swipe (PageView scroll) ko block karega
-  //     onVerticalDragUpdate: (_) {}, // Vertical scroll ko block karega
-  //     child: Container(
-  //       height: 180,
-  //       decoration: const BoxDecoration(
-  //         color: Color(0xFF1E1E1E),
-  //         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-  //       ),
-  //       padding: const EdgeInsets.only(top: 16, bottom: 8),
-  //       child: Column(
-  //         children: [
-  //           // Thumbnails Options
-  //           SizedBox(
-  //             height: 100,
-  //             child: ListView.builder(
-  //               scrollDirection: Axis.horizontal,
-  //               padding: const EdgeInsets.symmetric(horizontal: 16),
-  //               itemCount: _filterOptions.length,
-  //               itemBuilder: (context, index) {
-  //                 String filterName = _filterOptions[index];
-  //                 bool isSelected = currentFilter == filterName;
-  //
-  //                 return GestureDetector(
-  //                   onTap: () {
-  //                     setState(() {
-  //                       if (_applyToAllPages) {
-  //                         for (int i = 0; i < _pageFilters.length; i++) {
-  //                           _pageFilters[i] = filterName;
-  //                         }
-  //                       } else {
-  //                         _pageFilters[currentPage] = filterName;
-  //                       }
-  //                     });
-  //                   },
-  //                   child: Padding(
-  //                     padding: const EdgeInsets.only(right: 16),
-  //                     child: Column(
-  //                       children: [
-  //                         Container(
-  //                           width: 65,
-  //                           height: 65,
-  //                           decoration: BoxDecoration(
-  //                             border: Border.all(
-  //                               color: isSelected ? Colors.blueAccent : Colors.transparent,
-  //                               width: 2.5,
-  //                             ),
-  //                             borderRadius: BorderRadius.circular(8),
-  //                           ),
-  //                           child: ClipRRect(
-  //                             borderRadius: BorderRadius.circular(5),
-  //                             child: ColorFiltered(
-  //                               colorFilter:
-  //                                   _getColorFilter(filterName) ??
-  //                                   const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-  //                               //child: Image.file(widget.imageFiles[currentPage]['cropped']!, fit: BoxFit.cover),
-  //                               child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         const SizedBox(height: 8),
-  //                         Text(
-  //                           filterName,
-  //                           style: TextStyle(
-  //                             color: isSelected ? Colors.blueAccent : Colors.white70,
-  //                             fontSize: 11,
-  //                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 );
-  //               },
-  //             ),
-  //           ),
-  //           const Spacer(),
-  //           // Bottom Toggle
-  //           Padding(
-  //             padding: const EdgeInsets.symmetric(horizontal: 16),
-  //             child: Row(
-  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //               children: [
-  //                 Row(
-  //                   children: [
-  //                     // 🚨 FIX: Image jaisa design aur size dene ke liye Transform.scale lagaya
-  //                     Transform.scale(
-  //                       scale: 0.85,
-  //                       child: Switch(
-  //                         value: _applyToAllPages,
-  //                         onChanged: (val) {
-  //                           setState(() {
-  //                             _applyToAllPages = val;
-  //                             if (val) {
-  //                               String activeFilter = _pageFilters[currentPage];
-  //                               for (int i = 0; i < _pageFilters.length; i++) {
-  //                                 _pageFilters[i] = activeFilter;
-  //                               }
-  //                             }
-  //                           });
-  //                         },
-  //                         // ON hone par colors
-  //                         activeColor: Colors.white,
-  //                         // Gola (Thumb) white rahega
-  //                         activeTrackColor: Colors.blueAccent,
-  //                         // Line blue hogi
-  //
-  //                         // OFF hone par colors (Exactly tumhari image jaisa)
-  //                         inactiveThumbColor: const Color(0xFFC0C0C0),
-  //                         // Light grey gola
-  //                         inactiveTrackColor: const Color(0xFF505050),
-  //                         // Dark grey line
-  //
-  //                         // Material 3 ka default black border hatane ke liye
-  //                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
-  //                       ),
-  //                     ),
-  //                     const SizedBox(width: 8),
-  //                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
-  //                   ],
-  //                 ),
-  //                 Tooltip(
-  //                   message: "Filter Settings",
-  //                   child: IconButton(
-  //                     icon: const Icon(Icons.settings, color: Colors.white70, size: 24),
-  //                     onPressed: () => showToast("Settings coming soon!"),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
-  //   Widget _buildFilterMenuWidget() {
-  //     String currentFilter = _pageFilters[currentPage];
-  //
-  //     return GestureDetector(
-  //       onTap: () {},
-  //       onHorizontalDragUpdate: (_) {},
-  //       onVerticalDragUpdate: (_) {},
-  //       // 🚨 FIX 1: Container ki jagah AnimatedContainer use kiya taaki height smoothly choti ho
-  //       child: AnimatedContainer(
-  //         duration: const Duration(milliseconds: 300),
-  //         curve: Curves.easeInOut,
-  //         // 🚨 FIX 2: Selection mode me height sirf 124 hogi, warna 180
-  //         height: isSelectionMode ? 124.0 : 180.0,
-  //         decoration: const BoxDecoration(
-  //           color: Color(0xFF1E1E1E),
-  //           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-  //         ),
-  //         padding: const EdgeInsets.only(top: 16, bottom: 8),
-  //         child: Column(
-  //           children: [
-  //             // Thumbnails Options
-  //             SizedBox(
-  //               height: 100,
-  //               child: ListView.builder(
-  //                 scrollDirection: Axis.horizontal,
-  //                 padding: const EdgeInsets.symmetric(horizontal: 16),
-  //                 itemCount: _filterOptions.length,
-  //                 itemBuilder: (context, index) {
-  //                   String filterName = _filterOptions[index];
-  //                   bool isSelected = currentFilter == filterName;
-  //
-  //                   return GestureDetector(
-  //                     onTap: () {
-  //                       setState(() {
-  //                         if (isSelectionMode) {
-  //                           for (int i = 0; i < _pageFilters.length; i++) {
-  //                             if (selectedPagesList[i] == true) {
-  //                               _pageFilters[i] = filterName;
-  //                             }
-  //                           }
-  //                         } else {
-  //                           if (_applyToAllPages) {
-  //                             for (int i = 0; i < _pageFilters.length; i++) {
-  //                               _pageFilters[i] = filterName;
-  //                             }
-  //                           } else {
-  //                             _pageFilters[currentPage] = filterName;
-  //                           }
-  //                         }
-  //                       });
-  //                     },
-  //                     child: Padding(
-  //                       padding: const EdgeInsets.only(right: 16),
-  //                       child: Column(
-  //                         children: [
-  //                           Container(
-  //                             width: 65,
-  //                             height: 65,
-  //                             decoration: BoxDecoration(
-  //                               border: Border.all(
-  //                                 color: isSelected ? Colors.blueAccent : Colors.transparent,
-  //                                 width: 2.5,
-  //                               ),
-  //                               borderRadius: BorderRadius.circular(8),
-  //                             ),
-  //                             child: ClipRRect(
-  //                               borderRadius: BorderRadius.circular(5),
-  //                               child: ColorFiltered(
-  //                                 colorFilter:
-  //                                 _getColorFilter(filterName) ??
-  //                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-  //                                 child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
-  //                               ),
-  //                             ),
-  //                           ),
-  //                           const SizedBox(height: 8),
-  //                           Text(
-  //                             filterName,
-  //                             style: TextStyle(
-  //                               color: isSelected ? Colors.blueAccent : Colors.white70,
-  //                               fontSize: 11,
-  //                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                   );
-  //                 },
-  //               ),
-  //             ),
-  //
-  //             // 🚨 FIX 3: Agar selection mode ON hai, toh Spacer aur bottom toggle poori tarah hide ho jayenge
-  //             if (!isSelectionMode) ...[
-  //               const Spacer(),
-  //               Padding(
-  //                 padding: const EdgeInsets.symmetric(horizontal: 16),
-  //                 child: Row(
-  //                   children: [
-  //                     Transform.scale(
-  //                       scale: 0.85,
-  //                       child: Switch(
-  //                         value: _applyToAllPages,
-  //                         onChanged: (val) {
-  //                           setState(() {
-  //                             _applyToAllPages = val;
-  //                             if (val) {
-  //                               String activeFilter = _pageFilters[currentPage];
-  //                               for (int i = 0; i < _pageFilters.length; i++) {
-  //                                 _pageFilters[i] = activeFilter;
-  //                               }
-  //                             }
-  //                           });
-  //                         },
-  //                         activeColor: Colors.white,
-  //                         activeTrackColor: Colors.blueAccent,
-  //                         inactiveThumbColor: const Color(0xFFC0C0C0),
-  //                         inactiveTrackColor: const Color(0xFF505050),
-  //                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
-  //                       ),
-  //                     ),
-  //                     const SizedBox(width: 8),
-  //                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ],
-  //           ],
-  //         ),
-  //       ),
-  //     );
-  //   }
-
   // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
   Widget _buildFilterMenuWidget() {
     String currentFilter = _pageFilters[currentPage];
@@ -2191,184 +1854,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       ),
     );
   }
-
-  // --- 🚨 NAYA BLOCK: ADJUST MENU WIDGET UI ---
-  // Widget _buildAdjustMenuWidget() {
-  //   bool isBrightness = _activeAdjustTab == "Brightness";
-  //   double currentValue = isBrightness ? _pageBrightness[currentPage] : _pageContrast[currentPage];
-  //
-  //   return GestureDetector(
-  //     behavior: HitTestBehavior.opaque,
-  //     // Background tap roko
-  //     onTap: () {},
-  //     onHorizontalDragUpdate: (_) {},
-  //     onVerticalDragUpdate: (_) {},
-  //     child: Container(
-  //       height: 180,
-  //       decoration: const BoxDecoration(
-  //         color: Color(0xFF1E1E1E),
-  //         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-  //       ),
-  //       padding: const EdgeInsets.only(top: 16, bottom: 8),
-  //       child: Column(
-  //         children: [
-  //           // --- TOP TABS (Brightness | Contrast) ---
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //             children: [
-  //               GestureDetector(
-  //                 onTap: () => setState(() => _activeAdjustTab = "Brightness"),
-  //                 child: Row(
-  //                   children: [
-  //                     Icon(
-  //                       Icons.light_mode_outlined,
-  //                       color: isBrightness ? Colors.blueAccent : Colors.white70,
-  //                       size: 22,
-  //                     ),
-  //                     const SizedBox(width: 8),
-  //                     Text(
-  //                       "Brightness",
-  //                       style: TextStyle(color: isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //               GestureDetector(
-  //                 onTap: () => setState(() => _activeAdjustTab = "Contrast"),
-  //                 child: Row(
-  //                   children: [
-  //                     Icon(
-  //                       Icons.contrast_outlined,
-  //                       color: !isBrightness ? Colors.blueAccent : Colors.white70,
-  //                       size: 22,
-  //                     ),
-  //                     const SizedBox(width: 8),
-  //                     Text(
-  //                       "Contrast",
-  //                       style: TextStyle(color: !isBrightness ? Colors.blueAccent : Colors.white70, fontSize: 15),
-  //                     ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //           const SizedBox(height: 16),
-  //
-  //           // --- VALUE TEXT ROW ---
-  //           Padding(
-  //             padding: const EdgeInsets.symmetric(horizontal: 24),
-  //             child: Row(
-  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //               children: [
-  //                 Text(_activeAdjustTab, style: const TextStyle(color: Colors.white, fontSize: 14)),
-  //                 Text("${currentValue.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
-  //               ],
-  //             ),
-  //           ),
-  //
-  //           // --- MAIN SLIDER ---
-  //           SliderTheme(
-  //             data: SliderThemeData(
-  //               trackHeight: 2.5,
-  //               activeTrackColor: Colors.grey.shade500,
-  //               // Screenshot jaisa grey track
-  //               inactiveTrackColor: Colors.grey.shade800,
-  //               thumbColor: Colors.grey.shade400,
-  //               // Light grey thumb
-  //               overlayShape: SliderComponentShape.noOverlay,
-  //             ),
-  //             child: Slider(
-  //               value: currentValue,
-  //               min: -100,
-  //               max: 100,
-  //               onChanged: (val) {
-  //                 setState(() {
-  //                   if (isBrightness) {
-  //                     if (_applyToAllPages) {
-  //                       for (int i = 0; i < _pageBrightness.length; i++) _pageBrightness[i] = val;
-  //                     } else {
-  //                       _pageBrightness[currentPage] = val;
-  //                     }
-  //                   } else {
-  //                     if (_applyToAllPages) {
-  //                       for (int i = 0; i < _pageContrast.length; i++) _pageContrast[i] = val;
-  //                     } else {
-  //                       _pageContrast[currentPage] = val;
-  //                     }
-  //                   }
-  //                 });
-  //               },
-  //             ),
-  //           ),
-  //           const Spacer(),
-  //
-  //           // --- BOTTOM TOGGLE & RESET ---
-  //           Padding(
-  //             padding: const EdgeInsets.symmetric(horizontal: 16),
-  //             child: Row(
-  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //               children: [
-  //                 Row(
-  //                   children: [
-  //                     Transform.scale(
-  //                       scale: 0.85,
-  //                       child: Switch(
-  //                         value: _applyToAllPages,
-  //                         onChanged: (val) {
-  //                           setState(() {
-  //                             _applyToAllPages = val;
-  //                             if (val) {
-  //                               // Sync current values to all pages
-  //                               double b = _pageBrightness[currentPage];
-  //                               double c = _pageContrast[currentPage];
-  //                               for (int i = 0; i < _pageBrightness.length; i++) {
-  //                                 _pageBrightness[i] = b;
-  //                                 _pageContrast[i] = c;
-  //                               }
-  //                             }
-  //                           });
-  //                         },
-  //                         activeColor: Colors.white,
-  //                         activeTrackColor: Colors.blueAccent,
-  //                         inactiveThumbColor: const Color(0xFFC0C0C0),
-  //                         inactiveTrackColor: const Color(0xFF505050),
-  //                         trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
-  //                       ),
-  //                     ),
-  //                     const SizedBox(width: 8),
-  //                     const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
-  //                   ],
-  //                 ),
-  //
-  //                 // 🚨 RESET BUTTON
-  //                 TextButton(
-  //                   onPressed: () {
-  //                     setState(() {
-  //                       if (_applyToAllPages) {
-  //                         for (int i = 0; i < _pageBrightness.length; i++) {
-  //                           _pageBrightness[i] = 0.0;
-  //                           _pageContrast[i] = 0.0;
-  //                         }
-  //                       } else {
-  //                         _pageBrightness[currentPage] = 0.0;
-  //                         _pageContrast[currentPage] = 0.0;
-  //                       }
-  //                     });
-  //                     showToast("$_activeAdjustTab reset to 0");
-  //                   },
-  //                   child: const Text(
-  //                     "Reset",
-  //                     style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.w500),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   // --- 🚨 NAYA BLOCK: ADJUST MENU WIDGET UI ---
   Widget _buildAdjustMenuWidget() {
@@ -2694,58 +2179,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       ),
     );
   }
-
-  // --- 🚨 NAYA BLOCK: SELECTION MODE TOOLS ---
-  // Widget _buildSelectedSubTools() {
-  //   return SizedBox(
-  //     key: const ValueKey("SelectedSubTools"),
-  //     height: 75,
-  //     width: double.infinity,
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //       children: [
-  //         _buildToolItem(
-  //           label: "Rotate",
-  //           icon: Icons.rotate_right_rounded,
-  //           tooltipMessage: "Rotate selected pages",
-  //           // Abhi ke liye Toast lagaya hai, bulk rotate logic next step me add karenge
-  //           onTap: () => showToast("Bulk rotate coming soon"),
-  //         ),
-  //         _buildToolItem(
-  //           label: "Filter",
-  //           icon: Symbols.masked_transitions_rounded,
-  //           tooltipMessage: "Apply filter to selected pages",
-  //           isSelected: _showFilterMenu,
-  //           onTap: () {
-  //             setState(() {
-  //               _showFilterMenu = !_showFilterMenu;
-  //               if (_showFilterMenu) _showAdjustMenu = false; // Adjust menu band kardo
-  //             });
-  //           },
-  //         ),
-  //         _buildToolItem(
-  //           label: "Adjust",
-  //           icon: Icons.tune_rounded,
-  //           tooltipMessage: "Adjust selected pages",
-  //           isSelected: _showAdjustMenu,
-  //           onTap: () {
-  //             setState(() {
-  //               _showAdjustMenu = !_showAdjustMenu;
-  //               if (_showAdjustMenu) _showFilterMenu = false; // Filter menu band kardo
-  //             });
-  //           },
-  //         ),
-  //         _buildToolItem(
-  //           label: "Delete",
-  //           icon: Icons.delete_outline_rounded,
-  //           tooltipMessage: "Delete selected pages",
-  //           // Abhi ke liye Toast lagaya hai, bulk delete logic next step me add karenge
-  //           onTap: () => showToast("Bulk delete coming soon"),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   // --- 🚨 NAYA BLOCK: SELECTION MODE TOOLS ---
   Widget _buildSelectedSubTools() {
