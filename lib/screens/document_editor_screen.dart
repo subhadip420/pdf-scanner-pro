@@ -1023,6 +1023,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         setState(() {
                                           isResizeMode = false;
                                           isThumbnailVisible = true;
+
+                                          if (_showAdjustMenu) _showFilterMenu = false;
+                                          if (_showFilterMenu) _showAdjustMenu = false;
                                         });
                                       }
                                     },
