@@ -18,9 +18,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:flutter/foundation.dart'; // WriteBuffer ke liye
 
-
 class ScannerScreen extends StatefulWidget {
-
   final bool isRetakeMode;
 
   const ScannerScreen({
@@ -40,14 +38,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String selectedMode = "Document";
   final ScrollController modeController = ScrollController();
 
-  final List<String> scanModes = [
-    "Whiteboard",
-    "Book",
-    "Document",
-    "ID Card",
-    "Business Card",
-    "OCR",
-  ];
+  final List<String> scanModes = ["Whiteboard", "Book", "Document", "ID Card", "Business Card", "OCR"];
 
   int selectedIndex = 2; // Document
   bool isSelectingRatio = false;
@@ -71,11 +62,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   //List<File> capturedImagesList = []; // Nayi list jo saari photos store karegi
   // NAYI LINE:
   List<Map<String, dynamic>> capturedImagesList = [];
-// Focus ke liye variables
+
+  // Focus ke liye variables
   Offset? _focusPointPosition;
   bool _showFocusIndicator = false;
   Timer? _focusTimer;
-// Real ML Auto-Detect Variables
+
+  // Real ML Auto-Detect Variables
   bool isAutoDetectOn = true;
   String autoScanStatus = "Looking for document...";
   bool isHoldingSteady = false;
@@ -94,7 +87,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // 🚨 FIX 1: Camera ka naya safety tracker
   bool _isCameraReady = false;
 
-
   @override
   void initState() {
     super.initState();
@@ -110,9 +102,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _sensorSubscription = accelerometerEventStream().listen((AccelerometerEvent event) {
       if (!mounted) return;
       setState(() {
-        if (event.x > 6) _iconTurns = 0.25;
-        else if (event.x < -6) _iconTurns = -0.25;
-        else if (event.y > 6) _iconTurns = 0.0;
+        if (event.x > 6)
+          _iconTurns = 0.25;
+        else if (event.x < -6)
+          _iconTurns = -0.25;
+        else if (event.y > 6)
+          _iconTurns = 0.0;
       });
     });
   }
@@ -183,7 +178,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     super.dispose();
   }
 
-
   // 🚨 FIX: Hardware Back Button ko Handle Karne ke liye naya function
   Future<bool> _onWillPop() async {
     // 1. Agar Retake Mode hai toh normal back hone do
@@ -201,7 +195,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
+      (route) => false,
     );
     return false;
   }
@@ -312,21 +306,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void scrollToDocument() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (modeController.hasClients) {
-        modeController.animateTo(
-          150,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeOut,
-        );
+        modeController.animateTo(150, duration: const Duration(milliseconds: 400), curve: Curves.easeOut);
       }
     });
   }
 
   void showToast(String msg) {
-    Fluttertoast.showToast(
-      msg: msg,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-    );
+    Fluttertoast.showToast(msg: msg, toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM);
   }
 
   // Function to capture the photo with countdown logic
@@ -389,7 +375,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         capturedPhotosCount = capturedImagesList.length; // Counter ko list ki length se update karo
         isCapturing = false;
       });
-
     } catch (e) {
       // Handle errors and reset states
       setState(() {
@@ -596,10 +581,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
         'top': y / origH,
         'right': 1.0 - ((x + cropW) / origW),
         'bottom': 1.0 - ((y + cropH) / origH),
-      }
+      },
     };
   }
-
 
   // 1. Optimized Focus Function (Parallel execution se time kam lagega)
   Future<void> _setFocusPoint(TapUpDetails details, BoxConstraints constraints) async {
@@ -625,7 +609,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ]);
 
       _focusTimer?.cancel();
-      _focusTimer = Timer(const Duration(milliseconds: 1200), () { // Time 1.5s se 1.2s kiya for fast response
+      _focusTimer = Timer(const Duration(milliseconds: 1200), () {
+        // Time 1.5s se 1.2s kiya for fast response
         if (mounted) {
           setState(() => _showFocusIndicator = false);
         }
@@ -651,7 +636,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                 // YEH NAYI LINE: Real-time Blue Overlay
                 if (_detectedDocumentBox != null && isAutoDetectOn)
-                  Positioned.fill(  // FIX 4: Isko Positioned.fill me wrap kiya
+                  Positioned.fill(
+                    // FIX 4: Isko Positioned.fill me wrap kiya
                     child: CustomPaint(
                       painter: DocumentOverlayPainter(
                         _detectedDocumentBox,
@@ -666,7 +652,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     left: _focusPointPosition!.dx - 40,
                     top: _focusPointPosition!.dy - 40,
                     child: Container(
-                      width: 80,  // Size 50 se badhakar 80 kar diya
+                      width: 80, // Size 50 se badhakar 80 kar diya
                       height: 80, // Size 50 se badhakar 80 kar diya
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -709,7 +695,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
         final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
         final camera = cameras[currentCameraIndex];
-        final imageRotation = InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation90deg;
+        final imageRotation =
+            InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation90deg;
 
         // FIX 3: Strict format define kiya Platform ke hisab se, taaki ML Kit block na ho
         final inputImageFormat = Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888;
@@ -817,12 +804,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (mounted) {
         _goToEditor(); // 🚨 Master Helper call kiya
       }
-
     } catch (e) {
       setState(() => isCapturing = false);
     }
   }
-
 
   Future<void> _toggleAutoDetect() async {
     setState(() {
@@ -831,7 +816,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       if (isAutoDetectOn) {
         _autoDetectPopupTitle = "Auto-capture on";
-        _autoDetectPopupSubtitle = "We'll find the borders and take the photo for you. You can adjust or take other quick actions.";
+        _autoDetectPopupSubtitle =
+            "We'll find the borders and take the photo for you. You can adjust or take other quick actions.";
       } else {
         _autoDetectPopupTitle = "Auto-capture off";
         _autoDetectPopupSubtitle = "Scan multiple pages faster. Just tap the photo button, and adjust borders later.";
@@ -898,7 +884,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       img.Image croppedImage = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
 
-      final String croppedPath = originalPath.replaceAll('.jpg', '_autocrop_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final String croppedPath = originalPath.replaceAll(
+        '.jpg',
+        '_autocrop_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
       final croppedFile = File(croppedPath);
       await croppedFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 100));
 
@@ -910,14 +899,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
           'top': y / originalImage.height,
           'right': 1.0 - ((x + w) / originalImage.width),
           'bottom': 1.0 - ((y + h) / originalImage.height),
-        }
+        },
       };
     } catch (e) {
       print("Auto Crop Error: $e");
       return null;
     }
   }
-
 
   /// custom media picker:
   Future<void> _pickImagesFromGallery() async {
@@ -967,9 +955,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       setState(() {
-
         for (var file in selectedFiles) {
-          capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
+          capturedImagesList.add(<String, dynamic>{
+            // 🚨 Yahan <String, dynamic> add kora hoyeche
             'original': file,
             'cropped': file,
           });
@@ -979,11 +967,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       showToast("${selectedFiles.length} images imported serial wise");
 
-
       if (mounted) {
         _goToEditor(); // 🚨 Master Helper call kiya
       }
-
     } catch (e) {
       print("Gallery Error: $e");
       showToast("Error importing images");
@@ -992,8 +978,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-
     // 🚨 FIX 4: Jab tak memory release/reload na ho jaye, safe loading screen dikhao
     if (!_isCameraReady || !controller.value.isInitialized) {
       return const Scaffold(
@@ -1004,442 +988,397 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     // return Scaffold(
     return WillPopScope(
-        onWillPop: _onWillPop,
-        child: Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C),
-      body: GestureDetector(
-        onTap: () {
-          if (activeMenu != "Default") {
-            setState(() {
-              activeMenu =
-                  "Default"; // Screen par tap karte hi menu wapas normal ho jayega
-            });
-          }
-        },
-        // Translucent zaroori hai taaki yeh poori screen ke touch ko detect kare
-        behavior: HitTestBehavior.translucent,
-        child: SizedBox.expand(
-          child: Stack(
-            children: [
-              /// Camera Preview
-              selectedRatio == "Full"
-                  ? Positioned.fill(
-                child: ClipRect(
-                  child: FittedBox(
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                    // YAHAN HELPER WIDGET CALL KIYA HAI
-                    child: _buildCameraPreviewWithFocus(),
-                  ),
-                ),
-              )
-                  : selectedRatio == "1:1"
-                  ? Positioned(
-                top: 90,
-                bottom: 180,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
-                    child: ClipRect(
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        alignment: Alignment.center,
-                        // YAHAN HELPER WIDGET CALL KIYA HAI
-                        child: _buildCameraPreviewWithFocus(),
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF2C2C2C),
+        body: GestureDetector(
+          onTap: () {
+            if (activeMenu != "Default") {
+              setState(() {
+                activeMenu = "Default"; // Screen par tap karte hi menu wapas normal ho jayega
+              });
+            }
+          },
+          // Translucent zaroori hai taaki yeh poori screen ke touch ko detect kare
+          behavior: HitTestBehavior.translucent,
+          child: SizedBox.expand(
+            child: Stack(
+              children: [
+                /// Camera Preview
+                selectedRatio == "Full"
+                    ? Positioned.fill(
+                        child: ClipRect(
+                          child: FittedBox(
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                            // YAHAN HELPER WIDGET CALL KIYA HAI
+                            child: _buildCameraPreviewWithFocus(),
+                          ),
+                        ),
+                      )
+                    : selectedRatio == "1:1"
+                    ? Positioned(
+                        top: 90,
+                        bottom: 180,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: AspectRatio(
+                            aspectRatio: 1.0,
+                            child: ClipRect(
+                              child: FittedBox(
+                                fit: BoxFit.cover,
+                                alignment: Alignment.center,
+                                // YAHAN HELPER WIDGET CALL KIYA HAI
+                                child: _buildCameraPreviewWithFocus(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : Positioned(
+                        top: 115,
+                        left: 0,
+                        right: 0,
+                        child: AspectRatio(
+                          aspectRatio: _getAspectRatio(),
+                          child: ClipRect(
+                            child: FittedBox(
+                              fit: BoxFit.cover,
+                              alignment: Alignment.center,
+                              // YAHAN HELPER WIDGET CALL KIYA HAI
+                              child: _buildCameraPreviewWithFocus(),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-              )
-                  : Positioned(
-                top: 115,
-                left: 0,
-                right: 0,
-                child: AspectRatio(
-                  aspectRatio: _getAspectRatio(),
-                  child: ClipRect(
-                    child: FittedBox(
-                      fit: BoxFit.cover,
-                      alignment: Alignment.center,
-                      // YAHAN HELPER WIDGET CALL KIYA HAI
-                      child: _buildCameraPreviewWithFocus(),
-                    ),
-                  ),
-                ),
-              ),
 
-              /// Top Controls
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 9,
-                    ),
-                    // Yahan humne simply naya function call kar diya
-                    child: _buildTopBarContent(),
-                  ),
-                ),
-              ),
-
-              /// Status Text (Looking for document / Hold steady)
-              if (isAutoDetectOn)
+                /// Top Controls
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.45,
+                  top: 0,
                   left: 0,
                   right: 0,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.65),
-                        borderRadius: BorderRadius.circular(20),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                      // Yahan humne simply naya function call kar diya
+                      child: _buildTopBarContent(),
+                    ),
+                  ),
+                ),
+
+                /// Status Text (Looking for document / Hold steady)
+                if (isAutoDetectOn)
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.45,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.65),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          autoScanStatus,
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
                       ),
-                      child: Text(
-                        autoScanStatus,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                    ),
+                  ),
+
+                /// Scan Modes
+                Positioned(
+                  bottom: 155,
+                  left: 0,
+                  right: 0,
+                  child: SizedBox(
+                    height: 50,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ScrollSnapList(
+                          itemBuilder: (_, index) {
+                            final bool isSelected = index == selectedIndex;
+
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              alignment: Alignment.center,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  scanModes[index],
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: isSelected ? Colors.blue : Colors.white,
+                                    fontSize: isSelected ? 15 : 13,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+
+                          itemCount: scanModes.length,
+
+                          itemSize: MediaQuery.of(context).size.width * 0.22,
+
+                          initialIndex: 2,
+
+                          dynamicItemSize: true,
+
+                          onItemFocus: (index) {
+                            setState(() {
+                              selectedIndex = index;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                /// Bottom Controls
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 60,
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            /// Home
+                            if (!widget.isRetakeMode)
+                              IconButton(
+                                onPressed: () {
+                                  //showToast("Home");
+                                  // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                    (route) => false, // false matlab saari purani history clear
+                                  );
+                                },
+                                icon: _buildRotatedIcon(Icons.home_rounded, color: Colors.white, size: 24),
+                              )
+                            else
+                              // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
+                              IconButton(
+                                onPressed: () {
+                                  // Retake cancel karke wapas editor me jao
+                                  Navigator.pop(context);
+                                },
+                                icon: _buildRotatedIcon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 28, // Thoda bada size acha lagega
+                                ),
+                              ),
+
+                            /// Gallery
+                            /// Gallery Button
+                            IconButton(
+                              onPressed: _pickImagesFromGallery, // Alag function yahan call ho gaya
+                              icon: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
+                            ),
+
+                            /// Capture Button
+                            /// Dynamic & Animated Capture Button
+                            GestureDetector(
+                              onTap: _capturePhoto,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Base Outer Circle (Always White or Grey)
+                                  Container(
+                                    width: 60,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
+                                        width: 4,
+                                      ),
+                                    ),
+                                  ),
+
+                                  // Blue Animated Progress Ring (Shows only during countdown)
+                                  if (isCapturing && selectedTimer > 0)
+                                    SizedBox(
+                                      width: 56,
+                                      height: 56,
+                                      child: TweenAnimationBuilder<double>(
+                                        // Animates from 0.0 to 1.0 smoothly over the selected timer duration
+                                        tween: Tween<double>(begin: 0.0, end: 1.0),
+                                        duration: Duration(seconds: selectedTimer),
+                                        builder: (context, value, child) {
+                                          return CircularProgressIndicator(
+                                            value: value, // Current progress
+                                            strokeWidth: 4,
+                                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                                            backgroundColor: Colors.transparent,
+                                          );
+                                        },
+                                      ),
+                                    ),
+
+                                  // Inner Content: Numbers OR Solid Circle
+                                  if (isCapturing && currentCountdown > 0)
+                                    // Show actively counting down number (e.g., 3, 2, 1)
+                                    Text(
+                                      '$currentCountdown',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  else if (!isCapturing && selectedTimer > 0)
+                                    // Show selected timer duration before tapping (e.g., 3 or 10)
+                                    Text(
+                                      '$selectedTimer',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  else
+                                    // Show default inner solid circle when no timer is selected
+                                    Container(
+                                      width: 45,
+                                      height: 45,
+                                      decoration: BoxDecoration(
+                                        color: isCapturing ? Colors.grey : Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+
+                            /// Auto Detect
+                            /// Auto Detect Button
+                            IconButton(
+                              onPressed: _toggleAutoDetect, // Yeh naya function call karega
+                              icon: _buildRotatedIcon(
+                                Icons.document_scanner_outlined,
+                                // Aap chahein toh Icons.auto_awesome use kar sakte hain
+                                color: isAutoDetectOn ? Colors.blueAccent : Colors.white, // ON hone par Blue
+                                size: 24,
+                              ),
+                            ),
+
+                            /// Last Photo with Counter Badge
+                            GestureDetector(
+                              onTap: () {
+                                if (capturedPhotosCount > 0) {
+                                  _goToEditor(); // 🚨 Master Helper call kiya
+                                }
+                              },
+                              child: Stack(
+                                clipBehavior: Clip.none, // Allows the badge to overflow the box slightly
+                                children: [
+                                  Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white24,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: lastCapturedImage == null
+                                        ? const SizedBox()
+                                        : ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Image.file(File(lastCapturedImage!.path), fit: BoxFit.cover),
+                                          ),
+                                  ),
+
+                                  // Counter Badge (Shows only if photos are captured)
+                                  if (capturedPhotosCount > 0)
+                                    Positioned(
+                                      top: -6,
+                                      right: -6,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.amber, // Highlight color for the badge
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Text(
+                                          '$capturedPhotosCount',
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
 
-
-              /// Scan Modes
-              Positioned(
-                bottom: 155,
-                left: 0,
-                right: 0,
-                child: SizedBox(
-                  height: 50,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-
-                      ScrollSnapList(
-                        itemBuilder: (_, index) {
-                          final bool isSelected = index == selectedIndex;
-
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            alignment: Alignment.center,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
+                /// Auto-Detect Toggle Popup (Center of screen)
+                if (_showAutoDetectPopup)
+                  Positioned.fill(
+                    child: Center(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 40),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.75), // Dark translucent background
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min, // Jitna text utna hi bada box
+                          children: [
+                            Text(
+                              _autoDetectPopupTitle,
+                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              _autoDetectPopupSubtitle,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 16,
+                                height: 1.4, // Line spacing
                               ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                scanModes[index],
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Colors.blue
-                                      : Colors.white,
-                                  fontSize: isSelected ? 15 : 13,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.w500,
-                                ),
-                              ),
+                              textAlign: TextAlign.center,
                             ),
-                          );
-                        },
-
-                        itemCount: scanModes.length,
-
-                        itemSize: MediaQuery.of(context).size.width * 0.22,
-
-                        initialIndex: 2,
-
-                        dynamicItemSize: true,
-
-                        onItemFocus: (index) {
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              /// Bottom Controls
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 60,
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      left: 12,
-                      right: 12,
-                      bottom: 20,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          /// Home
-                          if (!widget.isRetakeMode)
-                            IconButton(
-                              onPressed: () {
-                                //showToast("Home");
-                                // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
-                                  ),
-                                      (
-                                      route) => false, // false matlab saari purani history clear
-                                );
-                              },
-                              icon: _buildRotatedIcon(
-                                Icons.home_rounded,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            )
-                          else
-                          // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
-                            IconButton(
-                              onPressed: () {
-                                // Retake cancel karke wapas editor me jao
-                                Navigator.pop(context);
-                              },
-                              icon: _buildRotatedIcon(
-                                Icons.close_rounded,
-                                color: Colors.white,
-                                size: 28, // Thoda bada size acha lagega
-                              ),
-                            ),
-
-                          /// Gallery
-                          /// Gallery Button
-                          IconButton(
-                            onPressed: _pickImagesFromGallery, // Alag function yahan call ho gaya
-                            icon: _buildRotatedIcon(
-                              Icons.photo_library_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-
-                          /// Capture Button
-                          /// Dynamic & Animated Capture Button
-                          GestureDetector(
-                            onTap: _capturePhoto,
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Base Outer Circle (Always White or Grey)
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
-                                      width: 4,
-                                    ),
-                                  ),
-                                ),
-
-                                // Blue Animated Progress Ring (Shows only during countdown)
-                                if (isCapturing && selectedTimer > 0)
-                                  SizedBox(
-                                    width: 56,
-                                    height: 56,
-                                    child: TweenAnimationBuilder<double>(
-                                      // Animates from 0.0 to 1.0 smoothly over the selected timer duration
-                                      tween: Tween<double>(begin: 0.0, end: 1.0),
-                                      duration: Duration(seconds: selectedTimer),
-                                      builder: (context, value, child) {
-                                        return CircularProgressIndicator(
-                                          value: value, // Current progress
-                                          strokeWidth: 4,
-                                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-                                          backgroundColor: Colors.transparent,
-                                        );
-                                      },
-                                    ),
-                                  ),
-
-                                // Inner Content: Numbers OR Solid Circle
-                                if (isCapturing && currentCountdown > 0)
-                                // Show actively counting down number (e.g., 3, 2, 1)
-                                  Text(
-                                    '$currentCountdown',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                else if (!isCapturing && selectedTimer > 0)
-                                // Show selected timer duration before tapping (e.g., 3 or 10)
-                                  Text(
-                                    '$selectedTimer',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                else
-                                // Show default inner solid circle when no timer is selected
-                                  Container(
-                                    width: 45,
-                                    height: 45,
-                                    decoration: BoxDecoration(
-                                      color: isCapturing ? Colors.grey : Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          /// Auto Detect
-                          /// Auto Detect Button
-                          IconButton(
-                            onPressed: _toggleAutoDetect, // Yeh naya function call karega
-                            icon: _buildRotatedIcon(
-                              Icons.document_scanner_outlined, // Aap chahein toh Icons.auto_awesome use kar sakte hain
-                              color: isAutoDetectOn ? Colors.blueAccent : Colors.white, // ON hone par Blue
-                              size: 24,
-                            ),
-                          ),
-
-
-                          /// Last Photo with Counter Badge
-                          GestureDetector(
-                            onTap: () {
-                              if (capturedPhotosCount > 0) {
-                                _goToEditor(); // 🚨 Master Helper call kiya
-                              }
-                            },
-                            child: Stack(
-                              clipBehavior: Clip.none, // Allows the badge to overflow the box slightly
-                              children: [
-                                Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white24,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: lastCapturedImage == null
-                                      ? const SizedBox()
-                                      : ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      File(lastCapturedImage!.path),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                ),
-
-                                // Counter Badge (Shows only if photos are captured)
-                                if (capturedPhotosCount > 0)
-                                  Positioned(
-                                    top: -6,
-                                    right: -6,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(5),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.amber, // Highlight color for the badge
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Text(
-                                        '$capturedPhotosCount',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-
-              /// Auto-Detect Toggle Popup (Center of screen)
-              if (_showAutoDetectPopup)
-                Positioned.fill(
-                  child: Center(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.75), // Dark translucent background
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min, // Jitna text utna hi bada box
-                        children: [
-                          Text(
-                            _autoDetectPopupTitle,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            _autoDetectPopupSubtitle,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                              height: 1.4, // Line spacing
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
-
         ),
       ),
-        ),
     );
   }
 
   // Helper widget to animate icon rotation based on phone physical orientation
-  Widget _buildRotatedIcon(
-    IconData iconData, {
-    Color color = Colors.white,
-    double size = 26,
-  }) {
+  Widget _buildRotatedIcon(IconData iconData, {Color color = Colors.white, double size = 26}) {
     return AnimatedRotation(
       turns: _iconTurns,
       duration: const Duration(milliseconds: 300), // Smooth rotation animation
@@ -1453,20 +1392,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
       case "Flash":
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.35),
-            borderRadius: BorderRadius.circular(30),
-          ),
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.35), borderRadius: BorderRadius.circular(30)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 "Flash",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
               ),
               Row(
                 children: [
@@ -1480,24 +1412,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         );
 
-
       case "Timer":
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.35),
-            borderRadius: BorderRadius.circular(30),
-          ),
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.35), borderRadius: BorderRadius.circular(30)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 "Timer",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
               ),
               Row(
                 children: [
@@ -1514,55 +1438,34 @@ class _ScannerScreenState extends State<ScannerScreen> {
       default:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.35),
-            borderRadius: BorderRadius.circular(30),
-          ),
+          decoration: BoxDecoration(color: Colors.black.withOpacity(0.35), borderRadius: BorderRadius.circular(30)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Flash"),
-                icon: _buildRotatedIcon(
-                  _getFlashIcon(),
-                  color: Colors.white,
-                  size: 26,
-                ),
+                icon: _buildRotatedIcon(_getFlashIcon(), color: Colors.white, size: 26),
               ),
 
               /// YAHAN TIMER ICON DYNAMIC KAR DIYA
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Timer"),
-                icon: _buildRotatedIcon(
-                  _getTimerIcon(),
-                  color: Colors.white,
-                  size: 26,
-                ),
+                icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
               ),
               IconButton(
                 onPressed: _flipCamera,
-                icon: _buildRotatedIcon(
-                  Symbols.flip_camera_android_sharp,
-                  color: Colors.white,
-                  size: 26,
-                ),
+                icon: _buildRotatedIcon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
               ),
               if (!widget.isRetakeMode)
-              IconButton(
-                onPressed: () => showToast("Settings"),
-                icon: _buildRotatedIcon(
-                  Symbols.segment_sharp,
-                  color: Colors.white,
-                  size: 26,
+                IconButton(
+                  onPressed: () => showToast("Settings"),
+                  icon: _buildRotatedIcon(Symbols.segment_sharp, color: Colors.white, size: 26),
                 ),
-              ),
             ],
           ),
         );
     }
   }
-
-
 
   // Flash menu ke icons banane ke liye
   Widget _buildFlashOption(String mode) {
@@ -1608,7 +1511,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
 ///end main class
 
-
 class DocumentOverlayPainter extends CustomPainter {
   final Rect? documentRect;
   final Size imageSize;
@@ -1644,8 +1546,13 @@ class DocumentOverlayPainter extends CustomPainter {
     canvas.drawRect(scaledRect, borderPaint);
 
     // FIX 4: Adobe Scan jaise 4 Corners par Blue Dots (Points)
-    final Paint dotPaint = Paint()..color = Colors.blueAccent..style = PaintingStyle.fill;
-    final Paint dotBorder = Paint()..color = Colors.white..style = PaintingStyle.stroke..strokeWidth = 2.0;
+    final Paint dotPaint = Paint()
+      ..color = Colors.blueAccent
+      ..style = PaintingStyle.fill;
+    final Paint dotBorder = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
     final double radius = 8.0; // Point ka size
 
     // Charo corners ke coordinates nikal liye
