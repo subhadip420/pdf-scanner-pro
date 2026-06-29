@@ -385,68 +385,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return decodedImage;
   }
 
-  // --- CROP TOOL FUNCTIONS ---
-
-  // Future<void> _toggleCropMode() async {
-  //   if (isCroppingMode) {
-  //     await _saveNewCrop();
-  //   } else {
-  //     // 1. STATE CHANGE: Toolbar ko "Hide Down" aur Crop Option ko "Hide Up" karega
-  //     setState(() {
-  //       isCroppingMode = true;
-  //       isThumbnailVisible = false;
-  //     });
-  //
-  //     // 2. WAIT: Animation poora hone ke liye exactly 300ms rukenge
-  //     await Future.delayed(const Duration(milliseconds: 300));
-  //
-  //     // 3. HEAVY WORK: Ab photo read aur decode hogi (UI freeze nahi hoga)
-  //     File origFile = widget.imageFiles[currentPage]['original']!;
-  //     File cropFile = widget.imageFiles[currentPage]['cropped']!;
-  //
-  //     final origBytes = await origFile.readAsBytes();
-  //     final cropBytes = await cropFile.readAsBytes();
-  //
-  //     final decodedOrig = img.decodeImage(origBytes);
-  //     final decodedCrop = img.decodeImage(cropBytes);
-  //
-  //     if (decodedOrig != null && decodedCrop != null) {
-  //       setState(() {
-  //         _origWidth = decodedOrig.width.toDouble();
-  //         _origHeight = decodedOrig.height.toDouble();
-  //
-  //         double percentW = decodedCrop.width / decodedOrig.width;
-  //         double percentH = decodedCrop.height / decodedOrig.height;
-  //         double autoTop = (1.0 - percentH) / 2;
-  //         double autoBottom = (1.0 - percentH) / 2;
-  //         double autoLeft = (1.0 - percentW) / 2;
-  //         double autoRight = (1.0 - percentW) / 2;
-  //
-  //         _autoCropPositions[currentPage] ??= {
-  //           'top': autoTop,
-  //           'bottom': autoBottom,
-  //           'left': autoLeft,
-  //           'right': autoRight,
-  //         };
-  //
-  //         if (_savedCropPositions[currentPage] != null) {
-  //           cropTopRatio = _savedCropPositions[currentPage]!['top']!;
-  //           cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
-  //           cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
-  //           cropRightRatio = _savedCropPositions[currentPage]!['right']!;
-  //         } else {
-  //           cropTopRatio = autoTop;
-  //           cropBottomRatio = autoBottom;
-  //           cropLeftRatio = autoLeft;
-  //           cropRightRatio = autoRight;
-  //         }
-  //       });
-  //     }
-  //   }
-  // }
-
-  // --- CROP TOOL FUNCTIONS ---
-
   Future<void> _toggleCropMode() async {
     if (isCroppingMode) {
       await _saveNewCrop();
@@ -483,7 +421,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           double autoRight = (1.0 - percentW) / 2;
 
           if (percentW >= 0.99 && percentH >= 0.99) {
-            autoTop = 0.05; autoBottom = 0.05; autoLeft = 0.05; autoRight = 0.05;
+            autoTop = 0.05;
+            autoBottom = 0.05;
+            autoLeft = 0.05;
+            autoRight = 0.05;
           }
 
           // 🚨 FINAL FIX: Agar Scanner ne exact coordinates bheje hain, toh Center (auto) ki jagah wo use karo!
@@ -1101,7 +1042,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                     onTap: () {
                                       if (_showFilterMenu) setState(() => _showFilterMenu = false);
-                                      if (_showAdjustMenu) setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+                                      if (_showAdjustMenu)
+                                        setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
 
                                       if (isResizeMode) {
                                         setState(() {
@@ -1130,118 +1072,141 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                               // 🚨 FIX 2: RepaintBoundary is heavy UI ko cache (save) kar lega,
                                               // jisse swipe karte waqt rendering cost 90% kam ho jayegi!
                                               Widget pagePreviewContent = RepaintBoundary(
-                                                  child: RotatedBox(
-                                                quarterTurns: _imageQuarterTurns[index],
-                                                child: Stack(
-                                                  alignment: Alignment.center,
-                                                  children: [
-                                                    // Layer 1: Base Image with Filters
-                                                    ColorFiltered(
-                                                      colorFilter: _getAdjustColorFilter(
-                                                        _pageBrightness[index],
-                                                        _pageContrast[index],
-                                                      ),
-                                                      child: ColorFiltered(
-                                                        colorFilter:
-                                                            _getColorFilter(_pageFilters[index]) ??
-                                                            const ColorFilter.mode(
-                                                              Colors.transparent,
-                                                              BlendMode.multiply,
-                                                            ),
-                                                        child: Image.file(
-                                                          widget.imageFiles[index]['cropped'] as File,
-                                                          fit: BoxFit.contain,
-                                                          // 🚨 FIX 3: Swipe karte time purani image gayab nahi hogi (no flicker)
-                                                          gaplessPlayback: true,
-
-                                                          // 🚨 FIX 4: Swipe/Zoom rendering ko fast karne ke liye
-                                                          filterQuality: FilterQuality.low,
+                                                child: RotatedBox(
+                                                  quarterTurns: _imageQuarterTurns[index],
+                                                  child: Stack(
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      // Layer 1: Base Image with Filters
+                                                      ColorFiltered(
+                                                        colorFilter: _getAdjustColorFilter(
+                                                          _pageBrightness[index],
+                                                          _pageContrast[index],
                                                         ),
-                                                      ),
-                                                    ),
+                                                        child: ColorFiltered(
+                                                          colorFilter:
+                                                              _getColorFilter(_pageFilters[index]) ??
+                                                              const ColorFilter.mode(
+                                                                Colors.transparent,
+                                                                BlendMode.multiply,
+                                                              ),
+                                                          child: Image.file(
+                                                            widget.imageFiles[index]['cropped'] as File,
+                                                            fit: BoxFit.contain,
+                                                            // 🚨 FIX 3: Swipe karte time purani image gayab nahi hogi (no flicker)
+                                                            gaplessPlayback: true,
 
-                                                    // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
-                                                    if (_pageMarkups[index] != null &&
-                                                        _pageMarkups[index] is MarkupExportData) ...[
-                                                      // --- DRAWING STROKES ---
-                                                      Positioned.fill(
-                                                        child: CustomPaint(
-                                                          painter: DrawingPainter(
-                                                            paths: (_pageMarkups[index] as MarkupExportData).paths,
-                                                            currentPoints: [],
-                                                            currentColor: Colors.transparent,
-                                                            currentStrokeWidth: 0,
-                                                            currentOpacity: 0,
-                                                            isEraser: false,
+                                                            // 🚨 FIX 4: Swipe/Zoom rendering ko fast karne ke liye
+                                                            filterQuality: FilterQuality.low,
                                                           ),
                                                         ),
                                                       ),
 
-                                                      // --- TEXTS & SHAPES ---
-                                                      Positioned.fill(
-                                                        child: LayoutBuilder(
-                                                          builder: (context, constraints) {
-                                                            double canvasW = constraints.maxWidth;
-                                                            double canvasH = constraints.maxHeight;
-                                                            double scaleRatio = canvasW / 400.0;
-                                                            MarkupExportData data = _pageMarkups[index];
+                                                      // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
+                                                      if (_pageMarkups[index] != null &&
+                                                          _pageMarkups[index] is MarkupExportData) ...[
+                                                        // --- DRAWING STROKES ---
+                                                        Positioned.fill(
+                                                          child: CustomPaint(
+                                                            painter: DrawingPainter(
+                                                              paths: (_pageMarkups[index] as MarkupExportData).paths,
+                                                              currentPoints: [],
+                                                              currentColor: Colors.transparent,
+                                                              currentStrokeWidth: 0,
+                                                              currentOpacity: 0,
+                                                              isEraser: false,
+                                                            ),
+                                                          ),
+                                                        ),
 
-                                                            return Stack(
-                                                              clipBehavior: Clip.none,
-                                                              children: [
-                                                                // TEXTS LOOP
-                                                                ...data.texts.map((item) {
-                                                                  double scaledFontSize = item.fontSize * scaleRatio;
-                                                                  Color textColor = item.appearance == 0
-                                                                      ? item.color
-                                                                      : (item.appearance == 1 || item.appearance == 2)
-                                                                      ? (item.color.computeLuminance() > 0.5
-                                                                            ? Colors.black
-                                                                            : Colors.white)
-                                                                      : Colors.white;
-                                                                  Color bgColor = item.appearance == 1
-                                                                      ? item.color
-                                                                      : item.appearance == 2
-                                                                      ? item.color.withOpacity(0.5)
-                                                                      : Colors.transparent;
-                                                                  TextDecoration decoration = TextDecoration.none;
-                                                                  if (item.isUnderline && item.isStrikethrough) {
-                                                                    decoration = TextDecoration.combine([
-                                                                      TextDecoration.underline,
-                                                                      TextDecoration.lineThrough,
-                                                                    ]);
-                                                                  } else if (item.isUnderline) {
-                                                                    decoration = TextDecoration.underline;
-                                                                  } else if (item.isStrikethrough) {
-                                                                    decoration = TextDecoration.lineThrough;
-                                                                  }
+                                                        // --- TEXTS & SHAPES ---
+                                                        Positioned.fill(
+                                                          child: LayoutBuilder(
+                                                            builder: (context, constraints) {
+                                                              double canvasW = constraints.maxWidth;
+                                                              double canvasH = constraints.maxHeight;
+                                                              double scaleRatio = canvasW / 400.0;
+                                                              MarkupExportData data = _pageMarkups[index];
 
-                                                                  return Positioned(
-                                                                    left: item.offset.dx * canvasW,
-                                                                    top: item.offset.dy * canvasH,
-                                                                    child: FractionalTranslation(
-                                                                      translation: const Offset(-0.5, -0.5),
-                                                                      child: Transform.rotate(
-                                                                        angle: item.rotation,
-                                                                        child: Container(
-                                                                          padding: EdgeInsets.symmetric(
-                                                                            horizontal: 16 * scaleRatio,
-                                                                            vertical: 8 * scaleRatio,
-                                                                          ),
-                                                                          decoration: BoxDecoration(
-                                                                            color: bgColor,
-                                                                            borderRadius: BorderRadius.circular(
-                                                                              8 * scaleRatio,
+                                                              return Stack(
+                                                                clipBehavior: Clip.none,
+                                                                children: [
+                                                                  // TEXTS LOOP
+                                                                  ...data.texts.map((item) {
+                                                                    double scaledFontSize = item.fontSize * scaleRatio;
+                                                                    Color textColor = item.appearance == 0
+                                                                        ? item.color
+                                                                        : (item.appearance == 1 || item.appearance == 2)
+                                                                        ? (item.color.computeLuminance() > 0.5
+                                                                              ? Colors.black
+                                                                              : Colors.white)
+                                                                        : Colors.white;
+                                                                    Color bgColor = item.appearance == 1
+                                                                        ? item.color
+                                                                        : item.appearance == 2
+                                                                        ? item.color.withOpacity(0.5)
+                                                                        : Colors.transparent;
+                                                                    TextDecoration decoration = TextDecoration.none;
+                                                                    if (item.isUnderline && item.isStrikethrough) {
+                                                                      decoration = TextDecoration.combine([
+                                                                        TextDecoration.underline,
+                                                                        TextDecoration.lineThrough,
+                                                                      ]);
+                                                                    } else if (item.isUnderline) {
+                                                                      decoration = TextDecoration.underline;
+                                                                    } else if (item.isStrikethrough) {
+                                                                      decoration = TextDecoration.lineThrough;
+                                                                    }
+
+                                                                    return Positioned(
+                                                                      left: item.offset.dx * canvasW,
+                                                                      top: item.offset.dy * canvasH,
+                                                                      child: FractionalTranslation(
+                                                                        translation: const Offset(-0.5, -0.5),
+                                                                        child: Transform.rotate(
+                                                                          angle: item.rotation,
+                                                                          child: Container(
+                                                                            padding: EdgeInsets.symmetric(
+                                                                              horizontal: 16 * scaleRatio,
+                                                                              vertical: 8 * scaleRatio,
                                                                             ),
-                                                                          ),
-                                                                          child: Stack(
-                                                                            alignment: Alignment.center,
-                                                                            children: [
-                                                                              if (item.appearance == 3)
+                                                                            decoration: BoxDecoration(
+                                                                              color: bgColor,
+                                                                              borderRadius: BorderRadius.circular(
+                                                                                8 * scaleRatio,
+                                                                              ),
+                                                                            ),
+                                                                            child: Stack(
+                                                                              alignment: Alignment.center,
+                                                                              children: [
+                                                                                if (item.appearance == 3)
+                                                                                  Text(
+                                                                                    item.text,
+                                                                                    textAlign: item.alignment,
+                                                                                    style: TextStyle(
+                                                                                      fontSize: scaledFontSize,
+                                                                                      fontFamily: item.font,
+                                                                                      fontWeight: item.isBold
+                                                                                          ? FontWeight.bold
+                                                                                          : FontWeight.normal,
+                                                                                      fontStyle: item.isItalic
+                                                                                          ? FontStyle.italic
+                                                                                          : FontStyle.normal,
+                                                                                      decoration: decoration,
+                                                                                      foreground: Paint()
+                                                                                        ..style = PaintingStyle.stroke
+                                                                                        ..strokeWidth =
+                                                                                            scaledFontSize * 0.25
+                                                                                        ..strokeJoin = StrokeJoin.round
+                                                                                        ..strokeCap = StrokeCap.round
+                                                                                        ..color = item.color,
+                                                                                    ),
+                                                                                  ),
                                                                                 Text(
                                                                                   item.text,
                                                                                   textAlign: item.alignment,
                                                                                   style: TextStyle(
+                                                                                    color: textColor,
                                                                                     fontSize: scaledFontSize,
                                                                                     fontFamily: item.font,
                                                                                     fontWeight: item.isBold
@@ -1251,93 +1216,70 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                                         ? FontStyle.italic
                                                                                         : FontStyle.normal,
                                                                                     decoration: decoration,
-                                                                                    foreground: Paint()
-                                                                                      ..style = PaintingStyle.stroke
-                                                                                      ..strokeWidth =
-                                                                                          scaledFontSize * 0.25
-                                                                                      ..strokeJoin = StrokeJoin.round
-                                                                                      ..strokeCap = StrokeCap.round
-                                                                                      ..color = item.color,
+                                                                                    decorationColor: textColor,
+                                                                                    shadows: item.appearance == 0
+                                                                                        ? const [
+                                                                                            Shadow(
+                                                                                              color: Colors.black54,
+                                                                                              blurRadius: 4,
+                                                                                              offset: Offset(1, 1),
+                                                                                            ),
+                                                                                          ]
+                                                                                        : null,
                                                                                   ),
                                                                                 ),
-                                                                              Text(
-                                                                                item.text,
-                                                                                textAlign: item.alignment,
-                                                                                style: TextStyle(
-                                                                                  color: textColor,
-                                                                                  fontSize: scaledFontSize,
-                                                                                  fontFamily: item.font,
-                                                                                  fontWeight: item.isBold
-                                                                                      ? FontWeight.bold
-                                                                                      : FontWeight.normal,
-                                                                                  fontStyle: item.isItalic
-                                                                                      ? FontStyle.italic
-                                                                                      : FontStyle.normal,
-                                                                                  decoration: decoration,
-                                                                                  decorationColor: textColor,
-                                                                                  shadows: item.appearance == 0
-                                                                                      ? const [
-                                                                                          Shadow(
-                                                                                            color: Colors.black54,
-                                                                                            blurRadius: 4,
-                                                                                            offset: Offset(1, 1),
-                                                                                          ),
-                                                                                        ]
-                                                                                      : null,
-                                                                                ),
-                                                                              ),
-                                                                            ],
+                                                                              ],
+                                                                            ),
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                    ),
-                                                                  );
-                                                                }),
+                                                                    );
+                                                                  }),
 
-                                                                // SHAPES LOOP
-                                                                ...data.shapes.map((shape) {
-                                                                  return Positioned(
-                                                                    left: shape.offset.dx * canvasW,
-                                                                    top: shape.offset.dy * canvasH,
-                                                                    child: FractionalTranslation(
-                                                                      translation: const Offset(-0.5, -0.5),
-                                                                      child: Transform.rotate(
-                                                                        angle: shape.rotation,
-                                                                        child: Container(
-                                                                          padding: const EdgeInsets.all(24),
-                                                                          child: SizedBox(
-                                                                            width:
-                                                                                (shape.size * shape.scaleX.abs()) *
-                                                                                scaleRatio,
-                                                                            height:
-                                                                                (shape.size * shape.scaleY.abs()) *
-                                                                                scaleRatio,
-                                                                            child: FittedBox(
-                                                                              fit: BoxFit.fill,
-                                                                              child: Transform.scale(
-                                                                                scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
-                                                                                scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                                                child: Icon(
-                                                                                  shape.icon,
-                                                                                  color: shape.color,
+                                                                  // SHAPES LOOP
+                                                                  ...data.shapes.map((shape) {
+                                                                    return Positioned(
+                                                                      left: shape.offset.dx * canvasW,
+                                                                      top: shape.offset.dy * canvasH,
+                                                                      child: FractionalTranslation(
+                                                                        translation: const Offset(-0.5, -0.5),
+                                                                        child: Transform.rotate(
+                                                                          angle: shape.rotation,
+                                                                          child: Container(
+                                                                            padding: const EdgeInsets.all(24),
+                                                                            child: SizedBox(
+                                                                              width:
+                                                                                  (shape.size * shape.scaleX.abs()) *
+                                                                                  scaleRatio,
+                                                                              height:
+                                                                                  (shape.size * shape.scaleY.abs()) *
+                                                                                  scaleRatio,
+                                                                              child: FittedBox(
+                                                                                fit: BoxFit.fill,
+                                                                                child: Transform.scale(
+                                                                                  scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                                                  scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                                                  child: Icon(
+                                                                                    shape.icon,
+                                                                                    color: shape.color,
+                                                                                  ),
                                                                                 ),
                                                                               ),
                                                                             ),
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                    ),
-                                                                  );
-                                                                }),
-                                                              ],
-                                                            );
-                                                          },
+                                                                    );
+                                                                  }),
+                                                                ],
+                                                              );
+                                                            },
+                                                          ),
                                                         ),
-                                                      ),
+                                                      ],
                                                     ],
-                                                  ],
-                                                ),
                                                   ),
+                                                ),
                                               );
 
                                               // 🚨 NAYA: LayoutBuilder ka return logic yahan aayega
@@ -1872,11 +1814,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       Positioned.fill(
                         child: Container(
                           color: Colors.black54, // Peeche ka thoda dark karne ke liye
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.blueAccent,
-                            ),
-                          ),
+                          child: const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
                         ),
                       ),
                   ],
@@ -2957,58 +2895,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
   }
 
-  // Future<void> _saveNewCrop() async {
-  //   // 1. STATE CHANGE: Crop options "Hide Down" aur Normal tools "Hide Up" honge
-  //   setState(() {
-  //     isCroppingMode = false;
-  //     isThumbnailVisible = true;
-  //   });
-  //
-  //   // 2. WAIT: Animation poora hone do 300ms
-  //   await Future.delayed(const Duration(milliseconds: 300));
-  //
-  //   // 3. HEAVY WORK: Crop save logic chalega
-  //   try {
-  //     File originalFile = widget.imageFiles[currentPage]['original']!;
-  //     final bytes = await originalFile.readAsBytes();
-  //     img.Image? originalImage = img.decodeImage(bytes);
-  //
-  //     if (originalImage != null) {
-  //       int x = (cropLeftRatio * originalImage.width).toInt();
-  //       int y = (cropTopRatio * originalImage.height).toInt();
-  //       int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width).toInt();
-  //       int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height).toInt();
-  //
-  //       x = x.clamp(0, originalImage.width);
-  //       y = y.clamp(0, originalImage.height);
-  //       w = w.clamp(10, originalImage.width - x);
-  //       h = h.clamp(10, originalImage.height - y);
-  //
-  //       img.Image newlyCropped = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
-  //
-  //       final String newPath = originalFile.path.replaceAll(
-  //         '.jpg',
-  //         '_recropped_${DateTime.now().millisecondsSinceEpoch}.jpg',
-  //       );
-  //       final newFile = File(newPath);
-  //       await newFile.writeAsBytes(img.encodeJpg(newlyCropped, quality: 100));
-  //
-  //       setState(() {
-  //         widget.imageFiles[currentPage]['cropped'] = newFile;
-  //         // Crop position save hogi agle baar ke liye
-  //         _savedCropPositions[currentPage] = {
-  //           'top': cropTopRatio,
-  //           'bottom': cropBottomRatio,
-  //           'left': cropLeftRatio,
-  //           'right': cropRightRatio,
-  //         };
-  //       });
-  //     }
-  //   } catch (e) {
-  //     showToast("Error saving crop");
-  //   }
-  // }
-
   Future<void> _saveNewCrop() async {
     // 🚨 1. STATE CHANGE: Sabse pehle Loading ON karo
     setState(() {
@@ -3068,14 +2954,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // // Cancel logic bhi perfect slide down dega
-  // void _cancelCrop() {
-  //   setState(() {
-  //     isCroppingMode = false;
-  //     isThumbnailVisible = true;
-  //   });
-  // }
-
   // Cancel logic bhi update kar diya taaki safety ke liye loading off rahe
   void _cancelCrop() {
     setState(() {
@@ -3084,140 +2962,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       isProcessing = false;
     });
   }
-
-  // Widget _buildInPlaceCropView() {
-  //   File originalFile = widget.imageFiles[currentPage]['original']!;
-  //
-  //   return Center(
-  //     child: Padding(
-  //       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-  //       // AspectRatio lagane se box screen par exactly main photo ke upar perfectly lock ho jayega
-  //       child: AspectRatio(
-  //         aspectRatio: _origWidth / _origHeight,
-  //         child: LayoutBuilder(
-  //           builder: (context, constraints) {
-  //             _cropAreaWidth = constraints.maxWidth;
-  //             _cropAreaHeight = constraints.maxHeight;
-  //
-  //             double cropTop = cropTopRatio * _cropAreaHeight;
-  //             double cropBottom = cropBottomRatio * _cropAreaHeight;
-  //             double cropLeft = cropLeftRatio * _cropAreaWidth;
-  //             double cropRight = cropRightRatio * _cropAreaWidth;
-  //
-  //             return Stack(
-  //               clipBehavior: Clip.none,
-  //               children: [
-  //                 // 1. Original Blur Image background
-  //                 SizedBox(
-  //                   width: _cropAreaWidth,
-  //                   height: _cropAreaHeight,
-  //                   child: Image.file(originalFile, fit: BoxFit.fill),
-  //                 ),
-  //                 // 2. Dark Overlay
-  //                 Container(color: Colors.black.withOpacity(0.6)),
-  //                 // 3. Main Crop Box
-  //                 Positioned(
-  //                   top: cropTop,
-  //                   bottom: cropBottom,
-  //                   left: cropLeft,
-  //                   right: cropRight,
-  //                   child: Stack(
-  //                     clipBehavior: Clip.none,
-  //                     children: [
-  //                       // Clear Crop Area
-  //                       Positioned(
-  //                         top: -cropTop,
-  //                         bottom: -cropBottom,
-  //                         left: -cropLeft,
-  //                         right: -cropRight,
-  //                         child: SizedBox(
-  //                           width: _cropAreaWidth,
-  //                           height: _cropAreaHeight,
-  //                           child: Image.file(originalFile, fit: BoxFit.fill),
-  //                         ),
-  //                       ),
-  //                       // Border
-  //                       Container(
-  //                         decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 2.5)),
-  //                       ),
-  //
-  //                       // Edge lines
-  //                       _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
-  //                       _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
-  //                       _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
-  //                       _buildEdgeHandle(Alignment.centerRight, (d) => _updateCropBounds(0, 0, 0, -d.delta.dx)),
-  //
-  //                       // Corner Circles
-  //                       _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
-  //                       _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
-  //                       _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
-  //                       _buildDragCorner(
-  //                         Alignment.bottomRight,
-  //                         (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //               ],
-  //             );
-  //           },
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-  //
-  // Widget _buildEdgeHandle(Alignment alignment, Function(DragUpdateDetails) onPan) {
-  //   bool isVertical = alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
-  //   return Align(
-  //     alignment: alignment,
-  //     child: GestureDetector(
-  //       onPanUpdate: onPan,
-  //       child: Transform.translate(
-  //         offset: Offset(alignment.x * 12, alignment.y * 12),
-  //         child: Container(
-  //           width: isVertical ? 30 : 50,
-  //           height: isVertical ? 50 : 30,
-  //           color: Colors.transparent,
-  //           alignment: Alignment.center,
-  //           child: Container(
-  //             width: isVertical ? 6 : 24,
-  //             height: isVertical ? 24 : 6,
-  //             decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(3)),
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-  //
-  // Widget _buildDragCorner(Alignment alignment, Function(DragUpdateDetails) onPan) {
-  //   return Align(
-  //     alignment: alignment,
-  //     child: GestureDetector(
-  //       onPanUpdate: onPan,
-  //       child: Transform.translate(
-  //         offset: Offset(alignment.x * 15, alignment.y * 15),
-  //         child: Container(
-  //           width: 40,
-  //           height: 40,
-  //           color: Colors.transparent,
-  //           alignment: Alignment.center,
-  //           child: Container(
-  //             width: 22,
-  //             height: 22,
-  //             decoration: BoxDecoration(
-  //               color: Colors.grey.shade400,
-  //               shape: BoxShape.circle,
-  //               border: Border.all(color: Colors.blueAccent, width: 2.5),
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
 
   Widget _buildInPlaceCropView() {
     File originalFile = widget.imageFiles[currentPage]['original']!;
@@ -3273,9 +3017,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                         // Border (Thora mota kar diya: 2.5 -> 3.5)
                         Container(
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Colors.blueAccent, width: 3.5)
-                          ),
+                          decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 3.5)),
                         ),
 
                         // Edge lines (Ab line se bhi drag hoga)
@@ -3288,7 +3030,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
                         _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
                         _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
-                        _buildDragCorner(Alignment.bottomRight, (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx)),
+                        _buildDragCorner(
+                          Alignment.bottomRight,
+                          (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx),
+                        ),
                       ],
                     ),
                   ),
@@ -3317,16 +3062,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             // 🚨 FIX: double.infinity se ye touch area poori line par fail jayega!
             width: isVertical ? 40 : double.infinity,
             height: isVertical ? double.infinity : 40,
-            color: Colors.transparent, // Touch area dikhega nahi par exist karega
+            color: Colors.transparent,
+            // Touch area dikhega nahi par exist karega
             alignment: Alignment.center,
             child: Container(
               // 🚨 FIX: Handle ko lamba (40) aur mota (8) kar diya
               width: isVertical ? 8 : 40,
               height: isVertical ? 40 : 8,
-              decoration: BoxDecoration(
-                  color: Colors.blueAccent,
-                  borderRadius: BorderRadius.circular(4)
-              ),
+              decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(4)),
             ),
           ),
         ),
@@ -3344,7 +3087,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           // Offset thora aur center me kiya taaki corner perfectly touch ke neeche aaye
           offset: Offset(alignment.x * 20, alignment.y * 20),
           child: Container(
-            width: 50, // 🚨 Touch area 50x50 ka bada kar diya
+            width: 50,
+            // 🚨 Touch area 50x50 ka bada kar diya
             height: 50,
             color: Colors.transparent,
             alignment: Alignment.center,
@@ -3363,7 +3107,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       ),
     );
   }
-
 }
 
 /// end main class
