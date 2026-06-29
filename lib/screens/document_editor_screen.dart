@@ -3072,13 +3072,146 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
   }
 
+  // Widget _buildInPlaceCropView() {
+  //   File originalFile = widget.imageFiles[currentPage]['original']!;
+  //
+  //   return Center(
+  //     child: Padding(
+  //       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+  //       // AspectRatio lagane se box screen par exactly main photo ke upar perfectly lock ho jayega
+  //       child: AspectRatio(
+  //         aspectRatio: _origWidth / _origHeight,
+  //         child: LayoutBuilder(
+  //           builder: (context, constraints) {
+  //             _cropAreaWidth = constraints.maxWidth;
+  //             _cropAreaHeight = constraints.maxHeight;
+  //
+  //             double cropTop = cropTopRatio * _cropAreaHeight;
+  //             double cropBottom = cropBottomRatio * _cropAreaHeight;
+  //             double cropLeft = cropLeftRatio * _cropAreaWidth;
+  //             double cropRight = cropRightRatio * _cropAreaWidth;
+  //
+  //             return Stack(
+  //               clipBehavior: Clip.none,
+  //               children: [
+  //                 // 1. Original Blur Image background
+  //                 SizedBox(
+  //                   width: _cropAreaWidth,
+  //                   height: _cropAreaHeight,
+  //                   child: Image.file(originalFile, fit: BoxFit.fill),
+  //                 ),
+  //                 // 2. Dark Overlay
+  //                 Container(color: Colors.black.withOpacity(0.6)),
+  //                 // 3. Main Crop Box
+  //                 Positioned(
+  //                   top: cropTop,
+  //                   bottom: cropBottom,
+  //                   left: cropLeft,
+  //                   right: cropRight,
+  //                   child: Stack(
+  //                     clipBehavior: Clip.none,
+  //                     children: [
+  //                       // Clear Crop Area
+  //                       Positioned(
+  //                         top: -cropTop,
+  //                         bottom: -cropBottom,
+  //                         left: -cropLeft,
+  //                         right: -cropRight,
+  //                         child: SizedBox(
+  //                           width: _cropAreaWidth,
+  //                           height: _cropAreaHeight,
+  //                           child: Image.file(originalFile, fit: BoxFit.fill),
+  //                         ),
+  //                       ),
+  //                       // Border
+  //                       Container(
+  //                         decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 2.5)),
+  //                       ),
+  //
+  //                       // Edge lines
+  //                       _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
+  //                       _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
+  //                       _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
+  //                       _buildEdgeHandle(Alignment.centerRight, (d) => _updateCropBounds(0, 0, 0, -d.delta.dx)),
+  //
+  //                       // Corner Circles
+  //                       _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
+  //                       _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
+  //                       _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
+  //                       _buildDragCorner(
+  //                         Alignment.bottomRight,
+  //                         (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx),
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               ],
+  //             );
+  //           },
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+  //
+  // Widget _buildEdgeHandle(Alignment alignment, Function(DragUpdateDetails) onPan) {
+  //   bool isVertical = alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
+  //   return Align(
+  //     alignment: alignment,
+  //     child: GestureDetector(
+  //       onPanUpdate: onPan,
+  //       child: Transform.translate(
+  //         offset: Offset(alignment.x * 12, alignment.y * 12),
+  //         child: Container(
+  //           width: isVertical ? 30 : 50,
+  //           height: isVertical ? 50 : 30,
+  //           color: Colors.transparent,
+  //           alignment: Alignment.center,
+  //           child: Container(
+  //             width: isVertical ? 6 : 24,
+  //             height: isVertical ? 24 : 6,
+  //             decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(3)),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+  //
+  // Widget _buildDragCorner(Alignment alignment, Function(DragUpdateDetails) onPan) {
+  //   return Align(
+  //     alignment: alignment,
+  //     child: GestureDetector(
+  //       onPanUpdate: onPan,
+  //       child: Transform.translate(
+  //         offset: Offset(alignment.x * 15, alignment.y * 15),
+  //         child: Container(
+  //           width: 40,
+  //           height: 40,
+  //           color: Colors.transparent,
+  //           alignment: Alignment.center,
+  //           child: Container(
+  //             width: 22,
+  //             height: 22,
+  //             decoration: BoxDecoration(
+  //               color: Colors.grey.shade400,
+  //               shape: BoxShape.circle,
+  //               border: Border.all(color: Colors.blueAccent, width: 2.5),
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
   Widget _buildInPlaceCropView() {
     File originalFile = widget.imageFiles[currentPage]['original']!;
 
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
-        // AspectRatio lagane se box screen par exactly main photo ke upar perfectly lock ho jayega
         child: AspectRatio(
           aspectRatio: _origWidth / _origHeight,
           child: LayoutBuilder(
@@ -3102,6 +3235,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   ),
                   // 2. Dark Overlay
                   Container(color: Colors.black.withOpacity(0.6)),
+
                   // 3. Main Crop Box
                   Positioned(
                     top: cropTop,
@@ -3123,12 +3257,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             child: Image.file(originalFile, fit: BoxFit.fill),
                           ),
                         ),
-                        // Border
+
+                        // Border (Thora mota kar diya: 2.5 -> 3.5)
                         Container(
-                          decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 2.5)),
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Colors.blueAccent, width: 3.5)
+                          ),
                         ),
 
-                        // Edge lines
+                        // Edge lines (Ab line se bhi drag hoga)
                         _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
                         _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
                         _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
@@ -3138,10 +3275,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
                         _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
                         _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
-                        _buildDragCorner(
-                          Alignment.bottomRight,
-                          (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx),
-                        ),
+                        _buildDragCorner(Alignment.bottomRight, (d) => _updateCropBounds(0, -d.delta.dy, 0, -d.delta.dx)),
                       ],
                     ),
                   ),
@@ -3156,21 +3290,30 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   Widget _buildEdgeHandle(Alignment alignment, Function(DragUpdateDetails) onPan) {
     bool isVertical = alignment == Alignment.centerLeft || alignment == Alignment.centerRight;
+
     return Align(
       alignment: alignment,
       child: GestureDetector(
+        // 🚨 FIX: Translucent zaruri hai taaki invisible touch area kaam kare
+        behavior: HitTestBehavior.translucent,
         onPanUpdate: onPan,
         child: Transform.translate(
-          offset: Offset(alignment.x * 12, alignment.y * 12),
+          // Offset set kiya taaki line ke dono taraf touch ho sake
+          offset: Offset(alignment.x * 20, alignment.y * 20),
           child: Container(
-            width: isVertical ? 30 : 50,
-            height: isVertical ? 50 : 30,
-            color: Colors.transparent,
+            // 🚨 FIX: double.infinity se ye touch area poori line par fail jayega!
+            width: isVertical ? 40 : double.infinity,
+            height: isVertical ? double.infinity : 40,
+            color: Colors.transparent, // Touch area dikhega nahi par exist karega
             alignment: Alignment.center,
             child: Container(
-              width: isVertical ? 6 : 24,
-              height: isVertical ? 24 : 6,
-              decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(3)),
+              // 🚨 FIX: Handle ko lamba (40) aur mota (8) kar diya
+              width: isVertical ? 8 : 40,
+              height: isVertical ? 40 : 8,
+              decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(4)
+              ),
             ),
           ),
         ),
@@ -3182,21 +3325,24 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return Align(
       alignment: alignment,
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onPanUpdate: onPan,
         child: Transform.translate(
-          offset: Offset(alignment.x * 15, alignment.y * 15),
+          // Offset thora aur center me kiya taaki corner perfectly touch ke neeche aaye
+          offset: Offset(alignment.x * 20, alignment.y * 20),
           child: Container(
-            width: 40,
-            height: 40,
+            width: 50, // 🚨 Touch area 50x50 ka bada kar diya
+            height: 50,
             color: Colors.transparent,
             alignment: Alignment.center,
             child: Container(
-              width: 22,
-              height: 22,
+              width: 26, // 🚨 Circle thoda bada kar diya
+              height: 26,
               decoration: BoxDecoration(
-                color: Colors.grey.shade400,
+                // 🚨 FIX: Grey hatakar Blue + Transparent (.withOpacity) kar diya
+                color: Colors.blueAccent.withOpacity(0.3),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.blueAccent, width: 2.5),
+                border: Border.all(color: Colors.blueAccent, width: 3.5), // Mota border
               ),
             ),
           ),
@@ -3204,6 +3350,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       ),
     );
   }
+
 }
 
 /// end main class
