@@ -482,6 +482,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           double autoLeft = (1.0 - percentW) / 2;
           double autoRight = (1.0 - percentW) / 2;
 
+          if (percentW >= 0.99 && percentH >= 0.99) {
+            autoTop = 0.05; autoBottom = 0.05; autoLeft = 0.05; autoRight = 0.05;
+          }
+
+          // 🚨 FINAL FIX: Agar Scanner ne exact coordinates bheje hain, toh Center (auto) ki jagah wo use karo!
+          if (widget.imageFiles[currentPage]['crop_ratios'] != null) {
+            final ratios = widget.imageFiles[currentPage]['crop_ratios'];
+            autoTop = (ratios['top'] as num).toDouble();
+            autoBottom = (ratios['bottom'] as num).toDouble();
+            autoLeft = (ratios['left'] as num).toDouble();
+            autoRight = (ratios['right'] as num).toDouble();
+          }
+
           _autoCropPositions[currentPage] ??= {
             'top': autoTop,
             'bottom': autoBottom,

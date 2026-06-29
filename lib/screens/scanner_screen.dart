@@ -362,7 +362,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final XFile photo = await controller.takePicture();
 
       // NAYI LINE: Photo save hone se pehle usko explicitly 4:3 me crop kar do
-      await _cropTo43(photo.path);
+      //await _cropTo43(photo.path);
+
+      // Replace file capture part with this:
+      Map<String, dynamic>? cropData = await _cropTo43(photo.path);
+      File finalCroppedFile = cropData != null ? cropData['file'] : File(photo.path);
 
       // 🚨 FIX 1: RETAKE LOGIC (Manual Camera Click) 🚨
       if (widget.isRetakeMode) {
@@ -383,9 +387,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
         // });
 
         // NAYI LINE: Click ki gayi photo ko list me add kar do
-        capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
+        // capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
+        //   'original': File(photo.path),
+        //   'cropped': File(photo.path),
+        // });
+
+        capturedImagesList.add(<String, dynamic>{
           'original': File(photo.path),
-          'cropped': File(photo.path),
+          'cropped': finalCroppedFile,
+          // 🚨 MAGIC: Coordinates list me chhupe rahenge Editor ke liye!
+          if (cropData != null) 'crop_ratios': cropData['ratios'],
         });
 
         capturedPhotosCount = capturedImagesList.length; // Counter ko list ki length se update karo
@@ -403,20 +414,172 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   // Image ko perfect 4:3 document ratio me crop karne ke liye
-  Future<void> _cropTo43(String filePath) async {
+  // Future<void> _cropTo43(String filePath) async {
+  //   final file = File(filePath);
+  //   final bytes = await file.readAsBytes();
+  //   img.Image? originalImage = img.decodeImage(bytes);
+  //
+  //   if (originalImage == null) return;
+  //
+  //   int origW = originalImage.width;
+  //   int origH = originalImage.height;
+  //   double origRatio = origW / origH;
+  //   double targetRatio = 3 / 4; // 4:3 portrait ratio
+  //
+  //   // Agar image pehle se lagbhag 4:3 hai, toh processing time bachane ke liye skip karo
+  //   if ((origRatio - targetRatio).abs() < 0.05) return;
+  //
+  //   int cropW = origW;
+  //   int cropH = origH;
+  //   int x = 0;
+  //   int y = 0;
+  //
+  //   if (origRatio > targetRatio) {
+  //     cropW = (origH * targetRatio).toInt();
+  //     x = (origW - cropW) ~/ 2;
+  //   } else {
+  //     cropH = (origW / targetRatio).toInt();
+  //     y = (origH - cropH) ~/ 2;
+  //   }
+  //
+  //   img.Image croppedImage = img.copyCrop(
+  //     originalImage,
+  //     x: x,
+  //     y: y,
+  //     width: cropW,
+  //     height: cropH,
+  //   );
+  //
+  //   // Image wapas save karo (Quality 85 rakhi hai taaki processing fast ho)
+  //   await file.writeAsBytes(img.encodeJpg(croppedImage, quality: 85));
+  // }
+
+  // 🚨 FIX 2: Scanner ka Manual 4:3 Crop bhi ab Exact Ratios return karega
+  // Future<Map<String, dynamic>?> _cropTo43(String filePath) async {
+  //   final file = File(filePath);
+  //   final bytes = await file.readAsBytes();
+  //   img.Image? originalImage = img.decodeImage(bytes);
+  //
+  //   if (originalImage == null) return null;
+  //
+  //   int origW = originalImage.width;
+  //   int origH = originalImage.height;
+  //   double origRatio = origW / origH;
+  //   double targetRatio = 3 / 4;
+  //
+  //   if ((origRatio - targetRatio).abs() < 0.05) return null;
+  //
+  //   int cropW = origW;
+  //   int cropH = origH;
+  //   int x = 0;
+  //   int y = 0;
+  //
+  //   if (origRatio > targetRatio) {
+  //     cropW = (origH * targetRatio).toInt();
+  //     x = (origW - cropW) ~/ 2;
+  //   } else {
+  //     cropH = (origW / targetRatio).toInt();
+  //     y = (origH - cropH) ~/ 2;
+  //   }
+  //
+  //   img.Image croppedImage = img.copyCrop(originalImage, x: x, y: y, width: cropW, height: cropH);
+  //
+  //   final String newPath = filePath.replaceAll('.jpg', '_manualcrop_${DateTime.now().millisecondsSinceEpoch}.jpg');
+  //   final newFile = File(newPath);
+  //   await newFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 85));
+  //
+  //   // 🚨 NAYA: File ke sath exact map return kar rahe hain
+  //   return {
+  //     'file': newFile,
+  //     'ratios': {
+  //       'left': x / origW,
+  //       'top': y / origH,
+  //       'right': 1.0 - ((x + cropW) / origW),
+  //       'bottom': 1.0 - ((y + cropH) / origH),
+  //     }
+  //   };
+  // }
+
+  // Future<Map<String, dynamic>?> _cropTo43(String filePath) async {
+  //   final file = File(filePath);
+  //   final bytes = await file.readAsBytes();
+  //   img.Image? originalImage = img.decodeImage(bytes);
+  //
+  //   if (originalImage == null) return null;
+  //
+  //   // 🚨 THE MASTER FIX: Math calculation se pehle image ko seedha (Portrait) karo!
+  //   // Iske bina width aur height aapas me swapped (ulte) hote hain.
+  //   originalImage = img.bakeOrientation(originalImage);
+  //
+  //   int origW = originalImage.width;
+  //   int origH = originalImage.height;
+  //   double origRatio = origW / origH;
+  //   double targetRatio = 3 / 4; // Portrait 4:3 (Yani width 3, height 4)
+  //
+  //   // Agar image pehle se lagbhag 4:3 hai, toh skip kardo
+  //   if ((origRatio - targetRatio).abs() < 0.05) return null;
+  //
+  //   int cropW = origW;
+  //   int cropH = origH;
+  //   int x = 0;
+  //   int y = 0;
+  //
+  //   if (origRatio > targetRatio) {
+  //     // Image zyada chodi hai (Wide)
+  //     cropW = (origH * targetRatio).toInt();
+  //     x = (origW - cropW) ~/ 2;
+  //   } else {
+  //     // Image zyada lambi hai (Tall) - Mobile cameras normally yahan aate hain
+  //     cropH = (origW / targetRatio).toInt();
+  //     y = (origH - cropH) ~/ 2;
+  //   }
+  //
+  //   img.Image croppedImage = img.copyCrop(
+  //       originalImage,
+  //       x: x,
+  //       y: y,
+  //       width: cropW,
+  //       height: cropH
+  //   );
+  //
+  //   final String newPath = filePath.replaceAll('.jpg', '_manualcrop_${DateTime.now().millisecondsSinceEpoch}.jpg');
+  //   final newFile = File(newPath);
+  //   await newFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 85));
+  //
+  //   return {
+  //     'file': newFile,
+  //     'ratios': {
+  //       'left': x / origW,
+  //       'top': y / origH,
+  //       'right': 1.0 - ((x + cropW) / origW),
+  //       'bottom': 1.0 - ((y + cropH) / origH),
+  //     }
+  //   };
+  // }
+
+  // 🚨 MASTER FIX: Strict 4:3 Smart Crop (Without extra options)
+  Future<Map<String, dynamic>?> _cropTo43(String filePath) async {
     final file = File(filePath);
     final bytes = await file.readAsBytes();
     img.Image? originalImage = img.decodeImage(bytes);
 
-    if (originalImage == null) return;
+    if (originalImage == null) return null;
+
+    // Camera ki photo ko seedha karna zaroori hai
+    originalImage = img.bakeOrientation(originalImage);
 
     int origW = originalImage.width;
     int origH = originalImage.height;
     double origRatio = origW / origH;
-    double targetRatio = 3 / 4; // 4:3 portrait ratio
 
-    // Agar image pehle se lagbhag 4:3 hai, toh processing time bachane ke liye skip karo
-    if ((origRatio - targetRatio).abs() < 0.05) return;
+    // 🚨 YAHAN HAI ASLI JADOO: Check karo photo RAM me landscape hai ya portrait
+    bool isLandscape = origW > origH;
+
+    // Seedha 4:3 logic lagao: Agar landscape hai toh 4/3, portrait hai toh 3/4
+    double targetRatio = isLandscape ? (4 / 3) : (3 / 4);
+
+    // Agar image pehle se lagbhag 4:3 hai, toh skip kardo
+    if ((origRatio - targetRatio).abs() < 0.05) return null;
 
     int cropW = origW;
     int cropH = origH;
@@ -424,23 +587,30 @@ class _ScannerScreenState extends State<ScannerScreen> {
     int y = 0;
 
     if (origRatio > targetRatio) {
+      // Image expected se zyada chodi (wide) hai, sides (left/right) kaato
       cropW = (origH * targetRatio).toInt();
       x = (origW - cropW) ~/ 2;
     } else {
+      // Image expected se zyada lambi (tall) hai, upar-neeche (top/bottom) kaato!
       cropH = (origW / targetRatio).toInt();
       y = (origH - cropH) ~/ 2;
     }
 
-    img.Image croppedImage = img.copyCrop(
-      originalImage,
-      x: x,
-      y: y,
-      width: cropW,
-      height: cropH,
-    );
+    img.Image croppedImage = img.copyCrop(originalImage, x: x, y: y, width: cropW, height: cropH);
 
-    // Image wapas save karo (Quality 85 rakhi hai taaki processing fast ho)
-    await file.writeAsBytes(img.encodeJpg(croppedImage, quality: 85));
+    final String newPath = filePath.replaceAll('.jpg', '_manualcrop_${DateTime.now().millisecondsSinceEpoch}.jpg');
+    final newFile = File(newPath);
+    await newFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 85));
+
+    return {
+      'file': newFile,
+      'ratios': {
+        'left': x / origW,
+        'top': y / origH,
+        'right': 1.0 - ((x + cropW) / origW),
+        'bottom': 1.0 - ((y + cropH) / origH),
+      }
+    };
   }
 
 
@@ -631,8 +801,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // Kyunki wo original photo ko bigad raha tha.
 
       // Asli raw photo par AI ka auto-crop chalao
-      File? croppedFile = await _autoCropImage(photo.path, boxToCrop);
-      File finalFile = croppedFile ?? File(photo.path);
+      // File? croppedFile = await _autoCropImage(photo.path, boxToCrop);
+      // File finalFile = croppedFile ?? File(photo.path);
+
+      // Replace file capture part with this:
+      Map<String, dynamic>? cropData = await _autoCropImage(photo.path, boxToCrop);
+      File finalFile = cropData != null ? cropData['file'] : File(photo.path);
 
       // 🚨 FIX 3: RETAKE LOGIC (AI Auto-Capture) 🚨
       if (widget.isRetakeMode) {
@@ -649,9 +823,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
       //   'cropped': croppedFile ?? File(photo.path),
       // });
       // NAYI LINE: Click ki gayi photo ko list me add kar do
-      capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
+      // capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
+      //   'original': File(photo.path),
+      //   //'cropped': File(photo.path),
+      //   'cropped': croppedFile ?? File(photo.path),
+      // });
+
+      capturedImagesList.add(<String, dynamic>{
         'original': File(photo.path),
-        'cropped': File(photo.path),
+        'cropped': finalFile,
+        // 🚨 MAGIC: Coordinates list me chhupe rahenge Editor ke liye!
+        if (cropData != null) 'crop_ratios': cropData['ratios'],
       });
 
       capturedPhotosCount = capturedImagesList.length;
@@ -719,7 +901,52 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   // Naya Helper Function: ML Box coordinates se asli image ko crop karna
-  Future<File?> _autoCropImage(String originalPath, Rect? detectionBox) async {
+  // Future<File?> _autoCropImage(String originalPath, Rect? detectionBox) async {
+  //   if (detectionBox == null || !controller.value.isInitialized) return null;
+  //
+  //   try {
+  //     final file = File(originalPath);
+  //     final bytes = await file.readAsBytes();
+  //     img.Image? originalImage = img.decodeImage(bytes);
+  //     if (originalImage == null) return null;
+  //
+  //     // Photo ko perfect seedha (portrait) karo
+  //     originalImage = img.bakeOrientation(originalImage);
+  //
+  //     // Scale calculations
+  //     final double streamWidth = controller.value.previewSize!.height;
+  //     final double streamHeight = controller.value.previewSize!.width;
+  //
+  //     final double scaleX = originalImage.width / streamWidth;
+  //     final double scaleY = originalImage.height / streamHeight;
+  //
+  //     // Exact pixel coordinates nikalna
+  //     int x = (detectionBox.left * scaleX).toInt();
+  //     int y = (detectionBox.top * scaleY).toInt();
+  //     int w = (detectionBox.width * scaleX).toInt();
+  //     int h = (detectionBox.height * scaleY).toInt();
+  //
+  //     x = x.clamp(0, originalImage.width);
+  //     y = y.clamp(0, originalImage.height);
+  //     w = w.clamp(1, originalImage.width - x);
+  //     h = h.clamp(1, originalImage.height - y);
+  //
+  //     // Original photo se strict box ko kaatna
+  //     img.Image croppedImage = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
+  //
+  //     final String croppedPath = originalPath.replaceAll('.jpg', '_autocrop.jpg');
+  //     final croppedFile = File(croppedPath);
+  //     await croppedFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 100));
+  //
+  //     return croppedFile;
+  //   } catch (e) {
+  //     print("Auto Crop Error: $e");
+  //     return null;
+  //   }
+  // }
+
+  // 🚨 FIX 1: Scanner ka Auto Crop ab Exact Ratios bhi return karega
+  Future<Map<String, dynamic>?> _autoCropImage(String originalPath, Rect? detectionBox) async {
     if (detectionBox == null || !controller.value.isInitialized) return null;
 
     try {
@@ -728,17 +955,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
       img.Image? originalImage = img.decodeImage(bytes);
       if (originalImage == null) return null;
 
-      // Photo ko perfect seedha (portrait) karo
       originalImage = img.bakeOrientation(originalImage);
 
-      // Scale calculations
       final double streamWidth = controller.value.previewSize!.height;
       final double streamHeight = controller.value.previewSize!.width;
-
       final double scaleX = originalImage.width / streamWidth;
       final double scaleY = originalImage.height / streamHeight;
 
-      // Exact pixel coordinates nikalna
       int x = (detectionBox.left * scaleX).toInt();
       int y = (detectionBox.top * scaleY).toInt();
       int w = (detectionBox.width * scaleX).toInt();
@@ -749,14 +972,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
       w = w.clamp(1, originalImage.width - x);
       h = h.clamp(1, originalImage.height - y);
 
-      // Original photo se strict box ko kaatna
       img.Image croppedImage = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
 
-      final String croppedPath = originalPath.replaceAll('.jpg', '_autocrop.jpg');
+      final String croppedPath = originalPath.replaceAll('.jpg', '_autocrop_${DateTime.now().millisecondsSinceEpoch}.jpg');
       final croppedFile = File(croppedPath);
       await croppedFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 100));
 
-      return croppedFile;
+      // 🚨 NAYA: File ke sath exact map return kar rahe hain
+      return {
+        'file': croppedFile,
+        'ratios': {
+          'left': x / originalImage.width,
+          'top': y / originalImage.height,
+          'right': 1.0 - ((x + w) / originalImage.width),
+          'bottom': 1.0 - ((y + h) / originalImage.height),
+        }
+      };
     } catch (e) {
       print("Auto Crop Error: $e");
       return null;
