@@ -14,6 +14,7 @@ import 'package:open_file/open_file.dart';
 import 'package:pdf_scanner_pro/screens/reorder_screen.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'custom_dialog.dart';
 import 'home_screen.dart';
@@ -73,6 +74,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late List<String> _pageFilters; // 🚨 Har page ka alag filter track karega
   // 🚨 FIX: Filter ke saare options ki list define kardo
   final List<String> _filterOptions = ["Original color", "Auto-color", "Light text", "Grayscale", "Whiteboard"];
+  String _defaultFilter = "Original color"; // Default value
 
   bool _showAdjustMenu = false; // 🚨 Naya Adjust menu track karne ke liye
   late List<double> _pageBrightness; // 🚨 Har page ki brightness
@@ -100,6 +102,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   @override
   void initState() {
     super.initState();
+    _loadDefaultFilter();
     documentName = _generateDefaultName();
     // Open the latest captured photo first
     currentPage = widget.imageFiles.length - 1;
@@ -127,6 +130,31 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  // SharedPreferences se default filter nikalne ka function
+  // SharedPreferences se default filter nikalne ka function
+  Future<void> _loadDefaultFilter() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String savedFilter = prefs.getString('default_filter') ?? "Original color";
+
+    setState(() {
+      _defaultFilter = savedFilter;
+
+      // 🚨 MAIN FIX: Jab saved filter memory se mil jaye, toh usko list me apply karo
+      for (int i = 0; i < widget.imageFiles.length; i++) {
+        // Agar photo Scanner se aayi hai aur usme filter set nahi hai (ya default par hai)
+        if (widget.imageFiles[i]['filter'] == null || widget.imageFiles[i]['filter'] == "Original color") {
+
+          widget.imageFiles[i]['filter'] = savedFilter; // Map me save karo
+
+          // Agar _pageFilters list pehle initialize ho chuki hai, toh use bhi update karo
+          if (_pageFilters.isNotEmpty) {
+            _pageFilters[i] = savedFilter;
+          }
+        }
+      }
+    });
   }
 
   // 1. Screen Preview ke liye Aspect Ratio (Width / Height)
@@ -2359,8 +2387,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             child: IconButton(
                               icon: const Icon(Icons.settings, color: Colors.white, size: 24),
                               onPressed: () {
-                                // Settings par tap hone ka action yahan add kar lena
-                                showToast("Settings tapped");
+                                // 🚨 FIX: Dialog function call hoga
+                                _showDefaultFilterDialog(context);
                               },
                               padding: EdgeInsets.zero, // Icon ko compact rakhne ke liye
                               constraints: const BoxConstraints(), // Default extra padding hatane ke liye
@@ -2373,6 +2401,102 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // --- DEFAULT FILTER DIALOG ---
+  Future<void> _showDefaultFilterDialog(BuildContext context) async {
+    // Ye temporary variable user ki selection track karega dialog ke andar
+    String tempSelectedFilter = _defaultFilter;
+
+    // Tumhare 5 filter options
+    final List<String> filters = [
+      "Original color",
+      "Auto-color",
+      "Grayscale",
+      "Whiteboard",
+      "Light text"
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF2C2C2C), // Dark Theme
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              titlePadding: const EdgeInsets.only(top: 20, left: 24, right: 24, bottom: 0),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Set default filter",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(color: Colors.white24, thickness: 1, height: 1), // Divider Line
+                ],
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 8),
+              // Radio Buttons (Select Boxes)
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: filters.map((filter) {
+                  return RadioListTile<String>(
+                    title: Text(filter, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+                    value: filter,
+                    groupValue: tempSelectedFilter,
+                    activeColor: Colors.blueAccent, // Select hone par blue
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() {
+                          tempSelectedFilter = val; // Selection change karega
+                        });
+                      }
+                    },
+                  );
+                }).toList(),
+              ),
+              actionsPadding: const EdgeInsets.only(right: 16, bottom: 16, top: 0),
+              actions: [
+                // Cancel Button
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.white70, fontSize: 15)),
+                ),
+
+                // Save Button
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.blueAccent, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  ),
+                  onPressed: () async {
+                    // 🚨 Data ko SharedPreferences me hamesha ke liye save kardo
+                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    await prefs.setString('default_filter', tempSelectedFilter);
+
+                    setState(() {
+                      _defaultFilter = tempSelectedFilter; // Main state update
+                    });
+
+                    Navigator.pop(context); // Close dialog
+                    showToast("Default filter set to $tempSelectedFilter");
+                  },
+                  child: const Text("Save", style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
