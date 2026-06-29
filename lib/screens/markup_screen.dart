@@ -296,50 +296,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     setState(() {}); // UI Update
   }
 
-  // Discard Dialog
-  // Discard Dialog
-  // Future<bool> _onWillPop() async {
-  //   //if (_paths.isEmpty) return true;
-  //   if (_paths.isEmpty && _textItems.isEmpty && _shapeItems.isEmpty) return true;
-  //
-  //   bool? discard = await showDialog<bool>(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       backgroundColor: const Color(0xFF2C2C2C),
-  //       title: const Text(
-  //         "Discard changes",
-  //         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-  //       ),
-  //       content: const Text(
-  //         "Changes you have made with the Markup tool will be discarded.",
-  //         style: TextStyle(color: Colors.white70),
-  //       ),
-  //
-  //       actions: [
-  //         OutlinedButton(
-  //           style: OutlinedButton.styleFrom(
-  //             side: const BorderSide(color: Colors.grey),
-  //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-  //           ),
-  //           // 🚨 FIX: Cancel dabaane par 'false' return hoga, jisse sirf popup band hoga, screen nahi
-  //           onPressed: () => Navigator.pop(context, false),
-  //           child: const Text("Cancel", style: TextStyle(color: Colors.white70)),
-  //         ),
-  //         ElevatedButton(
-  //           style: ElevatedButton.styleFrom(
-  //             backgroundColor: Colors.blueAccent,
-  //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-  //           ),
-  //           // 🚨 FIX: OK dabaane par 'true' return hoga, jisse screen back chali jayegi (discard changes)
-  //           onPressed: () => Navigator.pop(context, true),
-  //           child: const Text("OK", style: TextStyle(color: Colors.white)),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  //   return discard ?? false;
-  // }
-
   Future<bool> _onWillPop() async {
     if (_paths.isEmpty && _textItems.isEmpty && _shapeItems.isEmpty) return true;
 
@@ -348,8 +304,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
       context,
       title: "Discard changes",
       message: "Changes you have made with the Markup tool will be discarded.",
-      positiveBtnText: "OK",     // Custom Text
-      negativeBtnText: "Cancel", // Custom Text
+      positiveBtnText: "OK",
+      // Custom Text
+      negativeBtnText: "Cancel",
+      // Custom Text
       positiveBtnColor: Colors.redAccent, // Custom Color for destructive action
     );
 
