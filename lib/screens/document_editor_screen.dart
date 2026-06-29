@@ -87,6 +87,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late List<bool> selectedPagesList;
   bool isResizeMode = false;
   static String _selectedPageSize = "Auto Fit";
+  bool isProcessing = false;
 
   @override
   void initState() {
@@ -386,20 +387,79 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // --- CROP TOOL FUNCTIONS ---
 
+  // Future<void> _toggleCropMode() async {
+  //   if (isCroppingMode) {
+  //     await _saveNewCrop();
+  //   } else {
+  //     // 1. STATE CHANGE: Toolbar ko "Hide Down" aur Crop Option ko "Hide Up" karega
+  //     setState(() {
+  //       isCroppingMode = true;
+  //       isThumbnailVisible = false;
+  //     });
+  //
+  //     // 2. WAIT: Animation poora hone ke liye exactly 300ms rukenge
+  //     await Future.delayed(const Duration(milliseconds: 300));
+  //
+  //     // 3. HEAVY WORK: Ab photo read aur decode hogi (UI freeze nahi hoga)
+  //     File origFile = widget.imageFiles[currentPage]['original']!;
+  //     File cropFile = widget.imageFiles[currentPage]['cropped']!;
+  //
+  //     final origBytes = await origFile.readAsBytes();
+  //     final cropBytes = await cropFile.readAsBytes();
+  //
+  //     final decodedOrig = img.decodeImage(origBytes);
+  //     final decodedCrop = img.decodeImage(cropBytes);
+  //
+  //     if (decodedOrig != null && decodedCrop != null) {
+  //       setState(() {
+  //         _origWidth = decodedOrig.width.toDouble();
+  //         _origHeight = decodedOrig.height.toDouble();
+  //
+  //         double percentW = decodedCrop.width / decodedOrig.width;
+  //         double percentH = decodedCrop.height / decodedOrig.height;
+  //         double autoTop = (1.0 - percentH) / 2;
+  //         double autoBottom = (1.0 - percentH) / 2;
+  //         double autoLeft = (1.0 - percentW) / 2;
+  //         double autoRight = (1.0 - percentW) / 2;
+  //
+  //         _autoCropPositions[currentPage] ??= {
+  //           'top': autoTop,
+  //           'bottom': autoBottom,
+  //           'left': autoLeft,
+  //           'right': autoRight,
+  //         };
+  //
+  //         if (_savedCropPositions[currentPage] != null) {
+  //           cropTopRatio = _savedCropPositions[currentPage]!['top']!;
+  //           cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
+  //           cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
+  //           cropRightRatio = _savedCropPositions[currentPage]!['right']!;
+  //         } else {
+  //           cropTopRatio = autoTop;
+  //           cropBottomRatio = autoBottom;
+  //           cropLeftRatio = autoLeft;
+  //           cropRightRatio = autoRight;
+  //         }
+  //       });
+  //     }
+  //   }
+  // }
+
+  // --- CROP TOOL FUNCTIONS ---
+
   Future<void> _toggleCropMode() async {
     if (isCroppingMode) {
       await _saveNewCrop();
     } else {
-      // 1. STATE CHANGE: Toolbar ko "Hide Down" aur Crop Option ko "Hide Up" karega
+      // 🚨 1. STATE CHANGE: Sabse pehle Loading (Processing) ON karo
       setState(() {
-        isCroppingMode = true;
-        isThumbnailVisible = false;
+        isProcessing = true;
       });
 
-      // 2. WAIT: Animation poora hone ke liye exactly 300ms rukenge
-      await Future.delayed(const Duration(milliseconds: 300));
+      // 🚨 2. WAIT: Flutter ko screen par loading spinner draw karne ka time do
+      await Future.delayed(const Duration(milliseconds: 150));
 
-      // 3. HEAVY WORK: Ab photo read aur decode hogi (UI freeze nahi hoga)
+      // 3. HEAVY WORK: Ab photo read aur decode hogi (Ab screen freez nahi lagegi, loading dikhegi)
       File origFile = widget.imageFiles[currentPage]['original']!;
       File cropFile = widget.imageFiles[currentPage]['cropped']!;
 
@@ -410,6 +470,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       final decodedCrop = img.decodeImage(cropBytes);
 
       if (decodedOrig != null && decodedCrop != null) {
+        // 🚨 4. FINAL STATE UPDATE: Jab decoding ho jaye tab crop mode kholo aur loading hatao
         setState(() {
           _origWidth = decodedOrig.width.toDouble();
           _origHeight = decodedOrig.height.toDouble();
@@ -439,7 +500,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             cropLeftRatio = autoLeft;
             cropRightRatio = autoRight;
           }
+
+          // Toolbar aur Modes update karo
+          isCroppingMode = true;
+          isThumbnailVisible = false;
+          isProcessing = false; // Loading Spinner Off
         });
+      } else {
+        // Agar by-chance decode fail ho jaye toh loading band karni zaroori hai
+        setState(() => isProcessing = false);
       }
     }
   }
@@ -1785,6 +1854,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       right: 0,
                       child: _buildAdjustMenuWidget(), // Naya adjust menu call kiya
                     ),
+
+                    if (isProcessing)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black54, // Peeche ka thoda dark karne ke liye
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -2863,15 +2944,66 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
   }
 
+  // Future<void> _saveNewCrop() async {
+  //   // 1. STATE CHANGE: Crop options "Hide Down" aur Normal tools "Hide Up" honge
+  //   setState(() {
+  //     isCroppingMode = false;
+  //     isThumbnailVisible = true;
+  //   });
+  //
+  //   // 2. WAIT: Animation poora hone do 300ms
+  //   await Future.delayed(const Duration(milliseconds: 300));
+  //
+  //   // 3. HEAVY WORK: Crop save logic chalega
+  //   try {
+  //     File originalFile = widget.imageFiles[currentPage]['original']!;
+  //     final bytes = await originalFile.readAsBytes();
+  //     img.Image? originalImage = img.decodeImage(bytes);
+  //
+  //     if (originalImage != null) {
+  //       int x = (cropLeftRatio * originalImage.width).toInt();
+  //       int y = (cropTopRatio * originalImage.height).toInt();
+  //       int w = ((1.0 - cropLeftRatio - cropRightRatio) * originalImage.width).toInt();
+  //       int h = ((1.0 - cropBottomRatio - cropTopRatio) * originalImage.height).toInt();
+  //
+  //       x = x.clamp(0, originalImage.width);
+  //       y = y.clamp(0, originalImage.height);
+  //       w = w.clamp(10, originalImage.width - x);
+  //       h = h.clamp(10, originalImage.height - y);
+  //
+  //       img.Image newlyCropped = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
+  //
+  //       final String newPath = originalFile.path.replaceAll(
+  //         '.jpg',
+  //         '_recropped_${DateTime.now().millisecondsSinceEpoch}.jpg',
+  //       );
+  //       final newFile = File(newPath);
+  //       await newFile.writeAsBytes(img.encodeJpg(newlyCropped, quality: 100));
+  //
+  //       setState(() {
+  //         widget.imageFiles[currentPage]['cropped'] = newFile;
+  //         // Crop position save hogi agle baar ke liye
+  //         _savedCropPositions[currentPage] = {
+  //           'top': cropTopRatio,
+  //           'bottom': cropBottomRatio,
+  //           'left': cropLeftRatio,
+  //           'right': cropRightRatio,
+  //         };
+  //       });
+  //     }
+  //   } catch (e) {
+  //     showToast("Error saving crop");
+  //   }
+  // }
+
   Future<void> _saveNewCrop() async {
-    // 1. STATE CHANGE: Crop options "Hide Down" aur Normal tools "Hide Up" honge
+    // 🚨 1. STATE CHANGE: Sabse pehle Loading ON karo
     setState(() {
-      isCroppingMode = false;
-      isThumbnailVisible = true;
+      isProcessing = true;
     });
 
-    // 2. WAIT: Animation poora hone do 300ms
-    await Future.delayed(const Duration(milliseconds: 300));
+    // 🚨 2. WAIT: Flutter ko screen par loading spinner draw karne do
+    await Future.delayed(const Duration(milliseconds: 150));
 
     // 3. HEAVY WORK: Crop save logic chalega
     try {
@@ -2899,6 +3031,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         final newFile = File(newPath);
         await newFile.writeAsBytes(img.encodeJpg(newlyCropped, quality: 100));
 
+        // 🚨 4. FINAL UPDATE: File update karo, menus adjust karo, aur loading band karo
         setState(() {
           widget.imageFiles[currentPage]['cropped'] = newFile;
           // Crop position save hogi agle baar ke liye
@@ -2908,18 +3041,34 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             'left': cropLeftRatio,
             'right': cropRightRatio,
           };
+
+          isCroppingMode = false;
+          isThumbnailVisible = true;
+          isProcessing = false; // Loading Spinner Off
         });
+      } else {
+        setState(() => isProcessing = false);
       }
     } catch (e) {
       showToast("Error saving crop");
+      setState(() => isProcessing = false);
     }
   }
 
-  // Cancel logic bhi perfect slide down dega
+  // // Cancel logic bhi perfect slide down dega
+  // void _cancelCrop() {
+  //   setState(() {
+  //     isCroppingMode = false;
+  //     isThumbnailVisible = true;
+  //   });
+  // }
+
+  // Cancel logic bhi update kar diya taaki safety ke liye loading off rahe
   void _cancelCrop() {
     setState(() {
       isCroppingMode = false;
       isThumbnailVisible = true;
+      isProcessing = false;
     });
   }
 
