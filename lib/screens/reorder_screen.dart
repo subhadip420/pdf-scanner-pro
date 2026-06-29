@@ -183,6 +183,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
               borderRadius: BorderRadius.circular(4),
               child: RotatedBox(
                 quarterTurns: turns,
+    child: Center(
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -195,7 +196,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
                         child: Image.file(
                           imageFile,
                           fit: BoxFit.contain,
-                          width: double.infinity,
+                          //width: double.infinity,
                         ),
                       ),
                     ),
@@ -353,6 +354,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
                     ],
                   ],
                 ),
+    ),
               ),
             ),
           ),
