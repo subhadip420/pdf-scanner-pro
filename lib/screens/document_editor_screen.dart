@@ -937,6 +937,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    // 🚨 NAYI LINE: Master condition check karne ke liye ki koi tool open hai ya nahi
+    bool isAnyToolActive = isCroppingMode || _showFilterMenu || _showAdjustMenu || isResizeMode || isSelectionMode;
     //return Scaffold(
 
     return PopScope(
@@ -1871,6 +1874,50 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
 
             /// NAYA BOTTOM BAR: Keep Scanning & Save PDF
+            // Container(
+            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            //   color: Colors.black, // Ekdum dark background
+            //   child: SafeArea(
+            //     top: false,
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //       children: [
+            //         // Keep Scanning Text Button
+            //         TextButton(
+            //           onPressed: () {
+            //             _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
+            //             showToast("Keep scanning");
+            //             Navigator.pop(context); // Wapas camera par le jayega
+            //           },
+            //           child: const Text(
+            //             "Keep scanning",
+            //             style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+            //           ),
+            //         ),
+            //
+            //         // Save PDF Button
+            //         ElevatedButton(
+            //           onPressed: _handleSaveClick,
+            //           style: ElevatedButton.styleFrom(
+            //             backgroundColor: Colors.blueAccent,
+            //             // Adobe scan jaisa blue
+            //             foregroundColor: Colors.white,
+            //             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            //           ),
+            //           child: const Row(
+            //             children: [
+            //               Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            //               SizedBox(width: 4),
+            //               // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
+            //             ],
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
+
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               color: Colors.black, // Ekdum dark background
@@ -1880,34 +1927,50 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Keep Scanning Text Button
-                    TextButton(
-                      onPressed: () {
-                        _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
-                        showToast("Keep scanning");
-                        Navigator.pop(context); // Wapas camera par le jayega
-                      },
-                      child: const Text(
-                        "Keep scanning",
-                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                    Opacity(
+                      // 🚨 FIX 1: Tool on hone par button thoda fade ho jayega
+                      opacity: isAnyToolActive ? 0.4 : 1.0,
+                      child: TextButton(
+                        // 🚨 FIX 2: isAnyToolActive true hone par button tap disable (null) ho jayega
+                        onPressed: isAnyToolActive ? null : () {
+                          _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
+                          showToast("Keep scanning");
+                          Navigator.pop(context); // Wapas camera par le jayega
+                        },
+                        child: Text(
+                          "Keep scanning",
+                          style: TextStyle(
+                            color: isAnyToolActive ? Colors.white70 : Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
 
                     // Save PDF Button
-                    ElevatedButton(
-                      onPressed: _handleSaveClick,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        // Adobe scan jaisa blue
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      ),
-                      child: const Row(
-                        children: [
-                          Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          SizedBox(width: 4),
-                          // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
-                        ],
+                    Opacity(
+                      // 🚨 FIX 1: Tool on hone par button thoda fade ho jayega
+                      opacity: isAnyToolActive ? 0.4 : 1.0,
+                      child: ElevatedButton(
+                        // 🚨 FIX 2: isAnyToolActive true hone par tap disable (null) ho jayega
+                        onPressed: isAnyToolActive ? null : _handleSaveClick,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent, // Adobe scan jaisa blue
+                          foregroundColor: Colors.white,
+                          // 🚨 FIX 3: Disabled state ke liye colors set kiye
+                          disabledBackgroundColor: Colors.blueAccent.withOpacity(0.3),
+                          disabledForegroundColor: Colors.white60,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            SizedBox(width: 4),
+                            // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
+                          ],
+                        ),
                       ),
                     ),
                   ],
