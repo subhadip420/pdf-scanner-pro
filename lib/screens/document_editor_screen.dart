@@ -2349,6 +2349,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           ),
                           const SizedBox(width: 8),
                           const Text("Apply to all pages", style: TextStyle(color: Colors.white, fontSize: 14)),
+
+                          const Spacer(),
+
+                          // Settings Icon
+                          // 🚨 FIX: Settings Icon ko Tooltip ke andar wrap kar diya
+                          Tooltip(
+                            message: "Settings Filter", // Yahan apna tooltip text likho
+                            child: IconButton(
+                              icon: const Icon(Icons.settings, color: Colors.white, size: 24),
+                              onPressed: () {
+                                // Settings par tap hone ka action yahan add kar lena
+                                showToast("Settings tapped");
+                              },
+                              padding: EdgeInsets.zero, // Icon ko compact rakhne ke liye
+                              constraints: const BoxConstraints(), // Default extra padding hatane ke liye
+                            ),
+                          ),
                         ],
                       ),
                     ),
