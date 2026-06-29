@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+
 // 🚨 NEW: Markup structures aur DrawingPainter use karne ke liye import add kiya
 import 'markup_screen.dart';
 
@@ -26,10 +27,26 @@ class _ReorderScreenState extends State<ReorderScreen> {
     switch (filterName) {
       case "Grayscale":
         return const ColorFilter.matrix([
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0.2126, 0.7152, 0.0722, 0, 0,
-          0, 0, 0, 1, 0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0.2126,
+          0.7152,
+          0.0722,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
         ]);
       case "Whiteboard":
         return const ColorFilter.matrix([1.5, 0, 0, 0, 20, 0, 1.5, 0, 0, 20, 0, 0, 1.5, 0, 20, 0, 0, 0, 1, 0]);
@@ -37,10 +54,26 @@ class _ReorderScreenState extends State<ReorderScreen> {
         return const ColorFilter.matrix([1.2, 0, 0, 0, 10, 0, 1.2, 0, 0, 10, 0, 0, 1.2, 0, 10, 0, 0, 0, 1, 0]);
       case "Auto-color":
         return const ColorFilter.matrix([
-          1.2, -0.1, -0.1, 0, 10,
-          -0.1, 1.2, -0.1, 0, 10,
-          -0.1, -0.1, 1.2, 0, 10,
-          0, 0, 0, 1, 0
+          1.2,
+          -0.1,
+          -0.1,
+          0,
+          10,
+          -0.1,
+          1.2,
+          -0.1,
+          0,
+          10,
+          -0.1,
+          -0.1,
+          1.2,
+          0,
+          10,
+          0,
+          0,
+          0,
+          1,
+          0,
         ]);
       case "Original color":
       default:
@@ -124,27 +157,21 @@ class _ReorderScreenState extends State<ReorderScreen> {
                     child: SizedBox(
                       width: cellWidth,
                       height: cellHeight,
-                      child: Transform.scale(
-                        scale: 1.05,
-                        child: _buildGridItem(currentItem, index, isDragging: true),
-                      ),
+                      child: Transform.scale(scale: 1.05, child: _buildGridItem(currentItem, index, isDragging: true)),
                     ),
                   ),
 
-                  childWhenDragging: Opacity(
-                    opacity: 0.3,
-                    child: _buildGridItem(currentItem, index),
-                  ),
+                  childWhenDragging: Opacity(opacity: 0.3, child: _buildGridItem(currentItem, index)),
 
                   child: Container(
                     decoration: isTargeted
                         ? BoxDecoration(
-                      border: Border.all(color: Colors.blueAccent, width: 3.0),
-                      borderRadius: BorderRadius.circular(6),
-                    )
+                            border: Border.all(color: Colors.blueAccent, width: 3.0),
+                            borderRadius: BorderRadius.circular(6),
+                          )
                         : const BoxDecoration(
-                      border: Border.fromBorderSide(BorderSide(color: Colors.transparent, width: 3.0)),
-                    ),
+                            border: Border.fromBorderSide(BorderSide(color: Colors.transparent, width: 3.0)),
+                          ),
                     child: _buildGridItem(currentItem, index),
                   ),
                 );
@@ -183,178 +210,184 @@ class _ReorderScreenState extends State<ReorderScreen> {
               borderRadius: BorderRadius.circular(4),
               child: RotatedBox(
                 quarterTurns: turns,
-    child: Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // --- Layer 1: Base Image with Filters ---
-                    ColorFiltered(
-                      colorFilter: _getAdjustColorFilter(brightness, contrast),
-                      child: ColorFiltered(
-                        colorFilter: _getColorFilter(filterName) ??
-                            const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                        child: Image.file(
-                          imageFile,
-                          fit: BoxFit.contain,
-                          //width: double.infinity,
-                        ),
-                      ),
-                    ),
-
-                    // --- 🚨 NEW: Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes) ---
-                    if (markupData != null && markupData is MarkupExportData) ...[
-                      // A. DRAWING STROKES (Pen/Eraser lines)
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: DrawingPainter(
-                            paths: markupData.paths,
-                            currentPoints: [],
-                            currentColor: Colors.transparent,
-                            currentStrokeWidth: 0,
-                            currentOpacity: 0,
-                            isEraser: false,
+                child: Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // --- Layer 1: Base Image with Filters ---
+                      ColorFiltered(
+                        colorFilter: _getAdjustColorFilter(brightness, contrast),
+                        child: ColorFiltered(
+                          colorFilter:
+                              _getColorFilter(filterName) ??
+                              const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                          child: Image.file(
+                            imageFile,
+                            fit: BoxFit.contain,
+                            //width: double.infinity,
                           ),
                         ),
                       ),
 
-                      // B. TEXTS & SHAPES OVERLAYS
-                      Positioned.fill(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            double canvasW = constraints.maxWidth;
-                            double canvasH = constraints.maxHeight;
-                            double scaleRatio = canvasW / 400.0;
+                      // --- 🚨 NEW: Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes) ---
+                      if (markupData != null && markupData is MarkupExportData) ...[
+                        // A. DRAWING STROKES (Pen/Eraser lines)
+                        Positioned.fill(
+                          child: CustomPaint(
+                            painter: DrawingPainter(
+                              paths: markupData.paths,
+                              currentPoints: [],
+                              currentColor: Colors.transparent,
+                              currentStrokeWidth: 0,
+                              currentOpacity: 0,
+                              isEraser: false,
+                            ),
+                          ),
+                        ),
 
-                            return Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                // TEXTS LOOP
-                                ...markupData.texts.map((textItem) {
-                                  double scaledFontSize = textItem.fontSize * scaleRatio;
-                                  Color textColor = textItem.appearance == 0
-                                      ? textItem.color
-                                      : (textItem.appearance == 1 || textItem.appearance == 2)
-                                      ? (textItem.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
-                                      : Colors.white;
-                                  Color bgColor = textItem.appearance == 1
-                                      ? textItem.color
-                                      : textItem.appearance == 2
-                                      ? textItem.color.withOpacity(0.5)
-                                      : Colors.transparent;
+                        // B. TEXTS & SHAPES OVERLAYS
+                        Positioned.fill(
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              double canvasW = constraints.maxWidth;
+                              double canvasH = constraints.maxHeight;
+                              double scaleRatio = canvasW / 400.0;
 
-                                  TextDecoration decoration = TextDecoration.none;
-                                  if (textItem.isUnderline && textItem.isStrikethrough) {
-                                    decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
-                                  } else if (textItem.isUnderline) {
-                                    decoration = TextDecoration.underline;
-                                  } else if (textItem.isStrikethrough) {
-                                    decoration = TextDecoration.lineThrough;
-                                  }
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  // TEXTS LOOP
+                                  ...markupData.texts.map((textItem) {
+                                    double scaledFontSize = textItem.fontSize * scaleRatio;
+                                    Color textColor = textItem.appearance == 0
+                                        ? textItem.color
+                                        : (textItem.appearance == 1 || textItem.appearance == 2)
+                                        ? (textItem.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                                        : Colors.white;
+                                    Color bgColor = textItem.appearance == 1
+                                        ? textItem.color
+                                        : textItem.appearance == 2
+                                        ? textItem.color.withOpacity(0.5)
+                                        : Colors.transparent;
 
-                                  return Positioned(
-                                    left: textItem.offset.dx * canvasW,
-                                    top: textItem.offset.dy * canvasH,
-                                    child: FractionalTranslation(
-                                      translation: const Offset(-0.5, -0.5),
-                                      child: Transform.rotate(
-                                        angle: textItem.rotation,
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 16 * scaleRatio,
-                                            vertical: 8 * scaleRatio,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: bgColor,
-                                            borderRadius: BorderRadius.circular(8 * scaleRatio),
-                                          ),
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              if (textItem.appearance == 3)
+                                    TextDecoration decoration = TextDecoration.none;
+                                    if (textItem.isUnderline && textItem.isStrikethrough) {
+                                      decoration = TextDecoration.combine([
+                                        TextDecoration.underline,
+                                        TextDecoration.lineThrough,
+                                      ]);
+                                    } else if (textItem.isUnderline) {
+                                      decoration = TextDecoration.underline;
+                                    } else if (textItem.isStrikethrough) {
+                                      decoration = TextDecoration.lineThrough;
+                                    }
+
+                                    return Positioned(
+                                      left: textItem.offset.dx * canvasW,
+                                      top: textItem.offset.dy * canvasH,
+                                      child: FractionalTranslation(
+                                        translation: const Offset(-0.5, -0.5),
+                                        child: Transform.rotate(
+                                          angle: textItem.rotation,
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 16 * scaleRatio,
+                                              vertical: 8 * scaleRatio,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: bgColor,
+                                              borderRadius: BorderRadius.circular(8 * scaleRatio),
+                                            ),
+                                            child: Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                if (textItem.appearance == 3)
+                                                  Text(
+                                                    textItem.text,
+                                                    textAlign: textItem.alignment,
+                                                    style: TextStyle(
+                                                      fontSize: scaledFontSize,
+                                                      fontFamily: textItem.font,
+                                                      fontWeight: textItem.isBold ? FontWeight.bold : FontWeight.normal,
+                                                      fontStyle: textItem.isItalic
+                                                          ? FontStyle.italic
+                                                          : FontStyle.normal,
+                                                      decoration: decoration,
+                                                      foreground: Paint()
+                                                        ..style = PaintingStyle.stroke
+                                                        ..strokeWidth = scaledFontSize * 0.25
+                                                        ..strokeJoin = StrokeJoin.round
+                                                        ..strokeCap = StrokeCap.round
+                                                        ..color = textItem.color,
+                                                    ),
+                                                  ),
                                                 Text(
                                                   textItem.text,
                                                   textAlign: textItem.alignment,
                                                   style: TextStyle(
+                                                    color: textColor,
                                                     fontSize: scaledFontSize,
                                                     fontFamily: textItem.font,
                                                     fontWeight: textItem.isBold ? FontWeight.bold : FontWeight.normal,
                                                     fontStyle: textItem.isItalic ? FontStyle.italic : FontStyle.normal,
                                                     decoration: decoration,
-                                                    foreground: Paint()
-                                                      ..style = PaintingStyle.stroke
-                                                      ..strokeWidth = scaledFontSize * 0.25
-                                                      ..strokeJoin = StrokeJoin.round
-                                                      ..strokeCap = StrokeCap.round
-                                                      ..color = textItem.color,
+                                                    decorationColor: textColor,
+                                                    shadows: textItem.appearance == 0
+                                                        ? const [
+                                                            Shadow(
+                                                              color: Colors.black54,
+                                                              blurRadius: 4,
+                                                              offset: Offset(1, 1),
+                                                            ),
+                                                          ]
+                                                        : null,
                                                   ),
                                                 ),
-                                              Text(
-                                                textItem.text,
-                                                textAlign: textItem.alignment,
-                                                style: TextStyle(
-                                                  color: textColor,
-                                                  fontSize: scaledFontSize,
-                                                  fontFamily: textItem.font,
-                                                  fontWeight: textItem.isBold ? FontWeight.bold : FontWeight.normal,
-                                                  fontStyle: textItem.isItalic ? FontStyle.italic : FontStyle.normal,
-                                                  decoration: decoration,
-                                                  decorationColor: textColor,
-                                                  shadows: textItem.appearance == 0
-                                                      ? const [
-                                                    Shadow(
-                                                      color: Colors.black54,
-                                                      blurRadius: 4,
-                                                      offset: Offset(1, 1),
-                                                    ),
-                                                  ]
-                                                      : null,
-                                                ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                }),
+                                    );
+                                  }),
 
-                                // SHAPES LOOP
-                                ...markupData.shapes.map((shape) {
-                                  return Positioned(
-                                    left: shape.offset.dx * canvasW,
-                                    top: shape.offset.dy * canvasH,
-                                    child: FractionalTranslation(
-                                      translation: const Offset(-0.5, -0.5),
-                                      child: Transform.rotate(
-                                        angle: shape.rotation,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(24),
-                                          child: SizedBox(
-                                            width: (shape.size * shape.scaleX.abs()) * scaleRatio,
-                                            height: (shape.size * shape.scaleY.abs()) * scaleRatio,
-                                            child: FittedBox(
-                                              fit: BoxFit.fill,
-                                              child: Transform.scale(
-                                                scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
-                                                scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                child: Icon(shape.icon, color: shape.color),
+                                  // SHAPES LOOP
+                                  ...markupData.shapes.map((shape) {
+                                    return Positioned(
+                                      left: shape.offset.dx * canvasW,
+                                      top: shape.offset.dy * canvasH,
+                                      child: FractionalTranslation(
+                                        translation: const Offset(-0.5, -0.5),
+                                        child: Transform.rotate(
+                                          angle: shape.rotation,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(24),
+                                            child: SizedBox(
+                                              width: (shape.size * shape.scaleX.abs()) * scaleRatio,
+                                              height: (shape.size * shape.scaleY.abs()) * scaleRatio,
+                                              child: FittedBox(
+                                                fit: BoxFit.fill,
+                                                child: Transform.scale(
+                                                  scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                  scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                  child: Icon(shape.icon, color: shape.color),
+                                                ),
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                }),
-                              ],
-                            );
-                          },
+                                    );
+                                  }),
+                                ],
+                              );
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-    ),
               ),
             ),
           ),
@@ -362,11 +395,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
         const SizedBox(height: 12),
         Text(
           "${index + 1}",
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
+          style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
         ),
       ],
     );
