@@ -379,19 +379,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       setState(() {
         lastCapturedImage = photo;
 
-        // NAYI LINE: Click ki gayi photo ko list me add kar do
-        //capturedImagesList.add(File(photo.path));
-        // capturedImagesList.add({
-        //   'original': File(photo.path),
-        //   'cropped': File(photo.path),
-        // });
-
-        // NAYI LINE: Click ki gayi photo ko list me add kar do
-        // capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
-        //   'original': File(photo.path),
-        //   'cropped': File(photo.path),
-        // });
-
         capturedImagesList.add(<String, dynamic>{
           'original': File(photo.path),
           'cropped': finalCroppedFile,
@@ -797,13 +784,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       Rect? boxToCrop = _detectedDocumentBox;
       final XFile photo = await controller.takePicture();
 
-      // 🚨 YAHAN SE _cropTo43() KO HATA DIYA HAI 🚨
-      // Kyunki wo original photo ko bigad raha tha.
-
-      // Asli raw photo par AI ka auto-crop chalao
-      // File? croppedFile = await _autoCropImage(photo.path, boxToCrop);
-      // File finalFile = croppedFile ?? File(photo.path);
-
       // Replace file capture part with this:
       Map<String, dynamic>? cropData = await _autoCropImage(photo.path, boxToCrop);
       File finalFile = cropData != null ? cropData['file'] : File(photo.path);
@@ -817,17 +797,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         Navigator.pop(context, finalFile); // Auto crop wali photo wapas bhej do
         return;
       }
-
-      // capturedImagesList.add({
-      //   'original': File(photo.path),
-      //   'cropped': croppedFile ?? File(photo.path),
-      // });
-      // NAYI LINE: Click ki gayi photo ko list me add kar do
-      // capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
-      //   'original': File(photo.path),
-      //   //'cropped': File(photo.path),
-      //   'cropped': croppedFile ?? File(photo.path),
-      // });
 
       capturedImagesList.add(<String, dynamic>{
         'original': File(photo.path),
@@ -899,51 +868,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
     }
   }
-
-  // Naya Helper Function: ML Box coordinates se asli image ko crop karna
-  // Future<File?> _autoCropImage(String originalPath, Rect? detectionBox) async {
-  //   if (detectionBox == null || !controller.value.isInitialized) return null;
-  //
-  //   try {
-  //     final file = File(originalPath);
-  //     final bytes = await file.readAsBytes();
-  //     img.Image? originalImage = img.decodeImage(bytes);
-  //     if (originalImage == null) return null;
-  //
-  //     // Photo ko perfect seedha (portrait) karo
-  //     originalImage = img.bakeOrientation(originalImage);
-  //
-  //     // Scale calculations
-  //     final double streamWidth = controller.value.previewSize!.height;
-  //     final double streamHeight = controller.value.previewSize!.width;
-  //
-  //     final double scaleX = originalImage.width / streamWidth;
-  //     final double scaleY = originalImage.height / streamHeight;
-  //
-  //     // Exact pixel coordinates nikalna
-  //     int x = (detectionBox.left * scaleX).toInt();
-  //     int y = (detectionBox.top * scaleY).toInt();
-  //     int w = (detectionBox.width * scaleX).toInt();
-  //     int h = (detectionBox.height * scaleY).toInt();
-  //
-  //     x = x.clamp(0, originalImage.width);
-  //     y = y.clamp(0, originalImage.height);
-  //     w = w.clamp(1, originalImage.width - x);
-  //     h = h.clamp(1, originalImage.height - y);
-  //
-  //     // Original photo se strict box ko kaatna
-  //     img.Image croppedImage = img.copyCrop(originalImage, x: x, y: y, width: w, height: h);
-  //
-  //     final String croppedPath = originalPath.replaceAll('.jpg', '_autocrop.jpg');
-  //     final croppedFile = File(croppedPath);
-  //     await croppedFile.writeAsBytes(img.encodeJpg(croppedImage, quality: 100));
-  //
-  //     return croppedFile;
-  //   } catch (e) {
-  //     print("Auto Crop Error: $e");
-  //     return null;
-  //   }
-  // }
 
   // 🚨 FIX 1: Scanner ka Auto Crop ab Exact Ratios bhi return karega
   Future<Map<String, dynamic>?> _autoCropImage(String originalPath, Rect? detectionBox) async {
@@ -1043,12 +967,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       setState(() {
-        // for (var file in selectedFiles) {
-        //   capturedImagesList.add({
-        //     'original': file,
-        //     'cropped': file,
-        //   });
-        // }
 
         for (var file in selectedFiles) {
           capturedImagesList.add(<String, dynamic>{ // 🚨 Yahan <String, dynamic> add kora hoyeche
