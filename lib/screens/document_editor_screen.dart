@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:pdf/pdf.dart';
@@ -88,6 +91,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool isResizeMode = false;
   static String _selectedPageSize = "Auto Fit";
   bool isProcessing = false;
+
+  // --- OCR Variables ---
+  bool _isDetectingText = false; // Loading state ke liye
+  String? _extractedText;        // Detect kiya hua text save karne ke liye
+  bool _showCopyBanner = false;  // Banner hide/show karne ke liye
 
   @override
   void initState() {
@@ -383,6 +391,41 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
 
     return decodedImage;
+  }
+
+  // --- EXTRACT TEXT FUNCTION (OCR) ---
+  Future<void> _extractTextFromCurrentImage() async {
+    setState(() {
+      _isDetectingText = true;
+      _showCopyBanner = false; // Purana banner hide karo
+    });
+
+    try {
+      // Current image file lo
+      File currentFile = widget.imageFiles[currentPage]['cropped'] as File;
+
+      final inputImage = InputImage.fromFile(currentFile);
+      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+
+      // ML Kit process
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      String text = recognizedText.text.trim();
+
+      if (text.isNotEmpty) {
+        setState(() {
+          _extractedText = text;
+          _showCopyBanner = true; // Text milne par banner dikhao
+          _isDetectingText = false;
+        });
+      } else {
+        setState(() => _isDetectingText = false);
+        showToast("No text found in this image");
+      }
+      textRecognizer.close();
+    } catch (e) {
+      setState(() => _isDetectingText = false);
+      showToast("Failed to extract text");
+    }
   }
 
   Future<void> _toggleCropMode() async {
@@ -1029,14 +1072,33 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           centerTitle: true,
 
           /// Right Icon
+          // actions: [
+          //   Tooltip(
+          //     message: "Document Options",
+          //     child: IconButton(
+          //       icon: const Icon(Icons.settings, color: Colors.white, size: 24,),
+          //       onPressed: () {
+          //         showToast("Options tapped");
+          //       },
+          //     ),
+          //   ),
+          //   const SizedBox(width: 8),
+          // ],
+
           actions: [
             Tooltip(
-              message: "Document Options",
+              message: "Extract Text",
               child: IconButton(
-                icon: const Icon(Icons.settings, color: Colors.white, size: 24,),
-                onPressed: () {
-                  showToast("Options tapped");
-                },
+                // 🚨 FIX: Agar OCR chal raha hai toh chota sa loader dikhao, warna text scanner icon
+                icon: _isDetectingText
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                )
+                    : const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 24),
+
+                onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
               ),
             ),
             const SizedBox(width: 8),
@@ -1854,6 +1916,76 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         child: Container(
                           color: Colors.black54, // Peeche ka thoda dark karne ke liye
                           child: const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+                        ),
+                      ),
+
+                    // 🚨 NAYA: OCR Copy Banner
+                    // 🚨 NAYA: Minimal OCR Copy Banner (Tap outside to close)
+                    if (_showCopyBanner && _extractedText != null)
+                      Positioned.fill(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          // 🚨 FIX 1: Screen par kahin bhi (bahar) click karne se banner close hoga
+                          onTap: () => setState(() => _showCopyBanner = false),
+                          child: Align(
+                            alignment: Alignment.topRight, // Center top par dikhega
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 16, right: 16),// AppBar ke thoda neeche
+                              child: GestureDetector(
+                                // 🚨 FIX 2: Box ke andar click karne par close nahi hoga (click interceptor)
+                                onTap: () {},
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2C2C2C), // Dark theme
+                                      borderRadius: BorderRadius.circular(30), // Pill shape
+                                      border: Border.all(color: Colors.blueAccent.withOpacity(0.5), width: 1.5),
+                                      boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 5))],
+                                    ),
+
+                                    // 🚨 FIX 3: Sirf Copy button aur X icon (Row me)
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min, // Box utna hi bada hoga jitne buttons hain
+                                      children: [
+                                        // Copy Button
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            Clipboard.setData(ClipboardData(text: _extractedText!));
+                                            showToast("Text copied to clipboard!");
+                                            setState(() => _showCopyBanner = false);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blueAccent,
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                          ),
+                                          icon: const Icon(Icons.copy_rounded, size: 16, color: Colors.white),
+                                          label: const Text("Copy Text", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                        ),
+
+                                        const SizedBox(width: 12), // Dono ke beech ka gap
+
+                                        // 'X' Close Icon
+                                        GestureDetector(
+                                          onTap: () => setState(() => _showCopyBanner = false),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.white10,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(Icons.close_rounded, color: Colors.white70, size: 20),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                   ],
