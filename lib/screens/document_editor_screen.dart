@@ -953,6 +953,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF2C2C2C),
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
@@ -970,21 +971,57 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
 
           /// Middle: Clickable Auto-generated Name
+          // title: Tooltip(
+          //   message: "Rename document",
+          //   child: GestureDetector(
+          //     onTap: () {
+          //       showToast("Rename document tapped");
+          //     },
+          //     child: Text(
+          //       documentName,
+          //       style: const TextStyle(
+          //         color: Colors.white,
+          //         fontSize: 16,
+          //         fontWeight: FontWeight.w500,
+          //         decoration: TextDecoration.underline,
+          //         decorationStyle: TextDecorationStyle.dotted,
+          //         decorationColor: Colors.white54,
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          // centerTitle: true,
+
+          /// Middle: Clickable Auto-generated Name
           title: Tooltip(
             message: "Rename document",
             child: GestureDetector(
               onTap: () {
-                showToast("Rename document tapped");
+                _showRenameDialog(context); // 🚨 Dialog call hoga
               },
-              child: Text(
-                documentName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.underline,
-                  decorationStyle: TextDecorationStyle.dotted,
-                  decorationColor: Colors.white54,
+              // 🚨 FIX: IntrinsicWidth aur Column se underline gap control hoga
+              child: IntrinsicWidth(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      documentName, // Tumhara variable
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4), // 🚨 YAHAN SE GAP CONTROL HOGA
+                    // Custom Dotted Line
+                    SizedBox(
+                      width: double.infinity,
+                      height: 1.5, // Line ki thickness
+                      child: CustomPaint(
+                        painter: DottedLinePainter(),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -996,7 +1033,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             Tooltip(
               message: "Document Options",
               child: IconButton(
-                icon: const Icon(Icons.edit_document, color: Colors.white, size: 24),
+                icon: const Icon(Icons.settings, color: Colors.white, size: 24,),
                 onPressed: () {
                   showToast("Options tapped");
                 },
@@ -1937,6 +1974,118 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // --- RENAME DIALOG ---
+  Future<void> _showRenameDialog(BuildContext context) async {
+    TextEditingController nameController = TextEditingController(text: documentName);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        // StatefulBuilder zaruri hai taaki dialog ke andar ka 'x' icon live update ho
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF2C2C2C), // Discard dialog jaisa dark color
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              titlePadding: const EdgeInsets.only(top: 20, left: 24, right: 24, bottom: 12),
+              title: const Text(
+                "Rename",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              contentPadding: const EdgeInsets.only(left: 24, right: 24, bottom: 8),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Divider(color: Colors.white24, height: 1),
+                  const SizedBox(height: 20),
+
+                  // Text Box
+                  TextField(
+                    controller: nameController,
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    autofocus: true,
+                    cursorColor: Colors.blueAccent,
+                    onChanged: (val) {
+                      setDialogState(() {}); // 'x' icon ko update karne ke liye
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.black26, // Text box ka dark background
+                      hintText: "Enter document name",
+                      hintStyle: const TextStyle(color: Colors.white38),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+
+                      // 🚨 'X' Clear Icon
+                      suffixIcon: nameController.text.isNotEmpty
+                          ? IconButton(
+                        icon: const Icon(Icons.cancel, color: Colors.white54, size: 20),
+                        onPressed: () {
+                          nameController.clear();
+                          setDialogState(() {});
+                        },
+                      )
+                          : null,
+
+                      // Borders
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actionsPadding: const EdgeInsets.only(right: 16, bottom: 16, top: 8),
+              actions: [
+                // 🚨 FIX: Cancel Button ab Outlined aur Grey Border ke sath hai
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.white70, fontSize: 15)),
+                ),
+
+                // 🚨 FIX: Rename Button ab Outlined aur Blue Border/Text ke sath hai
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.blueAccent, width: 1.5), // Colored Border
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  ),
+                  onPressed: () {
+                    String newName = nameController.text.trim();
+                    if (newName.isNotEmpty) {
+                      setState(() {
+                        documentName = newName;
+                      });
+                      Navigator.pop(context);
+                    } else {
+                      showToast("Name cannot be empty");
+                    }
+                  },
+                  child: const Text(
+                    "Rename",
+                    style: TextStyle(
+                      color: Colors.blueAccent, // Colored Text
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -3130,3 +3279,31 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 }
 
 /// end main class
+
+
+// --- CUSTOM DOTTED UNDERLINE PAINTER ---
+class DottedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    double dashWidth = 3.0; // Dot ki lambaai
+    double dashSpace = 3.0; // Do dots ke beech ka gap
+    double startX = 0;
+
+    final paint = Paint()
+      ..color = Colors.white54
+      ..strokeWidth = size.height
+      ..strokeCap = StrokeCap.round; // Round dots banayega
+
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, 0),
+        Offset(startX + 1, 0), // Chhoti line draw karke dot banayega
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
