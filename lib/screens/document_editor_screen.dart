@@ -24,12 +24,8 @@ import 'dart:ui' as ui;
 import 'dart:typed_data';
 
 class DocumentEditorScreen extends StatefulWidget {
-  //final List<File> imageFiles; // Real images coming from ScannerScreen
-  //final List<Map<String, File>> imageFiles;
-  // 🚨 FIX 1: 'File' ko hata kar 'dynamic' likho
   final List<Map<String, dynamic>> imageFiles;
 
-  //const DocumentEditorScreen({super.key, required this.imageFiles});
   const DocumentEditorScreen({Key? key, required this.imageFiles}) : super(key: key);
 
   @override
@@ -42,7 +38,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   int currentPage = 0;
   bool isThumbnailVisible = true; // By default thumbnails dikhenge
   RewardedAd? _rewardedAd; // Ad store karne ke liye
-  BannerAd? _bannerAd;            // 🚨 NAYA: Banner Ad ke liye
+  BannerAd? _bannerAd; // 🚨 NAYA: Banner Ad ke liye
   bool _isBannerAdLoaded = false;
 
   // --- CROP TOOL VARIABLES ---
@@ -83,9 +79,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late List<double> _pageContrast; // 🚨 Har page ka contrast
   String _activeAdjustTab = "Brightness"; // "Brightness" ya "Contrast" track karega
 
-  // Har image kitni baar rotate hui hai (0, 1, 2, ya 3) uski list
-  //late List<int> _imageQuarterTurns;
-
   // 🚨 NAYA VARIABLE: Vector (Drawing/Shapes/Text) data store karne ke liye
   late List<dynamic> _pageMarkups;
 
@@ -98,8 +91,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // --- OCR Variables ---
   bool _isDetectingText = false; // Loading state ke liye
-  String? _extractedText;        // Detect kiya hua text save karne ke liye
-  bool _showCopyBanner = false;  // Banner hide/show karne ke liye
+  String? _extractedText; // Detect kiya hua text save karne ke liye
+  bool _showCopyBanner = false; // Banner hide/show karne ke liye
 
   @override
   void initState() {
@@ -136,7 +129,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   // SharedPreferences se default filter nikalne ka function
-  // SharedPreferences se default filter nikalne ka function
   Future<void> _loadDefaultFilter() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String savedFilter = prefs.getString('default_filter') ?? "Original color";
@@ -148,7 +140,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       for (int i = 0; i < widget.imageFiles.length; i++) {
         // Agar photo Scanner se aayi hai aur usme filter set nahi hai (ya default par hai)
         if (widget.imageFiles[i]['filter'] == null || widget.imageFiles[i]['filter'] == "Original color") {
-
           widget.imageFiles[i]['filter'] = savedFilter; // Map me save karo
 
           // Agar _pageFilters list pehle initialize ho chuki hai, toh use bhi update karo
@@ -893,16 +884,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
       // 🚨 FIX: User ka select kiya hua format uthao
       PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
-
-      // pdf.addPage(
-      //   pw.Page(
-      //     margin: pw.EdgeInsets.zero,
-      //     pageFormat: PdfPageFormat.a4,
-      //     build: (context) {
-      //       return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-      //     },
-      //   ),
-      // );
       pdf.addPage(
         pw.Page(
           margin: pw.EdgeInsets.zero,
@@ -1059,198 +1040,91 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFF2C2C2C),
         resizeToAvoidBottomInset: false,
-        // appBar: AppBar(
-        //   backgroundColor: const Color(0xFF1E1E1E),
-        //   elevation: 0,
-        //
-        //   /// Left Icon (Home)
-        //   leading: Tooltip(
-        //     message: "Home",
-        //     child: IconButton(
-        //       icon: const Icon(Icons.home, color: Colors.white, size: 28),
-        //       onPressed: () {
-        //         //showToast("Home tapped");
-        //         _promptDiscard();
-        //       },
-        //     ),
-        //   ),
-        //
-        //   /// Middle: Clickable Auto-generated Name
-        //   // title: Tooltip(
-        //   //   message: "Rename document",
-        //   //   child: GestureDetector(
-        //   //     onTap: () {
-        //   //       showToast("Rename document tapped");
-        //   //     },
-        //   //     child: Text(
-        //   //       documentName,
-        //   //       style: const TextStyle(
-        //   //         color: Colors.white,
-        //   //         fontSize: 16,
-        //   //         fontWeight: FontWeight.w500,
-        //   //         decoration: TextDecoration.underline,
-        //   //         decorationStyle: TextDecorationStyle.dotted,
-        //   //         decorationColor: Colors.white54,
-        //   //       ),
-        //   //     ),
-        //   //   ),
-        //   // ),
-        //   // centerTitle: true,
-        //
-        //   /// Middle: Clickable Auto-generated Name
-        //   title: Tooltip(
-        //     message: "Rename document",
-        //     child: GestureDetector(
-        //       onTap: () {
-        //         _showRenameDialog(context); // 🚨 Dialog call hoga
-        //       },
-        //       // 🚨 FIX: IntrinsicWidth aur Column se underline gap control hoga
-        //       child: IntrinsicWidth(
-        //         child: Column(
-        //           mainAxisSize: MainAxisSize.min,
-        //           children: [
-        //             Text(
-        //               documentName, // Tumhara variable
-        //               style: const TextStyle(
-        //                 color: Colors.white,
-        //                 fontSize: 16,
-        //                 fontWeight: FontWeight.w500,
-        //               ),
-        //             ),
-        //             const SizedBox(height: 4), // 🚨 YAHAN SE GAP CONTROL HOGA
-        //             // Custom Dotted Line
-        //             SizedBox(
-        //               width: double.infinity,
-        //               height: 1.5, // Line ki thickness
-        //               child: CustomPaint(
-        //                 painter: DottedLinePainter(),
-        //               ),
-        //             ),
-        //           ],
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        //   centerTitle: true,
-        //
-        //   /// Right Icon
-        //   // actions: [
-        //   //   Tooltip(
-        //   //     message: "Document Options",
-        //   //     child: IconButton(
-        //   //       icon: const Icon(Icons.settings, color: Colors.white, size: 24,),
-        //   //       onPressed: () {
-        //   //         showToast("Options tapped");
-        //   //       },
-        //   //     ),
-        //   //   ),
-        //   //   const SizedBox(width: 8),
-        //   // ],
-        //
-        //   actions: [
-        //     Tooltip(
-        //       message: "Extract Text",
-        //       child: IconButton(
-        //         // 🚨 FIX: Agar OCR chal raha hai toh chota sa loader dikhao, warna text scanner icon
-        //         icon: _isDetectingText
-        //             ? const SizedBox(
-        //           width: 20,
-        //           height: 20,
-        //           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-        //         )
-        //             : const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 24),
-        //
-        //         onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
-        //       ),
-        //     ),
-        //     const SizedBox(width: 8),
-        //   ],
-        // ),
 
         appBar: AppBar(
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
-          automaticallyImplyLeading: false, // Default back button ko rokne ke liye
+          automaticallyImplyLeading: false,
+          // Default back button ko rokne ke liye
 
           /// 🚨 LEFT ICON (HOME): Crop, Selection, ya Resize mode active hone par HIDE ho jayega
           leading: (isCroppingMode || isSelectionMode || isResizeMode)
               ? null
               : Tooltip(
-            message: "Home",
-            child: IconButton(
-              icon: const Icon(Icons.home, color: Colors.white, size: 28),
-              onPressed: () {
-                _promptDiscard();
-              },
-            ),
-          ),
+                  message: "Home",
+                  child: IconButton(
+                    icon: const Icon(Icons.home, color: Colors.white, size: 28),
+                    onPressed: () {
+                      _promptDiscard();
+                    },
+                  ),
+                ),
 
           /// 🚨 MIDDLE (TITLE / BANNER AD): Teeno modes me Ad dikhayega, warna Rename Title
           title: (isCroppingMode || isSelectionMode || isResizeMode)
               ? (_isBannerAdLoaded && _bannerAd != null
-          // 1. Agar Ad ready hai toh Banner Ad dikhao
-              ? SizedBox(
-            width: _bannerAd!.size.width.toDouble(),
-            height: _bannerAd!.size.height.toDouble(),
-            child: AdWidget(ad: _bannerAd!),
-          )
-          // 2. Fallback: Agar Ad load nahi hua, toh mode ke hisaab se Title dikhao
-              : Text(
-            isCroppingMode
-                ? "Adjust Borders"
-                : isSelectionMode
-                ? "Select Pages"
-                : "Resize Layout",
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ))
-
-          // Normal Mode: Jab koi tool active na ho (Dotted Underline Title)
+                    // 1. Agar Ad ready hai toh Banner Ad dikhao
+                    ? SizedBox(
+                        width: _bannerAd!.size.width.toDouble(),
+                        height: _bannerAd!.size.height.toDouble(),
+                        child: AdWidget(ad: _bannerAd!),
+                      )
+                    // 2. Fallback: Agar Ad load nahi hua, toh mode ke hisaab se Title dikhao
+                    : Text(
+                        isCroppingMode
+                            ? "Adjust Borders"
+                            : isSelectionMode
+                            ? "Select Pages"
+                            : "Resize Layout",
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                      ))
+              // Normal Mode: Jab koi tool active na ho (Dotted Underline Title)
               : Tooltip(
-            message: "Rename document",
-            child: GestureDetector(
-              onTap: () {
-                _showRenameDialog(context);
-              },
-              child: IntrinsicWidth(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      documentName,
-                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                  message: "Rename document",
+                  child: GestureDetector(
+                    onTap: () {
+                      _showRenameDialog(context);
+                    },
+                    child: IntrinsicWidth(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            documentName,
+                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 1.5,
+                            child: CustomPaint(painter: DottedLinePainter()),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 1.5,
-                      child: CustomPaint(painter: DottedLinePainter()),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
           centerTitle: true,
 
           /// 🚨 RIGHT ICON (EXTRACT TEXT): Teeno modes me HIDE ho jayega
           actions: (isCroppingMode || isSelectionMode || isResizeMode)
               ? []
               : [
-            Tooltip(
-              message: "Extract Text",
-              child: IconButton(
-                icon: _isDetectingText
-                    ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                )
-                    : const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 24),
-                onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
+                  Tooltip(
+                    message: "Extract Text",
+                    child: IconButton(
+                      icon: _isDetectingText
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 24),
+                      onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
         ),
 
         body: Column(
@@ -1316,10 +1190,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                           //child: RotatedBox(
                                           child: LayoutBuilder(
                                             builder: (context, constraints) {
-                                              // 🚨 FIX 2: Tumhara pura original code (RotatedBox + Stack) ek variable me save kiya
-                                              //Widget pagePreviewContent = RotatedBox(
-                                              // 🚨 FIX 2: RepaintBoundary is heavy UI ko cache (save) kar lega,
-                                              // jisse swipe karte waqt rendering cost 90% kam ho jayegi!
                                               Widget pagePreviewContent = RepaintBoundary(
                                                 child: RotatedBox(
                                                   quarterTurns: _imageQuarterTurns[index],
@@ -1635,14 +1505,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 ),
                                                 child: Row(
                                                   children: [
-                                                    // Text(
-                                                    //   "Page ${currentPage + 1} of ${widget.imageFiles.length}",
-                                                    //   style: const TextStyle(
-                                                    //     color: Colors.white,
-                                                    //     fontSize: 14,
-                                                    //     fontWeight: FontWeight.w500,
-                                                    //   ),
-                                                    // ),
                                                     Text(
                                                       isSelectionMode
                                                           ? "${selectedPagesList.where((e) => e == true).length} selected"
@@ -2078,7 +1940,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           child: Align(
                             alignment: Alignment.topRight, // Center top par dikhega
                             child: Padding(
-                              padding: const EdgeInsets.only(top: 16, right: 16),// AppBar ke thoda neeche
+                              padding: const EdgeInsets.only(top: 16, right: 16), // AppBar ke thoda neeche
                               child: GestureDetector(
                                 // 🚨 FIX 2: Box ke andar click karne par close nahi hoga (click interceptor)
                                 onTap: () {},
@@ -2090,7 +1952,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       color: const Color(0xFF2C2C2C), // Dark theme
                                       borderRadius: BorderRadius.circular(30), // Pill shape
                                       border: Border.all(color: Colors.blueAccent.withOpacity(0.5), width: 1.5),
-                                      boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 5))],
+                                      boxShadow: const [
+                                        BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 5)),
+                                      ],
                                     ),
 
                                     // 🚨 FIX 3: Sirf Copy button aur X icon (Row me)
@@ -2110,11 +1974,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                           ),
                                           icon: const Icon(Icons.copy_rounded, size: 16, color: Colors.white),
-                                          label: const Text("Copy Text", style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                                          label: const Text(
+                                            "Copy Text",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
                                         ),
 
                                         const SizedBox(width: 12), // Dono ke beech ka gap
-
                                         // 'X' Close Icon
                                         GestureDetector(
                                           onTap: () => setState(() => _showCopyBanner = false),
@@ -2268,7 +2138,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF2C2C2C), // Discard dialog jaisa dark color
+              backgroundColor: const Color(0xFF2C2C2C),
+              // Discard dialog jaisa dark color
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               titlePadding: const EdgeInsets.only(top: 20, left: 24, right: 24, bottom: 12),
               title: const Text(
@@ -2293,7 +2164,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     },
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.black26, // Text box ka dark background
+                      fillColor: Colors.black26,
+                      // Text box ka dark background
                       hintText: "Enter document name",
                       hintStyle: const TextStyle(color: Colors.white38),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -2301,19 +2173,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       // 🚨 'X' Clear Icon
                       suffixIcon: nameController.text.isNotEmpty
                           ? IconButton(
-                        icon: const Icon(Icons.cancel, color: Colors.white54, size: 20),
-                        onPressed: () {
-                          nameController.clear();
-                          setDialogState(() {});
-                        },
-                      )
+                              icon: const Icon(Icons.cancel, color: Colors.white54, size: 20),
+                              onPressed: () {
+                                nameController.clear();
+                                setDialogState(() {});
+                              },
+                            )
                           : null,
 
                       // Borders
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none,
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5),
@@ -2530,13 +2399,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     String tempSelectedFilter = _defaultFilter;
 
     // Tumhare 5 filter options
-    final List<String> filters = [
-      "Original color",
-      "Auto-color",
-      "Grayscale",
-      "Whiteboard",
-      "Light text"
-    ];
+    final List<String> filters = ["Original color", "Auto-color", "Grayscale", "Whiteboard", "Light text"];
 
     await showDialog(
       context: context,
@@ -2544,7 +2407,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF2C2C2C), // Dark Theme
+              backgroundColor: const Color(0xFF2C2C2C),
+              // Dark Theme
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               titlePadding: const EdgeInsets.only(top: 20, left: 24, right: 24, bottom: 0),
               title: Column(
@@ -2568,7 +2432,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     title: Text(filter, style: const TextStyle(color: Colors.white70, fontSize: 16)),
                     value: filter,
                     groupValue: tempSelectedFilter,
-                    activeColor: Colors.blueAccent, // Select hone par blue
+                    activeColor: Colors.blueAccent,
+                    // Select hone par blue
                     onChanged: (val) {
                       if (val != null) {
                         setDialogState(() {
@@ -2610,7 +2475,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     Navigator.pop(context); // Close dialog
                     showToast("Default filter set to $tempSelectedFilter");
                   },
-                  child: const Text("Save", style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    "Save",
+                    style: TextStyle(color: Colors.blueAccent, fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             );
@@ -3354,7 +3222,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // --- MARKUP LOGIC (VECTOR APPROACH) ---
   Future<void> _openMarkupScreen() async {
-
     // 🚨 FIX: Agar Filter ya Adjust menu open hai, toh pehle usko close karo
     if (_showFilterMenu || _showAdjustMenu) {
       setState(() {
@@ -3683,7 +3550,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 }
 
 /// end main class
-
 
 // --- CUSTOM DOTTED UNDERLINE PAINTER ---
 class DottedLinePainter extends CustomPainter {
