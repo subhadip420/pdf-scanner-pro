@@ -42,6 +42,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   int currentPage = 0;
   bool isThumbnailVisible = true; // By default thumbnails dikhenge
   RewardedAd? _rewardedAd; // Ad store karne ke liye
+  BannerAd? _bannerAd;            // 🚨 NAYA: Banner Ad ke liye
+  bool _isBannerAdLoaded = false;
 
   // --- CROP TOOL VARIABLES ---
   bool isCroppingMode = false;
@@ -112,7 +114,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _autoCropPositions = List.generate(widget.imageFiles.length, (index) => null); // Auto memory init
 
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
-
+    _loadBannerAd();
     _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
     _pageFilters = List.filled(widget.imageFiles.length, "Original color"); // 🚨 Default filter set kiya
     _pageBrightness = List.filled(widget.imageFiles.length, 0.0); // Default 0
@@ -129,6 +131,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -628,6 +631,25 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Google Test Banner ID (Production me change karlena)
+      size: AdSize.banner, // Default 320x50 size, jo AppBar me perfectly fit aayega
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          print("Banner Ad failed to load: $error");
+          ad.dispose();
+        },
+      ),
+    )..load();
+  }
+
   // 2. Smart Save Click Handler (With 2 Sec Wait Logic)
   Future<void> _handleSaveClick() async {
     // Agar ad pehle se ready hai, toh direct show kardo
@@ -1027,72 +1049,171 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFF2C2C2C),
         resizeToAvoidBottomInset: false,
+        // appBar: AppBar(
+        //   backgroundColor: const Color(0xFF1E1E1E),
+        //   elevation: 0,
+        //
+        //   /// Left Icon (Home)
+        //   leading: Tooltip(
+        //     message: "Home",
+        //     child: IconButton(
+        //       icon: const Icon(Icons.home, color: Colors.white, size: 28),
+        //       onPressed: () {
+        //         //showToast("Home tapped");
+        //         _promptDiscard();
+        //       },
+        //     ),
+        //   ),
+        //
+        //   /// Middle: Clickable Auto-generated Name
+        //   // title: Tooltip(
+        //   //   message: "Rename document",
+        //   //   child: GestureDetector(
+        //   //     onTap: () {
+        //   //       showToast("Rename document tapped");
+        //   //     },
+        //   //     child: Text(
+        //   //       documentName,
+        //   //       style: const TextStyle(
+        //   //         color: Colors.white,
+        //   //         fontSize: 16,
+        //   //         fontWeight: FontWeight.w500,
+        //   //         decoration: TextDecoration.underline,
+        //   //         decorationStyle: TextDecorationStyle.dotted,
+        //   //         decorationColor: Colors.white54,
+        //   //       ),
+        //   //     ),
+        //   //   ),
+        //   // ),
+        //   // centerTitle: true,
+        //
+        //   /// Middle: Clickable Auto-generated Name
+        //   title: Tooltip(
+        //     message: "Rename document",
+        //     child: GestureDetector(
+        //       onTap: () {
+        //         _showRenameDialog(context); // 🚨 Dialog call hoga
+        //       },
+        //       // 🚨 FIX: IntrinsicWidth aur Column se underline gap control hoga
+        //       child: IntrinsicWidth(
+        //         child: Column(
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: [
+        //             Text(
+        //               documentName, // Tumhara variable
+        //               style: const TextStyle(
+        //                 color: Colors.white,
+        //                 fontSize: 16,
+        //                 fontWeight: FontWeight.w500,
+        //               ),
+        //             ),
+        //             const SizedBox(height: 4), // 🚨 YAHAN SE GAP CONTROL HOGA
+        //             // Custom Dotted Line
+        //             SizedBox(
+        //               width: double.infinity,
+        //               height: 1.5, // Line ki thickness
+        //               child: CustomPaint(
+        //                 painter: DottedLinePainter(),
+        //               ),
+        //             ),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   ),
+        //   centerTitle: true,
+        //
+        //   /// Right Icon
+        //   // actions: [
+        //   //   Tooltip(
+        //   //     message: "Document Options",
+        //   //     child: IconButton(
+        //   //       icon: const Icon(Icons.settings, color: Colors.white, size: 24,),
+        //   //       onPressed: () {
+        //   //         showToast("Options tapped");
+        //   //       },
+        //   //     ),
+        //   //   ),
+        //   //   const SizedBox(width: 8),
+        //   // ],
+        //
+        //   actions: [
+        //     Tooltip(
+        //       message: "Extract Text",
+        //       child: IconButton(
+        //         // 🚨 FIX: Agar OCR chal raha hai toh chota sa loader dikhao, warna text scanner icon
+        //         icon: _isDetectingText
+        //             ? const SizedBox(
+        //           width: 20,
+        //           height: 20,
+        //           child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+        //         )
+        //             : const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 24),
+        //
+        //         onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
+        //       ),
+        //     ),
+        //     const SizedBox(width: 8),
+        //   ],
+        // ),
+
         appBar: AppBar(
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
+          automaticallyImplyLeading: false, // Default back button ko rokne ke liye
 
-          /// Left Icon (Home)
-          leading: Tooltip(
+          /// 🚨 LEFT ICON (HOME): Crop, Selection, ya Resize mode active hone par HIDE ho jayega
+          leading: (isCroppingMode || isSelectionMode || isResizeMode)
+              ? null
+              : Tooltip(
             message: "Home",
             child: IconButton(
               icon: const Icon(Icons.home, color: Colors.white, size: 28),
               onPressed: () {
-                //showToast("Home tapped");
                 _promptDiscard();
               },
             ),
           ),
 
-          /// Middle: Clickable Auto-generated Name
-          // title: Tooltip(
-          //   message: "Rename document",
-          //   child: GestureDetector(
-          //     onTap: () {
-          //       showToast("Rename document tapped");
-          //     },
-          //     child: Text(
-          //       documentName,
-          //       style: const TextStyle(
-          //         color: Colors.white,
-          //         fontSize: 16,
-          //         fontWeight: FontWeight.w500,
-          //         decoration: TextDecoration.underline,
-          //         decorationStyle: TextDecorationStyle.dotted,
-          //         decorationColor: Colors.white54,
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // centerTitle: true,
+          /// 🚨 MIDDLE (TITLE / BANNER AD): Teeno modes me Ad dikhayega, warna Rename Title
+          title: (isCroppingMode || isSelectionMode || isResizeMode)
+              ? (_isBannerAdLoaded && _bannerAd != null
+          // 1. Agar Ad ready hai toh Banner Ad dikhao
+              ? SizedBox(
+            width: _bannerAd!.size.width.toDouble(),
+            height: _bannerAd!.size.height.toDouble(),
+            child: AdWidget(ad: _bannerAd!),
+          )
+          // 2. Fallback: Agar Ad load nahi hua, toh mode ke hisaab se Title dikhao
+              : Text(
+            isCroppingMode
+                ? "Adjust Borders"
+                : isSelectionMode
+                ? "Select Pages"
+                : "Resize Layout",
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ))
 
-          /// Middle: Clickable Auto-generated Name
-          title: Tooltip(
+          // Normal Mode: Jab koi tool active na ho (Dotted Underline Title)
+              : Tooltip(
             message: "Rename document",
             child: GestureDetector(
               onTap: () {
-                _showRenameDialog(context); // 🚨 Dialog call hoga
+                _showRenameDialog(context);
               },
-              // 🚨 FIX: IntrinsicWidth aur Column se underline gap control hoga
               child: IntrinsicWidth(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      documentName, // Tumhara variable
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      documentName,
+                      style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                    const SizedBox(height: 4), // 🚨 YAHAN SE GAP CONTROL HOGA
-                    // Custom Dotted Line
+                    const SizedBox(height: 4),
                     SizedBox(
                       width: double.infinity,
-                      height: 1.5, // Line ki thickness
-                      child: CustomPaint(
-                        painter: DottedLinePainter(),
-                      ),
+                      height: 1.5,
+                      child: CustomPaint(painter: DottedLinePainter()),
                     ),
                   ],
                 ),
@@ -1101,25 +1222,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
           centerTitle: true,
 
-          /// Right Icon
-          // actions: [
-          //   Tooltip(
-          //     message: "Document Options",
-          //     child: IconButton(
-          //       icon: const Icon(Icons.settings, color: Colors.white, size: 24,),
-          //       onPressed: () {
-          //         showToast("Options tapped");
-          //       },
-          //     ),
-          //   ),
-          //   const SizedBox(width: 8),
-          // ],
-
-          actions: [
+          /// 🚨 RIGHT ICON (EXTRACT TEXT): Teeno modes me HIDE ho jayega
+          actions: (isCroppingMode || isSelectionMode || isResizeMode)
+              ? []
+              : [
             Tooltip(
               message: "Extract Text",
               child: IconButton(
-                // 🚨 FIX: Agar OCR chal raha hai toh chota sa loader dikhao, warna text scanner icon
                 icon: _isDetectingText
                     ? const SizedBox(
                   width: 20,
@@ -1127,7 +1236,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                 )
                     : const Icon(Icons.document_scanner_rounded, color: Colors.white, size: 24),
-
                 onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
               ),
             ),
