@@ -98,6 +98,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // --- SLEEP MODE VARIABLES ---
   Timer? _sleepTimer;
   bool _isCameraSleeping = false;
+// 🚨 NAYA: Multiple scan mode toggle ke liye (By default ON rakha hai)
+  bool isMultiScanMode = true;
 
   @override
   void initState() {
@@ -746,15 +748,34 @@ class _ScannerScreenState extends State<ScannerScreen> {
       capturedPhotosCount = capturedImagesList.length;
 
       setState(() {
+        lastCapturedImage = photo; // <-- YEH NAYI LINE ADD KI HAI
+        capturedPhotosCount = capturedImagesList.length; // Count bhi yahi update kar diya
         isCapturing = false;
         isHoldingSteady = false;
         _stableFrames = 0;
         _detectedDocumentBox = null;
       });
 
+      // if (mounted) {
+      //   _goToEditor(); // 🚨 Master Helper call kiya
+      // }
+
       if (mounted) {
-        _goToEditor(); // 🚨 Master Helper call kiya
+        // 🚨 FIX 3A: Check karega ki Multi-scan switch ka status kya hai
+        if (isMultiScanMode) {
+          // ON hai toh rukega aur agla page scan karega
+          showToast("Page $capturedPhotosCount captured. Scanning next...");
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted && isAutoDetectOn && !_isCameraSleeping) {
+              _startMLAutoDetect();
+            }
+          });
+        } else {
+          // OFF hai toh 1st click me seedha Editor!
+          _goToEditor();
+        }
       }
+
     } catch (e) {
       setState(() => isCapturing = false);
     }
@@ -1447,15 +1468,35 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 icon: _buildRotatedIcon(_getFlashIcon(), color: Colors.white, size: 26),
               ),
 
+
+              IconButton(
+                onPressed: _flipCamera,
+                icon: _buildRotatedIcon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
+              ),
+
+              // 🚨 NAYA: Multiple Scan Icon (Sirf normal mode me dikhega)
+              if (!widget.isRetakeMode)
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isMultiScanMode = !isMultiScanMode; // ON ko OFF, OFF ko ON karega
+                    });
+                    showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
+                  },
+                  icon: _buildRotatedIcon(
+                    // ON hone par overlapping pages, OFF hone par single page
+                    isMultiScanMode ? Icons.file_copy_rounded : Icons.insert_drive_file_outlined,
+                    color: isMultiScanMode ? Colors.blueAccent : Colors.white, // ON hone par Blue dikhega
+                    size: 24,
+                  ),
+                ),
+
               /// YAHAN TIMER ICON DYNAMIC KAR DIYA
               IconButton(
                 onPressed: () => setState(() => activeMenu = "Timer"),
                 icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
               ),
-              IconButton(
-                onPressed: _flipCamera,
-                icon: _buildRotatedIcon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
-              ),
+
               if (!widget.isRetakeMode)
                 IconButton(
                   onPressed: () => showToast("Settings"),
