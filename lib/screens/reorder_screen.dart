@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 // 🚨 NEW: Markup structures aur DrawingPainter use karne ke liye import add kiya
 import 'markup_screen.dart';
@@ -15,11 +16,40 @@ class ReorderScreen extends StatefulWidget {
 
 class _ReorderScreenState extends State<ReorderScreen> {
   late List<Map<String, dynamic>> _items;
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    _loadBannerAd();
     _items = List.from(widget.imageFiles);
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose(); // 🚨 Zaroori: Screen close hone par ad ko memory se hatao
+    super.dispose();
+  }
+
+  // --- BANNER AD FUNCTION ---
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test ID
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          print("Reorder Screen Banner failed: $error");
+          ad.dispose();
+        },
+      ),
+    )..load();
   }
 
   // --- REORDER SCREEN COLOR FILTER LOGIC ---
@@ -119,6 +149,17 @@ class _ReorderScreenState extends State<ReorderScreen> {
           const SizedBox(width: 8),
         ],
       ),
+
+      // 🚨 NAYA: Bottom bar me Banner Ad lagaya (Agar ready ho)
+      bottomNavigationBar: _isBannerAdLoaded && _bannerAd != null
+          ? Container(
+        color: const Color(0xFF151515), // AppBar se match karta hua dark color
+        width: _bannerAd!.size.width.toDouble(),
+        height: _bannerAd!.size.height.toDouble(),
+        child: AdWidget(ad: _bannerAd!),
+      )
+          : const SizedBox.shrink(), // Agar Ad load nahi hua, toh jagah nahi gherega
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
         child: GridView.builder(
