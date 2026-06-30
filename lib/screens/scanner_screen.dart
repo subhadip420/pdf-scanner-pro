@@ -1182,21 +1182,47 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
 
                 /// Status Text (Looking for document / Hold steady)
+                // if (isAutoDetectOn && !_isCameraSleeping)
+                //   Positioned(
+                //     top: MediaQuery.of(context).size.height * 0.45,
+                //     left: 0,
+                //     right: 0,
+                //     child: Center(
+                //       child: Container(
+                //         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                //         decoration: BoxDecoration(
+                //           color: Colors.black.withOpacity(0.4),
+                //           borderRadius: BorderRadius.circular(20),
+                //         ),
+                //         child: Text(
+                //           autoScanStatus,
+                //           style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal),
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+
+                /// Status Text (Looking for document / Hold steady)
                 if (isAutoDetectOn && !_isCameraSleeping)
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.45,
                     left: 0,
                     right: 0,
                     child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.65),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          autoScanStatus,
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                      // 🚨 FIX: Yahan bhi AnimatedRotation laga diya
+                      child: AnimatedRotation(
+                        turns: _iconTurns,
+                        duration: const Duration(milliseconds: 300),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.4),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            autoScanStatus,
+                            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal),
+                          ),
                         ),
                       ),
                     ),
@@ -1538,35 +1564,75 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
 
                 /// Auto-Detect Toggle Popup (Center of screen)
+                // if (_showAutoDetectPopup)
+                //   Positioned.fill(
+                //     child: Center(
+                //       child: Container(
+                //         margin: const EdgeInsets.symmetric(horizontal: 40),
+                //         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                //         decoration: BoxDecoration(
+                //           color: Colors.black.withOpacity(0.45), // Dark translucent background
+                //           borderRadius: BorderRadius.circular(12),
+                //         ),
+                //         child: Column(
+                //           mainAxisSize: MainAxisSize.min, // Jitna text utna hi bada box
+                //           children: [
+                //             Text(
+                //               _autoDetectPopupTitle,
+                //               style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                //               textAlign: TextAlign.center,
+                //             ),
+                //             const SizedBox(height: 12),
+                //             Text(
+                //               _autoDetectPopupSubtitle,
+                //               style: const TextStyle(
+                //                 color: Colors.white70,
+                //                 fontSize: 15,
+                //                 height: 1.4, // Line spacing
+                //               ),
+                //               textAlign: TextAlign.center,
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+
+                /// Auto-Detect Toggle Popup (Center of screen)
                 if (_showAutoDetectPopup)
                   Positioned.fill(
                     child: Center(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.75), // Dark translucent background
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min, // Jitna text utna hi bada box
-                          children: [
-                            Text(
-                              _autoDetectPopupTitle,
-                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              _autoDetectPopupSubtitle,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 16,
-                                height: 1.4, // Line spacing
+                      // 🚨 FIX: Yahan AnimatedRotation lagaya taaki popup bhi ghume
+                      child: AnimatedRotation(
+                        turns: _iconTurns,
+                        duration: const Duration(milliseconds: 300),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.45), // Dark translucent background
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min, // Jitna text utna hi bada box
+                            children: [
+                              Text(
+                                _autoDetectPopupTitle,
+                                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              Text(
+                                _autoDetectPopupSubtitle,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 15,
+                                  height: 1.4, // Line spacing
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
