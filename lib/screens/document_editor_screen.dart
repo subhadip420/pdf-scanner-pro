@@ -562,6 +562,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       return;
     }
 
+    // 🚨 FIX: Agar Filter ya Adjust menu open hai, toh pehle usko close karo
+    if (_showFilterMenu || _showAdjustMenu) {
+      setState(() {
+        _showFilterMenu = false;
+        _showAdjustMenu = false;
+      });
+      // Menu ko smooth slide hone ke liye thoda time do
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+
     // Wahan jaane se pehle current changes memory me save karo
     _saveEditsToMemory();
 
@@ -3344,6 +3354,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // --- MARKUP LOGIC (VECTOR APPROACH) ---
   Future<void> _openMarkupScreen() async {
+
+    // 🚨 FIX: Agar Filter ya Adjust menu open hai, toh pehle usko close karo
+    if (_showFilterMenu || _showAdjustMenu) {
+      setState(() {
+        _showFilterMenu = false;
+        _showAdjustMenu = false;
+      });
+      // Menu ko smooth slide hone ke liye thoda time do
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+
     File currentImage = widget.imageFiles[currentPage]['cropped']!;
 
     // 1. Saari current settings variables me save karo
