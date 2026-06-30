@@ -1573,9 +1573,9 @@ class DocumentOverlayPainter extends CustomPainter {
     );
 
     // Box ke andar ka halka blue color
-    final Paint fillPaint = Paint()
-      ..color = Colors.lightBlueAccent.withOpacity(0.2)
-      ..style = PaintingStyle.fill;
+    // final Paint fillPaint = Paint()
+    //   ..color = Colors.lightBlueAccent.withOpacity(0.2)
+    //   ..style = PaintingStyle.fill;
 
     // Box ka border
     final Paint borderPaint = Paint()
@@ -1583,7 +1583,7 @@ class DocumentOverlayPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
 
-    canvas.drawRect(scaledRect, fillPaint);
+    //canvas.drawRect(scaledRect, fillPaint);
     canvas.drawRect(scaledRect, borderPaint);
 
     // FIX 4: Adobe Scan jaise 4 Corners par Blue Dots (Points)
