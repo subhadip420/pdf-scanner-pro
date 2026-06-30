@@ -33,7 +33,15 @@ class ScannerScreen extends StatefulWidget {
 }
 
 class _ScannerScreenState extends State<ScannerScreen> {
-  late CameraController controller;
+  //late CameraController controller;
+  // 🚨 MASTER FIX: 'late' variable ko by-default value de di taaki UI kabhi crash na ho!
+  late CameraController controller = CameraController(
+    cameras[currentCameraIndex],
+    ResolutionPreset.high,
+    enableAudio: false,
+    imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+  );
+
   XFile? lastCapturedImage;
   String selectedMode = "Document";
   final ScrollController modeController = ScrollController();
@@ -86,6 +94,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   // 🚨 FIX 1: Camera ka naya safety tracker
   bool _isCameraReady = false;
+// --- SLEEP MODE VARIABLES ---
+  Timer? _sleepTimer;
+  bool _isCameraSleeping = false;
 
   @override
   void initState() {
@@ -116,6 +127,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Future<void> _initializeCamera() async {
     if (!mounted) return;
     setState(() => _isCameraReady = false);
+
+    if (mounted) {
+      setState(() => _isCameraReady = true);
+      if (isAutoDetectOn) _startMLAutoDetect();
+      _resetSleepTimer(); // 🚨 NAYA: Camera chalu hote hi 1 min ka timer shuru
+    }
 
     controller = CameraController(
       cameras[currentCameraIndex],
@@ -173,9 +190,61 @@ class _ScannerScreenState extends State<ScannerScreen> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-
+    _sleepTimer?.cancel();
     controller.dispose();
     super.dispose();
+  }
+
+  // --- 🚨 NAYA BLOCK: CAMERA SLEEP & WAKE LOGIC ---
+  void _resetSleepTimer() {
+    _sleepTimer?.cancel();
+
+    // Agar camera pehle se so raha hai, toh timer restart mat karo
+    if (_isCameraSleeping) return;
+
+    // 1 Minute (60 seconds) ka timer set karo
+    _sleepTimer = Timer(const Duration(minutes: 1), _putCameraToSleep);
+  }
+
+  Future<void> _putCameraToSleep() async {
+    if (!mounted || !controller.value.isInitialized) return;
+
+    setState(() {
+      _isCameraSleeping = true;
+
+      // 🚨 FIX 1: Sleep hone par saara ML data aur UI text reset kar do
+      _detectedDocumentBox = null;
+      _stableFrames = 0;
+      autoScanStatus = "Looking for document...";
+      isHoldingSteady = false;
+    });
+
+    // 1. Agar ML Kit Auto-detect chal raha hai toh usko roko
+    if (controller.value.isStreamingImages) {
+      await controller.stopImageStream();
+    }
+
+    // 2. Camera hardware ko temporarily pause kardo (Battery bachayega)
+    await controller.pausePreview();
+  }
+
+  Future<void> _wakeUpCamera() async {
+    if (!mounted || !controller.value.isInitialized) return;
+
+    // 1. Camera hardware wapas chalu karo
+    await controller.resumePreview();
+
+    setState(() {
+      _isCameraSleeping = false;
+    });
+
+    // 2. Agar auto-detect ON tha, toh ML stream wapas chalu kardo
+    if (isAutoDetectOn) {
+      _startMLAutoDetect();
+    }
+
+    // 3. Timer wapas 1 minute ke liye restart kardo
+    _resetSleepTimer();
   }
 
   // 🚨 FIX: Hardware Back Button ko Handle Karne ke liye naya function
@@ -318,7 +387,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // Function to capture the photo with countdown logic
   Future<void> _capturePhoto() async {
     // Prevent action if camera is not ready or already capturing
-    if (!controller.value.isInitialized || isCapturing) return;
+    // 🚨 FIX 1: Agar camera so raha hai (_isCameraSleeping), toh capture block ho jayega
+    if (!controller.value.isInitialized || isCapturing || _isCameraSleeping) return;
 
     setState(() {
       isCapturing = true;
@@ -622,6 +692,42 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   // 2. Camera Preview Helper with Bigger Focus Box
   Widget _buildCameraPreviewWithFocus() {
+
+    final double previewWidth = controller.value.previewSize?.height ?? 1080;
+    final double previewHeight = controller.value.previewSize?.width ?? 1920;
+
+    // 🚨 FIX 3: Yahan se GestureDetector hata diya kyunki ab poori screen hi touch track kar rahi hai
+    if (_isCameraSleeping) {
+      return SizedBox(
+        width: previewWidth,
+        height: previewHeight,
+        child: Container(
+          color: Colors.black, // Sirf preview area black hoga
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.bedtime_outlined,
+                  color: Colors.white54,
+                  size: previewWidth * 0.12,
+                ),
+                SizedBox(height: previewHeight * 0.02),
+                Text(
+                  "Tap anywhere to wake up", // 🚨 Text thoda update kar diya
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: previewWidth * 0.045,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return SizedBox(
       width: controller.value.previewSize?.height ?? 1,
       height: controller.value.previewSize?.width ?? 1,
@@ -989,6 +1095,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
     // return Scaffold(
     return WillPopScope(
       onWillPop: _onWillPop,
+
+        // 🚨 FIX: Listener laga diya. User screen par kahin bhi tap karega toh timer reset hoga
+        child: Listener(
+        onPointerDown: (_) {
+      if (!_isCameraSleeping) {
+        _resetSleepTimer(); // Activity hui, timer wapas 0 se shuru!
+      }
+    },
       child: Scaffold(
         backgroundColor: const Color(0xFF2C2C2C),
         body: GestureDetector(
@@ -1068,7 +1182,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
 
                 /// Status Text (Looking for document / Hold steady)
-                if (isAutoDetectOn)
+                if (isAutoDetectOn && !_isCameraSleeping)
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.45,
                     left: 0,
@@ -1457,11 +1571,25 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       ),
                     ),
                   ),
+
+                // 🚨 FIX 2: GLOBAL INVISIBLE SHIELD
+                // Jab camera so raha hoga, ye invisible layer poori screen ko cover kar legi.
+                // Koi bhi touch seedha '_wakeUpCamera' ko trigger karega aur buttons ko block karega.
+                if (_isCameraSleeping)
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onTap: _wakeUpCamera, // Kahin bhi tap karo, camera jaag jayega
+                      child: Container(
+                        color: Colors.transparent, // Invisible hai, par touches ko aage jaane nahi dega!
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
         ),
       ),
+        ),
     );
   }
 
