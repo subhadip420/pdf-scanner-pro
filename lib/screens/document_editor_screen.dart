@@ -463,6 +463,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // 🚨 1. STATE CHANGE: Sabse pehle Loading (Processing) ON karo
       setState(() {
         isProcessing = true;
+        _showFilterMenu = false; // 🚨 FIX: Filter menu band hoga
+        _showAdjustMenu = false; // 🚨 FIX: Adjust menu band hoga
       });
 
       // 🚨 2. WAIT: Flutter ko screen par loading spinner draw karne ka time do
