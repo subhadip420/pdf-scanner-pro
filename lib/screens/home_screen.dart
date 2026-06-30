@@ -32,7 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingFiles = true;
   bool _isFabMenuOpen = false;
 
-
   @override
   void initState() {
     super.initState();
@@ -84,17 +83,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (await Permission.manageExternalStorage.isDenied) {
         await Permission.manageExternalStorage.request();
       }
-      final directory = Directory(
-        '/storage/emulated/0/Documents/PDF Scanner Pro',
-      );
+      final directory = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
       if (await directory.exists()) {
         List<FileSystemEntity> entities = directory.listSync();
 
         // YAHAN UPDATE KIYA: Hamesha check karega ki file PDF hai (case insensitive)
-        List<File> files = entities
-            .whereType<File>()
-            .where((f) => f.path.toLowerCase().endsWith('.pdf'))
-            .toList();
+        List<File> files = entities.whereType<File>().where((f) => f.path.toLowerCase().endsWith('.pdf')).toList();
 
         // Sort: Latest file sabse upar (Descending order)
         files.sort((a, b) {
@@ -191,21 +185,12 @@ class _HomeScreenState extends State<HomeScreen> {
       // 3. Files ko Editor ke format (Map) mein convert karo
       List<Map<String, File>> imagesToEdit = [];
       for (var file in selectedFiles) {
-        imagesToEdit.add({
-          'original': file,
-          'cropped': file,
-        });
+        imagesToEdit.add({'original': file, 'cropped': file});
       }
 
       // 4. Seedha DocumentEditorScreen par navigate kar jao
       if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DocumentEditorScreen(imageFiles: imagesToEdit),
-        ),
-      );
-
+      Navigator.push(context, MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: imagesToEdit)));
     } catch (e) {
       print("Home Screen Gallery Error: $e");
       showToast("Error opening gallery");
@@ -221,10 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
       /// 1. APP BAR
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text(
-          "PDF Scanner Pro",
-          style: TextStyle(color: Colors.white, fontSize: 20),
-        ),
+        title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 20)),
         actions: [
           Tooltip(
             message: "Search documents",
@@ -242,41 +224,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-
-      /// BODY: Banner Ad + Tab View
-      // body: Column(
-      //   children: [
-      //     /// 2. BANNER AD (Top Bar ke niche)
-      //     if (_isBannerAdLoaded && _bannerAd != null)
-      //       Container(
-      //         alignment: Alignment.center,
-      //         width: _bannerAd!.size.width.toDouble(),
-      //         height: _bannerAd!.size.height.toDouble(),
-      //         color: Colors.black,
-      //         // Background so it blends in
-      //         child: AdWidget(ad: _bannerAd!),
-      //       ),
-      //
-      //     /// 3. TAB VIEW (Ads ke niche content)
-      //     Expanded(
-      //       child: IndexedStack(
-      //         index: _currentIndex,
-      //         children: [
-      //           // View 0: Home Tab Content
-      //           _buildHomeTabContent(),
-      //
-      //           // View 1: Files Tab Content
-      //           const Center(
-      //             child: Text(
-      //               "Files View (Folders will come here)",
-      //               style: TextStyle(color: Colors.white70, fontSize: 16),
-      //             ),
-      //           ),
-      //         ],
-      //       ),
-      //     ),
-      //   ],
-      // ),
 
       /// BODY: Banner Ad + Tab View + Dark Overlay
       body: Stack(
@@ -297,7 +244,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   index: _currentIndex,
                   children: [
                     _buildHomeTabContent(),
-                    const Center(child: Text("Files View", style: TextStyle(color: Colors.white70))),
+                    const Center(
+                      child: Text("Files View", style: TextStyle(color: Colors.white70)),
+                    ),
                   ],
                 ),
               ),
@@ -327,63 +276,25 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildMenuPill(
-                    "Create from photos",
-                    Icons.photo_library_outlined,
-                        () {
-                      showToast("Gallery opening...");
-                      // 1. Pehle fab menu ko close karo
-                      setState(() => _isFabMenuOpen = false);
+                  _buildMenuPill("Create from photos", Icons.photo_library_outlined, () {
+                    showToast("Gallery opening...");
+                    // 1. Pehle fab menu ko close karo
+                    setState(() => _isFabMenuOpen = false);
 
-                      // 2. Fir apni gallery open karne wala function call kar do
-                      _openGalleryForPdf();
-                    },
-                  ),
+                    // 2. Fir apni gallery open karne wala function call kar do
+                    _openGalleryForPdf();
+                  }),
                   const SizedBox(height: 12), // Dono button ke beech ka gap
-                  _buildMenuPill(
-                    "Create scan",
-                    Icons.add_a_photo_outlined,
-                        () {
-                      setState(() => _isFabMenuOpen = false);
-                      // TODO: Yahan par aapka ScannerScreen() open hoga
-                       Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
-                    },
-                  ),
+                  _buildMenuPill("Create scan", Icons.add_a_photo_outlined, () {
+                    setState(() => _isFabMenuOpen = false);
+                    // TODO: Yahan par aapka ScannerScreen() open hoga
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
+                  }),
                 ],
               ),
             ),
         ],
       ),
-
-      // /// 5. CENTER CAMERA BUTTON (Floating)
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     showToast("Opening Camera...");
-      //     // TODO: Yahan par aapka ScannerScreen() open hoga
-      //     // Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
-      //   },
-      //   backgroundColor: Colors.lightBlueAccent,
-      //   // Matching the blue in screenshot
-      //   shape: const CircleBorder(),
-      //   elevation: 4,
-      //   child: const Icon(
-      //     Icons.add_a_photo,
-      //     color: Colors.black,
-      //     size: 28,
-      //   ),
-      // ),
-      //
-      // // Floating button ko bottom bar ke middle me set karne ke liye
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      //
-      // /// 4. BOTTOM TAB BAR
-      // bottomNavigationBar: BottomAppBar(
-      //   color: const Color(0xFF1E1E1E),
-      //   shape: const CircularNotchedRectangle(),
-      //   // Camera button ke liye curve banayega
-      //   notchMargin: 8.0,
-      //   child: SizedBox(
-      //     height: 60,
 
       /// 5. CENTER CAMERA BUTTON (Dynamic X or Camera)
       floatingActionButton: FloatingActionButton(
@@ -396,119 +307,108 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: const CircleBorder(),
         elevation: 4,
         child: Icon(
-            _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded, // Icon change hoga
-            color: Colors.black,
-            size: 28
+          _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded, // Icon change hoga
+          color: Colors.black,
+          size: 28,
         ),
       ),
 
       // Floating button ki position dynamic kar di
       floatingActionButtonLocation: _isFabMenuOpen
-          ? FloatingActionButtonLocation.centerFloat // Menu open hone par center me float karega
-          : FloatingActionButtonLocation.centerDocked, // Normal rehne par notch me
+          ? FloatingActionButtonLocation
+                .centerFloat // Menu open hone par center me float karega
+          : FloatingActionButtonLocation.centerDocked,
+      // Normal rehne par notch me
 
       /// 4. BOTTOM TAB BAR (Hidden when menu is open)
       bottomNavigationBar: _isFabMenuOpen
           ? const SizedBox.shrink() // Menu open hone par bottom bar gayab!
           : BottomAppBar(
-        color: const Color(0xFF1E1E1E),
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: SizedBox(
-          height: 60,
-          // ... (Tumhara bacha hua BottomAppBar ka Row() wala code bilkul same rahega) ...
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              // HOME OPTION
-              Tooltip(
-                message: "Home",
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    setState(() {
-                      _currentIndex = 0;
-                    });
-                    showToast("Home Tab selected");
-                  },
-                  child: SizedBox(
-                    width: 80,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.home_filled,
-                          color: _currentIndex == 0
-                              ? Colors.lightBlueAccent
-                              : Colors.white54,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Home",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: _currentIndex == 0
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: _currentIndex == 0
-                                ? Colors.lightBlueAccent
-                                : Colors.white54,
+              color: const Color(0xFF1E1E1E),
+              shape: const CircularNotchedRectangle(),
+              notchMargin: 8.0,
+              child: SizedBox(
+                height: 60,
+                // ... (Tumhara bacha hua BottomAppBar ka Row() wala code bilkul same rahega) ...
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    // HOME OPTION
+                    Tooltip(
+                      message: "Home",
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          setState(() {
+                            _currentIndex = 0;
+                          });
+                          showToast("Home Tab selected");
+                        },
+                        child: SizedBox(
+                          width: 80,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.home_filled,
+                                color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Home",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                                  color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              ),
 
-              const SizedBox(width: 40), // Beech me Camera button ke liye space
-              // FILES OPTION
-              Tooltip(
-                message: "Files",
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    setState(() {
-                      _currentIndex = 1;
-                    });
-                    showToast("Files Tab selected");
-                  },
-                  child: SizedBox(
-                    width: 80,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.insert_drive_file_outlined,
-                          color: _currentIndex == 1
-                              ? Colors.lightBlueAccent
-                              : Colors.white54,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Files",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: _currentIndex == 1
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                            color: _currentIndex == 1
-                                ? Colors.lightBlueAccent
-                                : Colors.white54,
+                    const SizedBox(width: 40), // Beech me Camera button ke liye space
+                    // FILES OPTION
+                    Tooltip(
+                      message: "Files",
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          setState(() {
+                            _currentIndex = 1;
+                          });
+                          showToast("Files Tab selected");
+                        },
+                        child: SizedBox(
+                          width: 80,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.insert_drive_file_outlined,
+                                color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Files",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                                  color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
-
 
   // Floating Menu ke options banane ke liye helper widget
   Widget _buildMenuPill(String title, IconData icon, VoidCallback onTap) {
@@ -527,11 +427,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 16),
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -542,9 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Home Tab Content Builder
   Widget _buildHomeTabContent() {
     if (_isLoadingFiles) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.blueAccent),
-      );
+      return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
     }
 
     if (_pdfFiles.isEmpty) {
@@ -592,9 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_pdfFiles.length < 5) {
             isAdIndex = (index == _pdfFiles.length); // Sabse last index ad hoga
           } else {
-            isAdIndex =
-                (index + 1) % 6 ==
-                0; // Har 6th position par ad (index 5, 11, 17...)
+            isAdIndex = (index + 1) % 6 == 0; // Har 6th position par ad (index 5, 11, 17...)
           }
 
           // Agar yeh position Ad ki hai, toh NativeAd return karein
@@ -607,10 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_pdfFiles.length < 5) {
             fileIndex = index;
           } else {
-            fileIndex =
-                index -
-                (index ~/
-                    6); // Ad ke index ko minus kar diya taaki list sahi chale
+            fileIndex = index - (index ~/ 6); // Ad ke index ko minus kar diya taaki list sahi chale
           }
 
           final file = _pdfFiles[fileIndex];
@@ -625,17 +514,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               if (showHeader)
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Text(
                     dateCategory,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                 ),
 
@@ -645,15 +527,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   OpenFile.open(file.path);
                 },
                 child: Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     children: [
                       // Left Side: Real PDF Thumbnail
@@ -677,30 +553,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               _truncateFileName(file.path.split('/').last),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                               maxLines: 1,
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              DateFormat(
-                                'MM/dd/yy  •  hh:mm a',
-                              ).format(fileStat.modified),
-                              style: const TextStyle(
-                                color: Colors.white54,
-                                fontSize: 13,
-                              ),
+                              DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
+                              style: const TextStyle(color: Colors.white54, fontSize: 13),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               _getFileSize(fileStat.size),
-                              style: const TextStyle(
-                                color: Colors.white54,
-                                fontSize: 13,
-                              ),
+                              style: const TextStyle(color: Colors.white54, fontSize: 13),
                             ),
                             const SizedBox(height: 8),
                             Row(
@@ -710,11 +574,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   message: "Share",
                                   child: InkWell(
                                     onTap: () => showToast("Share clicked"),
-                                    child: const Icon(
-                                      Icons.share_outlined,
-                                      color: Colors.white70,
-                                      size: 22,
-                                    ),
+                                    child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
@@ -722,11 +582,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   message: "More",
                                   child: InkWell(
                                     onTap: () => showToast("More options"),
-                                    child: const Icon(
-                                      Icons.more_vert_rounded,
-                                      color: Colors.white70,
-                                      size: 22,
-                                    ),
+                                    child: const Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
                                   ),
                                 ),
                               ],
@@ -800,27 +656,14 @@ class _PdfThumbnailViewState extends State<PdfThumbnailView> {
   Widget build(BuildContext context) {
     // Agar error aayi to purana PDF icon dikhao
     if (_hasError) {
-      return const Center(
-        child: Icon(
-          Icons.picture_as_pdf_rounded,
-          color: Colors.white54,
-          size: 30,
-        ),
-      );
+      return const Center(child: Icon(Icons.picture_as_pdf_rounded, color: Colors.white54, size: 30));
     }
     // Jab tak load ho raha hai, loader dikhao
     if (_imageBytes == null) {
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30),
-      );
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white30));
     }
     // Load hone ke baad real image dikhao
-    return Image.memory(
-      _imageBytes!,
-      fit: BoxFit.cover,
-      width: double.infinity,
-      height: double.infinity,
-    );
+    return Image.memory(_imageBytes!, fit: BoxFit.cover, width: double.infinity, height: double.infinity);
   }
 }
 
