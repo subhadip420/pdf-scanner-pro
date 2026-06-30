@@ -1194,6 +1194,81 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                             /// Capture Button
                             /// Dynamic & Animated Capture Button
+                            // GestureDetector(
+                            //   onTap: _capturePhoto,
+                            //   child: Stack(
+                            //     alignment: Alignment.center,
+                            //     children: [
+                            //       // Base Outer Circle (Always White or Grey)
+                            //       Container(
+                            //         width: 60,
+                            //         height: 60,
+                            //         decoration: BoxDecoration(
+                            //           shape: BoxShape.circle,
+                            //           border: Border.all(
+                            //             color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
+                            //             width: 4,
+                            //           ),
+                            //         ),
+                            //       ),
+                            //
+                            //       // Blue Animated Progress Ring (Shows only during countdown)
+                            //       if (isCapturing && selectedTimer > 0)
+                            //         SizedBox(
+                            //           width: 56,
+                            //           height: 56,
+                            //           child: TweenAnimationBuilder<double>(
+                            //             // Animates from 0.0 to 1.0 smoothly over the selected timer duration
+                            //             tween: Tween<double>(begin: 0.0, end: 1.0),
+                            //             duration: Duration(seconds: selectedTimer),
+                            //             builder: (context, value, child) {
+                            //               return CircularProgressIndicator(
+                            //                 value: value, // Current progress
+                            //                 strokeWidth: 4,
+                            //                 valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                            //                 backgroundColor: Colors.transparent,
+                            //               );
+                            //             },
+                            //           ),
+                            //         ),
+                            //
+                            //       // Inner Content: Numbers OR Solid Circle
+                            //       if (isCapturing && currentCountdown > 0)
+                            //         // Show actively counting down number (e.g., 3, 2, 1)
+                            //         Text(
+                            //           '$currentCountdown',
+                            //           style: const TextStyle(
+                            //             color: Colors.white,
+                            //             fontSize: 24,
+                            //             fontWeight: FontWeight.bold,
+                            //           ),
+                            //         )
+                            //       else if (!isCapturing && selectedTimer > 0)
+                            //         // Show selected timer duration before tapping (e.g., 3 or 10)
+                            //         Text(
+                            //           '$selectedTimer',
+                            //           style: const TextStyle(
+                            //             color: Colors.white,
+                            //             fontSize: 24,
+                            //             fontWeight: FontWeight.bold,
+                            //           ),
+                            //         )
+                            //       else
+                            //         // Show default inner solid circle when no timer is selected
+                            //         Container(
+                            //           width: 45,
+                            //           height: 45,
+                            //           decoration: BoxDecoration(
+                            //             color: isCapturing ? Colors.grey : Colors.white,
+                            //             shape: BoxShape.circle,
+                            //           ),
+                            //         ),
+                            //     ],
+                            //   ),
+                            // ),
+
+                            /// Capture Button
+                            /// Dynamic & Animated Capture Button
                             GestureDetector(
                               onTap: _capturePhoto,
                               child: Stack(
@@ -1212,13 +1287,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     ),
                                   ),
 
-                                  // Blue Animated Progress Ring (Shows only during countdown)
+                                  // Blue Animated Progress Ring (Shows only during Timer countdown)
                                   if (isCapturing && selectedTimer > 0)
                                     SizedBox(
                                       width: 56,
                                       height: 56,
                                       child: TweenAnimationBuilder<double>(
-                                        // Animates from 0.0 to 1.0 smoothly over the selected timer duration
                                         tween: Tween<double>(begin: 0.0, end: 1.0),
                                         duration: Duration(seconds: selectedTimer),
                                         builder: (context, value, child) {
@@ -1230,11 +1304,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                           );
                                         },
                                       ),
+                                    )
+                                  // 🚨 NAYA: Auto-Detect Progress Ring (Fills up as document stays stable!)
+                                  else if (isAutoDetectOn && _stableFrames > 0)
+                                    SizedBox(
+                                      width: 56,
+                                      height: 56,
+                                      child: CircularProgressIndicator(
+                                        // MAGIC: stableFrames 10 tak jata hai, isko 10 se divide kiya toh 0.0 se 1.0 tak progress ban gaya
+                                        value: (_stableFrames / 10.0).clamp(0.0, 1.0),
+                                        strokeWidth: 4,
+                                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                                        backgroundColor: Colors.transparent,
+                                      ),
                                     ),
 
                                   // Inner Content: Numbers OR Solid Circle
                                   if (isCapturing && currentCountdown > 0)
-                                    // Show actively counting down number (e.g., 3, 2, 1)
+                                  // Show actively counting down number (e.g., 3, 2, 1)
                                     Text(
                                       '$currentCountdown',
                                       style: const TextStyle(
@@ -1244,7 +1331,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       ),
                                     )
                                   else if (!isCapturing && selectedTimer > 0)
-                                    // Show selected timer duration before tapping (e.g., 3 or 10)
+                                  // Show selected timer duration before tapping (e.g., 3 or 10)
                                     Text(
                                       '$selectedTimer',
                                       style: const TextStyle(
@@ -1254,12 +1341,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       ),
                                     )
                                   else
-                                    // Show default inner solid circle when no timer is selected
+                                  // Show default inner solid circle when no timer is selected
                                     Container(
                                       width: 45,
                                       height: 45,
                                       decoration: BoxDecoration(
-                                        color: isCapturing ? Colors.grey : Colors.white,
+                                        // 🚨 FIX: Jab document 'Hold steady' par aayega, toh center button grey ho jayega (Busy state)
+                                        color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white,
                                         shape: BoxShape.circle,
                                       ),
                                     ),
