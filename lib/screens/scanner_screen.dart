@@ -11,6 +11,7 @@ import 'package:flutter/services.dart'; // For locking orientation
 import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
 import 'dart:async';
 import 'package:image/image.dart' as img;
+import 'camera_settings_screen.dart';
 import 'custom_gallery_screen.dart';
 import 'document_editor_screen.dart';
 import 'home_screen.dart'; // For StreamSubscription
@@ -1499,7 +1500,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
               if (!widget.isRetakeMode)
                 IconButton(
-                  onPressed: () => showToast("Settings"),
+                  //onPressed: () => showToast("Settings"),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CameraSettingsScreen(),
+                      ),
+                    );
+                  },
                   icon: _buildRotatedIcon(Symbols.segment_sharp, color: Colors.white, size: 26),
                 ),
             ],
