@@ -601,7 +601,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 CameraPreview(controller),
 
                 // YEH NAYI LINE: Real-time Blue Overlay
-                if (_detectedDocumentBox != null && isAutoDetectOn)
+                if (_detectedDocumentBox != null && isAutoDetectOn && selectedIndex == 0)
                   Positioned.fill(
                     // FIX 4: Isko Positioned.fill me wrap kiya
                     child: CustomPaint(
@@ -838,6 +838,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // ==========================================
           final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
 
+          // 🚨 FIX 1A: Agar processing ke dauran mode change ho gaya toh yahi ruk jao!
+          if (!mounted || selectedIndex != 0) return;
+
           if (recognizedText.blocks.isNotEmpty) {
             double minX = double.infinity, minY = double.infinity;
             double maxX = 0, maxY = 0;
@@ -908,6 +911,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
           // MODE 1: QR & BARCODE SCANNER (Naya Logic)
           // ==========================================
           final List<Barcode> barcodes = await _barcodeScanner.processImage(inputImage);
+
+          // 🚨 FIX 1B: Agar processing ke dauran wapas Document pe chala gaya toh ruk jao!
+          if (!mounted || selectedIndex != 1) return;
 
           if (barcodes.isNotEmpty) {
             final Barcode barcode = barcodes.first;
@@ -1410,6 +1416,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                   // QR SCANNER MODE
                                   // =====================
                                   _detectedDocumentBox = null;
+                                  _stableFrames = 0;
+                                  isHoldingSteady = false;
                                   autoScanStatus = "Looking for QR code...";
 
                                   // 🚨 FIX 2A: Agar Manual mode me the aur stream band thi, toh QR ke liye chalu kardo
@@ -1421,6 +1429,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                   // DOCUMENT MODE
                                   // =====================
                                   _detectedQrCode = null;
+                                  _detectedQrBox = null;
 
                                   if (isAutoDetectOn) {
                                     autoScanStatus = "Looking for document...";
