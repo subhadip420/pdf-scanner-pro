@@ -1,8 +1,10 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import '../../main.dart';
 import 'dart:io';
@@ -47,9 +49,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String selectedMode = "Document";
   final ScrollController modeController = ScrollController();
 
-  final List<String> scanModes = ["Whiteboard", "Book", "Document", "ID Card", "Business Card", "OCR"];
+  //final List<String> scanModes = ["Whiteboard", "Book", "Document", "ID Card", "Business Card", "OCR"];
 
-  int selectedIndex = 2; // Document
+  // 🚨 FIX: Modes ab sirf 2 hain, aur default Document (0) par rahega
+  final List<String> scanModes = ["Document", "QR Scanner"];
+  int selectedIndex = 0;
+
+  // 🚨 NAYA: QR Scanner variables
+  final BarcodeScanner _barcodeScanner = BarcodeScanner();
+  String? _detectedQrCode;
+
+  //int selectedIndex = 2; // Document
   bool isSelectingRatio = false;
   String selectedRatio = "4:3"; // Default 4:3 select rahega
 
@@ -187,6 +197,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     // FIX 2: ML Recognizer ko memory se clear karna zaroori hai warna app crash hoga
     _textRecognizer.close();
+    _barcodeScanner.close();
 
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -624,6 +635,94 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
+  // void _startMLAutoDetect() {
+  //   if (!isAutoDetectOn || !controller.value.isInitialized) return;
+  //
+  //   // FIX 2: Agar pehle se stream chal rahi hai, toh naya start na kare (crash rokne ke liye)
+  //   if (controller.value.isStreamingImages) return;
+  //
+  //   setState(() {
+  //     autoScanStatus = "Looking for document...";
+  //     isHoldingSteady = false;
+  //     _stableFrames = 0;
+  //   });
+  //
+  //   controller.startImageStream((CameraImage image) async {
+  //     if (_isProcessingImage || !isAutoDetectOn || isCapturing) return;
+  //     _isProcessingImage = true;
+  //
+  //     try {
+  //       final WriteBuffer allBytes = WriteBuffer();
+  //       for (final Plane plane in image.planes) {
+  //         allBytes.putUint8List(plane.bytes);
+  //       }
+  //       final bytes = allBytes.done().buffer.asUint8List();
+  //
+  //       final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
+  //       final camera = cameras[currentCameraIndex];
+  //       final imageRotation =
+  //           InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation90deg;
+  //
+  //       // FIX 3: Strict format define kiya Platform ke hisab se, taaki ML Kit block na ho
+  //       final inputImageFormat = Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888;
+  //
+  //       final inputImageData = InputImageMetadata(
+  //         size: imageSize,
+  //         rotation: imageRotation,
+  //         format: inputImageFormat,
+  //         bytesPerRow: image.planes[0].bytesPerRow,
+  //       );
+  //
+  //       final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
+  //       final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+  //
+  //       // Agar text/document mil gaya!
+  //       if (recognizedText.blocks.isNotEmpty) {
+  //         double minX = double.infinity, minY = double.infinity;
+  //         double maxX = 0, maxY = 0;
+  //
+  //         for (TextBlock block in recognizedText.blocks) {
+  //           if (block.boundingBox.left < minX) minX = block.boundingBox.left;
+  //           if (block.boundingBox.top < minY) minY = block.boundingBox.top;
+  //           if (block.boundingBox.right > maxX) maxX = block.boundingBox.right;
+  //           if (block.boundingBox.bottom > maxY) maxY = block.boundingBox.bottom;
+  //         }
+  //
+  //         if (mounted) {
+  //           setState(() {
+  //             _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
+  //             _stableFrames++;
+  //
+  //             if (_stableFrames > 3) {
+  //               autoScanStatus = "Capturing... hold steady";
+  //               isHoldingSteady = true;
+  //             }
+  //           });
+  //
+  //           if (_stableFrames > 10) {
+  //             await controller.stopImageStream();
+  //             _autoCaptureAndNavigate();
+  //           }
+  //         }
+  //       } else {
+  //         // Document screen se hat gaya
+  //         if (mounted) {
+  //           setState(() {
+  //             _detectedDocumentBox = null;
+  //             _stableFrames = 0;
+  //             autoScanStatus = "Looking for document...";
+  //             isHoldingSteady = false;
+  //           });
+  //         }
+  //       }
+  //     } catch (e) {
+  //       print("ML Error: $e");
+  //     } finally {
+  //       _isProcessingImage = false;
+  //     }
+  //   });
+  // }
+
   void _startMLAutoDetect() {
     if (!isAutoDetectOn || !controller.value.isInitialized) return;
 
@@ -663,47 +762,75 @@ class _ScannerScreenState extends State<ScannerScreen> {
         );
 
         final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
-        final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
 
-        // Agar text/document mil gaya!
-        if (recognizedText.blocks.isNotEmpty) {
-          double minX = double.infinity, minY = double.infinity;
-          double maxX = 0, maxY = 0;
+        // 🚨 MASTER DUAL-LOGIC START: Check Mode Index
+        if (selectedIndex == 0) {
+          // ==========================================
+          // MODE 0: DOCUMENT SCANNER (Purana Logic)
+          // ==========================================
+          final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
 
-          for (TextBlock block in recognizedText.blocks) {
-            if (block.boundingBox.left < minX) minX = block.boundingBox.left;
-            if (block.boundingBox.top < minY) minY = block.boundingBox.top;
-            if (block.boundingBox.right > maxX) maxX = block.boundingBox.right;
-            if (block.boundingBox.bottom > maxY) maxY = block.boundingBox.bottom;
-          }
+          if (recognizedText.blocks.isNotEmpty) {
+            double minX = double.infinity, minY = double.infinity;
+            double maxX = 0, maxY = 0;
 
-          if (mounted) {
-            setState(() {
-              _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
-              _stableFrames++;
+            for (TextBlock block in recognizedText.blocks) {
+              if (block.boundingBox.left < minX) minX = block.boundingBox.left;
+              if (block.boundingBox.top < minY) minY = block.boundingBox.top;
+              if (block.boundingBox.right > maxX) maxX = block.boundingBox.right;
+              if (block.boundingBox.bottom > maxY) maxY = block.boundingBox.bottom;
+            }
 
-              if (_stableFrames > 3) {
-                autoScanStatus = "Capturing... hold steady";
-                isHoldingSteady = true;
+            if (mounted) {
+              setState(() {
+                _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
+                _stableFrames++;
+
+                if (_stableFrames > 3) {
+                  autoScanStatus = "Capturing... hold steady";
+                  isHoldingSteady = true;
+                }
+              });
+
+              if (_stableFrames > 10) {
+                await controller.stopImageStream();
+                _autoCaptureAndNavigate();
               }
-            });
-
-            if (_stableFrames > 10) {
-              await controller.stopImageStream();
-              _autoCaptureAndNavigate();
+            }
+          } else {
+            if (mounted) {
+              setState(() {
+                _detectedDocumentBox = null;
+                _stableFrames = 0;
+                autoScanStatus = "Looking for document...";
+                isHoldingSteady = false;
+              });
             }
           }
-        } else {
-          // Document screen se hat gaya
-          if (mounted) {
-            setState(() {
-              _detectedDocumentBox = null;
-              _stableFrames = 0;
-              autoScanStatus = "Looking for document...";
-              isHoldingSteady = false;
-            });
+        }
+        else if (selectedIndex == 1) {
+          // ==========================================
+          // MODE 1: QR & BARCODE SCANNER (Naya Logic)
+          // ==========================================
+          final List<Barcode> barcodes = await _barcodeScanner.processImage(inputImage);
+
+          if (barcodes.isNotEmpty) {
+            final String? rawValue = barcodes.first.rawValue;
+
+            // Agar QR valid hai aur purane wale se alag hai (taaki baar-baar vibrate na kare)
+            if (rawValue != null && rawValue != _detectedQrCode) {
+              if (mounted) {
+                setState(() {
+                  _detectedQrCode = rawValue; // State update ki
+                });
+                // Haptic feedback (User ko pata chalega ki scan ho gaya)
+                HapticFeedback.lightImpact();
+              }
+            }
           }
         }
+        // 🚨 DUAL-LOGIC END
+
       } catch (e) {
         print("ML Error: $e");
       } finally {
@@ -1108,16 +1235,25 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             },
 
                             itemCount: scanModes.length,
-
                             itemSize: MediaQuery.of(context).size.width * 0.22,
-
-                            initialIndex: 2,
-
+                            initialIndex: 0,
                             dynamicItemSize: true,
-
                             onItemFocus: (index) {
+                              // setState(() {
+                              //   selectedIndex = index;
+                              // });
+
                               setState(() {
                                 selectedIndex = index;
+                                // 🚨 NAYA LOGIC: Mode change hone par UI update
+                                if (selectedIndex == 1) {
+                                  // Agar QR mode me gaya, toh purana auto-detect UI hata do
+                                  _detectedDocumentBox = null;
+                                  autoScanStatus = "";
+                                } else {
+                                  // Document mode wapas aaya
+                                  _detectedQrCode = null;
+                                }
                               });
                             },
                           ),
@@ -1125,6 +1261,93 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       ),
                     ),
                   ),
+
+
+                  /// 🚨 NAYA: GOOGLE LENS JAISE QR RESULT POPUP
+                  if (selectedIndex == 1 && _detectedQrCode != null)
+                    Positioned(
+                      bottom: 220, // Modes ke theek upar
+                      left: 20,
+                      right: 20,
+                      child: AnimatedRotation(
+                        turns: _iconTurns, // Screen ghumne par ghumega
+                        duration: const Duration(milliseconds: 300),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white, // Pop-out feel ke liye white background
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2)
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.qr_code_scanner_rounded, color: Colors.blueAccent),
+                                  const SizedBox(width: 8),
+                                  const Expanded(
+                                    child: Text(
+                                      "QR Code Detected",
+                                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                                    onPressed: () => setState(() => _detectedQrCode = null),
+                                  )
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _detectedQrCode!,
+                                style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  // Copy Button
+                                  TextButton.icon(
+                                    onPressed: () {
+                                      Clipboard.setData(ClipboardData(text: _detectedQrCode!));
+                                      showToast("Copied to clipboard");
+                                    },
+                                    icon: const Icon(Icons.copy_rounded, size: 18),
+                                    label: const Text("Copy"),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  // Open Button (Agar link hai)
+                                  if (_detectedQrCode!.startsWith("http"))
+                                    ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final Uri url = Uri.parse(_detectedQrCode!);
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blueAccent,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      icon: const Icon(Icons.open_in_browser_rounded, size: 18),
+                                      label: const Text("Open"),
+                                    ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
 
                   /// Bottom Controls
                   Positioned(
