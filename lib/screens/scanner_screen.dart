@@ -724,7 +724,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // }
 
   void _startMLAutoDetect() {
-    if (!isAutoDetectOn || !controller.value.isInitialized) return;
+    //if (!isAutoDetectOn || !controller.value.isInitialized) return;
+
+    if (!controller.value.isInitialized) return;
+
+    // 🚨 FIX 1: Document (0) me Auto OFF hone par stream roko, par QR (1) me hamesha allow karo
+    if (selectedIndex == 0 && !isAutoDetectOn) return;
 
     // FIX 2: Agar pehle se stream chal rahi hai, toh naya start na kare (crash rokne ke liye)
     if (controller.value.isStreamingImages) return;
@@ -738,7 +743,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
 
     controller.startImageStream((CameraImage image) async {
-      if (_isProcessingImage || !isAutoDetectOn || isCapturing) return;
+      if (_isProcessingImage || isCapturing) return;
+
+      if (selectedIndex == 0 && !isAutoDetectOn) return;
+
       _isProcessingImage = true;
 
       try {
@@ -1341,21 +1349,59 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             //   });
                             // },
 
+                            // onItemFocus: (index) {
+                            //   setState(() {
+                            //     selectedIndex = index;
+                            //     // 🚨 FIX 1: Mode ke hisaab se UI text change karo
+                            //     if (selectedIndex == 1) {
+                            //       // QR Mode
+                            //       _detectedDocumentBox = null;
+                            //       autoScanStatus = "Looking for QR code..."; // Text change
+                            //     } else {
+                            //       // Document Mode
+                            //       _detectedQrCode = null;
+                            //       autoScanStatus = "Looking for document..."; // Text revert
+                            //     }
+                            //   });
+                            // },
+
                             onItemFocus: (index) {
                               setState(() {
                                 selectedIndex = index;
-                                // 🚨 FIX 1: Mode ke hisaab se UI text change karo
+
                                 if (selectedIndex == 1) {
-                                  // QR Mode
+                                  // =====================
+                                  // QR SCANNER MODE
+                                  // =====================
                                   _detectedDocumentBox = null;
-                                  autoScanStatus = "Looking for QR code..."; // Text change
+                                  autoScanStatus = "Looking for QR code...";
+
+                                  // 🚨 FIX 2A: Agar Manual mode me the aur stream band thi, toh QR ke liye chalu kardo
+                                  if (!controller.value.isStreamingImages) {
+                                    _startMLAutoDetect();
+                                  }
                                 } else {
-                                  // Document Mode
+                                  // =====================
+                                  // DOCUMENT MODE
+                                  // =====================
                                   _detectedQrCode = null;
-                                  autoScanStatus = "Looking for document..."; // Text revert
+
+                                  if (isAutoDetectOn) {
+                                    autoScanStatus = "Looking for document...";
+                                    if (!controller.value.isStreamingImages) {
+                                      _startMLAutoDetect();
+                                    }
+                                  } else {
+                                    // 🚨 FIX 2B: Agar Document ka Auto OFF tha, toh wapas aane par stream band kar do
+                                    autoScanStatus = "";
+                                    if (controller.value.isStreamingImages) {
+                                      controller.stopImageStream();
+                                    }
+                                  }
                                 }
                               });
                             },
+
                           ),
                         ],
                       ),
@@ -1591,13 +1637,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                               /// Auto Detect
                               /// Auto Detect Button
+                              // IconButton(
+                              //   onPressed: _toggleAutoDetect, // Yeh naya function call karega
+                              //   icon: _buildRotatedIcon(
+                              //     Icons.document_scanner_outlined,
+                              //     // Aap chahein toh Icons.auto_awesome use kar sakte hain
+                              //     color: isAutoDetectOn ? Colors.blueAccent : Colors.white, // ON hone par Blue
+                              //     size: 24,
+                              //   ),
+                              // ),
+
+                              // 🚨 MASTER FIX 3: QR mode aate hi ye button disable aur thoda transparent ho jayega
                               IconButton(
-                                onPressed: _toggleAutoDetect, // Yeh naya function call karega
-                                icon: _buildRotatedIcon(
-                                  Icons.document_scanner_outlined,
-                                  // Aap chahein toh Icons.auto_awesome use kar sakte hain
-                                  color: isAutoDetectOn ? Colors.blueAccent : Colors.white, // ON hone par Blue
-                                  size: 24,
+                                onPressed: selectedIndex == 1 ? null : _toggleAutoDetect,
+                                icon: Opacity(
+                                  opacity: selectedIndex == 1 ? 0.4 : 1.0, // Disabled look
+                                  child: _buildRotatedIcon(
+                                    Icons.document_scanner_outlined,
+                                    color: isAutoDetectOn ? Colors.blueAccent : Colors.white,
+                                    size: 24,
+                                  ),
                                 ),
                               ),
 
