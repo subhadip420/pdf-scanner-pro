@@ -111,6 +111,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool _isCameraSleeping = false;
 // 🚨 NAYA: Multiple scan mode toggle ke liye (By default ON rakha hai)
   bool isMultiScanMode = true;
+  Rect? _detectedQrBox;
 
   @override
   void initState() {
@@ -611,6 +612,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                   ),
 
+                // 🚨 NAYA: QR Scanner ka Green Bracket [ ] Overlay
+                if (_detectedQrBox != null && selectedIndex == 1)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: QrOverlayPainter(
+                        _detectedQrBox,
+                        Size(controller.value.previewSize!.width, controller.value.previewSize!.height),
+                      ),
+                    ),
+                  ),
+
                 if (_showFocusIndicator && _focusPointPosition != null)
                   Positioned(
                     // FIX: Size 80 kiya hai, toh center karne ke liye 40 minus kiya (80 / 2)
@@ -898,7 +910,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
           final List<Barcode> barcodes = await _barcodeScanner.processImage(inputImage);
 
           if (barcodes.isNotEmpty) {
+            final Barcode barcode = barcodes.first;
             final String? rawValue = barcodes.first.rawValue;
+
+            // 🚨 NAYA: Har frame par QR ka location update karo taaki box smoothly uske sath hile
+            if (mounted) {
+              setState(() {
+                _detectedQrBox = barcode.boundingBox;
+              });
+            }
 
             // Agar QR valid hai aur purane wale se alag hai (taaki baar-baar vibrate na kare)
             if (rawValue != null && rawValue != _detectedQrCode) {
@@ -911,12 +931,28 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 HapticFeedback.lightImpact();
               }
             }
+          // } else {
+          //   // 🚨 FIX: Agar koi QR nahi mil raha aur screen par koi popup bhi open nahi hai
+          //   if (mounted && autoScanStatus != "Looking for QR code..." && _detectedQrCode == null) {
+          //     setState(() {
+          //       autoScanStatus = "Looking for QR code..."; // Text wapas laga do
+          //     });
+          //   }
+          // }
+
           } else {
-            // 🚨 FIX: Agar koi QR nahi mil raha aur screen par koi popup bhi open nahi hai
-            if (mounted && autoScanStatus != "Looking for QR code..." && _detectedQrCode == null) {
-              setState(() {
-                autoScanStatus = "Looking for QR code..."; // Text wapas laga do
-              });
+            // 🚨 MASTER FIX: QR screen se hat-te hi Box turant gayab hoga
+            if (mounted) {
+              // Sirf tab setState call karo jab box pehle se screen par ho (App hang nahi hoga)
+              if (_detectedQrBox != null || (autoScanStatus != "Looking for QR code..." && _detectedQrCode == null)) {
+                setState(() {
+                  _detectedQrBox = null; // Box ko null kar diya (gayab ho jayega)
+
+                  if (_detectedQrCode == null) {
+                    autoScanStatus = "Looking for QR code...";
+                  }
+                });
+              }
             }
           }
         }
@@ -2000,6 +2036,60 @@ class DocumentOverlayPainter extends CustomPainter {
       canvas.drawCircle(corner, radius, dotPaint);
       canvas.drawCircle(corner, radius, dotBorder);
     }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// 🚨 NAYI CLASS: QR Code ke liye [ ] Bracket draw karne wala painter
+class QrOverlayPainter extends CustomPainter {
+  final Rect? qrRect;
+  final Size imageSize;
+
+  QrOverlayPainter(this.qrRect, this.imageSize);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (qrRect == null) return;
+
+    final double scaleX = size.width / imageSize.height;
+    final double scaleY = size.height / imageSize.width;
+
+    // Padding taaki box QR code se thoda bahar ki taraf bane (ekdum chipka na ho)
+    final double padding = 15.0;
+
+    final Rect scaledRect = Rect.fromLTRB(
+      (qrRect!.left * scaleX) - padding,
+      (qrRect!.top * scaleY) - padding,
+      (qrRect!.right * scaleX) + padding,
+      (qrRect!.bottom * scaleY) + padding,
+    );
+
+    // Paint settings for the border
+    final Paint borderPaint = Paint()
+      ..color = Colors.greenAccent // QR ke liye Green achha lagta hai, chahiye toh Colors.amber kar lena
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.round; // Corners thode smooth honge
+
+    final double cornerLength = 30.0; // [ ] bracket ki line kitni lambi hogi
+
+    // Top-Left corner draw
+    canvas.drawLine(scaledRect.topLeft, scaledRect.topLeft + Offset(cornerLength, 0), borderPaint);
+    canvas.drawLine(scaledRect.topLeft, scaledRect.topLeft + Offset(0, cornerLength), borderPaint);
+
+    // Top-Right corner draw
+    canvas.drawLine(scaledRect.topRight, scaledRect.topRight + Offset(-cornerLength, 0), borderPaint);
+    canvas.drawLine(scaledRect.topRight, scaledRect.topRight + Offset(0, cornerLength), borderPaint);
+
+    // Bottom-Left corner draw
+    canvas.drawLine(scaledRect.bottomLeft, scaledRect.bottomLeft + Offset(cornerLength, 0), borderPaint);
+    canvas.drawLine(scaledRect.bottomLeft, scaledRect.bottomLeft + Offset(0, -cornerLength), borderPaint);
+
+    // Bottom-Right corner draw
+    canvas.drawLine(scaledRect.bottomRight, scaledRect.bottomRight + Offset(-cornerLength, 0), borderPaint);
+    canvas.drawLine(scaledRect.bottomRight, scaledRect.bottomRight + Offset(0, -cornerLength), borderPaint);
   }
 
   @override
