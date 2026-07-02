@@ -730,7 +730,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (controller.value.isStreamingImages) return;
 
     setState(() {
-      autoScanStatus = "Looking for document...";
+      //autoScanStatus = "Looking for document...";
+      // 🚨 FIX 2A: Start hote hi check karo kaunsa mode hai
+      autoScanStatus = selectedIndex == 1 ? "Looking for QR code..." : "Looking for document...";
       isHoldingSteady = false;
       _stableFrames = 0;
     });
@@ -764,6 +766,52 @@ class _ScannerScreenState extends State<ScannerScreen> {
         final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
 
         // 🚨 MASTER DUAL-LOGIC START: Check Mode Index
+        // if (selectedIndex == 0) {
+        //   // ==========================================
+        //   // MODE 0: DOCUMENT SCANNER (Purana Logic)
+        //   // ==========================================
+        //   final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+        //
+        //   if (recognizedText.blocks.isNotEmpty) {
+        //     double minX = double.infinity, minY = double.infinity;
+        //     double maxX = 0, maxY = 0;
+        //
+        //     for (TextBlock block in recognizedText.blocks) {
+        //       if (block.boundingBox.left < minX) minX = block.boundingBox.left;
+        //       if (block.boundingBox.top < minY) minY = block.boundingBox.top;
+        //       if (block.boundingBox.right > maxX) maxX = block.boundingBox.right;
+        //       if (block.boundingBox.bottom > maxY) maxY = block.boundingBox.bottom;
+        //     }
+        //
+        //     if (mounted) {
+        //       setState(() {
+        //         _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
+        //         _stableFrames++;
+        //
+        //         if (_stableFrames > 3) {
+        //           autoScanStatus = "Capturing... hold steady";
+        //           isHoldingSteady = true;
+        //         }
+        //       });
+        //
+        //       if (_stableFrames > 10) {
+        //         await controller.stopImageStream();
+        //         _autoCaptureAndNavigate();
+        //       }
+        //     }
+        //   } else {
+        //     if (mounted) {
+        //       setState(() {
+        //         _detectedDocumentBox = null;
+        //         _stableFrames = 0;
+        //         autoScanStatus = "Looking for document...";
+        //         isHoldingSteady = false;
+        //       });
+        //     }
+        //   }
+        // }
+
+        // 🚨 MASTER DUAL-LOGIC START: Check Mode Index
         if (selectedIndex == 0) {
           // ==========================================
           // MODE 0: DOCUMENT SCANNER (Purana Logic)
@@ -786,7 +834,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
                 _stableFrames++;
 
-                if (_stableFrames > 3) {
+                if (_stableFrames > 3 && !isHoldingSteady) { // 🚨 FIX: Sirf tab update karo jab status change ho
                   autoScanStatus = "Capturing... hold steady";
                   isHoldingSteady = true;
                 }
@@ -799,15 +847,42 @@ class _ScannerScreenState extends State<ScannerScreen> {
             }
           } else {
             if (mounted) {
-              setState(() {
-                _detectedDocumentBox = null;
-                _stableFrames = 0;
-                autoScanStatus = "Looking for document...";
-                isHoldingSteady = false;
-              });
+              // 🚨 FIX: Har frame pe setState chalane se roko.
+              // Agar pehle se "Looking for document..." likha hai, toh wapas setState mat karo.
+              if (_detectedDocumentBox != null || _stableFrames != 0 || autoScanStatus != "Looking for document...") {
+                setState(() {
+                  _detectedDocumentBox = null;
+                  _stableFrames = 0;
+                  autoScanStatus = "Looking for document...";
+                  isHoldingSteady = false;
+                });
+              }
             }
           }
         }
+
+        // else if (selectedIndex == 1) {
+        //   // ==========================================
+        //   // MODE 1: QR & BARCODE SCANNER (Naya Logic)
+        //   // ==========================================
+        //   final List<Barcode> barcodes = await _barcodeScanner.processImage(inputImage);
+        //
+        //   if (barcodes.isNotEmpty) {
+        //     final String? rawValue = barcodes.first.rawValue;
+        //
+        //     // Agar QR valid hai aur purane wale se alag hai (taaki baar-baar vibrate na kare)
+        //     if (rawValue != null && rawValue != _detectedQrCode) {
+        //       if (mounted) {
+        //         setState(() {
+        //           _detectedQrCode = rawValue; // State update ki
+        //         });
+        //         // Haptic feedback (User ko pata chalega ki scan ho gaya)
+        //         HapticFeedback.lightImpact();
+        //       }
+        //     }
+        //   }
+        // }
+
         else if (selectedIndex == 1) {
           // ==========================================
           // MODE 1: QR & BARCODE SCANNER (Naya Logic)
@@ -822,13 +897,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
               if (mounted) {
                 setState(() {
                   _detectedQrCode = rawValue; // State update ki
+                  autoScanStatus = ""; // 🚨 FIX: Result milte hi piche ka text clear kar do
                 });
                 // Haptic feedback (User ko pata chalega ki scan ho gaya)
                 HapticFeedback.lightImpact();
               }
             }
+          } else {
+            // 🚨 FIX: Agar koi QR nahi mil raha aur screen par koi popup bhi open nahi hai
+            if (mounted && autoScanStatus != "Looking for QR code..." && _detectedQrCode == null) {
+              setState(() {
+                autoScanStatus = "Looking for QR code..."; // Text wapas laga do
+              });
+            }
           }
         }
+
         // 🚨 DUAL-LOGIC END
 
       } catch (e) {
@@ -1175,8 +1259,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
                   ),
 
-                  /// Status Text (Looking for document / Hold steady)
-                  if (isAutoDetectOn && !_isCameraSleeping)
+                  /// Status Text (Looking for document / Hold steady / Looking for QR)
+                  if (isAutoDetectOn && !_isCameraSleeping && autoScanStatus.isNotEmpty)
                     Positioned(
                       top: MediaQuery.of(context).size.height * 0.45,
                       left: 0,
@@ -1238,21 +1322,37 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             itemSize: MediaQuery.of(context).size.width * 0.22,
                             initialIndex: 0,
                             dynamicItemSize: true,
-                            onItemFocus: (index) {
-                              // setState(() {
-                              //   selectedIndex = index;
-                              // });
+                            // onItemFocus: (index) {
+                            //   // setState(() {
+                            //   //   selectedIndex = index;
+                            //   // });
+                            //
+                            //   setState(() {
+                            //     selectedIndex = index;
+                            //     // 🚨 NAYA LOGIC: Mode change hone par UI update
+                            //     if (selectedIndex == 1) {
+                            //       // Agar QR mode me gaya, toh purana auto-detect UI hata do
+                            //       _detectedDocumentBox = null;
+                            //       autoScanStatus = "";
+                            //     } else {
+                            //       // Document mode wapas aaya
+                            //       _detectedQrCode = null;
+                            //     }
+                            //   });
+                            // },
 
+                            onItemFocus: (index) {
                               setState(() {
                                 selectedIndex = index;
-                                // 🚨 NAYA LOGIC: Mode change hone par UI update
+                                // 🚨 FIX 1: Mode ke hisaab se UI text change karo
                                 if (selectedIndex == 1) {
-                                  // Agar QR mode me gaya, toh purana auto-detect UI hata do
+                                  // QR Mode
                                   _detectedDocumentBox = null;
-                                  autoScanStatus = "";
+                                  autoScanStatus = "Looking for QR code..."; // Text change
                                 } else {
-                                  // Document mode wapas aaya
+                                  // Document Mode
                                   _detectedQrCode = null;
+                                  autoScanStatus = "Looking for document..."; // Text revert
                                 }
                               });
                             },
