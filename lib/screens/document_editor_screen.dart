@@ -2980,6 +2980,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     // Check karo ki list me ek bhi page selected hai ya nahi
     bool hasSelection = selectedPagesList.contains(true);
 
+    // 🚨 NAYA: Check karo ki kitne pages selected hain
+    int selectedCount = selectedPagesList.where((e) => e == true).length;
+
     // Check karo ki kya saare ke saare pages selected hain?
     bool allSelected = selectedPagesList.isNotEmpty && selectedPagesList.every((e) => e == true);
 
@@ -3021,6 +3024,27 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min, // Taaki UI kharab na ho
                 children: [
+
+                  // 🚨 NAYA: Merge Button (Only active if selectedCount >= 2)
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    // Agar 2 se kam hain toh thoda fade rakhenge
+                    opacity: selectedCount >= 2 ? 1.0 : 0.4,
+                    child: IgnorePointer(
+                      // Agar 2 se kam hain toh click disable hoga
+                      ignoring: selectedCount < 2,
+                      child: _buildToolItem(
+                        label: "Merge",
+                        icon: Symbols.stack_group_rounded, // Tum chaho toh Icons.view_comfy_rounded bhi use kar sakte ho
+                        tooltipMessage: "Merge selected photos into one page",
+                        onTap: () {
+                          // Function baad me likha jayega, abhi sirf toast show karenge
+                          showToast("Merge function coming soon!");
+                        },
+                      ),
+                    ),
+                  ),
+
                   _buildToolItem(
                     label: "Rotate",
                     icon: Icons.rotate_right_rounded,
