@@ -1148,6 +1148,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
     }
 
+    // 🚨 MASTER FIX: Status bar ke icons (Time, Battery) ko hamesha White (Light) rakho
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent, // Background transparent
+      statusBarIconBrightness: Brightness.light, // Icons White honge (Android)
+      statusBarBrightness: Brightness.dark, // Icons White honge (iOS)
+    ));
+
     // return Scaffold(
     return WillPopScope(
       onWillPop: _onWillPop,
