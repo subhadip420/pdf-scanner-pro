@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import '../../main.dart';
@@ -138,6 +139,44 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _sensorSubscription?.cancel();
+    _popupTimer?.cancel();
+
+    // FIX 2: ML Recognizer ko memory se clear karna zaroori hai warna app crash hoga
+    _textRecognizer.close();
+    _barcodeScanner.close();
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    _sleepTimer?.cancel();
+    controller.dispose();
+    super.dispose();
+  }
+
+
+  // 🚨 MASTER VIBRATION FUNCTION: Light aur Medium dono options
+  Future<void> _triggerVibration({bool isLight = true}) async {
+    final prefs = await SharedPreferences.getInstance();
+    // Setting check karo, default ON (true) rahega
+    final isHapticOn = prefs.getBool('haptic_feedback') ?? true;
+
+    if (isHapticOn) {
+      if (isLight) {
+        // Buttons, focus, mode switch ke liye (Halka vibration)
+        HapticFeedback.lightImpact();
+      } else {
+        // Sirf Photo Capture ke liye (Thoda strong)
+        HapticFeedback.mediumImpact();
+      }
+    }
+  }
+
   // 🚨 FIX 2: Camera chalu karne ka Master Helper
   Future<void> _initializeCamera() async {
     if (!mounted) return;
@@ -191,25 +230,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _sensorSubscription?.cancel();
-    _popupTimer?.cancel();
 
-    // FIX 2: ML Recognizer ko memory se clear karna zaroori hai warna app crash hoga
-    _textRecognizer.close();
-    _barcodeScanner.close();
-
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-    _sleepTimer?.cancel();
-    controller.dispose();
-    super.dispose();
-  }
 
   // --- 🚨 NAYA BLOCK: CAMERA SLEEP & WAKE LOGIC ---
   void _resetSleepTimer() {
@@ -430,6 +451,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         });
       }
 
+      await _triggerVibration(isLight: false);
       // Capture the picture
       final XFile photo = await controller.takePicture();
 
@@ -982,6 +1004,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         await controller.stopImageStream();
       }
 
+      await _triggerVibration(isLight: false);
+
       // Photo capture
       Rect? boxToCrop = _detectedDocumentBox;
       final XFile photo = await controller.takePicture();
@@ -1407,7 +1431,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             //   });
                             // },
 
-                            onItemFocus: (index) {
+                            onItemFocus: (index) async {
+                              await _triggerVibration();
                               setState(() {
                                 selectedIndex = index;
 
@@ -1490,7 +1515,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
                                     icon: const Icon(Icons.close_rounded, color: Colors.grey),
-                                    onPressed: () => setState(() => _detectedQrCode = null),
+                                    //onPressed: () => setState(() => _detectedQrCode = null),
+                                    onPressed: () async {
+                                      await _triggerVibration(); // 🚨 HAPTIC: Camera switch
+                                      _detectedQrCode = null;
+                                    },
                                   )
                                 ],
                               ),
@@ -1507,7 +1536,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 children: [
                                   // Copy Button
                                   TextButton.icon(
-                                    onPressed: () {
+                                    onPressed: () async {
+                                      await _triggerVibration();
                                       Clipboard.setData(ClipboardData(text: _detectedQrCode!));
                                       showToast("Copied to clipboard");
                                     },
@@ -1519,6 +1549,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                   if (_detectedQrCode!.startsWith("http"))
                                     ElevatedButton.icon(
                                       onPressed: () async {
+                                        await _triggerVibration();
                                         final Uri url = Uri.parse(_detectedQrCode!);
                                         if (await canLaunchUrl(url)) {
                                           await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -1560,8 +1591,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               /// Home
                               if (!widget.isRetakeMode)
                                 IconButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     //showToast("Home");
+                                    await _triggerVibration();
                                     // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
                                     Navigator.pushAndRemoveUntil(
                                       context,
@@ -1574,8 +1606,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               else
                                 // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
                                 IconButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     // Retake cancel karke wapas editor me jao
+                                    await _triggerVibration();
                                     Navigator.pop(context);
                                   },
                                   icon: _buildRotatedIcon(
@@ -1588,7 +1621,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               /// Gallery
                               /// Gallery Button
                               IconButton(
-                                onPressed: _pickImagesFromGallery, // Alag function yahan call ho gaya
+                                //onPressed: _pickImagesFromGallery, // Alag function yahan call ho gaya
+                                onPressed: () async {
+                                  await _triggerVibration(); // 🚨 HAPTIC: Camera switch
+                                  //_pickImagesFromGallery;
+                                  await _pickImagesFromGallery();
+                                },
                                 icon: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
                               ),
 
@@ -1694,7 +1732,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                               // 🚨 MASTER FIX 3: QR mode aate hi ye button disable aur thoda transparent ho jayega
                               IconButton(
-                                onPressed: selectedIndex == 1 ? null : _toggleAutoDetect,
+                                //onPressed: selectedIndex == 1 ? null : _toggleAutoDetect,
+                                onPressed: selectedIndex == 1
+                                    ? null
+                                    : () async {
+                                  await _triggerVibration();
+                                  _toggleAutoDetect(); // Yahan function run hoga
+                                },
                                 icon: Opacity(
                                   opacity: selectedIndex == 1 ? 0.4 : 1.0, // Disabled look
                                   child: _buildRotatedIcon(
@@ -1707,7 +1751,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                               /// Last Photo with Counter Badge
                               GestureDetector(
-                                onTap: () {
+                                onTap: () async {
+                                  await _triggerVibration();
                                   if (capturedPhotosCount > 0) {
                                     _goToEditor(); // 🚨 Master Helper call kiya
                                   }
@@ -1892,20 +1937,31 @@ class _ScannerScreenState extends State<ScannerScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               IconButton(
-                onPressed: () => setState(() => activeMenu = "Flash"),
+                //onPressed: () => setState(() => activeMenu = "Flash"),
+                onPressed: () async {
+                  await _triggerVibration();
+                  setState(() {
+                    activeMenu = "Flash"; // ON ko OFF, OFF ko ON karega
+                  });
+                },
                 icon: _buildRotatedIcon(_getFlashIcon(), color: Colors.white, size: 26),
               ),
 
 
               IconButton(
-                onPressed: _flipCamera,
+                //onPressed: _flipCamera,
+                onPressed: () async {
+                  await _triggerVibration();
+                  _flipCamera();
+                },
                 icon: _buildRotatedIcon(Symbols.flip_camera_android_sharp, color: Colors.white, size: 26),
               ),
 
               // 🚨 NAYA: Multiple Scan Icon (Sirf normal mode me dikhega)
               if (!widget.isRetakeMode)
                 IconButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    await _triggerVibration();
                     setState(() {
                       isMultiScanMode = !isMultiScanMode; // ON ko OFF, OFF ko ON karega
                     });
@@ -1921,14 +1977,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
               /// YAHAN TIMER ICON DYNAMIC KAR DIYA
               IconButton(
-                onPressed: () => setState(() => activeMenu = "Timer"),
+                //onPressed: () => setState(() => activeMenu = "Timer"),
+                onPressed: () async {
+                  await _triggerVibration();
+                  setState(() {
+                    activeMenu = "Timer"; // ON ko OFF, OFF ko ON karega
+                  });
+                },
                 icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
               ),
 
               if (!widget.isRetakeMode)
                 IconButton(
                   //onPressed: () => showToast("Settings"),
-                  onPressed: () {
+                  onPressed: () async {
+                    await _triggerVibration();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -1956,6 +2019,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           activeMenu = "Default"; // YEH LINE MENU KO CLOSE KAREGI
         });
         await _applyFlashMode(mode);
+        await _triggerVibration();
         //showToast("Flash $mode");
       },
       child: Padding(
