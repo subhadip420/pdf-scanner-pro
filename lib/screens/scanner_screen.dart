@@ -106,9 +106,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // --- SLEEP MODE VARIABLES ---
   Timer? _sleepTimer;
   bool _isCameraSleeping = false;
-// 🚨 NAYA: Multiple scan mode toggle ke liye (By default ON rakha hai)
+
+  // 🚨 NAYA: Multiple scan mode toggle ke liye (By default ON rakha hai)
   bool isMultiScanMode = true;
   Rect? _detectedQrBox;
+
   // 🚨 NAYA: Grid setting variable
   bool isGridOn = false;
 
@@ -168,7 +170,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       });
     }
   }
-
 
   // 🚨 MASTER VIBRATION FUNCTION: Light aur Medium dono options
   Future<void> _triggerVibration({bool isLight = true}) async {
@@ -245,8 +246,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       await _initializeCamera();
     }
   }
-
-
 
   // --- 🚨 NAYA BLOCK: CAMERA SLEEP & WAKE LOGIC ---
   void _resetSleepTimer() {
@@ -777,7 +776,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
                 _stableFrames++;
 
-                if (_stableFrames > 3 && !isHoldingSteady) { // 🚨 FIX: Sirf tab update karo jab status change ho
+                if (_stableFrames > 3 && !isHoldingSteady) {
+                  // 🚨 FIX: Sirf tab update karo jab status change ho
                   autoScanStatus = "Capturing... hold steady";
                   isHoldingSteady = true;
                 }
@@ -802,8 +802,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               }
             }
           }
-        }
-        else if (selectedIndex == 1) {
+        } else if (selectedIndex == 1) {
           // ==========================================
           // MODE 1: QR & BARCODE SCANNER (Naya Logic)
           // ==========================================
@@ -852,7 +851,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         }
 
         // 🚨 DUAL-LOGIC END
-
       } catch (e) {
         print("ML Error: $e");
       } finally {
@@ -933,7 +931,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
           _goToEditor();
         }
       }
-
     } catch (e) {
       setState(() => isCapturing = false);
     }
@@ -1194,10 +1191,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           // Ise FittedBox ke bahar rakha hai taaki ye VISIBLE area ko 3 hisso me baante
                           if (isGridOn && !_isCameraSleeping)
                             Positioned.fill(
-                              child: IgnorePointer( // Taaki grid touch block na kare
-                                child: CustomPaint(
-                                  painter: GridOverlayPainter(),
-                                ),
+                              child: IgnorePointer(
+                                // Taaki grid touch block na kare
+                                child: CustomPaint(painter: GridOverlayPainter()),
                               ),
                             ),
                         ],
@@ -1322,13 +1318,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 }
                               });
                             },
-
                           ),
                         ],
                       ),
                     ),
                   ),
-
 
                   /// 🚨 NAYA: GOOGLE LENS JAISE QR RESULT POPUP
                   if (selectedIndex == 1 && _detectedQrCode != null)
@@ -1345,7 +1339,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             color: Colors.white, // Pop-out feel ke liye white background
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2)
+                              BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
                             ],
                           ),
                           child: Column(
@@ -1371,7 +1365,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       await _triggerVibration(); // 🚨 HAPTIC: Camera switch
                                       _detectedQrCode = null;
                                     },
-                                  )
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -1415,7 +1409,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       label: const Text("Open"),
                                     ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -1474,11 +1468,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               IconButton(
                                 //onPressed: _pickImagesFromGallery, // Alag function yahan call ho gaya
                                 //onPressed: () async {
-                                onPressed: selectedIndex == 1 ? null : () async {
-                                  await _triggerVibration(); // 🚨 HAPTIC: Camera switch
-                                  //_pickImagesFromGallery;
-                                  await _pickImagesFromGallery();
-                                },
+                                onPressed: selectedIndex == 1
+                                    ? null
+                                    : () async {
+                                        await _triggerVibration(); // 🚨 HAPTIC: Camera switch
+                                        //_pickImagesFromGallery;
+                                        await _pickImagesFromGallery();
+                                      },
                                 //icon: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
                                 icon: Opacity(
                                   opacity: selectedIndex == 1 ? 0.4 : 1.0,
@@ -1492,92 +1488,91 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 //onTap: _capturePhoto,
                                 onTap: selectedIndex == 1 ? null : _capturePhoto,
                                 child: Opacity(
-                                opacity: selectedIndex == 1 ? 0.4 : 1.0,
-                                child: Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    // Base Outer Circle (Always White or Grey)
-                                    Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
-                                          width: 4,
-                                        ),
-                                      ),
-                                    ),
-
-                                    // Blue Animated Progress Ring (Shows only during Timer countdown)
-                                    if (isCapturing && selectedTimer > 0)
-                                      SizedBox(
-                                        width: 56,
-                                        height: 56,
-                                        child: TweenAnimationBuilder<double>(
-                                          tween: Tween<double>(begin: 0.0, end: 1.0),
-                                          duration: Duration(seconds: selectedTimer),
-                                          builder: (context, value, child) {
-                                            return CircularProgressIndicator(
-                                              value: value, // Current progress
-                                              strokeWidth: 4,
-                                              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-                                              backgroundColor: Colors.transparent,
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    // 🚨 NAYA: Auto-Detect Progress Ring (Fills up as document stays stable!)
-                                    else if (isAutoDetectOn && _stableFrames > 0)
-                                      SizedBox(
-                                        width: 56,
-                                        height: 56,
-                                        child: CircularProgressIndicator(
-                                          // MAGIC: stableFrames 10 tak jata hai, isko 10 se divide kiya toh 0.0 se 1.0 tak progress ban gaya
-                                          value: (_stableFrames / 10.0).clamp(0.0, 1.0),
-                                          strokeWidth: 4,
-                                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-                                          backgroundColor: Colors.transparent,
-                                        ),
-                                      ),
-
-                                    // Inner Content: Numbers OR Solid Circle
-                                    if (isCapturing && currentCountdown > 0)
-                                      // Show actively counting down number (e.g., 3, 2, 1)
-                                      Text(
-                                        '$currentCountdown',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    else if (!isCapturing && selectedTimer > 0)
-                                      // Show selected timer duration before tapping (e.g., 3 or 10)
-                                      Text(
-                                        '$selectedTimer',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      )
-                                    else
-                                      // Show default inner solid circle when no timer is selected
+                                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                                  child: Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Base Outer Circle (Always White or Grey)
                                       Container(
-                                        width: 45,
-                                        height: 45,
+                                        width: 60,
+                                        height: 60,
                                         decoration: BoxDecoration(
-                                          // 🚨 FIX: Jab document 'Hold steady' par aayega, toh center button grey ho jayega (Busy state)
-                                          color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white,
                                           shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
+                                            width: 4,
+                                          ),
                                         ),
                                       ),
-                                  ],
-                                ),
-                               ),
-                              ),
 
+                                      // Blue Animated Progress Ring (Shows only during Timer countdown)
+                                      if (isCapturing && selectedTimer > 0)
+                                        SizedBox(
+                                          width: 56,
+                                          height: 56,
+                                          child: TweenAnimationBuilder<double>(
+                                            tween: Tween<double>(begin: 0.0, end: 1.0),
+                                            duration: Duration(seconds: selectedTimer),
+                                            builder: (context, value, child) {
+                                              return CircularProgressIndicator(
+                                                value: value, // Current progress
+                                                strokeWidth: 4,
+                                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                                                backgroundColor: Colors.transparent,
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      // 🚨 NAYA: Auto-Detect Progress Ring (Fills up as document stays stable!)
+                                      else if (isAutoDetectOn && _stableFrames > 0)
+                                        SizedBox(
+                                          width: 56,
+                                          height: 56,
+                                          child: CircularProgressIndicator(
+                                            // MAGIC: stableFrames 10 tak jata hai, isko 10 se divide kiya toh 0.0 se 1.0 tak progress ban gaya
+                                            value: (_stableFrames / 10.0).clamp(0.0, 1.0),
+                                            strokeWidth: 4,
+                                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                                            backgroundColor: Colors.transparent,
+                                          ),
+                                        ),
+
+                                      // Inner Content: Numbers OR Solid Circle
+                                      if (isCapturing && currentCountdown > 0)
+                                        // Show actively counting down number (e.g., 3, 2, 1)
+                                        Text(
+                                          '$currentCountdown',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      else if (!isCapturing && selectedTimer > 0)
+                                        // Show selected timer duration before tapping (e.g., 3 or 10)
+                                        Text(
+                                          '$selectedTimer',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                      else
+                                        // Show default inner solid circle when no timer is selected
+                                        Container(
+                                          width: 45,
+                                          height: 45,
+                                          decoration: BoxDecoration(
+                                            // 🚨 FIX: Jab document 'Hold steady' par aayega, toh center button grey ho jayega (Busy state)
+                                            color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
 
                               /// Auto Detect Button
                               // 🚨 MASTER FIX 3: QR mode aate hi ye button disable aur thoda transparent ho jayega
@@ -1586,9 +1581,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                 onPressed: selectedIndex == 1
                                     ? null
                                     : () async {
-                                  await _triggerVibration();
-                                  _toggleAutoDetect(); // Yahan function run hoga
-                                },
+                                        await _triggerVibration();
+                                        _toggleAutoDetect(); // Yahan function run hoga
+                                      },
                                 icon: Opacity(
                                   opacity: selectedIndex == 1 ? 0.4 : 1.0, // Disabled look
                                   child: _buildRotatedIcon(
@@ -1602,56 +1597,58 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               /// Last Photo with Counter Badge
                               GestureDetector(
                                 //onTap: () async {
-                                onTap: selectedIndex == 1 ? null : () async {
-                                  await _triggerVibration();
-                                  if (capturedPhotosCount > 0) {
-                                    _goToEditor(); // 🚨 Master Helper call kiya
-                                  }
-                                },
-                                  child: Opacity(
+                                onTap: selectedIndex == 1
+                                    ? null
+                                    : () async {
+                                        await _triggerVibration();
+                                        if (capturedPhotosCount > 0) {
+                                          _goToEditor(); // 🚨 Master Helper call kiya
+                                        }
+                                      },
+                                child: Opacity(
                                   opacity: selectedIndex == 1 ? 0.4 : 1.0,
                                   child: Stack(
-                                  clipBehavior: Clip.none, // Allows the badge to overflow the box slightly
-                                  children: [
-                                    Container(
-                                      width: 42,
-                                      height: 42,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white24,
-                                        borderRadius: BorderRadius.circular(8),
+                                    clipBehavior: Clip.none, // Allows the badge to overflow the box slightly
+                                    children: [
+                                      Container(
+                                        width: 42,
+                                        height: 42,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white24,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: lastCapturedImage == null
+                                            ? const SizedBox()
+                                            : ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Image.file(File(lastCapturedImage!.path), fit: BoxFit.cover),
+                                              ),
                                       ),
-                                      child: lastCapturedImage == null
-                                          ? const SizedBox()
-                                          : ClipRRect(
-                                              borderRadius: BorderRadius.circular(8),
-                                              child: Image.file(File(lastCapturedImage!.path), fit: BoxFit.cover),
-                                            ),
-                                    ),
 
-                                    // Counter Badge (Shows only if photos are captured)
-                                    if (capturedPhotosCount > 0)
-                                      Positioned(
-                                        top: -6,
-                                        right: -6,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.amber, // Highlight color for the badge
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Text(
-                                            '$capturedPhotosCount',
-                                            style: const TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
+                                      // Counter Badge (Shows only if photos are captured)
+                                      if (capturedPhotosCount > 0)
+                                        Positioned(
+                                          top: -6,
+                                          right: -6,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(5),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.amber, // Highlight color for the badge
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Text(
+                                              '$capturedPhotosCount',
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                  ],
-                                ),
+                                    ],
                                   ),
+                                ),
                               ),
                             ],
                           ),
@@ -1801,7 +1798,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 icon: _buildRotatedIcon(_getFlashIcon(), color: Colors.white, size: 26),
               ),
 
-
               IconButton(
                 //onPressed: _flipCamera,
                 onPressed: () async {
@@ -1815,13 +1811,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
               if (!widget.isRetakeMode)
                 IconButton(
                   //onPressed: () async {
-                  onPressed: selectedIndex == 1 ? null : () async {
-                    await _triggerVibration();
-                    setState(() {
-                      isMultiScanMode = !isMultiScanMode; // ON ko OFF, OFF ko ON karega
-                    });
-                    showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
-                  },
+                  onPressed: selectedIndex == 1
+                      ? null
+                      : () async {
+                          await _triggerVibration();
+                          setState(() {
+                            isMultiScanMode = !isMultiScanMode; // ON ko OFF, OFF ko ON karega
+                          });
+                          showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
+                        },
                   icon: Opacity(
                     opacity: selectedIndex == 1 ? 0.4 : 1.0,
                     child: _buildRotatedIcon(
@@ -1836,12 +1834,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
               IconButton(
                 //onPressed: () => setState(() => activeMenu = "Timer"),
                 //onPressed: () async {
-                onPressed: selectedIndex == 1 ? null : () async {
-                  await _triggerVibration();
-                  setState(() {
-                    activeMenu = "Timer"; // ON ko OFF, OFF ko ON karega
-                  });
-                },
+                onPressed: selectedIndex == 1
+                    ? null
+                    : () async {
+                        await _triggerVibration();
+                        setState(() {
+                          activeMenu = "Timer"; // ON ko OFF, OFF ko ON karega
+                        });
+                      },
                 //icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
                 icon: Opacity(
                   opacity: selectedIndex == 1 ? 0.4 : 1.0,
@@ -1883,12 +1883,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
 
     // 3. 🚨 YAHAN 'await' ZAROORI HAI: Taaki code yahan ruk jaye jab tak user settings se back na aaye
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CameraSettingsScreen(),
-      ),
-    );
+    await Navigator.push(context, MaterialPageRoute(builder: (context) => const CameraSettingsScreen()));
 
     // 🚨 NAYA: Settings se aane ke baad grid status wapas check karo
     await _loadSettings();
@@ -2028,7 +2023,8 @@ class QrOverlayPainter extends CustomPainter {
 
     // Paint settings for the border
     final Paint borderPaint = Paint()
-      ..color = Colors.greenAccent // QR ke liye Green achha lagta hai, chahiye toh Colors.amber kar lena
+      ..color = Colors
+          .greenAccent // QR ke liye Green achha lagta hai, chahiye toh Colors.amber kar lena
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4.0
       ..strokeCap = StrokeCap.round; // Corners thode smooth honge
