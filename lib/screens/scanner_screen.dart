@@ -62,7 +62,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   //int selectedIndex = 2; // Document
   bool isSelectingRatio = false;
-  String selectedRatio = "4:3"; // Default 4:3 select rahega
+  //String selectedRatio = "4:3"; // Default 4:3 select rahega
 
   bool isSelectingFlash = false;
   String selectedFlashMode = "Off"; // Options: "Off", "On", "Auto", "Torch"
@@ -327,17 +327,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   // Portrait mode ke hisaab se ratios (width / height)
-  double _getAspectRatio() {
-    switch (selectedRatio) {
-      case "1:1":
-        return 1.0;
-      case "16:9":
-        return 9 / 16;
-      case "4:3":
-      default:
-        return 3 / 4;
-    }
-  }
+  // double _getAspectRatio() {
+  //   switch (selectedRatio) {
+  //     case "1:1":
+  //       return 1.0;
+  //     case "16:9":
+  //       return 9 / 16;
+  //     case "4:3":
+  //     default:
+  //       return 3 / 4;
+  //   }
+  // }
 
   // Selected flash mode ke hisaab se icon return karega
   IconData _getFlashIcon([String? mode]) {
@@ -685,12 +685,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 CameraPreview(controller),
 
                 // 🚨 NAYA: 3x3 Grid Overlay (Agar settings se ON hai)
-                if (isGridOn)
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: GridOverlayPainter(),
-                    ),
-                  ),
+                // if (isGridOn)
+                //   Positioned.fill(
+                //     child: CustomPaint(
+                //       painter: GridOverlayPainter(),
+                //     ),
+                //   ),
 
                 // YEH NAYI LINE: Real-time Blue Overlay
                 if (_detectedDocumentBox != null && isAutoDetectOn && selectedIndex == 0)
@@ -1374,53 +1374,105 @@ class _ScannerScreenState extends State<ScannerScreen> {
               child: Stack(
                 children: [
                   /// Camera Preview
-                  selectedRatio == "Full"
-                      ? Positioned.fill(
-                          child: ClipRect(
-                            child: FittedBox(
-                              fit: BoxFit.cover,
-                              alignment: Alignment.center,
-                              // YAHAN HELPER WIDGET CALL KIYA HAI
-                              child: _buildCameraPreviewWithFocus(),
-                            ),
-                          ),
-                        )
-                      : selectedRatio == "1:1"
-                      ? Positioned(
-                          top: 90,
-                          bottom: 180,
-                          left: 0,
-                          right: 0,
-                          child: Center(
-                            child: AspectRatio(
-                              aspectRatio: 1.0,
-                              child: ClipRect(
-                                child: FittedBox(
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.center,
-                                  // YAHAN HELPER WIDGET CALL KIYA HAI
-                                  child: _buildCameraPreviewWithFocus(),
-                                ),
-                              ),
-                            ),
-                          ),
-                        )
-                      : Positioned(
-                          top: 115,
-                          left: 0,
-                          right: 0,
-                          child: AspectRatio(
-                            aspectRatio: _getAspectRatio(),
+                  // selectedRatio == "Full"
+                  //     ? Positioned.fill(
+                  //         child: ClipRect(
+                  //           child: FittedBox(
+                  //             fit: BoxFit.cover,
+                  //             alignment: Alignment.center,
+                  //             // YAHAN HELPER WIDGET CALL KIYA HAI
+                  //             child: _buildCameraPreviewWithFocus(),
+                  //           ),
+                  //         ),
+                  //       )
+                  //     : selectedRatio == "1:1"
+                  //     ? Positioned(
+                  //         top: 90,
+                  //         bottom: 180,
+                  //         left: 0,
+                  //         right: 0,
+                  //         child: Center(
+                  //           child: AspectRatio(
+                  //             aspectRatio: 1.0,
+                  //             child: ClipRect(
+                  //               child: FittedBox(
+                  //                 fit: BoxFit.cover,
+                  //                 alignment: Alignment.center,
+                  //                 // YAHAN HELPER WIDGET CALL KIYA HAI
+                  //                 child: _buildCameraPreviewWithFocus(),
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       )
+                  //     : Positioned(
+                  //         top: 115,
+                  //         left: 0,
+                  //         right: 0,
+                  //         child: AspectRatio(
+                  //           aspectRatio: _getAspectRatio(),
+                  //           child: ClipRect(
+                  //             child: FittedBox(
+                  //               fit: BoxFit.cover,
+                  //               alignment: Alignment.center,
+                  //               // YAHAN HELPER WIDGET CALL KIYA HAI
+                  //               child: _buildCameraPreviewWithFocus(),
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ),
+
+                  // 🚨 MASTER FIX: Camera hamesha 4:3 ratio me hi khulega (Portrait me 3/4 hota hai)
+                  // Positioned(
+                  //   top: 115, // Top options ke theek neeche se shuru
+                  //   left: 0,
+                  //   right: 0,
+                  //   child: AspectRatio(
+                  //     aspectRatio: 3 / 4, // 🚨 Hardcoded 4:3 Ratio
+                  //     child: ClipRect(
+                  //       child: FittedBox(
+                  //         fit: BoxFit.cover,
+                  //         alignment: Alignment.center,
+                  //         child: _buildCameraPreviewWithFocus(),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+
+                  /// 🚨 MASTER FIX: Camera Preview + Perfect Grid Alignment
+                  Positioned(
+                    top: 115, // Top options ke theek neeche
+                    left: 0,
+                    right: 0,
+                    child: AspectRatio(
+                      aspectRatio: 3 / 4, // Strict 4:3 Display
+                      child: Stack(
+                        children: [
+                          // Level 1: Camera Hardware (Fitted & Clipped)
+                          Positioned.fill(
                             child: ClipRect(
                               child: FittedBox(
                                 fit: BoxFit.cover,
                                 alignment: Alignment.center,
-                                // YAHAN HELPER WIDGET CALL KIYA HAI
                                 child: _buildCameraPreviewWithFocus(),
                               ),
                             ),
                           ),
-                        ),
+
+                          // Level 2: Perfect 3x3 Grid Overlay
+                          // Ise FittedBox ke bahar rakha hai taaki ye VISIBLE area ko 3 hisso me baante
+                          if (isGridOn && !_isCameraSleeping)
+                            Positioned.fill(
+                              child: IgnorePointer( // Taaki grid touch block na kare
+                                child: CustomPaint(
+                                  painter: GridOverlayPainter(),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                   /// Top Controls
                   Positioned(
