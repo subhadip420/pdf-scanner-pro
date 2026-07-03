@@ -191,7 +191,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   // 🚨 FIX 2: Camera chalu karne ka Master Helper
   Future<void> _initializeCamera() async {
     if (!mounted) return;
-    setState(() => _isCameraReady = false);
+    //setState(() => _isCameraReady = false);.
+
+    // 🚨 NAYA: Agar so raha tha, toh reset karo taaki screen dikhe
+    setState(() {
+      _isCameraReady = false;
+      _isCameraSleeping = false;
+    });
 
     if (mounted) {
       setState(() => _isCameraReady = true);
@@ -267,7 +273,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // 🚨 FIX 1: Sleep hone par saara ML data aur UI text reset kar do
       _detectedDocumentBox = null;
       _stableFrames = 0;
-      autoScanStatus = "Looking for document...";
+      //autoScanStatus = "Looking for document...";
+      autoScanStatus = selectedIndex == 1 ? "Looking for QR code..." : "Looking for document...";
       isHoldingSteady = false;
     });
 
@@ -291,7 +298,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
 
     // 2. Agar auto-detect ON tha, toh ML stream wapas chalu kardo
-    if (isAutoDetectOn) {
+    // if (isAutoDetectOn) {
+    //   _startMLAutoDetect();
+    // }
+
+    // 2. Stream wapas chalu karo (QR mode me hamesha, Document mode me agar Auto ON ho)
+    if (selectedIndex == 1 || (selectedIndex == 0 && isAutoDetectOn)) {
       _startMLAutoDetect();
     }
 
@@ -1093,10 +1105,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
       //if (selectedFiles == null || selectedFiles.isEmpty) return;
 
       // Agar user ne bina select kiye close kar diya (BACK button daba diya)
+      // if (selectedFiles == null || selectedFiles.isEmpty) {
+      //   // 🚨 MASTER FIX 2: Wapas aane par stream dobara chalu kardo agar auto-detect ON tha
+      //   if (mounted && isAutoDetectOn && selectedIndex == 0) {
+      //     _startMLAutoDetect();
+      //   }
+      //   return;
+      // }
+
+      // Agar user ne bina select kiye close kar diya (BACK button daba diya)
       if (selectedFiles == null || selectedFiles.isEmpty) {
-        // 🚨 MASTER FIX 2: Wapas aane par stream dobara chalu kardo agar auto-detect ON tha
-        if (mounted && isAutoDetectOn && selectedIndex == 0) {
-          _startMLAutoDetect();
+        if (mounted) {
+          // 🚨 NAYA: Gallery se wapas aane par force wake and reset timer
+          setState(() {
+            _isCameraSleeping = false;
+          });
+          _resetSleepTimer();
+          await _wakeUpCamera();
+          if (isAutoDetectOn && selectedIndex == 0) {
+            _startMLAutoDetect();
+          }
         }
         return;
       }
@@ -1889,9 +1917,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
     await _loadSettings();
 
     // 4. Wapas aane par ML Stream wapas chalu karo (Agar auto detect on hai)
-    if (mounted && isAutoDetectOn && selectedIndex == 0) {
-      _startMLAutoDetect();
+    // if (mounted && isAutoDetectOn && selectedIndex == 0) {
+    //   _startMLAutoDetect();
+    // }
+
+    if (mounted) {
+      // 🚨 NAYA: Settings se wapas aane par force wake and reset timer
+      setState(() {
+        _isCameraSleeping = false;
+      });
+      _resetSleepTimer();
+      await _wakeUpCamera();
+      if (isAutoDetectOn && selectedIndex == 0) {
+        _startMLAutoDetect();
+      }
     }
+
   }
 
   // Flash menu ke icons banane ke liye
