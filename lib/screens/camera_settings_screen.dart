@@ -94,31 +94,31 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                 ),
                 _buildDivider(),
 
-                _buildSwitchTile(
-                  title: "Shutter sound",
-                  subtitle: "Play a sound when taking a photo",
-                  value: _isShutterSoundOn,
-                  //onChanged: (val) => setState(() => _isShutterSoundOn = val),
-                  onChanged: (val) {
-                    setState(() => _isShutterSoundOn = val);
-                    _saveSetting('shutter_sound', val); // Memory me save
-                    _triggerHaptic();
-                  },
-                ),
-                _buildDivider(),
-
-                _buildSwitchTile(
-                  title: "Mirror selfie",
-                  subtitle: "Save front camera photos as they appear",
-                  value: _isMirrorSelfieOn,
-                  //onChanged: (val) => setState(() => _isMirrorSelfieOn = val),
-                  onChanged: (val) {
-                    setState(() => _isMirrorSelfieOn = val);
-                    _saveSetting('mirror_selfie', val); // Memory me save
-                    _triggerHaptic();
-                  },
-                ),
-                _buildDivider(),
+                // _buildSwitchTile(
+                //   title: "Shutter sound",
+                //   subtitle: "Play a sound when taking a photo",
+                //   value: _isShutterSoundOn,
+                //   //onChanged: (val) => setState(() => _isShutterSoundOn = val),
+                //   onChanged: (val) {
+                //     setState(() => _isShutterSoundOn = val);
+                //     _saveSetting('shutter_sound', val); // Memory me save
+                //     _triggerHaptic();
+                //   },
+                // ),
+                // _buildDivider(),
+                //
+                // _buildSwitchTile(
+                //   title: "Mirror selfie",
+                //   subtitle: "Save front camera photos as they appear",
+                //   value: _isMirrorSelfieOn,
+                //   //onChanged: (val) => setState(() => _isMirrorSelfieOn = val),
+                //   onChanged: (val) {
+                //     setState(() => _isMirrorSelfieOn = val);
+                //     _saveSetting('mirror_selfie', val); // Memory me save
+                //     _triggerHaptic();
+                //   },
+                // ),
+                // _buildDivider(),
 
                 _buildSwitchTile(
                   title: "Haptic feedback",
