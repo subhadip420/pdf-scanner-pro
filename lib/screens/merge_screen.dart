@@ -11,9 +11,27 @@ class MergeScreen extends StatefulWidget {
   State<MergeScreen> createState() => _MergeScreenState();
 }
 
+// 🚨 NAYI CLASS: Photo ki saari state (position, size, rotation) store karne ke liye
+class MergedImageState {
+  File file;
+  Offset position;
+  double scale;
+  double rotation;
+  bool isHidden;
+
+  MergedImageState({
+    required this.file,
+    required this.position,
+    this.scale = 1.0,
+    this.rotation = 0.0,
+    this.isHidden = false,
+  });
+}
+
 class _MergeScreenState extends State<MergeScreen> {
   // 1. Thumbnail selection (Last photo default select hogi)
-  late int _selectedImageIndex;
+  int? _selectedImageIndex;
+  late List<MergedImageState> _imageStates;
 
   // 2. Har image ki positions (X, Y) track karne ke liye
   late List<Offset> _imagePositions;
@@ -28,6 +46,15 @@ class _MergeScreenState extends State<MergeScreen> {
     _imagePositions = List.generate(
       widget.selectedImages.length,
           (index) => Offset(20.0 * index, 20.0 * index), // Thoda offset diya taaki ek ke upar ek chhip na jaye
+    );
+
+    // 🚨 FIX: Naye format me initialize karo
+    _imageStates = List.generate(
+      widget.selectedImages.length,
+          (index) => MergedImageState(
+        file: widget.selectedImages[index],
+        position: Offset(20.0 * index, 20.0 * index),
+      ),
     );
   }
 
@@ -96,71 +123,135 @@ class _MergeScreenState extends State<MergeScreen> {
 
       body: Column(
         children: [
-          // ==========================================
-          // 1. PREVIEW AREA (Zoomable & Draggable Canvas)
-          // ==========================================
           Expanded(
             child: ClipRect(
-              child: InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 4.0,
-                boundaryMargin: const EdgeInsets.all(100), // Panning margin
-                child: Center(
-                  child: AspectRatio(
-                    // A4 Size Default Ratio (210 / 297 = 1 / 1.414)
-                    aspectRatio: 210 / 297,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white, // Paper ka color
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          )
-                        ],
-                      ),
-                      // Paper ke andar Photos ka Stack
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: List.generate(widget.selectedImages.length, (index) {
-                          bool isSelected = _selectedImageIndex == index;
-                          return Positioned(
-                            left: _imagePositions[index].dx,
-                            top: _imagePositions[index].dy,
-                            child: GestureDetector(
-                              // Tap karne par ye photo select ho jayegi
-                              onTap: () {
-                                setState(() {
-                                  _selectedImageIndex = index;
-                                });
-                              },
-                              // Drag (Pan) karke move karne ka logic
-                              onPanUpdate: (details) {
-                                setState(() {
-                                  _selectedImageIndex = index; // Move karte waqt select ho jaye
-                                  _imagePositions[index] += details.delta;
-                                });
-                              },
-                              child: Container(
-                                width: 150, // Default fixed size diya hai (baad me size sub-tool se change hoga)
-                                decoration: BoxDecoration(
-                                  // Jo select hogi uske aas-paas blue border dikhega
-                                  border: Border.all(
-                                    color: isSelected ? Colors.blueAccent : Colors.transparent,
-                                    width: 2,
+              child: GestureDetector(
+                // 🚨 FIX: Paper ke bahar click karne par deselect ho jaye
+                onTap: () => setState(() => _selectedImageIndex = null),
+                child: InteractiveViewer(
+                  minScale: 1.0,
+                  maxScale: 4.0,
+                  boundaryMargin: EdgeInsets.zero,
+                  child: Center(
+                  child: Padding(
+                  padding: const EdgeInsets.all(40.0),
+                    child: AspectRatio(
+                      aspectRatio: 210 / 297, // A4 Default Size
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white, // Paper Color
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2)],
+                        ),
+                        // 🚨 4. PHOTO STACK WITH CONTROLS
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: List.generate(_imageStates.length, (index) {
+                            bool isSelected = _selectedImageIndex == index;
+                            var imgState = _imageStates[index];
+                            // 🚨 CHANGE 2: Agar image hidden hai, toh usko canvas par draw hi mat karo
+                            if (imgState.isHidden) {
+                              return const SizedBox.shrink(); // Empty space return karega
+                            }
+
+                            double baseWidth = 150.0; // Initial fixed width
+
+                            return Positioned(
+                              left: imgState.position.dx,
+                              bottom: imgState.position.dy,
+
+                                child: Transform.rotate(
+                                angle: imgState.rotation,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  // --- MAIN IMAGE CONTAINER ---
+                                  GestureDetector(
+                                    onTap: () => setState(() => _selectedImageIndex = index),
+                                    onPanUpdate: (details) {
+                                      setState(() {
+                                        _selectedImageIndex = index;
+                                        //_imageStates[index].position += details.delta;
+                                        _imageStates[index].position += Offset(details.delta.dx, -details.delta.dy);
+                                      });
+                                    },
+
+                                      child: Container(
+                                        width: baseWidth * imgState.scale,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: isSelected ? Colors.blueAccent : Colors.transparent,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Image.file(imgState.file, fit: BoxFit.contain),
+                                      ),
                                   ),
-                                ),
-                                child: Image.file(
-                                  widget.selectedImages[index],
-                                  fit: BoxFit.contain,
-                                ),
+
+                                  // --- CORNER CONTROLS (Sirf tab dikhenge jab select ho) ---
+                                  if (isSelected) ...[
+
+                                    // 1. TOP-LEFT: DELETE ICON
+                                    Positioned(
+                                      top: -12, left: -12,
+                                      child: GestureDetector(
+                                        onTap: () => setState(() {
+                                          // Image hide kardo aur deselect kardo
+                                          _imageStates[index].isHidden = true;
+                                          _selectedImageIndex = null;
+                                        }),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                                          child: const Icon(Icons.visibility_off_rounded, color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // 2. TOP-RIGHT: SCALE ICON
+                                    Positioned(
+                                      top: -12, right: -12,
+                                      child: GestureDetector(
+                                        onPanUpdate: (details) {
+                                          setState(() {
+                                            double sensitivity = 0.003;
+                                            double scaleChange = (details.delta.dx - details.delta.dy) * sensitivity;
+                                            _imageStates[index].scale = (_imageStates[index].scale + scaleChange).clamp(0.2, 5.0);
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
+                                          child: const Icon(Icons.open_in_full_rounded, color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // 3. BOTTOM-RIGHT: ROTATE ICON
+                                    Positioned(
+                                      bottom: -12, right: -12,
+                                      child: GestureDetector(
+                                        onPanUpdate: (details) {
+                                          setState(() {
+                                            _imageStates[index].rotation += details.delta.dx * 0.02;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
+                                          child: const Icon(Icons.rotate_right_rounded, color: Colors.black, size: 16),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
-                            ),
-                          );
-                        }),
+                                ),
+                            );
+                          }),
+                        ),
                       ),
                     ),
+                  ),
                   ),
                 ),
               ),
@@ -170,18 +261,70 @@ class _MergeScreenState extends State<MergeScreen> {
           // ==========================================
           // 2. THUMBNAILS LIST (Bilkul Editor jaisa)
           // ==========================================
+          // Container(
+          //   height: 90,
+          //   color: const Color(0xFF1E1E1E),
+          //   child: ListView.builder(
+          //     scrollDirection: Axis.horizontal,
+          //     //itemCount: widget.selectedImages.length,
+          //     itemCount: _imageStates.length,
+          //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          //     itemBuilder: (context, index) {
+          //       bool isSelected = _selectedImageIndex == index;
+          //       return GestureDetector(
+          //         onTap: () {
+          //           setState(() {
+          //             _selectedImageIndex = index;
+          //           });
+          //         },
+          //         child: Container(
+          //           width: 60,
+          //           margin: const EdgeInsets.only(right: 12),
+          //           decoration: BoxDecoration(
+          //             border: Border.all(
+          //               color: isSelected ? Colors.blueAccent : Colors.transparent,
+          //               width: 3,
+          //             ),
+          //             borderRadius: BorderRadius.circular(4),
+          //           ),
+          //           child: ClipRRect(
+          //             borderRadius: BorderRadius.circular(2),
+          //             // child: Image.file(
+          //             //   widget.selectedImages[index],
+          //             //   fit: BoxFit.cover,
+          //             // ),
+          //             child: Image.file(
+          //               _imageStates[index].file, // Yahan pehle widget.selectedImages[index] tha
+          //               fit: BoxFit.cover,
+          //             ),
+          //           ),
+          //         ),
+          //       );
+          //     },
+          //   ),
+          // ),
+
+          // ==========================================
+          // 2. THUMBNAILS LIST
+          // ==========================================
           Container(
             height: 90,
             color: const Color(0xFF1E1E1E),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: widget.selectedImages.length,
+              itemCount: _imageStates.length,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               itemBuilder: (context, index) {
                 bool isSelected = _selectedImageIndex == index;
+                bool isHidden = _imageStates[index].isHidden; // Check if hidden
+
                 return GestureDetector(
                   onTap: () {
                     setState(() {
+                      // 🚨 CHANGE 4: Agar image hidden thi aur user ne uske thumbnail pe click kiya, toh use wapas unhide kardo
+                      // if (_imageStates[index].isHidden) {
+                      //   _imageStates[index].isHidden = false;
+                      // }
                       _selectedImageIndex = index;
                     });
                   },
@@ -197,9 +340,28 @@ class _MergeScreenState extends State<MergeScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(2),
-                      child: Image.file(
-                        widget.selectedImages[index],
-                        fit: BoxFit.cover,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          // Base Image (Hidden hone par 30% opacity)
+                          Opacity(
+                            opacity: isHidden ? 0.3 : 1.0,
+                            child: Image.file(
+                              _imageStates[index].file,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          // Overlay Icon (Sirf tab dikhega jab hidden hogi)
+                          if (isHidden)
+                            Container(
+                              color: Colors.black45, // Thoda dark shade photo ke upar
+                              child: const Icon(
+                                Icons.visibility_off_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
