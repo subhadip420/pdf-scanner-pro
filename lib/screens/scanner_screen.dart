@@ -362,6 +362,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
       return;
     }
 
+    // 🚨 FIX 1: Camera switch hone se pehle ML Stream band aur UI clean karo
+    if (controller.value.isStreamingImages) {
+      await controller.stopImageStream();
+    }
+
+    if (mounted) {
+      setState(() {
+        _isCameraReady = false; // Isse UI thodi der ke liye loading ghumayega (smooth lagega)
+        _detectedDocumentBox = null;
+        _detectedQrBox = null;
+        _stableFrames = 0;
+        isHoldingSteady = false;
+      });
+    }
+
     // Index ko toggle karein (0 hai toh 1 kardo, 1 hai toh 0 kardo)
     currentCameraIndex = currentCameraIndex == 0 ? 1 : 0;
     final CameraDescription newCamera = cameras[currentCameraIndex];
@@ -378,15 +393,37 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
 
     // Naye controller ko initialize karke UI update karein
+    // try {
+    //   await controller.initialize();
+    //   await _applyFlashMode(selectedFlashMode);
+    //   if (mounted) {
+    //     setState(() {}); // Camera change hone par screen refresh hogi
+    //     //showToast(currentCameraIndex == 1 ? "Front Camera" : "Back Camera");
+    //   }
+    // } catch (e) {
+    //   showToast("Error switching camera");
+    // }
+
     try {
       await controller.initialize();
-      await _applyFlashMode(selectedFlashMode);
+
+      // 🚨 FIX 2: Safe side ke liye flash OFF kar do (Front camera issue se bachne ke liye)
+      await controller.setFlashMode(FlashMode.off);
+
       if (mounted) {
-        setState(() {}); // Camera change hone par screen refresh hogi
-        //showToast(currentCameraIndex == 1 ? "Front Camera" : "Back Camera");
+        setState(() {
+          _isCameraReady = true; // Camera wapas ready
+          selectedFlashMode = "Off"; // Icon ko bhi update kar diya
+        });
+
+        // 🚨 FIX 3: Naya camera chalu hote hi ML Stream wapas restart karo
+        _startMLAutoDetect();
       }
     } catch (e) {
       showToast("Error switching camera");
+      if (mounted) {
+        setState(() => _isCameraReady = true); // Error ke baad bhi app block na ho
+      }
     }
   }
 
