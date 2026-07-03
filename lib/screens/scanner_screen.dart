@@ -297,10 +297,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _isCameraSleeping = false;
     });
 
-    // 2. Agar auto-detect ON tha, toh ML stream wapas chalu kardo
-    // if (isAutoDetectOn) {
-    //   _startMLAutoDetect();
-    // }
 
     // 2. Stream wapas chalu karo (QR mode me hamesha, Document mode me agar Auto ON ho)
     if (selectedIndex == 1 || (selectedIndex == 0 && isAutoDetectOn)) {
@@ -924,10 +920,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         _detectedDocumentBox = null;
       });
 
-      // if (mounted) {
-      //   _goToEditor(); // 🚨 Master Helper call kiya
-      // }
-
       if (mounted) {
         // 🚨 FIX 3A: Check karega ki Multi-scan switch ka status kya hai
         if (isMultiScanMode) {
@@ -1100,18 +1092,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         context,
         MaterialPageRoute(builder: (context) => const CustomGalleryScreen()),
       );
-
-      // Agar user ne bina select kiye close kar diya
-      //if (selectedFiles == null || selectedFiles.isEmpty) return;
-
-      // Agar user ne bina select kiye close kar diya (BACK button daba diya)
-      // if (selectedFiles == null || selectedFiles.isEmpty) {
-      //   // 🚨 MASTER FIX 2: Wapas aane par stream dobara chalu kardo agar auto-detect ON tha
-      //   if (mounted && isAutoDetectOn && selectedIndex == 0) {
-      //     _startMLAutoDetect();
-      //   }
-      //   return;
-      // }
 
       // Agar user ne bina select kiye close kar diya (BACK button daba diya)
       if (selectedFiles == null || selectedFiles.isEmpty) {
