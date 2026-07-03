@@ -113,10 +113,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
 // 🚨 NAYA: Multiple scan mode toggle ke liye (By default ON rakha hai)
   bool isMultiScanMode = true;
   Rect? _detectedQrBox;
+  // 🚨 NAYA: Grid setting variable
+  bool isGridOn = false;
 
   @override
   void initState() {
     super.initState();
+    _loadSettings();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
     // 🚨 Yahan direct start karne ke bajaye, Master helper call hoga
@@ -157,6 +160,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _sleepTimer?.cancel();
     controller.dispose();
     super.dispose();
+  }
+
+  // 🚨 NAYA: SharedPreferences se Grid setting load karne ka function
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        // Dhyaan rahe: Apne settings page me jo key use ki hai wahi yahan likhna (e.g., 'show_grid')
+        isGridOn = prefs.getBool('show_grid') ?? false;
+      });
+    }
   }
 
 
@@ -669,6 +683,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
               fit: StackFit.expand,
               children: [
                 CameraPreview(controller),
+
+                // 🚨 NAYA: 3x3 Grid Overlay (Agar settings se ON hai)
+                if (isGridOn)
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: GridOverlayPainter(),
+                    ),
+                  ),
 
                 // YEH NAYI LINE: Real-time Blue Overlay
                 if (_detectedDocumentBox != null && isAutoDetectOn && selectedIndex == 0)
@@ -2136,6 +2158,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ),
     );
 
+    // 🚨 NAYA: Settings se aane ke baad grid status wapas check karo
+    await _loadSettings();
+
     // 4. Wapas aane par ML Stream wapas chalu karo (Agar auto detect on hai)
     if (mounted && isAutoDetectOn && selectedIndex == 0) {
       _startMLAutoDetect();
@@ -2302,4 +2327,29 @@ class QrOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+// 🚨 NAYI CLASS: 3x3 Grid draw karne wala painter
+class GridOverlayPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Patli, thodi transparent white line
+    final Paint paint = Paint()
+      ..color = Colors.white.withOpacity(0.4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0; // Motayi
+
+    // 2 Vertical Lines (Khadi lines)
+    final double cellWidth = size.width / 3;
+    canvas.drawLine(Offset(cellWidth, 0), Offset(cellWidth, size.height), paint);
+    canvas.drawLine(Offset(cellWidth * 2, 0), Offset(cellWidth * 2, size.height), paint);
+
+    // 2 Horizontal Lines (Aadi lines)
+    final double cellHeight = size.height / 3;
+    canvas.drawLine(Offset(0, cellHeight), Offset(size.width, cellHeight), paint);
+    canvas.drawLine(Offset(0, cellHeight * 2), Offset(size.width, cellHeight * 2), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false; // Isko baar baar draw karne ki zaroorat nahi hai
 }

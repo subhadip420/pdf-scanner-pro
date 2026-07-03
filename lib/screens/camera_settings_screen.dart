@@ -27,6 +27,10 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isHapticFeedbackOn = prefs.getBool('haptic_feedback') ?? true;
+      // Jo key set ki hai wahi exact name yahan use kiya hai
+      _isGridOn = prefs.getBool('show_grid') ?? false;
+      _isShutterSoundOn = prefs.getBool('shutter_sound') ?? false;
+      _isMirrorSelfieOn = prefs.getBool('mirror_selfie') ?? true;
     });
   }
 
@@ -34,6 +38,13 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   Future<void> _saveSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(key, value);
+  }
+
+  // Haptic Helper
+  void _triggerHaptic() {
+    if (_isHapticFeedbackOn) {
+      HapticFeedback.lightImpact();
+    }
   }
 
   @override
@@ -46,6 +57,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 26),
           onPressed: () {
+            _triggerHaptic(); // Back aane par bhi haptic feel
             Navigator.pop(context);
           },
         ),
@@ -73,7 +85,12 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                   title: "Grid",
                   subtitle: "Show grid lines to align documents",
                   value: _isGridOn,
-                  onChanged: (val) => setState(() => _isGridOn = val),
+                  //onChanged: (val) => setState(() => _isGridOn = val),
+                  onChanged: (val) {
+                    setState(() => _isGridOn = val);
+                    _saveSetting('show_grid', val); // Memory me save
+                    _triggerHaptic();
+                  },
                 ),
                 _buildDivider(),
 
@@ -81,7 +98,12 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                   title: "Shutter sound",
                   subtitle: "Play a sound when taking a photo",
                   value: _isShutterSoundOn,
-                  onChanged: (val) => setState(() => _isShutterSoundOn = val),
+                  //onChanged: (val) => setState(() => _isShutterSoundOn = val),
+                  onChanged: (val) {
+                    setState(() => _isShutterSoundOn = val);
+                    _saveSetting('shutter_sound', val); // Memory me save
+                    _triggerHaptic();
+                  },
                 ),
                 _buildDivider(),
 
@@ -89,7 +111,12 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                   title: "Mirror selfie",
                   subtitle: "Save front camera photos as they appear",
                   value: _isMirrorSelfieOn,
-                  onChanged: (val) => setState(() => _isMirrorSelfieOn = val),
+                  //onChanged: (val) => setState(() => _isMirrorSelfieOn = val),
+                  onChanged: (val) {
+                    setState(() => _isMirrorSelfieOn = val);
+                    _saveSetting('mirror_selfie', val); // Memory me save
+                    _triggerHaptic();
+                  },
                 ),
                 _buildDivider(),
 
@@ -153,4 +180,4 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
       endIndent: 16,
     );
   }
-}
+}//end main class
