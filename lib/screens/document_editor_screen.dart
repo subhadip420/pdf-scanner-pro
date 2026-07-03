@@ -3039,12 +3039,39 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         label: "Merge",
                         icon: Symbols.stack_group_rounded, // Tum chaho toh Icons.view_comfy_rounded bhi use kar sakte ho
                         tooltipMessage: "Merge selected photos into one page",
-                        onTap: () {
-                          // 🚨 NAYA: Toast hatakar MergeScreen par bhejo
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const MergeScreen()),
+                        // onTap: () {
+                        //   // 🚨 NAYA: Toast hatakar MergeScreen par bhejo
+                        //   Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(builder: (context) => const MergeScreen()),
+                        //   );
+                        // },
+
+                        onTap: () async {
+                          // 1. Loading UI dikhao taaki app hang na lage
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (_) => const Center(
+                              child: CircularProgressIndicator(color: Colors.blueAccent),
+                            ),
                           );
+
+                          // 2. Apne naye function ko call karke Baked (Final) files mango
+                          List<File> filesToMerge = await _prepareImagesForMerge();
+
+                          // 3. Loading band karo
+                          if (mounted) Navigator.pop(context);
+
+                          // 4. Merge Screen open karo naye baked data ke sath
+                          if (filesToMerge.isNotEmpty && mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MergeScreen(selectedImages: filesToMerge),
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
@@ -3096,6 +3123,380 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ],
       ),
     );
+  }
+
+  // // 🚨 NAYA FUNCTION: Selected photos ko bake (process) karke list banana
+  // Future<List<File>> _prepareImagesForMerge() async {
+  //   List<File> bakedFiles = [];
+  //
+  //   // Temporary directory ka path lenge taaki storage full na ho (App close hone par system inhe clear kar deta hai)
+  //   final tempDir = await getTemporaryDirectory();
+  //
+  //   for (int i = 0; i < widget.imageFiles.length; i++) {
+  //     if (selectedPagesList[i] == true) {
+  //       var map = widget.imageFiles[i];
+  //       final File file = map['cropped'] as File;
+  //       var imageBytes = await file.readAsBytes();
+  //
+  //       int turns = _imageQuarterTurns[i];
+  //       String activeFilter = _pageFilters[i];
+  //       double activeBright = _pageBrightness[i];
+  //       double activeContrast = _pageContrast[i];
+  //
+  //       // --- 1. APPLY FILTERS & BRIGHTNESS ---
+  //       if (activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
+  //         img.Image? decodedImage = img.decodeImage(imageBytes);
+  //         if (decodedImage != null) {
+  //           decodedImage = _processImageSync(decodedImage, 0, activeFilter, activeBright, activeContrast);
+  //           imageBytes = img.encodeJpg(decodedImage, quality: 100);
+  //         }
+  //       }
+  //
+  //       // --- 2. APPLY MARKUPS (Drawings, Shapes, Texts) ---
+  //       if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
+  //         MarkupExportData exportData = _pageMarkups[i];
+  //         ui.Codec codec = await ui.instantiateImageCodec(imageBytes);
+  //         ui.FrameInfo frameInfo = await codec.getNextFrame();
+  //         ui.Image uiImg = frameInfo.image;
+  //
+  //         final ui.PictureRecorder recorder = ui.PictureRecorder();
+  //         final Canvas canvas = Canvas(recorder);
+  //         final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
+  //         double scaleRatio = size.width / 400.0;
+  //
+  //         canvas.drawImage(uiImg, Offset.zero, Paint());
+  //
+  //         // A. Draw Strokes
+  //         DrawingPainter painter = DrawingPainter(
+  //           paths: exportData.paths,
+  //           currentPoints: [],
+  //           currentColor: Colors.transparent,
+  //           currentStrokeWidth: 0,
+  //           currentOpacity: 0,
+  //           isEraser: false,
+  //         );
+  //         painter.paint(canvas, size);
+  //
+  //         // B. Draw Shapes
+  //         for (var shape in exportData.shapes) {
+  //           canvas.save();
+  //           canvas.translate(shape.offset.dx * size.width, shape.offset.dy * size.height);
+  //           canvas.rotate(shape.rotation);
+  //           canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+  //
+  //           TextPainter tp = TextPainter(
+  //             text: TextSpan(
+  //               text: String.fromCharCode(shape.icon.codePoint),
+  //               style: TextStyle(
+  //                 fontSize: shape.size * scaleRatio,
+  //                 color: shape.color,
+  //                 fontFamily: shape.icon.fontFamily,
+  //                 package: shape.icon.fontPackage,
+  //               ),
+  //             ),
+  //             textDirection: TextDirection.ltr,
+  //           );
+  //           tp.layout();
+  //           tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+  //           canvas.restore();
+  //         }
+  //
+  //         // C. Draw Texts
+  //         for (var item in exportData.texts) {
+  //           canvas.save();
+  //           canvas.translate(item.offset.dx * size.width, item.offset.dy * size.height);
+  //           canvas.rotate(item.rotation);
+  //
+  //           double fontSize = item.fontSize * scaleRatio;
+  //           Color textColor = item.appearance == 0
+  //               ? item.color
+  //               : (item.appearance == 1 || item.appearance == 2)
+  //               ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+  //               : Colors.white;
+  //           Color bgColor = item.appearance == 1
+  //               ? item.color
+  //               : item.appearance == 2
+  //               ? item.color.withOpacity(0.5)
+  //               : Colors.transparent;
+  //
+  //           TextDecoration decoration = TextDecoration.none;
+  //           if (item.isUnderline && item.isStrikethrough) {
+  //             decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+  //           } else if (item.isUnderline) {
+  //             decoration = TextDecoration.underline;
+  //           } else if (item.isStrikethrough) {
+  //             decoration = TextDecoration.lineThrough;
+  //           }
+  //
+  //           TextStyle style = TextStyle(
+  //             color: textColor,
+  //             fontSize: fontSize,
+  //             fontFamily: item.font,
+  //             fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+  //             fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+  //             decoration: decoration,
+  //             decorationColor: textColor,
+  //             shadows: item.appearance == 0
+  //                 ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+  //                 : null,
+  //           );
+  //
+  //           TextPainter tp = TextPainter(
+  //             text: TextSpan(text: item.text, style: style),
+  //             textAlign: item.alignment,
+  //             textDirection: TextDirection.ltr,
+  //           );
+  //           tp.layout();
+  //
+  //           Rect bgRect = Rect.fromCenter(
+  //             center: Offset.zero,
+  //             width: tp.width + (32 * scaleRatio),
+  //             height: tp.height + (16 * scaleRatio),
+  //           );
+  //           if (bgColor != Colors.transparent) {
+  //             canvas.drawRRect(
+  //               RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
+  //               Paint()..color = bgColor,
+  //             );
+  //           }
+  //
+  //           if (item.appearance == 3) {
+  //             TextPainter strokeTp = TextPainter(
+  //               text: TextSpan(
+  //                 text: item.text,
+  //                 style: style.copyWith(
+  //                   foreground: Paint()
+  //                     ..style = PaintingStyle.stroke
+  //                     ..strokeWidth = fontSize * 0.25
+  //                     ..strokeJoin = StrokeJoin.round
+  //                     ..strokeCap = StrokeCap.round
+  //                     ..color = item.color,
+  //                 ),
+  //               ),
+  //               textAlign: item.alignment,
+  //               textDirection: TextDirection.ltr,
+  //             );
+  //             strokeTp.layout();
+  //             strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
+  //           }
+  //
+  //           tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+  //           canvas.restore();
+  //         }
+  //
+  //         final ui.Picture picture = recorder.endRecording();
+  //         final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
+  //         final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
+  //
+  //         if (byteData != null) {
+  //           imageBytes = byteData.buffer.asUint8List();
+  //         }
+  //       }
+  //
+  //       // --- 3. APPLY ROTATION LATEST ---
+  //       if (turns != 0) {
+  //         img.Image? decodedStampedImage = img.decodeImage(imageBytes);
+  //         if (decodedStampedImage != null) {
+  //           decodedStampedImage = img.copyRotate(decodedStampedImage, angle: turns * 90);
+  //           imageBytes = img.encodeJpg(decodedStampedImage, quality: 95); // Quality high rakho for merge
+  //         }
+  //       }
+  //
+  //       // --- 4. TEMPORARY FILE ME SAVE KARNA ---
+  //       String tempPath = '${tempDir.path}/merge_temp_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+  //       File tempFile = File(tempPath);
+  //       await tempFile.writeAsBytes(imageBytes);
+  //
+  //       bakedFiles.add(tempFile); // Baked file list me add ho gayi!
+  //     }
+  //   }
+  //   return bakedFiles;
+  // }
+
+  // 🚀 SUPER FAST FUNCTION: Hardware-accelerated GPU Baking
+  Future<List<File>> _prepareImagesForMerge() async {
+    List<File> bakedFiles = [];
+    final tempDir = await getTemporaryDirectory();
+
+    for (int i = 0; i < widget.imageFiles.length; i++) {
+      if (selectedPagesList[i] == true) {
+        var map = widget.imageFiles[i];
+        final File file = map['cropped'] as File;
+        final Uint8List bytes = await file.readAsBytes();
+
+        // 🚀 SPEED HACK 1: Native Decoder se decode aur resize ek sath (Drastically reduces RAM and CPU usage)
+        // 1500px A4 print ke liye perfect quality deta hai aur process hone me microseconds leta hai.
+        final ui.Codec codec = await ui.instantiateImageCodec(bytes, targetWidth: 1500);
+        final ui.FrameInfo frameInfo = await codec.getNextFrame();
+        final ui.Image uiImg = frameInfo.image;
+
+        int turns = _imageQuarterTurns[i];
+        bool isLandscape = turns % 2 != 0;
+        double targetWidth = isLandscape ? uiImg.height.toDouble() : uiImg.width.toDouble();
+        double targetHeight = isLandscape ? uiImg.width.toDouble() : uiImg.height.toDouble();
+
+        // 🚀 SPEED HACK 2: CPU (package:image) ki jagah Native GPU Canvas ka use
+        final ui.PictureRecorder recorder = ui.PictureRecorder();
+        final Canvas canvas = Canvas(recorder);
+
+        // --- 1. ROTATION LOGIC (Instantly on GPU) ---
+        canvas.translate(targetWidth / 2, targetHeight / 2);
+        canvas.rotate(turns * 3.141592653589793 / 2); // 90 degree = pi/2
+        canvas.translate(-uiImg.width / 2, -uiImg.height / 2);
+
+        // --- 2. FILTER & ADJUST LOGIC (Instantly on GPU via saveLayer) ---
+        String activeFilter = _pageFilters[i];
+        double activeBright = _pageBrightness[i];
+        double activeContrast = _pageContrast[i];
+
+        ColorFilter? baseFilter = _getColorFilter(activeFilter);
+        ColorFilter adjustFilter = _getAdjustColorFilter(activeBright, activeContrast);
+
+        Rect imageRect = Rect.fromLTWH(0, 0, uiImg.width.toDouble(), uiImg.height.toDouble());
+
+        // Apply Adjustments
+        canvas.saveLayer(imageRect, Paint()..colorFilter = adjustFilter);
+
+        // Apply Color Filter (Agar koi select kiya hai)
+        if (baseFilter != null) {
+          canvas.saveLayer(imageRect, Paint()..colorFilter = baseFilter);
+        }
+
+        // Base image draw karna
+        canvas.drawImage(uiImg, Offset.zero, Paint());
+
+        if (baseFilter != null) canvas.restore();
+        canvas.restore(); // Adjust layer restore
+
+        // --- 3. MARKUPS (Shapes, Text, Drawing) ---
+        if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
+          MarkupExportData exportData = _pageMarkups[i];
+          double scaleRatio = uiImg.width / 400.0;
+
+          // A. Draw Strokes (Drawing)
+          DrawingPainter painter = DrawingPainter(
+            paths: exportData.paths,
+            currentPoints: [],
+            currentColor: Colors.transparent,
+            currentStrokeWidth: 0,
+            currentOpacity: 0,
+            isEraser: false,
+          );
+          painter.paint(canvas, Size(uiImg.width.toDouble(), uiImg.height.toDouble()));
+
+          // B. Draw Shapes
+          for (var shape in exportData.shapes) {
+            canvas.save();
+            canvas.translate(shape.offset.dx * uiImg.width, shape.offset.dy * uiImg.height);
+            canvas.rotate(shape.rotation);
+            canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+
+            TextPainter tp = TextPainter(
+              text: TextSpan(
+                text: String.fromCharCode(shape.icon.codePoint),
+                style: TextStyle(
+                  fontSize: shape.size * scaleRatio,
+                  color: shape.color,
+                  fontFamily: shape.icon.fontFamily,
+                  package: shape.icon.fontPackage,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+            );
+            tp.layout();
+            tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+            canvas.restore();
+          }
+
+          // C. Draw Texts
+          for (var item in exportData.texts) {
+            canvas.save();
+            canvas.translate(item.offset.dx * uiImg.width, item.offset.dy * uiImg.height);
+            canvas.rotate(item.rotation);
+
+            double fontSize = item.fontSize * scaleRatio;
+            Color textColor = item.appearance == 0 ? item.color : (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) : Colors.white;
+            Color bgColor = item.appearance == 1 ? item.color : item.appearance == 2 ? item.color.withOpacity(0.5) : Colors.transparent;
+
+            TextDecoration decoration = TextDecoration.none;
+            if (item.isUnderline && item.isStrikethrough) {
+              decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+            } else if (item.isUnderline) {
+              decoration = TextDecoration.underline;
+            } else if (item.isStrikethrough) {
+              decoration = TextDecoration.lineThrough;
+            }
+
+            TextStyle style = TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+              fontFamily: item.font,
+              fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+              fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+              decoration: decoration,
+              decorationColor: textColor,
+              shadows: item.appearance == 0 ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
+            );
+
+            TextPainter tp = TextPainter(
+              text: TextSpan(text: item.text, style: style),
+              textAlign: item.alignment,
+              textDirection: TextDirection.ltr,
+            );
+            tp.layout();
+
+            Rect bgRect = Rect.fromCenter(
+              center: Offset.zero,
+              width: tp.width + (32 * scaleRatio),
+              height: tp.height + (16 * scaleRatio),
+            );
+            if (bgColor != Colors.transparent) {
+              canvas.drawRRect(RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)), Paint()..color = bgColor);
+            }
+
+            if (item.appearance == 3) {
+              TextPainter strokeTp = TextPainter(
+                text: TextSpan(
+                  text: item.text,
+                  style: style.copyWith(
+                    foreground: Paint()
+                      ..style = PaintingStyle.stroke
+                      ..strokeWidth = fontSize * 0.25
+                      ..strokeJoin = StrokeJoin.round
+                      ..strokeCap = StrokeCap.round
+                      ..color = item.color,
+                  ),
+                ),
+                textAlign: item.alignment,
+                textDirection: TextDirection.ltr,
+              );
+              strokeTp.layout();
+              strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
+            }
+
+            tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+            canvas.restore();
+          }
+        }
+
+        // --- 4. EXPORT (Extremely Fast Native PNG Encoding) ---
+        final ui.Picture picture = recorder.endRecording();
+
+        // Picture se final scaled image generate kar li
+        final ui.Image finalImg = await picture.toImage(targetWidth.toInt(), targetHeight.toInt());
+
+        // PNG format fast aur lossless hota hai background canvases ke liye
+        final ByteData? byteData = await finalImg.toByteData(format: ui.ImageByteFormat.png);
+
+        if (byteData != null) {
+          String tempPath = '${tempDir.path}/merge_baked_${DateTime.now().millisecondsSinceEpoch}_$i.png';
+          File tempFile = File(tempPath);
+          await tempFile.writeAsBytes(byteData.buffer.asUint8List());
+          bakedFiles.add(tempFile);
+        }
+      }
+    }
+    return bakedFiles;
   }
 
   // 🚨 NAYA: Bulk Rotate Logic
