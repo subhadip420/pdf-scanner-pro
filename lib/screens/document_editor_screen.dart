@@ -23,6 +23,8 @@ import 'markup_screen.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 
+import 'merge_screen.dart';
+
 class DocumentEditorScreen extends StatefulWidget {
   final List<Map<String, dynamic>> imageFiles;
 
@@ -3038,8 +3040,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         icon: Symbols.stack_group_rounded, // Tum chaho toh Icons.view_comfy_rounded bhi use kar sakte ho
                         tooltipMessage: "Merge selected photos into one page",
                         onTap: () {
-                          // Function baad me likha jayega, abhi sirf toast show karenge
-                          showToast("Merge function coming soon!");
+                          // 🚨 NAYA: Toast hatakar MergeScreen par bhejo
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const MergeScreen()),
+                          );
                         },
                       ),
                     ),
