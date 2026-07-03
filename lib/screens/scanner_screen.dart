@@ -1703,18 +1703,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               /// Gallery Button
                               IconButton(
                                 //onPressed: _pickImagesFromGallery, // Alag function yahan call ho gaya
-                                onPressed: () async {
+                                //onPressed: () async {
+                                onPressed: selectedIndex == 1 ? null : () async {
                                   await _triggerVibration(); // 🚨 HAPTIC: Camera switch
                                   //_pickImagesFromGallery;
                                   await _pickImagesFromGallery();
                                 },
-                                icon: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
+                                //icon: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
+                                icon: Opacity(
+                                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                                  child: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
+                                ),
                               ),
 
                               /// Capture Button
                               /// Dynamic & Animated Capture Button
                               GestureDetector(
-                                onTap: _capturePhoto,
+                                //onTap: _capturePhoto,
+                                onTap: selectedIndex == 1 ? null : _capturePhoto,
+                                child: Opacity(
+                                opacity: selectedIndex == 1 ? 0.4 : 1.0,
                                 child: Stack(
                                   alignment: Alignment.center,
                                   children: [
@@ -1797,6 +1805,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       ),
                                   ],
                                 ),
+                               ),
                               ),
 
                               /// Auto Detect
@@ -1832,13 +1841,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                               /// Last Photo with Counter Badge
                               GestureDetector(
-                                onTap: () async {
+                                //onTap: () async {
+                                onTap: selectedIndex == 1 ? null : () async {
                                   await _triggerVibration();
                                   if (capturedPhotosCount > 0) {
                                     _goToEditor(); // 🚨 Master Helper call kiya
                                   }
                                 },
-                                child: Stack(
+                                  child: Opacity(
+                                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                                  child: Stack(
                                   clipBehavior: Clip.none, // Allows the badge to overflow the box slightly
                                   children: [
                                     Container(
@@ -1879,6 +1891,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       ),
                                   ],
                                 ),
+                                  ),
                               ),
                             ],
                           ),
@@ -2041,31 +2054,45 @@ class _ScannerScreenState extends State<ScannerScreen> {
               // 🚨 NAYA: Multiple Scan Icon (Sirf normal mode me dikhega)
               if (!widget.isRetakeMode)
                 IconButton(
-                  onPressed: () async {
+                  //onPressed: () async {
+                  onPressed: selectedIndex == 1 ? null : () async {
                     await _triggerVibration();
                     setState(() {
                       isMultiScanMode = !isMultiScanMode; // ON ko OFF, OFF ko ON karega
                     });
                     showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
                   },
-                  icon: _buildRotatedIcon(
-                    // ON hone par overlapping pages, OFF hone par single page
-                    isMultiScanMode ? Icons.file_copy_rounded : Icons.insert_drive_file_outlined,
-                    color: isMultiScanMode ? Colors.blueAccent : Colors.white, // ON hone par Blue dikhega
-                    size: 24,
+                  // icon: _buildRotatedIcon(
+                  //   // ON hone par overlapping pages, OFF hone par single page
+                  //   isMultiScanMode ? Icons.file_copy_rounded : Icons.insert_drive_file_outlined,
+                  //   color: isMultiScanMode ? Colors.blueAccent : Colors.white, // ON hone par Blue dikhega
+                  //   size: 24,
+                  // ),
+                  icon: Opacity(
+                    opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                    child: _buildRotatedIcon(
+                      isMultiScanMode ? Icons.file_copy_rounded : Icons.insert_drive_file_outlined,
+                      color: isMultiScanMode ? Colors.blueAccent : Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
 
               /// YAHAN TIMER ICON DYNAMIC KAR DIYA
               IconButton(
                 //onPressed: () => setState(() => activeMenu = "Timer"),
-                onPressed: () async {
+                //onPressed: () async {
+                onPressed: selectedIndex == 1 ? null : () async {
                   await _triggerVibration();
                   setState(() {
                     activeMenu = "Timer"; // ON ko OFF, OFF ko ON karega
                   });
                 },
-                icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
+                //icon: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
+                icon: Opacity(
+                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                  child: _buildRotatedIcon(_getTimerIcon(), color: Colors.white, size: 26),
+                ),
               ),
 
               if (!widget.isRetakeMode)
