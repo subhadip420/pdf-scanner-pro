@@ -211,6 +211,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Future<void> _goToEditor() async {
     setState(() => _isCameraReady = false); // Loader dikhayega
 
+    // 🚨 FIX 2: Editor jane se pehle Flash Off karo taaki icon aur hardware sync rahe
+    if (selectedFlashMode != "Off") {
+      await _applyFlashMode("Off");
+      selectedFlashMode = "Off";
+    }
+
     // 1. Hardware memory release karo taaki crash na ho
     if (controller.value.isStreamingImages) {
       await controller.stopImageStream();
@@ -462,6 +468,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
       // 🚨 FIX 1: RETAKE LOGIC (Manual Camera Click) 🚨
       if (widget.isRetakeMode) {
         setState(() => isCapturing = false);
+        // 🚨 FIX 1: Capture hone ke turant baad hardware aur state reset
+        if (selectedFlashMode == "Torch" || selectedFlashMode == "On") {
+          await _applyFlashMode("Off");
+          if (mounted) setState(() => selectedFlashMode = "Off");
+        }
         Navigator.pop(context, File(photo.path)); // Seedha photo wapas bhej do
         return; // Niche ka code nahi chalega
       }
@@ -1020,6 +1031,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
           isCapturing = false;
           _detectedDocumentBox = null;
         });
+        // 🚨 FIX 1: Capture hone ke turant baad hardware aur state reset
+        if (selectedFlashMode == "Torch" || selectedFlashMode == "On") {
+          await _applyFlashMode("Off");
+          if (mounted) setState(() => selectedFlashMode = "Off");
+        }
+
         Navigator.pop(context, finalFile); // Auto crop wali photo wapas bhej do
         return;
       }
@@ -1189,6 +1206,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (!status.isGranted && !status.isLimited) {
         showToast("Gallery permission required.");
         return;
+      }
+
+      // 🚨 FIX 3: Gallery open hone se pehle flash sync reset
+      if (selectedFlashMode != "Off") {
+        await _applyFlashMode("Off");
+        setState(() => selectedFlashMode = "Off");
       }
 
       // 🚨 FIX: Gallery me jane se pehle ML Kit background processing rok do taaki crash na ho
@@ -1992,6 +2015,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   //onPressed: () => showToast("Settings"),
                   onPressed: () async {
                     await _triggerVibration();
+
+                    // 🚨 FIX 4: Settings jane se pehle flash sync reset
+                    if (selectedFlashMode != "Off") {
+                      await _applyFlashMode("Off");
+                      setState(() => selectedFlashMode = "Off");
+                    }
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
