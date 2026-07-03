@@ -2033,28 +2033,48 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
               if (!widget.isRetakeMode)
                 IconButton(
-                  //onPressed: () => showToast("Settings"),
-                  onPressed: () async {
-                    await _triggerVibration();
-
-                    // 🚨 FIX 4: Settings jane se pehle flash sync reset
-                    if (selectedFlashMode != "Off") {
-                      await _applyFlashMode("Off");
-                      setState(() => selectedFlashMode = "Off");
-                    }
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CameraSettingsScreen(),
-                      ),
-                    );
-                  },
+                  onPressed: _goToSettings,
                   icon: _buildRotatedIcon(Symbols.segment_sharp, color: Colors.white, size: 26),
                 ),
             ],
           ),
         );
+    }
+  }
+
+  Future<void> _goToSettings() async {
+    await _triggerVibration();
+
+    // 1. Settings jane se pehle flash sync reset
+    if (selectedFlashMode != "Off") {
+      await _applyFlashMode("Off");
+      if (mounted) {
+        setState(() => selectedFlashMode = "Off");
+      }
+    }
+
+    // 2. Settings me jane se pehle ML Stream band aur UI clean karo
+    if (controller.value.isStreamingImages) {
+      await controller.stopImageStream();
+    }
+    if (mounted) {
+      setState(() {
+        _detectedDocumentBox = null;
+        _stableFrames = 0;
+      });
+    }
+
+    // 3. 🚨 YAHAN 'await' ZAROORI HAI: Taaki code yahan ruk jaye jab tak user settings se back na aaye
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CameraSettingsScreen(),
+      ),
+    );
+
+    // 4. Wapas aane par ML Stream wapas chalu karo (Agar auto detect on hai)
+    if (mounted && isAutoDetectOn && selectedIndex == 0) {
+      _startMLAutoDetect();
     }
   }
 
