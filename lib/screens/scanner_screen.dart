@@ -1219,6 +1219,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
         await controller.stopImageStream();
       }
 
+      // 🚨 MASTER FIX 1: Screen change hone se pehle Blue Box aur Status clean kar do
+      if (mounted) {
+        setState(() {
+          _detectedDocumentBox = null;
+          _stableFrames = 0;
+          isHoldingSteady = false;
+          if (selectedIndex == 0 && isAutoDetectOn) {
+            autoScanStatus = "Looking for document...";
+          }
+        });
+      }
+
       // 🚨 Puraane AssetPicker.pickAssets() ki jagah hum apni custom screen call karenge
       final List<File>? selectedFiles = await Navigator.push(
         context,
@@ -1226,7 +1238,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
 
       // Agar user ne bina select kiye close kar diya
-      if (selectedFiles == null || selectedFiles.isEmpty) return;
+      //if (selectedFiles == null || selectedFiles.isEmpty) return;
+
+      // Agar user ne bina select kiye close kar diya (BACK button daba diya)
+      if (selectedFiles == null || selectedFiles.isEmpty) {
+        // 🚨 MASTER FIX 2: Wapas aane par stream dobara chalu kardo agar auto-detect ON tha
+        if (mounted && isAutoDetectOn && selectedIndex == 0) {
+          _startMLAutoDetect();
+        }
+        return;
+      }
 
       // 🚨 FIX 2: RETAKE LOGIC (Gallery Selection) 🚨
       if (widget.isRetakeMode) {
