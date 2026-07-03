@@ -50,8 +50,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   String selectedMode = "Document";
   final ScrollController modeController = ScrollController();
 
-  //final List<String> scanModes = ["Whiteboard", "Book", "Document", "ID Card", "Business Card", "OCR"];
-
   // 🚨 FIX: Modes ab sirf 2 hain, aur default Document (0) par rahega
   final List<String> scanModes = ["Document", "QR Scanner"];
   int selectedIndex = 0;
@@ -62,7 +60,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   //int selectedIndex = 2; // Document
   bool isSelectingRatio = false;
-  //String selectedRatio = "4:3"; // Default 4:3 select rahega
 
   bool isSelectingFlash = false;
   String selectedFlashMode = "Off"; // Options: "Off", "On", "Auto", "Torch"
@@ -79,7 +76,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int capturedPhotosCount = 0; // Counter for the badge
   bool isCapturing = false; // To prevent multiple taps while capturing
   int currentCountdown = 0; // Tracks the active countdown (3, 2, 1)
-  //List<File> capturedImagesList = []; // Nayi list jo saari photos store karegi
   // NAYI LINE:
   List<Map<String, dynamic>> capturedImagesList = [];
 
@@ -326,19 +322,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return false;
   }
 
-  // Portrait mode ke hisaab se ratios (width / height)
-  // double _getAspectRatio() {
-  //   switch (selectedRatio) {
-  //     case "1:1":
-  //       return 1.0;
-  //     case "16:9":
-  //       return 9 / 16;
-  //     case "4:3":
-  //     default:
-  //       return 3 / 4;
-  //   }
-  // }
-
   // Selected flash mode ke hisaab se icon return karega
   IconData _getFlashIcon([String? mode]) {
     final String currentMode = mode ?? selectedFlashMode;
@@ -405,18 +388,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       enableAudio: false,
       imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
     );
-
-    // Naye controller ko initialize karke UI update karein
-    // try {
-    //   await controller.initialize();
-    //   await _applyFlashMode(selectedFlashMode);
-    //   if (mounted) {
-    //     setState(() {}); // Camera change hone par screen refresh hogi
-    //     //showToast(currentCameraIndex == 1 ? "Front Camera" : "Back Camera");
-    //   }
-    // } catch (e) {
-    //   showToast("Error switching camera");
-    // }
 
     try {
       await controller.initialize();
@@ -683,15 +654,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               fit: StackFit.expand,
               children: [
                 CameraPreview(controller),
-
-                // 🚨 NAYA: 3x3 Grid Overlay (Agar settings se ON hai)
-                // if (isGridOn)
-                //   Positioned.fill(
-                //     child: CustomPaint(
-                //       painter: GridOverlayPainter(),
-                //     ),
-                //   ),
-
                 // YEH NAYI LINE: Real-time Blue Overlay
                 if (_detectedDocumentBox != null && isAutoDetectOn && selectedIndex == 0)
                   Positioned.fill(
@@ -738,94 +700,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ),
     );
   }
-
-  // void _startMLAutoDetect() {
-  //   if (!isAutoDetectOn || !controller.value.isInitialized) return;
-  //
-  //   // FIX 2: Agar pehle se stream chal rahi hai, toh naya start na kare (crash rokne ke liye)
-  //   if (controller.value.isStreamingImages) return;
-  //
-  //   setState(() {
-  //     autoScanStatus = "Looking for document...";
-  //     isHoldingSteady = false;
-  //     _stableFrames = 0;
-  //   });
-  //
-  //   controller.startImageStream((CameraImage image) async {
-  //     if (_isProcessingImage || !isAutoDetectOn || isCapturing) return;
-  //     _isProcessingImage = true;
-  //
-  //     try {
-  //       final WriteBuffer allBytes = WriteBuffer();
-  //       for (final Plane plane in image.planes) {
-  //         allBytes.putUint8List(plane.bytes);
-  //       }
-  //       final bytes = allBytes.done().buffer.asUint8List();
-  //
-  //       final Size imageSize = Size(image.width.toDouble(), image.height.toDouble());
-  //       final camera = cameras[currentCameraIndex];
-  //       final imageRotation =
-  //           InputImageRotationValue.fromRawValue(camera.sensorOrientation) ?? InputImageRotation.rotation90deg;
-  //
-  //       // FIX 3: Strict format define kiya Platform ke hisab se, taaki ML Kit block na ho
-  //       final inputImageFormat = Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888;
-  //
-  //       final inputImageData = InputImageMetadata(
-  //         size: imageSize,
-  //         rotation: imageRotation,
-  //         format: inputImageFormat,
-  //         bytesPerRow: image.planes[0].bytesPerRow,
-  //       );
-  //
-  //       final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
-  //       final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
-  //
-  //       // Agar text/document mil gaya!
-  //       if (recognizedText.blocks.isNotEmpty) {
-  //         double minX = double.infinity, minY = double.infinity;
-  //         double maxX = 0, maxY = 0;
-  //
-  //         for (TextBlock block in recognizedText.blocks) {
-  //           if (block.boundingBox.left < minX) minX = block.boundingBox.left;
-  //           if (block.boundingBox.top < minY) minY = block.boundingBox.top;
-  //           if (block.boundingBox.right > maxX) maxX = block.boundingBox.right;
-  //           if (block.boundingBox.bottom > maxY) maxY = block.boundingBox.bottom;
-  //         }
-  //
-  //         if (mounted) {
-  //           setState(() {
-  //             _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
-  //             _stableFrames++;
-  //
-  //             if (_stableFrames > 3) {
-  //               autoScanStatus = "Capturing... hold steady";
-  //               isHoldingSteady = true;
-  //             }
-  //           });
-  //
-  //           if (_stableFrames > 10) {
-  //             await controller.stopImageStream();
-  //             _autoCaptureAndNavigate();
-  //           }
-  //         }
-  //       } else {
-  //         // Document screen se hat gaya
-  //         if (mounted) {
-  //           setState(() {
-  //             _detectedDocumentBox = null;
-  //             _stableFrames = 0;
-  //             autoScanStatus = "Looking for document...";
-  //             isHoldingSteady = false;
-  //           });
-  //         }
-  //       }
-  //     } catch (e) {
-  //       print("ML Error: $e");
-  //     } finally {
-  //       _isProcessingImage = false;
-  //     }
-  //   });
-  // }
 
   void _startMLAutoDetect() {
     //if (!isAutoDetectOn || !controller.value.isInitialized) return;
@@ -876,52 +750,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         );
 
         final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
-
-        // 🚨 MASTER DUAL-LOGIC START: Check Mode Index
-        // if (selectedIndex == 0) {
-        //   // ==========================================
-        //   // MODE 0: DOCUMENT SCANNER (Purana Logic)
-        //   // ==========================================
-        //   final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
-        //
-        //   if (recognizedText.blocks.isNotEmpty) {
-        //     double minX = double.infinity, minY = double.infinity;
-        //     double maxX = 0, maxY = 0;
-        //
-        //     for (TextBlock block in recognizedText.blocks) {
-        //       if (block.boundingBox.left < minX) minX = block.boundingBox.left;
-        //       if (block.boundingBox.top < minY) minY = block.boundingBox.top;
-        //       if (block.boundingBox.right > maxX) maxX = block.boundingBox.right;
-        //       if (block.boundingBox.bottom > maxY) maxY = block.boundingBox.bottom;
-        //     }
-        //
-        //     if (mounted) {
-        //       setState(() {
-        //         _detectedDocumentBox = Rect.fromLTRB(minX - 20, minY - 20, maxX + 20, maxY + 20);
-        //         _stableFrames++;
-        //
-        //         if (_stableFrames > 3) {
-        //           autoScanStatus = "Capturing... hold steady";
-        //           isHoldingSteady = true;
-        //         }
-        //       });
-        //
-        //       if (_stableFrames > 10) {
-        //         await controller.stopImageStream();
-        //         _autoCaptureAndNavigate();
-        //       }
-        //     }
-        //   } else {
-        //     if (mounted) {
-        //       setState(() {
-        //         _detectedDocumentBox = null;
-        //         _stableFrames = 0;
-        //         autoScanStatus = "Looking for document...";
-        //         isHoldingSteady = false;
-        //       });
-        //     }
-        //   }
-        // }
 
         // 🚨 MASTER DUAL-LOGIC START: Check Mode Index
         if (selectedIndex == 0) {
@@ -975,29 +803,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
             }
           }
         }
-
-        // else if (selectedIndex == 1) {
-        //   // ==========================================
-        //   // MODE 1: QR & BARCODE SCANNER (Naya Logic)
-        //   // ==========================================
-        //   final List<Barcode> barcodes = await _barcodeScanner.processImage(inputImage);
-        //
-        //   if (barcodes.isNotEmpty) {
-        //     final String? rawValue = barcodes.first.rawValue;
-        //
-        //     // Agar QR valid hai aur purane wale se alag hai (taaki baar-baar vibrate na kare)
-        //     if (rawValue != null && rawValue != _detectedQrCode) {
-        //       if (mounted) {
-        //         setState(() {
-        //           _detectedQrCode = rawValue; // State update ki
-        //         });
-        //         // Haptic feedback (User ko pata chalega ki scan ho gaya)
-        //         HapticFeedback.lightImpact();
-        //       }
-        //     }
-        //   }
-        // }
-
         else if (selectedIndex == 1) {
           // ==========================================
           // MODE 1: QR & BARCODE SCANNER (Naya Logic)
@@ -1029,15 +834,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 HapticFeedback.lightImpact();
               }
             }
-          // } else {
-          //   // 🚨 FIX: Agar koi QR nahi mil raha aur screen par koi popup bhi open nahi hai
-          //   if (mounted && autoScanStatus != "Looking for QR code..." && _detectedQrCode == null) {
-          //     setState(() {
-          //       autoScanStatus = "Looking for QR code..."; // Text wapas laga do
-          //     });
-          //   }
-          // }
-
           } else {
             // 🚨 MASTER FIX: QR screen se hat-te hi Box turant gayab hoga
             if (mounted) {
@@ -1374,71 +1170,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               child: Stack(
                 children: [
                   /// Camera Preview
-                  // selectedRatio == "Full"
-                  //     ? Positioned.fill(
-                  //         child: ClipRect(
-                  //           child: FittedBox(
-                  //             fit: BoxFit.cover,
-                  //             alignment: Alignment.center,
-                  //             // YAHAN HELPER WIDGET CALL KIYA HAI
-                  //             child: _buildCameraPreviewWithFocus(),
-                  //           ),
-                  //         ),
-                  //       )
-                  //     : selectedRatio == "1:1"
-                  //     ? Positioned(
-                  //         top: 90,
-                  //         bottom: 180,
-                  //         left: 0,
-                  //         right: 0,
-                  //         child: Center(
-                  //           child: AspectRatio(
-                  //             aspectRatio: 1.0,
-                  //             child: ClipRect(
-                  //               child: FittedBox(
-                  //                 fit: BoxFit.cover,
-                  //                 alignment: Alignment.center,
-                  //                 // YAHAN HELPER WIDGET CALL KIYA HAI
-                  //                 child: _buildCameraPreviewWithFocus(),
-                  //               ),
-                  //             ),
-                  //           ),
-                  //         ),
-                  //       )
-                  //     : Positioned(
-                  //         top: 115,
-                  //         left: 0,
-                  //         right: 0,
-                  //         child: AspectRatio(
-                  //           aspectRatio: _getAspectRatio(),
-                  //           child: ClipRect(
-                  //             child: FittedBox(
-                  //               fit: BoxFit.cover,
-                  //               alignment: Alignment.center,
-                  //               // YAHAN HELPER WIDGET CALL KIYA HAI
-                  //               child: _buildCameraPreviewWithFocus(),
-                  //             ),
-                  //           ),
-                  //         ),
-                  //       ),
-
-                  // 🚨 MASTER FIX: Camera hamesha 4:3 ratio me hi khulega (Portrait me 3/4 hota hai)
-                  // Positioned(
-                  //   top: 115, // Top options ke theek neeche se shuru
-                  //   left: 0,
-                  //   right: 0,
-                  //   child: AspectRatio(
-                  //     aspectRatio: 3 / 4, // 🚨 Hardcoded 4:3 Ratio
-                  //     child: ClipRect(
-                  //       child: FittedBox(
-                  //         fit: BoxFit.cover,
-                  //         alignment: Alignment.center,
-                  //         child: _buildCameraPreviewWithFocus(),
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-
                   /// 🚨 MASTER FIX: Camera Preview + Perfect Grid Alignment
                   Positioned(
                     top: 115, // Top options ke theek neeche
@@ -1551,41 +1282,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             itemSize: MediaQuery.of(context).size.width * 0.22,
                             initialIndex: 0,
                             dynamicItemSize: true,
-                            // onItemFocus: (index) {
-                            //   // setState(() {
-                            //   //   selectedIndex = index;
-                            //   // });
-                            //
-                            //   setState(() {
-                            //     selectedIndex = index;
-                            //     // 🚨 NAYA LOGIC: Mode change hone par UI update
-                            //     if (selectedIndex == 1) {
-                            //       // Agar QR mode me gaya, toh purana auto-detect UI hata do
-                            //       _detectedDocumentBox = null;
-                            //       autoScanStatus = "";
-                            //     } else {
-                            //       // Document mode wapas aaya
-                            //       _detectedQrCode = null;
-                            //     }
-                            //   });
-                            // },
-
-                            // onItemFocus: (index) {
-                            //   setState(() {
-                            //     selectedIndex = index;
-                            //     // 🚨 FIX 1: Mode ke hisaab se UI text change karo
-                            //     if (selectedIndex == 1) {
-                            //       // QR Mode
-                            //       _detectedDocumentBox = null;
-                            //       autoScanStatus = "Looking for QR code..."; // Text change
-                            //     } else {
-                            //       // Document Mode
-                            //       _detectedQrCode = null;
-                            //       autoScanStatus = "Looking for document..."; // Text revert
-                            //     }
-                            //   });
-                            // },
-
                             onItemFocus: (index) async {
                               await _triggerVibration();
                               setState(() {
@@ -1882,18 +1578,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                ),
                               ),
 
-                              /// Auto Detect
-                              /// Auto Detect Button
-                              // IconButton(
-                              //   onPressed: _toggleAutoDetect, // Yeh naya function call karega
-                              //   icon: _buildRotatedIcon(
-                              //     Icons.document_scanner_outlined,
-                              //     // Aap chahein toh Icons.auto_awesome use kar sakte hain
-                              //     color: isAutoDetectOn ? Colors.blueAccent : Colors.white, // ON hone par Blue
-                              //     size: 24,
-                              //   ),
-                              // ),
 
+                              /// Auto Detect Button
                               // 🚨 MASTER FIX 3: QR mode aate hi ye button disable aur thoda transparent ho jayega
                               IconButton(
                                 //onPressed: selectedIndex == 1 ? null : _toggleAutoDetect,
@@ -2136,12 +1822,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     });
                     showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
                   },
-                  // icon: _buildRotatedIcon(
-                  //   // ON hone par overlapping pages, OFF hone par single page
-                  //   isMultiScanMode ? Icons.file_copy_rounded : Icons.insert_drive_file_outlined,
-                  //   color: isMultiScanMode ? Colors.blueAccent : Colors.white, // ON hone par Blue dikhega
-                  //   size: 24,
-                  // ),
                   icon: Opacity(
                     opacity: selectedIndex == 1 ? 0.4 : 1.0,
                     child: _buildRotatedIcon(
@@ -2283,11 +1963,6 @@ class DocumentOverlayPainter extends CustomPainter {
       documentRect!.right * scaleX,
       documentRect!.bottom * scaleY,
     );
-
-    // Box ke andar ka halka blue color
-    // final Paint fillPaint = Paint()
-    //   ..color = Colors.lightBlueAccent.withOpacity(0.2)
-    //   ..style = PaintingStyle.fill;
 
     // Box ka border
     final Paint borderPaint = Paint()
