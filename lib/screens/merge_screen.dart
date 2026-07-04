@@ -58,44 +58,35 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- TOOLBAR ITEM BUILDER (Editor jaisa) ---
-  Widget _buildToolItem({
-    required String label,
-    required IconData icon,
-    VoidCallback? onTap,
-    bool isSelected = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.blueAccent : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: Colors.white, size: 22),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF2C2C2C), // Dark theme
+
+      // appBar: AppBar(
+      //   backgroundColor: const Color(0xFF1E1E1E),
+      //   elevation: 0,
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
+      //     onPressed: () => Navigator.pop(context),
+      //   ),
+      //   title: const Text(
+      //     "Merge Pages",
+      //     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+      //   ),
+      //   centerTitle: true,
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
+      //       onPressed: () {
+      //         // Final merge aur save ka logic baad me aayega
+      //         Navigator.pop(context);
+      //       },
+      //     ),
+      //     const SizedBox(width: 8),
+      //   ],
+      // ),
 
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
@@ -104,20 +95,42 @@ class _MergeScreenState extends State<MergeScreen> {
           icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
           onPressed: () => Navigator.pop(context),
         ),
+
+        // 🚨 CHANGE 1: centerTitle false kar diya taaki title left me aa jaye
         title: const Text(
           "Merge Pages",
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
         ),
-        centerTitle: true,
+        centerTitle: false,
+
         actions: [
+          // 🚨 CHANGE 2: Undo Button (Tick se pehle)
+          IconButton(
+            icon: const Icon(Icons.undo_rounded, color: Colors.white, size: 24),
+            tooltip: "Undo",
+            onPressed: () {
+              // Undo logic baad me aayega
+            },
+          ),
+
+          // 🚨 CHANGE 3: Redo Button (Undo ke theek baad)
+          IconButton(
+            icon: const Icon(Icons.redo_rounded, color: Colors.white, size: 24),
+            tooltip: "Redo",
+            onPressed: () {
+              // Redo logic baad me aayega
+            },
+          ),
+
+          // Tick Button (Done) - Apni purani jagah par
           IconButton(
             icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
+            tooltip: "Save",
             onPressed: () {
-              // Final merge aur save ka logic baad me aayega
               Navigator.pop(context);
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
 
