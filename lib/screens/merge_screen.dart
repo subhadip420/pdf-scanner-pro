@@ -503,6 +503,23 @@ class _MergeScreenState extends State<MergeScreen> {
                     children: [
                       //_buildToolItem(label: "Hide", icon: Icons.visibility_off_rounded, isDisabled: _selectedImageIndex == null),
                       // 🚨 DYNAMIC HIDE/UNHIDE (Scrollable list ke andar wapas add kiya)
+                      // _buildToolItem(
+                      //   label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden) ? "Unhide" : "Hide",
+                      //   icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden) ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                      //   isDisabled: _selectedImageIndex == null,
+                      //   onTap: () {
+                      //     if (_selectedImageIndex != null) {
+                      //       setState(() {
+                      //         _imageStates[_selectedImageIndex!].isHidden = !_imageStates[_selectedImageIndex!].isHidden;
+                      //         // Hide karne pe selection clear ho jaye taaki UI clean rahe
+                      //         if (_imageStates[_selectedImageIndex!].isHidden) {
+                      //           _selectedImageIndex = null;
+                      //         }
+                      //       });
+                      //     }
+                      //   },
+                      // ),
+                      // 5. 🚨 HIDE/UNHIDE (Sirf null hone par disable hoga, Lock hone par bhi hide/unhide kar sakte hain)
                       _buildToolItem(
                         label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden) ? "Unhide" : "Hide",
                         icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden) ? Icons.visibility_rounded : Icons.visibility_off_rounded,
@@ -511,25 +528,65 @@ class _MergeScreenState extends State<MergeScreen> {
                           if (_selectedImageIndex != null) {
                             setState(() {
                               _imageStates[_selectedImageIndex!].isHidden = !_imageStates[_selectedImageIndex!].isHidden;
-                              // Hide karne pe selection clear ho jaye taaki UI clean rahe
-                              if (_imageStates[_selectedImageIndex!].isHidden) {
-                                _selectedImageIndex = null;
-                              }
                             });
                           }
                         },
                       ),
                       _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded,isDisabled: false),
-                      _buildToolItem(label: "Layer", icon: Icons.layers_rounded, isDisabled: _selectedImageIndex == null),
+                      //_buildToolItem(label: "Layer", icon: Icons.layers_rounded, isDisabled: _selectedImageIndex == null),
+                      _buildToolItem(
+                          label: "Rotate",
+                          icon: Icons.rotate_right_rounded,
+                          isDisabled: _selectedImageIndex == null ||
+                              _imageStates[_selectedImageIndex!].isLocked ||
+                              _imageStates[_selectedImageIndex!].isHidden
+                      ),
 
-                      _buildToolItem(label: "Position", icon: Icons.control_camera_rounded, isDisabled: _selectedImageIndex == null),
+
+                      //_buildToolItem(label: "Position", icon: Icons.control_camera_rounded, isDisabled: _selectedImageIndex == null),
+                      _buildToolItem(
+                          label: "Position",
+                          icon: Icons.control_camera_rounded,
+                          isDisabled: _selectedImageIndex == null ||
+                              _imageStates[_selectedImageIndex!].isLocked ||
+                              _imageStates[_selectedImageIndex!].isHidden
+                      ),
                       _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded, isDisabled: _selectedImageIndex == null),
-                      _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded, isDisabled: _selectedImageIndex == null),
-                      _buildToolItem(label: "Opacity", icon: Icons.opacity_rounded, isDisabled: _selectedImageIndex == null),
-
+                      // _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded, isDisabled: _selectedImageIndex == null),
+                      // 2. 🚨 DISABLE IF NULL, LOCKED, OR HIDDEN
+                      _buildToolItem(
+                          label: "Size",
+                          icon: Icons.photo_size_select_large_rounded,
+                          isDisabled: _selectedImageIndex == null ||
+                              _imageStates[_selectedImageIndex!].isLocked ||
+                              _imageStates[_selectedImageIndex!].isHidden
+                      ),
+                      //_buildToolItem(label: "Opacity", icon: Icons.opacity_rounded, isDisabled: _selectedImageIndex == null),
+                      // 4. OPACITY
+                      _buildToolItem(
+                          label: "Opacity",
+                          icon: Icons.opacity_rounded,
+                          isDisabled: _selectedImageIndex == null ||
+                              _imageStates[_selectedImageIndex!].isLocked ||
+                              _imageStates[_selectedImageIndex!].isHidden
+                      ),
                       _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded, isDisabled: false),
                       _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
-                      _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, isDisabled: _selectedImageIndex == null),
+                      //_buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, isDisabled: _selectedImageIndex == null),
+                      // 7. 🚨 DELETE (Locked hone par Delete bhi disable rahega, pehle unlock karna padega. Hidden ko delete kar sakte hain)
+                      _buildToolItem(
+                          label: "Delete",
+                          icon: Icons.delete_outline_rounded,
+                          isDisabled: _selectedImageIndex == null || _imageStates[_selectedImageIndex!].isLocked,
+                          onTap: () {
+                            if (_selectedImageIndex != null && !_imageStates[_selectedImageIndex!].isLocked) {
+                              setState(() {
+                                _imageStates.removeAt(_selectedImageIndex!);
+                                _selectedImageIndex = null;
+                              });
+                            }
+                          }
+                      ),
                     ],
                   ),
                 ),
