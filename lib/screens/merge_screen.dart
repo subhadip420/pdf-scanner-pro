@@ -386,23 +386,72 @@ class _MergeScreenState extends State<MergeScreen> {
           // ==========================================
           // 3. MAIN TOOLS ITEM BAR
           // ==========================================
+          // Container(
+          //   height: 75,
+          //   width: double.infinity,
+          //   color: const Color(0xFF151515),
+          //   child: ListView(
+          //     scrollDirection: Axis.horizontal,
+          //     padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+          //     children: [
+          //       _buildToolItem(label: "Lock/Unlock", icon: Icons.lock_outline_rounded),
+          //       _buildToolItem(label: "Position", icon: Icons.control_camera_rounded),
+          //       _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded),
+          //       _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded),
+          //       _buildToolItem(label: "Opacity", icon: Icons.opacity_rounded),
+          //       _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded),
+          //       _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded),
+          //       _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded),
+          //       _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded),
+          //     ],
+          //   ),
+          // ),
+
+          // ==========================================
+          // 3. MAIN TOOLS ITEM BAR
+          // ==========================================
           Container(
             height: 75,
             width: double.infinity,
             color: const Color(0xFF151515),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+            child: Row(
               children: [
-                _buildToolItem(label: "Lock/Unlock", icon: Icons.lock_outline_rounded),
-                _buildToolItem(label: "Position", icon: Icons.control_camera_rounded),
-                _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded),
-                _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded),
-                _buildToolItem(label: "Opacity", icon: Icons.opacity_rounded),
-                _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded),
-                _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded),
-                _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded),
-                _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded),
+                // 🚨 FIX 1: Lock/Unlock button ko left me FIXED rakha
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0, right: 4.0),
+                  child: _buildToolItem(
+                    label: "Lock",
+                    icon: Icons.lock_outline_rounded,
+                  ),
+                ),
+
+                // Ek choti si line (Divider) taaki fixed aur scrollable alag dikhe
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: Colors.white24,
+                ),
+
+                // 🚨 FIX 2: Baki tools ko Expanded ke andar scrollable ListView me daala
+                Expanded(
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                    children: [
+                      _buildToolItem(label: "Layer", icon: Icons.layers_rounded),
+                      _buildToolItem(label: "Hide", icon: Icons.visibility_off_rounded),
+                      _buildToolItem(label: "Position", icon: Icons.control_camera_rounded),
+                      _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded),
+                      _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded),
+                      _buildToolItem(label: "Opacity", icon: Icons.opacity_rounded),
+                      _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded),
+                      _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded),
+                      _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded),
+
+                      _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -427,4 +476,41 @@ class _MergeScreenState extends State<MergeScreen> {
       ),
     );
   }
+
+  // --- TOOLBAR ITEM BUILDER (Editor jaisa) ---
+  Widget _buildToolItem({
+    required String label,
+    required IconData icon,
+    VoidCallback? onTap,
+    bool isSelected = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.blueAccent : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.white, size: 22),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+
 }
