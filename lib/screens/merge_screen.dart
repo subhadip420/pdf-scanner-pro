@@ -18,6 +18,7 @@ class MergedImageState {
   double scale;
   double rotation;
   bool isHidden;
+  bool isLocked;
 
   MergedImageState({
     required this.file,
@@ -25,6 +26,7 @@ class MergedImageState {
     this.scale = 1.0,
     this.rotation = 0.0,
     this.isHidden = false,
+    this.isLocked = false,
   });
 }
 
@@ -179,29 +181,38 @@ class _MergeScreenState extends State<MergeScreen> {
                                 children: [
                                   // --- MAIN IMAGE CONTAINER ---
                                   GestureDetector(
-                                    onTap: () => setState(() => _selectedImageIndex = index),
-                                    onPanUpdate: (details) {
+                                    // 🚨 FIX 1: Agar locked hai toh preview canvas par click ya drag puri tarah disable
+                                    onTap: imgState.isLocked ? null : () {
                                       setState(() {
                                         _selectedImageIndex = index;
-                                        //_imageStates[index].position += details.delta;
+                                      });
+                                    },
+                                    onPanUpdate: imgState.isLocked ? null : (details) {
+                                      setState(() {
+                                        _selectedImageIndex = index;
                                         _imageStates[index].position += Offset(details.delta.dx, -details.delta.dy);
                                       });
                                     },
-
+                                    child: Transform.rotate(
+                                      angle: imgState.rotation,
                                       child: Container(
                                         width: baseWidth * imgState.scale,
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                            color: isSelected ? Colors.blueAccent : Colors.transparent,
+                                            // 🚨 FIX 2: Agar locked hai, toh preview me KOI BORDER nahi aayega, chahe thumbnail se select kiya ho
+                                            color: (isSelected && !imgState.isLocked)
+                                                ? Colors.blueAccent
+                                                : Colors.transparent,
                                             width: 2,
                                           ),
                                         ),
                                         child: Image.file(imgState.file, fit: BoxFit.contain),
                                       ),
+                                    ),
                                   ),
 
                                   // --- CORNER CONTROLS (Sirf tab dikhenge jab select ho) ---
-                                  if (isSelected) ...[
+                                  if (isSelected && !imgState.isLocked) ...[
 
                                     // 1. TOP-LEFT: DELETE ICON
                                     Positioned(
@@ -374,6 +385,25 @@ class _MergeScreenState extends State<MergeScreen> {
                                 size: 24,
                               ),
                             ),
+
+                          // 🚨 CHANGE 3: Lock Icon (Agar photo locked hai)
+                          if (_imageStates[index].isLocked)
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(2), // Circle ka size adjust karne ke liye
+                                decoration: const BoxDecoration(
+                                  color: Colors.white, // White background
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.lock_rounded,
+                                  color: Colors.redAccent,
+                                  size: 14, // Icon thoda chhota kiya taaki circle me fit aaye
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -417,12 +447,44 @@ class _MergeScreenState extends State<MergeScreen> {
             child: Row(
               children: [
                 // 🚨 FIX 1: Lock/Unlock button ko left me FIXED rakha
+                // Padding(
+                //   padding: const EdgeInsets.only(left: 8.0, right: 4.0),
+                //   child: _buildToolItem(
+                //     label: "Lock",
+                //     icon: Icons.lock_outline_rounded,
+                //     isDisabled: _selectedImageIndex == null,
+                //   ),
+                // ),
+
+                // 1. Lock/Unlock (Left Fixed)
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0, right: 4.0),
                   child: _buildToolItem(
-                    label: "Lock",
-                    icon: Icons.lock_outline_rounded,
+                    // 🚨 CHANGE 4: Dynamic Label aur Icon
+                    label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isLocked)
+                        ? "Unlock"
+                        : "Lock",
+
+                    icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isLocked)
+                        ? Icons.lock_open_rounded
+                        : Icons.lock_outline_rounded,
+
                     isDisabled: _selectedImageIndex == null,
+
+                    // 🚨 NAYA: Lock/Unlock ka action lagaya
+                    onTap: () {
+                      if (_selectedImageIndex != null) {
+                        setState(() {
+                          // Jo bhi state hai uska ulta (Toggle) kar do
+                          _imageStates[_selectedImageIndex!].isLocked = !_imageStates[_selectedImageIndex!].isLocked;
+
+                          // Optional: Agar lock kar rahe ho toh turant deselect kardo taaki corner icons hat jaye
+                          if (_imageStates[_selectedImageIndex!].isLocked) {
+                            _selectedImageIndex = null;
+                          }
+                        });
+                      }
+                    },
                   ),
                 ),
 
