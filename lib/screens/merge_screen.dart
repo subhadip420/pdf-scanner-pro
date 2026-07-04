@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:flutter/services.dart'; // 🚨 NAYA: Vibration ke liye
+
 class MergeScreen extends StatefulWidget {
   // 🚨 Editor screen se selected files yahan receive karenge
   final List<File> selectedImages;
@@ -410,7 +412,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     // 🚨 FIX: Agar resize mode on hai, toh isko niche (1.0) bhej do
-                    offset: (isPageSizeMode || isPositionMode || isRotateMode) ? const Offset(0, 1.0) : Offset.zero,
+                    offset: (isPageSizeMode || isPositionMode || isRotateMode || isSizeMode) ? const Offset(0, 1.0) : Offset.zero,
                     child: _buildNormalTools(), // Yahan function call ho gaya
                   ),
 
@@ -437,6 +439,14 @@ class _MergeScreenState extends State<MergeScreen> {
                     curve: Curves.easeInOut,
                     offset: isRotateMode ? Offset.zero : const Offset(0, 1.0),
                     child: _buildRotateSubTools(), // 🚨 ROTATE TOOL YAHAN ADD KIYA
+                  ),
+
+                  // --- E. SIZE SUB-TOOLS (Animated Slide Up) ---
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: isSizeMode ? Offset.zero : const Offset(0, 1.0),
+                    child: _buildSizeSubTools(), // 🚨 SIZE TOOL YAHAN ADD KIYA
                   ),
                 ],
               ),
@@ -617,6 +627,11 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
+                    onTap: () {
+                      setState(() {
+                        isSizeMode = true; // 🚨 SIZE ANIMATION TRIGGER KAREGA
+                      });
+                    }
                 ),
                 _buildToolItem(
                   label: "Opacity",
@@ -1003,10 +1018,140 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
+// --- 🚨 NAYA BLOCK: PERFECT SIZE SUB-TOOLS ---
+  Widget _buildSizeSubTools() {
+    double currentScale = 1.0;
+    if (_selectedImageIndex != null) {
+      currentScale = _imageStates[_selectedImageIndex!].scale;
+    }
+
+    // Check karo ki size 1.0 hai ya change ho gaya hai
+    bool isChanged = currentScale != 1.0;
+
+    return Container(
+      height: 75,
+      width: double.infinity,
+      // decoration: const BoxDecoration(
+      //   color: Color(0xFF252525),
+      //   border: Border(
+      //     top: BorderSide(color: Colors.blueAccent, width: 2),
+      //   ),
+      // ),
+      child: Row(
+        children: [
+          // 1. Dynamic Tick/Close Button
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: _buildToolItem(
+              label: isChanged ? "Done" : "Close",
+              icon: isChanged ? Icons.check_rounded : Icons.close_rounded,
+              tooltipMessage: isChanged ? "Apply Size" : "Close Size Tool",
+              isSelected: isChanged,
+              onTap: () {
+                setState(() {
+                  _closeAllSubTools();
+                });
+              },
+            ),
+          ),
+
+          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+
+          // 2. Slider with PERFECTLY ALIGNED 1x Dot Marker
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                      "Scale: ${currentScale.toStringAsFixed(2)}x",
+                      style: const TextStyle(color: Colors.white70, fontSize: 11)
+                  ),
+                  SizedBox(
+                    height: 30, // Thodi height badhai taaki visually clean dikhe
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // 🚨 FIX: Slider dimensions lock ki hain taaki dot ekdum line par aaye
+                        const double overlayRadius = 16.0;
+                        double trackWidth = constraints.maxWidth - (overlayRadius * 2);
+
+                        // Exact 1.0 position ka math
+                        double percentage = (1.0 - 0.2) / (5.0 - 0.2);
+                        double dotPosition = overlayRadius + (trackWidth * percentage);
+
+                        // Jab slider snap hone wala ho, tab dot ko hide kar do (overlap avoid karne ke liye)
+                        bool showDot = currentScale < 0.93 || currentScale > 1.07;
+
+                        return Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+
+                            // --- A. BACKGROUND SLIDER (Theme lock ke sath) ---
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 4.0, // Slider ki line ki motai
+                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
+                                overlayShape: const RoundSliderOverlayShape(overlayRadius: overlayRadius),
+                              ),
+                              child: Slider(
+                                value: currentScale,
+                                min: 0.2,
+                                max: 5.0,
+                                activeColor: Colors.blueAccent,
+                                inactiveColor: Colors.white24,
+                                onChanged: _selectedImageIndex == null ? null : (value) {
+                                  double newVal = value;
+
+                                  // 🚨 SNAP LOGIC
+                                  if (newVal > 0.93 && newVal < 1.07) newVal = 1.0;
+
+                                  // 🚨 VIBRATION LOGIC
+                                  if (newVal == 1.0 && _imageStates[_selectedImageIndex!].scale != 1.0) {
+                                    HapticFeedback.lightImpact();
+                                  }
+
+                                  setState(() {
+                                    _imageStates[_selectedImageIndex!].scale = newVal;
+                                  });
+                                },
+                              ),
+                            ),
+
+                            // --- B. 1X DOT MARKER (Exactly Track ke andar) ---
+                            if (showDot)
+                              Positioned(
+                                left: dotPosition - 3, // -3 kiya taaki 6px ka dot exactly center me set ho
+                                child: IgnorePointer(
+                                  child: Container(
+                                    width: 6,
+                                    height: 6, // Chota pyara sa gol dot
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🚨 NAYA: Universal Sub-tool closer function
   void _closeAllSubTools() {
     isPageSizeMode = false;
-
+    isSizeMode = false;
     // Future ke liye jab tum naye tools add karoge:
     isPositionMode = false;
     isRotateMode = false;
