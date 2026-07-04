@@ -508,7 +508,7 @@ class _MergeScreenState extends State<MergeScreen> {
         children: [
           // 1. Lock/Unlock
           Padding(
-            padding: const EdgeInsets.only(left: 8.0, right: 4.0),
+            padding: const EdgeInsets.only(left: 4.0, right: 2.0),
             child: _buildToolItem(
               label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isLocked) ? "Unlock" : "Lock",
               icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isLocked)
@@ -532,7 +532,7 @@ class _MergeScreenState extends State<MergeScreen> {
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 0),
               children: [
                 _buildToolItem(
                   label: "Page Size",
