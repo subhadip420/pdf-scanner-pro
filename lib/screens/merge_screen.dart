@@ -68,31 +68,6 @@ class _MergeScreenState extends State<MergeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF2C2C2C), // Dark theme
-
-      // appBar: AppBar(
-      //   backgroundColor: const Color(0xFF1E1E1E),
-      //   elevation: 0,
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
-      //     onPressed: () => Navigator.pop(context),
-      //   ),
-      //   title: const Text(
-      //     "Merge Pages",
-      //     style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
-      //   ),
-      //   centerTitle: true,
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
-      //       onPressed: () {
-      //         // Final merge aur save ka logic baad me aayega
-      //         Navigator.pop(context);
-      //       },
-      //     ),
-      //     const SizedBox(width: 8),
-      //   ],
-      // ),
-
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
@@ -284,53 +259,6 @@ class _MergeScreenState extends State<MergeScreen> {
               ),
             ),
           ),
-
-          // ==========================================
-          // 2. THUMBNAILS LIST (Bilkul Editor jaisa)
-          // ==========================================
-          // Container(
-          //   height: 90,
-          //   color: const Color(0xFF1E1E1E),
-          //   child: ListView.builder(
-          //     scrollDirection: Axis.horizontal,
-          //     //itemCount: widget.selectedImages.length,
-          //     itemCount: _imageStates.length,
-          //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          //     itemBuilder: (context, index) {
-          //       bool isSelected = _selectedImageIndex == index;
-          //       return GestureDetector(
-          //         onTap: () {
-          //           setState(() {
-          //             _selectedImageIndex = index;
-          //           });
-          //         },
-          //         child: Container(
-          //           width: 60,
-          //           margin: const EdgeInsets.only(right: 12),
-          //           decoration: BoxDecoration(
-          //             border: Border.all(
-          //               color: isSelected ? Colors.blueAccent : Colors.transparent,
-          //               width: 3,
-          //             ),
-          //             borderRadius: BorderRadius.circular(4),
-          //           ),
-          //           child: ClipRRect(
-          //             borderRadius: BorderRadius.circular(2),
-          //             // child: Image.file(
-          //             //   widget.selectedImages[index],
-          //             //   fit: BoxFit.cover,
-          //             // ),
-          //             child: Image.file(
-          //               _imageStates[index].file, // Yahan pehle widget.selectedImages[index] tha
-          //               fit: BoxFit.cover,
-          //             ),
-          //           ),
-          //         ),
-          //       );
-          //     },
-          //   ),
-          // ),
-
           // ==========================================
           // 2. THUMBNAILS LIST
           // ==========================================
@@ -416,36 +344,6 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          // ==========================================
-          // 3. MAIN TOOLS ITEM BAR
-          // ==========================================
-          // Container(
-          //   height: 75,
-          //   width: double.infinity,
-          //   color: const Color(0xFF151515),
-          //   child: ListView(
-          //     scrollDirection: Axis.horizontal,
-          //     padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-          //     children: [
-          //       _buildToolItem(label: "Lock/Unlock", icon: Icons.lock_outline_rounded),
-          //       _buildToolItem(label: "Position", icon: Icons.control_camera_rounded),
-          //       _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded),
-          //       _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded),
-          //       _buildToolItem(label: "Opacity", icon: Icons.opacity_rounded),
-          //       _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded),
-          //       _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded),
-          //       _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded),
-          //       _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded),
-          //     ],
-          //   ),
-          // ),
-
-          // ==========================================
-          // 3. MAIN TOOLS ITEM BAR
-          // ==========================================
-          // SizedBox(
-          //   height: 75,
-          //   width: double.infinity,
     Container(
     height: 68,
     color: const Color(0xFF151515),
