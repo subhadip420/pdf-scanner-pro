@@ -422,6 +422,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   child: _buildToolItem(
                     label: "Lock",
                     icon: Icons.lock_outline_rounded,
+                    isDisabled: _selectedImageIndex == null,
                   ),
                 ),
 
@@ -438,17 +439,18 @@ class _MergeScreenState extends State<MergeScreen> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                     children: [
-                      _buildToolItem(label: "Layer", icon: Icons.layers_rounded),
-                      _buildToolItem(label: "Hide", icon: Icons.visibility_off_rounded),
-                      _buildToolItem(label: "Position", icon: Icons.control_camera_rounded),
-                      _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded),
-                      _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded),
-                      _buildToolItem(label: "Opacity", icon: Icons.opacity_rounded),
-                      _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded),
-                      _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded),
-                      _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded),
+                      _buildToolItem(label: "Hide", icon: Icons.visibility_off_rounded, isDisabled: _selectedImageIndex == null),
+                      _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded,isDisabled: false),
+                      _buildToolItem(label: "Layer", icon: Icons.layers_rounded, isDisabled: _selectedImageIndex == null),
 
-                      _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded),
+                      _buildToolItem(label: "Position", icon: Icons.control_camera_rounded, isDisabled: _selectedImageIndex == null),
+                      _buildToolItem(label: "Rotate", icon: Icons.rotate_right_rounded, isDisabled: _selectedImageIndex == null),
+                      _buildToolItem(label: "Size", icon: Icons.photo_size_select_large_rounded, isDisabled: _selectedImageIndex == null),
+                      _buildToolItem(label: "Opacity", icon: Icons.opacity_rounded, isDisabled: _selectedImageIndex == null),
+
+                      _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded, isDisabled: false),
+                      _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
+                      _buildToolItem(label: "Delete", icon: Icons.delete_outline_rounded, isDisabled: _selectedImageIndex == null),
                     ],
                   ),
                 ),
@@ -483,9 +485,11 @@ class _MergeScreenState extends State<MergeScreen> {
     required IconData icon,
     VoidCallback? onTap,
     bool isSelected = false,
+    bool isDisabled = false,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      //onTap: onTap,
+      onTap: isDisabled ? null : onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Container(
@@ -498,11 +502,23 @@ class _MergeScreenState extends State<MergeScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: 22),
+              //Icon(icon, color: Colors.white, size: 22),
+              Icon(
+                  icon,
+                  // Disabled hone par icon dhundhla (grey) ho jayega
+                  color: isDisabled ? Colors.white24 : Colors.white,
+                  size: 22
+              ),
               const SizedBox(height: 6),
               Text(
                 label,
-                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+                //style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  // Disabled hone par text bhi dhundhla (grey) ho jayega
+                    color: isDisabled ? Colors.white24 : Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500
+                ),
               ),
             ],
           ),
