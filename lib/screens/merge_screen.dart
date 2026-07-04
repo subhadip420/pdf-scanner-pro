@@ -170,7 +170,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                             ? null
                                             : () {
                                                 setState(() {
-                                                  _closeAllSubTools();
+                                                  //_closeAllSubTools();
                                                   _selectedImageIndex = index;
                                                 });
                                               },
@@ -178,7 +178,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                             ? null
                                             : (details) {
                                                 setState(() {
-                                                  _closeAllSubTools();
+                                                  //_closeAllSubTools();
                                                   _selectedImageIndex = index;
                                                   // _imageStates[index].position += Offset(
                                                   //   details.delta.dx,
@@ -342,7 +342,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       // if (_imageStates[index].isHidden) {
                       //   _imageStates[index].isHidden = false;
                       // }
-                      _closeAllSubTools();
+                      //_closeAllSubTools();
                       _selectedImageIndex = index;
                     });
                   },
