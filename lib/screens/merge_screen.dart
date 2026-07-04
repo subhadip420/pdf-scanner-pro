@@ -501,7 +501,24 @@ class _MergeScreenState extends State<MergeScreen> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                     children: [
-                      _buildToolItem(label: "Hide", icon: Icons.visibility_off_rounded, isDisabled: _selectedImageIndex == null),
+                      //_buildToolItem(label: "Hide", icon: Icons.visibility_off_rounded, isDisabled: _selectedImageIndex == null),
+                      // 🚨 DYNAMIC HIDE/UNHIDE (Scrollable list ke andar wapas add kiya)
+                      _buildToolItem(
+                        label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden) ? "Unhide" : "Hide",
+                        icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden) ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                        isDisabled: _selectedImageIndex == null,
+                        onTap: () {
+                          if (_selectedImageIndex != null) {
+                            setState(() {
+                              _imageStates[_selectedImageIndex!].isHidden = !_imageStates[_selectedImageIndex!].isHidden;
+                              // Hide karne pe selection clear ho jaye taaki UI clean rahe
+                              if (_imageStates[_selectedImageIndex!].isHidden) {
+                                _selectedImageIndex = null;
+                              }
+                            });
+                          }
+                        },
+                      ),
                       _buildToolItem(label: "Page Size", icon: Icons.aspect_ratio_rounded,isDisabled: false),
                       _buildToolItem(label: "Layer", icon: Icons.layers_rounded, isDisabled: _selectedImageIndex == null),
 
