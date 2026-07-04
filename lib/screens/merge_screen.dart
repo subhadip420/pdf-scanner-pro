@@ -47,7 +47,8 @@ class _MergeScreenState extends State<MergeScreen> {
   bool isRotateMode = false;
   bool isSizeMode = false;
   bool isOpacityMode = false;
-
+// 🚨 State Variables
+  bool isGridVisible = false; // Grid dikhane ke liye variable
 
   @override
   void initState() {
@@ -150,7 +151,7 @@ class _MergeScreenState extends State<MergeScreen> {
                           // 🚨 4. PHOTO STACK WITH CONTROLS
                           child: Stack(
                             clipBehavior: Clip.none,
-                            children: List.generate(_imageStates.length, (index) {
+                              children: [ ...List.generate (_imageStates.length, (index) {
                               bool isSelected = _selectedImageIndex == index;
                               var imgState = _imageStates[index];
                               // 🚨 CHANGE 2: Agar image hidden hai, toh usko canvas par draw hi mat karo
@@ -307,11 +308,25 @@ class _MergeScreenState extends State<MergeScreen> {
                                           ),
                                         ),
                                       ],
+
+
                                     ],
                                   ),
                                 ),
                               );
                             }),
+
+                              // 🚨 YAHAN RAKHNA HAI GRID KO
+                              if (isGridVisible)
+                                  Positioned.fill(
+                                child: IgnorePointer(
+                                ignoring: true, // Yeh touch event ko block nahi karega
+                                  child: CustomPaint(
+                                    painter: GraphPaperPainter(),
+                                  ),
+                                ),
+                              ),
+                              ]
                           ),
                         ),
                       ),
@@ -663,7 +678,17 @@ class _MergeScreenState extends State<MergeScreen> {
                     }
                 ),
                 _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded, isDisabled: false),
-                _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
+               // _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
+                _buildToolItem(
+                    label: "Grid",
+                    icon: isGridVisible ? Icons.grid_on_rounded : Icons.grid_off_rounded,
+                    isSelected: isGridVisible, // ON hone par blue highlight hoga
+                    onTap: () {
+                      setState(() {
+                        isGridVisible = !isGridVisible; // Grid ko toggle karega
+                      });
+                    }
+                ),
                 _buildToolItem(
                   label: "Delete",
                   icon: Icons.delete_outline_rounded,
@@ -1378,4 +1403,29 @@ class _MergeScreenState extends State<MergeScreen> {
         return 210 / 297;
     }
   }
+}
+
+// --- 🚨 NAYA: GRAPH PAPER PAINTER CLASS ---
+class GraphPaperPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black12 // Ekdum halki premium lines
+      ..strokeWidth = 1.0; // Patli lines
+
+    const double step = 25.0; // Graph paper ke dabbo ka size (25px)
+
+    // 1. Vertical Lines (Khadi lines)
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+
+    // 2. Horizontal Lines (Aadi lines)
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
