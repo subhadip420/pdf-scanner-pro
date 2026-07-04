@@ -40,6 +40,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
   bool isResizeMode = false;
   String _selectedPageSize = "A4 (P)"; // Default page size
+  bool isPositionMode = false;
 
   @override
   void initState() {
@@ -396,7 +397,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     // 🚨 FIX: Agar resize mode on hai, toh isko niche (1.0) bhej do
-                    offset: isResizeMode ? const Offset(0, 1.0) : Offset.zero,
+                    offset: (isResizeMode || isPositionMode) ? const Offset(0, 1.0) : Offset.zero,
                     child: _buildNormalTools(), // Yahan function call ho gaya
                   ),
 
@@ -407,6 +408,14 @@ class _MergeScreenState extends State<MergeScreen> {
                     // Agar resize mode on hai, toh isko upar (0) le aao
                     offset: isResizeMode ? Offset.zero : const Offset(0, 1.0),
                     child: _buildPageSizeSubTools(),
+                  ),
+
+                  // --- C. POSITION SUB-TOOLS (Animated Slide Up) ---
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: isPositionMode ? Offset.zero : const Offset(0, 1.0),
+                    child: _buildPositionSubTools(), // 🚨 NAYA TOOL YAHAN ADD KIYA
                   ),
                 ],
               ),
@@ -554,6 +563,11 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
+                    onTap: () {
+                      setState(() {
+                        isPositionMode = true; // 🚨 ISKO TRUE KARNE SE ANIMATION TRIGGER HOGA
+                      });
+                    }
                 ),
                 _buildToolItem(
                   label: "Rotate",
@@ -752,12 +766,109 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
+  // --- 🚨 NAYA BLOCK: POSITION SUB-TOOLS ---
+  Widget _buildPositionSubTools() {
+    return SizedBox(
+      height: 75,
+      width: double.infinity,
+      // decoration: const BoxDecoration(
+      //   color: Color(0xFF252525),
+      //   border: Border(
+      //     top: BorderSide(color: Colors.blueAccent, width: 2),
+      //   ),
+      // ),
+      child: Row(
+        children: [
+          // 1. Tick Button (Done)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: _buildToolItem(
+              label: "Done",
+              icon: Icons.check_rounded,
+              tooltipMessage: "Apply Position",
+              isSelected: true,
+              onTap: () {
+                setState(() {
+                  _closeAllSubTools();
+                });
+              },
+            ),
+          ),
+
+          // Divider
+          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+
+          // 2. Direction Buttons (Expanded taaki evenly space le sake)
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildToolItem(
+                    label: "Up",
+                    icon: Icons.arrow_upward_rounded,
+                    isDisabled: _selectedImageIndex == null,
+                    onTap: () {
+                      if (_selectedImageIndex != null) {
+                        setState(() {
+                          // 🚨 bottom offset +5 karne se image upar jayegi
+                          _imageStates[_selectedImageIndex!].position += const Offset(0, 5);
+                        });
+                      }
+                    }
+                ),
+                _buildToolItem(
+                    label: "Down",
+                    icon: Icons.arrow_downward_rounded,
+                    isDisabled: _selectedImageIndex == null,
+                    onTap: () {
+                      if (_selectedImageIndex != null) {
+                        setState(() {
+                          // 🚨 bottom offset -5 karne se image niche jayegi
+                          _imageStates[_selectedImageIndex!].position += const Offset(0, -5);
+                        });
+                      }
+                    }
+                ),
+                _buildToolItem(
+                    label: "Left",
+                    icon: Icons.arrow_back_rounded,
+                    isDisabled: _selectedImageIndex == null,
+                    onTap: () {
+                      if (_selectedImageIndex != null) {
+                        setState(() {
+                          // 🚨 left offset -5 karne se image left jayegi
+                          _imageStates[_selectedImageIndex!].position += const Offset(-5, 0);
+                        });
+                      }
+                    }
+                ),
+                _buildToolItem(
+                    label: "Right",
+                    icon: Icons.arrow_forward_rounded,
+                    isDisabled: _selectedImageIndex == null,
+                    onTap: () {
+                      if (_selectedImageIndex != null) {
+                        setState(() {
+                          // 🚨 left offset +5 karne se image right jayegi
+                          _imageStates[_selectedImageIndex!].position += const Offset(5, 0);
+                        });
+                      }
+                    }
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🚨 NAYA: Universal Sub-tool closer function
   void _closeAllSubTools() {
     isResizeMode = false;
 
     // Future ke liye jab tum naye tools add karoge:
-    // isPositionMode = false;
+    isPositionMode = false;
     // isOpacityMode = false;
     // isCollageMode = false;
     // isLayerMode = false;
