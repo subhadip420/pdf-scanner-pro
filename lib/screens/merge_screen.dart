@@ -38,10 +38,11 @@ class _MergeScreenState extends State<MergeScreen> {
   // 2. Har image ki positions (X, Y) track karne ke liye
   late List<Offset> _imagePositions;
 
-  bool isResizeMode = false;
+  bool isPageSizeMode = false;
   String _selectedPageSize = "A4 (P)"; // Default page size
   bool isPositionMode = false;
   bool isRotateMode = false;
+  bool isSizeMode = false;
 
   @override
   void initState() {
@@ -409,7 +410,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     // 🚨 FIX: Agar resize mode on hai, toh isko niche (1.0) bhej do
-                    offset: (isResizeMode || isPositionMode || isRotateMode) ? const Offset(0, 1.0) : Offset.zero,
+                    offset: (isPageSizeMode || isPositionMode || isRotateMode) ? const Offset(0, 1.0) : Offset.zero,
                     child: _buildNormalTools(), // Yahan function call ho gaya
                   ),
 
@@ -418,7 +419,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     // Agar resize mode on hai, toh isko upar (0) le aao
-                    offset: isResizeMode ? Offset.zero : const Offset(0, 1.0),
+                    offset: isPageSizeMode ? Offset.zero : const Offset(0, 1.0),
                     child: _buildPageSizeSubTools(),
                   ),
 
@@ -558,7 +559,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   label: "Page Size",
                   icon: Icons.aspect_ratio_rounded,
                   isDisabled: false,
-                  onTap: () => setState(() => isResizeMode = true),
+                  onTap: () => setState(() => isPageSizeMode = true),
                 ),
                 _buildToolItem(
                   label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden)
@@ -674,7 +675,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
               onTap: () {
                 setState(() {
-                  isResizeMode = false;
+                  isPageSizeMode = false;
                   //isThumbnailVisible = true;
                 });
               },
@@ -1004,7 +1005,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
   // 🚨 NAYA: Universal Sub-tool closer function
   void _closeAllSubTools() {
-    isResizeMode = false;
+    isPageSizeMode = false;
 
     // Future ke liye jab tum naye tools add karoge:
     isPositionMode = false;
