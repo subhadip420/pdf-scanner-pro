@@ -21,6 +21,7 @@ class MergedImageState {
   double rotation;
   bool isHidden;
   bool isLocked;
+  double opacity = 1.0;
 
   MergedImageState({
     required this.file,
@@ -45,6 +46,8 @@ class _MergeScreenState extends State<MergeScreen> {
   bool isPositionMode = false;
   bool isRotateMode = false;
   bool isSizeMode = false;
+  bool isOpacityMode = false;
+
 
   @override
   void initState() {
@@ -213,7 +216,12 @@ class _MergeScreenState extends State<MergeScreen> {
                                                 width: 2,
                                               ),
                                             ),
-                                            child: Image.file(imgState.file, fit: BoxFit.contain),
+                                            //child: Image.file(imgState.file, fit: BoxFit.contain),
+                                            // 🚨 FIX: Image ko Opacity widget ke andar daala
+                                            child: Opacity(
+                                              opacity: imgState.opacity, // Yahan se value apply hogi
+                                              child: Image.file(imgState.file, fit: BoxFit.contain),
+                                            ),
                                           // ),
                                         ),
                                       ),
@@ -412,7 +420,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     // 🚨 FIX: Agar resize mode on hai, toh isko niche (1.0) bhej do
-                    offset: (isPageSizeMode || isPositionMode || isRotateMode || isSizeMode) ? const Offset(0, 1.0) : Offset.zero,
+                    offset: (isPageSizeMode || isPositionMode || isRotateMode || isSizeMode || isOpacityMode) ? const Offset(0, 1.0) : Offset.zero,
                     child: _buildNormalTools(), // Yahan function call ho gaya
                   ),
 
@@ -447,6 +455,14 @@ class _MergeScreenState extends State<MergeScreen> {
                     curve: Curves.easeInOut,
                     offset: isSizeMode ? Offset.zero : const Offset(0, 1.0),
                     child: _buildSizeSubTools(), // 🚨 SIZE TOOL YAHAN ADD KIYA
+                  ),
+
+                  // --- F. OPACITY SUB-TOOLS (Animated Slide Up) ---
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: isOpacityMode ? Offset.zero : const Offset(0, 1.0),
+                    child: _buildOpacitySubTools(), // 🚨 NAYA TOOL YAHAN ADD KIYA
                   ),
                 ],
               ),
@@ -640,6 +656,11 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
+                    onTap: () {
+                      setState(() {
+                        isOpacityMode = true; // 🚨 OPACITY ANIMATION TRIGGER KAREGA
+                      });
+                    }
                 ),
                 _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded, isDisabled: false),
                 _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
@@ -1148,6 +1169,150 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
+  // --- 🚨 NAYA BLOCK: MULTI-DOT PREMIUM OPACITY SUB-TOOLS ---
+  Widget _buildOpacitySubTools() {
+    double currentOpacity = 1.0;
+    if (_selectedImageIndex != null) {
+      currentOpacity = _imageStates[_selectedImageIndex!].opacity;
+    }
+
+    bool isChanged = currentOpacity != 1.0;
+
+    // 🚨 NAYA: Jin values par dot aur magnet (snap) chahiye unki list
+    final List<double> snapValues = [0.0, 0.25, 0.50, 0.75, 1.0];
+
+    return Container(
+      height: 75,
+      width: double.infinity,
+      // decoration: const BoxDecoration(
+      //   color: Color(0xFF252525),
+      //   border: Border(
+      //     top: BorderSide(color: Colors.blueAccent, width: 2),
+      //   ),
+      // ),
+      child: Row(
+        children: [
+          // 1. Dynamic Tick/Close Button
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: _buildToolItem(
+              label: isChanged ? "Done" : "Close",
+              icon: isChanged ? Icons.check_rounded : Icons.close_rounded,
+              tooltipMessage: isChanged ? "Apply Opacity" : "Close Tool",
+              isSelected: isChanged,
+              onTap: () {
+                setState(() {
+                  _closeAllSubTools();
+                });
+              },
+            ),
+          ),
+
+          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+
+          // 2. Slider with Multiple Dots and Snapping
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16.0, left: 8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                      "Opacity: ${(currentOpacity * 100).toInt()}%",
+                      style: const TextStyle(color: Colors.white70, fontSize: 11)
+                  ),
+                  SizedBox(
+                    height: 30,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        const double overlayRadius = 16.0;
+                        double trackWidth = constraints.maxWidth - (overlayRadius * 2);
+
+                        double minVal = 0.0;
+                        double maxVal = 1.0;
+
+                        return Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+
+                            // --- A. BACKGROUND SLIDER ---
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 4.0,
+                                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
+                                overlayShape: const RoundSliderOverlayShape(overlayRadius: overlayRadius),
+                              ),
+                              child: Slider(
+                                value: currentOpacity,
+                                min: minVal,
+                                max: maxVal,
+                                activeColor: Colors.blueAccent,
+                                inactiveColor: Colors.white24,
+                                onChanged: _selectedImageIndex == null ? null : (value) {
+                                  double newVal = value;
+                                  bool snapped = false;
+
+                                  // 🚨 MULTI-SNAP LOGIC: Har dot ke paas magnet effect
+                                  for (double snap in snapValues) {
+                                    // Agar slider snap value ke +/- 4% range me hai
+                                    if ((newVal - snap).abs() < 0.04) {
+                                      newVal = snap;
+                                      snapped = true;
+                                      break;
+                                    }
+                                  }
+
+                                  // 🚨 VIBRATION LOGIC: Agar naye dot par snap hua
+                                  if (snapped && _imageStates[_selectedImageIndex!].opacity != newVal) {
+                                    HapticFeedback.lightImpact();
+                                  }
+
+                                  setState(() {
+                                    _imageStates[_selectedImageIndex!].opacity = newVal;
+                                  });
+                                },
+                              ),
+                            ),
+
+                            // --- B. MULTIPLE DOT MARKERS (Loop se banaye gaye) ---
+                            ...snapValues.map((val) {
+                              double percentage = (val - minVal) / (maxVal - minVal);
+                              double dotPosition = overlayRadius + (trackWidth * percentage);
+
+                              // Jab thumb kisi bhi dot ke paas ho, sirf us dot ko hide kar do
+                              bool showDot = (currentOpacity - val).abs() > 0.04;
+
+                              if (!showDot) return const SizedBox.shrink();
+
+                              return Positioned(
+                                left: dotPosition - 3,
+                                child: IgnorePointer(
+                                  child: Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🚨 NAYA: Universal Sub-tool closer function
   void _closeAllSubTools() {
     isPageSizeMode = false;
@@ -1155,7 +1320,7 @@ class _MergeScreenState extends State<MergeScreen> {
     // Future ke liye jab tum naye tools add karoge:
     isPositionMode = false;
     isRotateMode = false;
-    // isOpacityMode = false;
+    isOpacityMode = false;
     // isCollageMode = false;
     // isLayerMode = false;
   }
