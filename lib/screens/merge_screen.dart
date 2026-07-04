@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-
+import 'dart:math' as math;
 class MergeScreen extends StatefulWidget {
   // 🚨 Editor screen se selected files yahan receive karenge
   final List<File> selectedImages;
@@ -41,6 +41,7 @@ class _MergeScreenState extends State<MergeScreen> {
   bool isResizeMode = false;
   String _selectedPageSize = "A4 (P)"; // Default page size
   bool isPositionMode = false;
+  bool isRotateMode = false;
 
   @override
   void initState() {
@@ -179,14 +180,25 @@ class _MergeScreenState extends State<MergeScreen> {
                                                 setState(() {
                                                   _closeAllSubTools();
                                                   _selectedImageIndex = index;
-                                                  _imageStates[index].position += Offset(
-                                                    details.delta.dx,
-                                                    -details.delta.dy,
-                                                  );
+                                                  // _imageStates[index].position += Offset(
+                                                  //   details.delta.dx,
+                                                  //   -details.delta.dy,
+                                                  // );
+                                                  // 🚨 NAYA FIX: Drag direction ko rotation ke hisaab se adjust karna
+                                                  double angle = imgState.rotation;
+                                                  double cosA = math.cos(angle);
+                                                  double sinA = math.sin(angle);
+
+                                                  // Local rotated movement ko Real screen movement me convert kiya
+                                                  double adjustedDx = (details.delta.dx * cosA) - (details.delta.dy * sinA);
+                                                  double adjustedDy = (details.delta.dx * sinA) + (details.delta.dy * cosA);
+
+                                                  // Ab hum adjusted value lagayenge
+                                                  _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
                                                 });
                                               },
-                                        child: Transform.rotate(
-                                          angle: imgState.rotation,
+                                        // child: Transform.rotate(
+                                        //   angle: imgState.rotation,
                                           child: Container(
                                             width: baseWidth * imgState.scale,
                                             decoration: BoxDecoration(
@@ -199,7 +211,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                               ),
                                             ),
                                             child: Image.file(imgState.file, fit: BoxFit.contain),
-                                          ),
+                                          // ),
                                         ),
                                       ),
 
@@ -397,7 +409,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     // 🚨 FIX: Agar resize mode on hai, toh isko niche (1.0) bhej do
-                    offset: (isResizeMode || isPositionMode) ? const Offset(0, 1.0) : Offset.zero,
+                    offset: (isResizeMode || isPositionMode || isRotateMode) ? const Offset(0, 1.0) : Offset.zero,
                     child: _buildNormalTools(), // Yahan function call ho gaya
                   ),
 
@@ -416,6 +428,14 @@ class _MergeScreenState extends State<MergeScreen> {
                     curve: Curves.easeInOut,
                     offset: isPositionMode ? Offset.zero : const Offset(0, 1.0),
                     child: _buildPositionSubTools(), // 🚨 NAYA TOOL YAHAN ADD KIYA
+                  ),
+
+                  // --- D. ROTATE SUB-TOOLS (Animated Slide Up) ---
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: isRotateMode ? Offset.zero : const Offset(0, 1.0),
+                    child: _buildRotateSubTools(), // 🚨 ROTATE TOOL YAHAN ADD KIYA
                   ),
                 ],
               ),
@@ -576,6 +596,18 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
+                    onTap: () {
+                      setState(() {
+                        isRotateMode = true; // 🚨 ROTATE ANIMATION TRIGGER KAREGA
+                        if (_selectedImageIndex != null) {
+                          // 45 degrees = 0.785398 radians
+                          //_imageStates[_selectedImageIndex!].rotation += 0.78539816;
+                          //_imageStates[_selectedImageIndex!].rotation += 1.57079633;
+                        }
+                      });
+                      // 🚨 NAYA: Click karte hi direct 45 degree right ghuma do
+
+                    }
                 ),
                 _buildToolItem(
                   label: "Size",
@@ -863,12 +895,120 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
+  // --- 🚨 NAYA BLOCK: ROTATE SUB-TOOLS ---
+  Widget _buildRotateSubTools() {
+    // Slider ke liye current rotation ko 0 se 360 degree (0 se 2*Pi Radians) me normalize karna zaroori hai
+    double currentRotation = 0.0;
+    if (_selectedImageIndex != null) {
+      currentRotation = _imageStates[_selectedImageIndex!].rotation % (2 * 3.14159265);
+      if (currentRotation < 0) currentRotation += (2 * 3.14159265);
+    }
+
+    return Container(
+      height: 75,
+      width: double.infinity,
+      // decoration: const BoxDecoration(
+      //   color: Color(0xFF151515),
+      //   border: Border(
+      //     top: BorderSide(color: Colors.blueAccent, width: 1),
+      //   ),
+      // ),
+      child: Row(
+        children: [
+          // 1. Tick Button (Done)
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: _buildToolItem(
+              label: "Done",
+              icon: Icons.check_rounded,
+              tooltipMessage: "Apply Rotation",
+              isSelected: true,
+              onTap: () {
+                setState(() {
+                  _closeAllSubTools();
+                });
+              },
+            ),
+          ),
+
+          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 0)),
+
+          // 2. Rotate Left (-90 degrees)
+          _buildToolItem(
+              label: "Left",
+              icon: Icons.rotate_left_rounded,
+              isDisabled: _selectedImageIndex == null,
+              onTap: () {
+                if (_selectedImageIndex != null) {
+                  setState(() {
+                    // -90 degrees (Radians me)
+                    //_imageStates[_selectedImageIndex!].rotation -= 1.57079633;
+                    _imageStates[_selectedImageIndex!].rotation -= 0.78539816;
+                  });
+                }
+              }
+          ),
+
+          // 3. Rotate Right (+90 degrees)
+          _buildToolItem(
+              label: "Right",
+              icon: Icons.rotate_right_rounded,
+              isDisabled: _selectedImageIndex == null,
+              onTap: () {
+                if (_selectedImageIndex != null) {
+                  setState(() {
+                    // +90 degrees (Radians me)
+                    //_imageStates[_selectedImageIndex!].rotation += 1.57079633;
+                    _imageStates[_selectedImageIndex!].rotation += 0.78539816;
+                  });
+                }
+              }
+          ),
+
+          // 4. Slider for Fine Degree Adjustment
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 0.0, left: 0.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    // Current angle ko wapas degree me convert karke dikhane ke liye
+                      "Angle: ${(currentRotation * (180 / 3.14159265)).toStringAsFixed(0)}°",
+                      style: const TextStyle(color: Colors.white70, fontSize: 11)
+                  ),
+                  SizedBox(
+                    height: 24, // Slider ki height kam ki taaki fit ho jaye
+                    child: Slider(
+                      value: currentRotation,
+                      min: 0.0,
+                      max: 2 * 3.14159265, // 360 degrees
+                      activeColor: Colors.blueAccent,
+                      inactiveColor: Colors.white24,
+                      onChanged: _selectedImageIndex == null ? null : (value) {
+                        setState(() {
+                          // Direct slider ki value lagao
+                          _imageStates[_selectedImageIndex!].rotation = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🚨 NAYA: Universal Sub-tool closer function
   void _closeAllSubTools() {
     isResizeMode = false;
 
     // Future ke liye jab tum naye tools add karoge:
     isPositionMode = false;
+    isRotateMode = false;
     // isOpacityMode = false;
     // isCollageMode = false;
     // isLayerMode = false;
