@@ -1040,14 +1040,17 @@ class _MergeScreenState extends State<MergeScreen> {
   }
 
 // --- 🚨 NAYA BLOCK: PERFECT SIZE SUB-TOOLS ---
+  // --- 🚨 NAYA BLOCK: MULTI-DOT PREMIUM SIZE SUB-TOOLS ---
   Widget _buildSizeSubTools() {
     double currentScale = 1.0;
     if (_selectedImageIndex != null) {
       currentScale = _imageStates[_selectedImageIndex!].scale;
     }
 
-    // Check karo ki size 1.0 hai ya change ho gaya hai
     bool isChanged = currentScale != 1.0;
+
+    // 🚨 NAYA: Jin values par dot aur magnet (snap) chahiye unki list
+    final List<double> snapValues = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
 
     return Container(
       height: 75,
@@ -1066,7 +1069,7 @@ class _MergeScreenState extends State<MergeScreen> {
             child: _buildToolItem(
               label: isChanged ? "Done" : "Close",
               icon: isChanged ? Icons.check_rounded : Icons.close_rounded,
-              tooltipMessage: isChanged ? "Apply Size" : "Close Size Tool",
+              tooltipMessage: isChanged ? "Apply Size" : "Close Tool",
               isSelected: isChanged,
               onTap: () {
                 setState(() {
@@ -1078,7 +1081,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
           Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
-          // 2. Slider with PERFECTLY ALIGNED 1x Dot Marker
+          // 2. Slider with Multiple Dots and Snapping
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(right: 16.0, left: 8.0),
@@ -1090,45 +1093,49 @@ class _MergeScreenState extends State<MergeScreen> {
                       style: const TextStyle(color: Colors.white70, fontSize: 11)
                   ),
                   SizedBox(
-                    height: 30, // Thodi height badhai taaki visually clean dikhe
+                    height: 30,
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        // 🚨 FIX: Slider dimensions lock ki hain taaki dot ekdum line par aaye
                         const double overlayRadius = 16.0;
                         double trackWidth = constraints.maxWidth - (overlayRadius * 2);
 
-                        // Exact 1.0 position ka math
-                        double percentage = (1.0 - 0.2) / (5.0 - 0.2);
-                        double dotPosition = overlayRadius + (trackWidth * percentage);
-
-                        // Jab slider snap hone wala ho, tab dot ko hide kar do (overlap avoid karne ke liye)
-                        bool showDot = currentScale < 0.93 || currentScale > 1.07;
+                        // 🚨 Slider ki nayi range: 0.0 se 5.0 tak
+                        double minVal = 0.0;
+                        double maxVal = 5.0;
 
                         return Stack(
                           alignment: Alignment.centerLeft,
                           children: [
 
-                            // --- A. BACKGROUND SLIDER (Theme lock ke sath) ---
+                            // --- A. BACKGROUND SLIDER ---
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
-                                trackHeight: 4.0, // Slider ki line ki motai
+                                trackHeight: 4.0,
                                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8.0),
                                 overlayShape: const RoundSliderOverlayShape(overlayRadius: overlayRadius),
                               ),
                               child: Slider(
                                 value: currentScale,
-                                min: 0.2,
-                                max: 5.0,
+                                min: minVal,
+                                max: maxVal,
                                 activeColor: Colors.blueAccent,
                                 inactiveColor: Colors.white24,
                                 onChanged: _selectedImageIndex == null ? null : (value) {
                                   double newVal = value;
+                                  bool snapped = false;
 
-                                  // 🚨 SNAP LOGIC
-                                  if (newVal > 0.93 && newVal < 1.07) newVal = 1.0;
+                                  // 🚨 MULTI-SNAP LOGIC
+                                  for (double snap in snapValues) {
+                                    // Scale badi range hai, isliye gap 0.15 rakha hai
+                                    if ((newVal - snap).abs() < 0.15) {
+                                      newVal = snap;
+                                      snapped = true;
+                                      break;
+                                    }
+                                  }
 
                                   // 🚨 VIBRATION LOGIC
-                                  if (newVal == 1.0 && _imageStates[_selectedImageIndex!].scale != 1.0) {
+                                  if (snapped && _imageStates[_selectedImageIndex!].scale != newVal) {
                                     HapticFeedback.lightImpact();
                                   }
 
@@ -1139,21 +1146,31 @@ class _MergeScreenState extends State<MergeScreen> {
                               ),
                             ),
 
-                            // --- B. 1X DOT MARKER (Exactly Track ke andar) ---
-                            if (showDot)
-                              Positioned(
-                                left: dotPosition - 3, // -3 kiya taaki 6px ka dot exactly center me set ho
+                            // --- B. MULTIPLE DOT MARKERS (Loop se) ---
+                            ...snapValues.map((val) {
+                              double percentage = (val - minVal) / (maxVal - minVal);
+                              double dotPosition = overlayRadius + (trackWidth * percentage);
+
+                              // Thumb jab kisi dot ke paas ho toh usko hide kardo
+                              bool showDot = (currentScale - val).abs() > 0.15;
+
+                              if (!showDot) return const SizedBox.shrink();
+
+                              return Positioned(
+                                left: dotPosition - 3,
                                 child: IgnorePointer(
                                   child: Container(
                                     width: 6,
-                                    height: 6, // Chota pyara sa gol dot
-                                    decoration: const BoxDecoration(
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      // 🚨 NAYA: 1x (Original Size) wala dot blue dikhega, baaki safed
                                       color: Colors.white,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
                                 ),
-                              ),
+                              );
+                            }),
 
                           ],
                         );
