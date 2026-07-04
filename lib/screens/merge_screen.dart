@@ -116,7 +116,13 @@ class _MergeScreenState extends State<MergeScreen> {
             child: ClipRect(
               child: GestureDetector(
                 // 🚨 FIX: Paper ke bahar click karne par deselect ho jaye
-                onTap: () => setState(() => _selectedImageIndex = null),
+                //onTap: () => setState(() => _selectedImageIndex = null),
+                onTap: () {
+                  setState(() {
+                    _closeAllSubTools(); // 🚨 Sabhi sub-tools ek sath band
+                    _selectedImageIndex = null; // Image deselect kardo
+                  });
+                },
                 child: InteractiveViewer(
                   minScale: 1.0,
                   maxScale: 4.0,
@@ -162,6 +168,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                             ? null
                                             : () {
                                                 setState(() {
+                                                  _closeAllSubTools();
                                                   _selectedImageIndex = index;
                                                 });
                                               },
@@ -169,6 +176,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                             ? null
                                             : (details) {
                                                 setState(() {
+                                                  _closeAllSubTools();
                                                   _selectedImageIndex = index;
                                                   _imageStates[index].position += Offset(
                                                     details.delta.dx,
@@ -292,7 +300,18 @@ class _MergeScreenState extends State<MergeScreen> {
           // ==========================================
           // 2. THUMBNAILS LIST
           // ==========================================
-          Container(
+            GestureDetector(
+            // 🚨 NAYA: Ye line ensure karegi ki khali space par bhi click kaam kare
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+            setState(() {
+            _closeAllSubTools(); // Khali space tap karte hi sub-tools close honge
+            // Agar tum chahte ho ki khali space par click karne se image bhi deselect ho jaye,
+            // toh niche wali line ka comment hata dena:
+            // _selectedImageIndex = null;
+            });
+            },
+            child: Container(
             height: 90,
             color: const Color(0xFF1E1E1E),
             child: ListView.builder(
@@ -310,6 +329,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       // if (_imageStates[index].isHidden) {
                       //   _imageStates[index].isHidden = false;
                       // }
+                      _closeAllSubTools();
                       _selectedImageIndex = index;
                     });
                   },
@@ -363,6 +383,7 @@ class _MergeScreenState extends State<MergeScreen> {
               },
             ),
           ),
+            ),
 
           Container(
             height: 68,
@@ -729,6 +750,17 @@ class _MergeScreenState extends State<MergeScreen> {
         ],
       ),
     );
+  }
+
+  // 🚨 NAYA: Universal Sub-tool closer function
+  void _closeAllSubTools() {
+    isResizeMode = false;
+
+    // Future ke liye jab tum naye tools add karoge:
+    // isPositionMode = false;
+    // isOpacityMode = false;
+    // isCollageMode = false;
+    // isLayerMode = false;
   }
 
   // 🚨 NAYA: Dynamic aspect ratio calculator
