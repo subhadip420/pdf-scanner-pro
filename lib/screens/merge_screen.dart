@@ -33,7 +33,34 @@ class MergedImageState {
     this.isHidden = false,
     this.isLocked = false,
   });
+
+  // 🚨 NAYA: Undo/Redo ke liye state ki Deep Copy banane ka function
+  MergedImageState clone() {
+    return MergedImageState(
+      file: file,
+      position: Offset(position.dx, position.dy),
+      scale: scale,
+      rotation: rotation,
+      isHidden: isHidden,
+      isLocked: isLocked,
+    )..opacity = opacity;
+  }
+
 }
+
+// 🚨 NAYA CLASS: Yeh canvas ka poora snapshot save karega
+class EditorSnapshot {
+  final List<MergedImageState> imageStates;
+  final String pageSize;
+  final int? selectedIndex;
+
+  EditorSnapshot({
+    required this.imageStates,
+    required this.pageSize,
+    this.selectedIndex,
+  });
+}
+
 
 class _MergeScreenState extends State<MergeScreen> {
   //Thumbnail selection (Last photo default select hogi)
@@ -54,6 +81,9 @@ class _MergeScreenState extends State<MergeScreen> {
   bool isGridVisible = false; // Grid dikhane ke liye variable
   bool isLayerMode = false;
   int? _initialLayerIndex;
+  // --- 🚨 UNDO / REDO VARIABLES ---
+  List<EditorSnapshot> _undoHistory = [];
+  List<EditorSnapshot> _redoHistory = [];
 
   @override
   void initState() {
@@ -86,6 +116,58 @@ class _MergeScreenState extends State<MergeScreen> {
     );
 
     return confirm; // Agar true aaya, toh screen band ho jayegi
+  }
+
+  // --- 🚨 1. STATE SAVE FUNCTION (Action hone se theek pehle call hoga) ---
+  void _saveStateToHistory() {
+    _undoHistory.add(EditorSnapshot(
+      // .map().clone() karna zaroori hai taaki original list modify na ho
+      imageStates: _imageStates.map((e) => e.clone()).toList(),
+      pageSize: _selectedPageSize,
+      selectedIndex: _selectedImageIndex,
+    ));
+    // Naya action hone par aage ki Redo history bekaar ho jati hai, so clear it
+    _redoHistory.clear();
+  }
+
+  // --- 🚨 2. UNDO FUNCTION ---
+  void _undo() {
+    if (_undoHistory.isEmpty) return; // Agar history khali hai toh kuch mat karo
+    setState(() {
+      // Current state ko pehle Redo me daal do
+      _redoHistory.add(EditorSnapshot(
+        imageStates: _imageStates.map((e) => e.clone()).toList(),
+        pageSize: _selectedPageSize,
+        selectedIndex: _selectedImageIndex,
+      ));
+
+      // Undo list se last state nikalo aur Canvas par apply kardo
+      EditorSnapshot prevState = _undoHistory.removeLast();
+      _imageStates = prevState.imageStates.map((e) => e.clone()).toList();
+      _selectedPageSize = prevState.pageSize;
+      _selectedImageIndex = prevState.selectedIndex;
+    });
+    HapticFeedback.mediumImpact();
+  }
+
+  // --- 🚨 3. REDO FUNCTION ---
+  void _redo() {
+    if (_redoHistory.isEmpty) return;
+    setState(() {
+      // Current state ko Undo me daal do
+      _undoHistory.add(EditorSnapshot(
+        imageStates: _imageStates.map((e) => e.clone()).toList(),
+        pageSize: _selectedPageSize,
+        selectedIndex: _selectedImageIndex,
+      ));
+
+      // Redo list se next state nikalo aur Canvas par apply kardo
+      EditorSnapshot nextState = _redoHistory.removeLast();
+      _imageStates = nextState.imageStates.map((e) => e.clone()).toList();
+      _selectedPageSize = nextState.pageSize;
+      _selectedImageIndex = nextState.selectedIndex;
+    });
+    HapticFeedback.mediumImpact();
   }
 
   @override
@@ -133,21 +215,36 @@ class _MergeScreenState extends State<MergeScreen> {
 
           actions: [
             // Undo Button (Tick se pehle)
+            // IconButton(
+            //   icon: const Icon(Icons.undo_rounded, color: Colors.white, size: 24),
+            //   tooltip: "Undo",
+            //   onPressed: () {
+            //     // Undo logic baad me aayega
+            //   },
+            // ),
+
+            // 🚨 UPDATED: Undo Button
             IconButton(
-              icon: const Icon(Icons.undo_rounded, color: Colors.white, size: 24),
+              // Agar history hai tabhi white dikhega, warna grey (white24)
+              icon: Icon(Icons.undo_rounded, color: _undoHistory.isNotEmpty ? Colors.white : Colors.white24, size: 24),
               tooltip: "Undo",
-              onPressed: () {
-                // Undo logic baad me aayega
-              },
+              onPressed: _undoHistory.isNotEmpty ? _undo : null,
             ),
 
             //  Redo Button (Undo ke theek baad)
+            // IconButton(
+            //   icon: const Icon(Icons.redo_rounded, color: Colors.white, size: 24),
+            //   tooltip: "Redo",
+            //   onPressed: () {
+            //     // Redo logic baad me aayega
+            //   },
+            // ),
+
+            // 🚨 UPDATED: Redo Button
             IconButton(
-              icon: const Icon(Icons.redo_rounded, color: Colors.white, size: 24),
+              icon: Icon(Icons.redo_rounded, color: _redoHistory.isNotEmpty ? Colors.white : Colors.white24, size: 24),
               tooltip: "Redo",
-              onPressed: () {
-                // Redo logic baad me aayega
-              },
+              onPressed: _redoHistory.isNotEmpty ? _redo : null,
             ),
 
             IconButton(
@@ -251,6 +348,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                                     _selectedImageIndex = index;
                                                   });
                                                 },
+                                          onPanStart: imgState.isLocked ? null : (details) => _saveStateToHistory(),
                                           onPanUpdate: imgState.isLocked
                                               ? null
                                               : (details) {
@@ -489,6 +587,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
 
                   onReorderStart: (int index) {
+                    _saveStateToHistory();
                     HapticFeedback.mediumImpact(); // "Uthane" ka solid feel
                   },
 
@@ -960,7 +1059,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   //onTap: () => showToast("Auto fit applied"),
                   isSelected: _selectedPageSize == "Auto Fit",
                   // 🚨 NAYA: Highlight hoga
-                  onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
+                  //onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "Auto Fit");
+                  },
                 ),
 
                 _buildToolItem(
@@ -969,7 +1072,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "A4 Portrait",
                   //onTap: () => showToast("A4 Portrait applied"),
                   isSelected: _selectedPageSize == "A4 (P)",
-                  onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "A4 (P)");
+                  },
                 ),
                 _buildToolItem(
                   label: "A4 (L)",
@@ -977,7 +1084,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "A4 Landscape",
                   //onTap: () => showToast("A4 Landscape applied"),
                   isSelected: _selectedPageSize == "A4 (L)",
-                  onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "A4 (L)");
+                  },
                 ),
 
                 // 2. US Letter
@@ -987,7 +1098,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "US Letter Portrait",
                   //onTap: () => showToast("US Letter Portrait applied"),
                   isSelected: _selectedPageSize == "Letter (P)",
-                  onTap: () => setState(() => _selectedPageSize = "Letter (P)"),
+                  //onTap: () => setState(() => _selectedPageSize = "Letter (P)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "Letter (P)");
+                  },
                 ),
                 _buildToolItem(
                   label: "Letter (L)",
@@ -995,7 +1110,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "US Letter Landscape",
                   //onTap: () => showToast("US Letter Landscape applied"),
                   isSelected: _selectedPageSize == "Letter (L)",
-                  onTap: () => setState(() => _selectedPageSize = "Letter (L)"),
+                  //onTap: () => setState(() => _selectedPageSize = "Letter (L)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "Letter (L)");
+                  },
                 ),
 
                 // 3. US Legal
@@ -1005,7 +1124,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "US Legal Portrait",
                   //onTap: () => showToast("US Legal Portrait applied"),
                   isSelected: _selectedPageSize == "Legal (P)",
-                  onTap: () => setState(() => _selectedPageSize = "Legal (P)"),
+                  //onTap: () => setState(() => _selectedPageSize = "Legal (P)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "Legal (P)");
+                  },
                 ),
                 _buildToolItem(
                   label: "Legal (L)",
@@ -1013,7 +1136,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "US Legal Landscape",
                   //onTap: () => showToast("US Legal Landscape applied"),
                   isSelected: _selectedPageSize == "Legal (L)",
-                  onTap: () => setState(() => _selectedPageSize = "Legal (L)"),
+                  //onTap: () => setState(() => _selectedPageSize = "Legal (L)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "Legal (L)");
+                  },
                 ),
 
                 // 4. A4 Size
@@ -1025,7 +1152,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "A3 Portrait",
                   //onTap: () => showToast("A3 Portrait applied"),
                   isSelected: _selectedPageSize == "A3 (P)",
-                  onTap: () => setState(() => _selectedPageSize = "A3 (P)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A3 (P)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "A3 (P)");
+                  },
                 ),
                 _buildToolItem(
                   label: "A3 (L)",
@@ -1033,7 +1164,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "A3 Landscape",
                   //onTap: () => showToast("A3 Landscape applied"),
                   isSelected: _selectedPageSize == "A3 (L)",
-                  onTap: () => setState(() => _selectedPageSize = "A3 (L)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A3 (L)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "A3 (L)");
+                  },
                 ),
 
                 // 6. A5 Size
@@ -1043,7 +1178,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "A5 Portrait",
                   //onTap: () => showToast("A5 Portrait applied"),
                   isSelected: _selectedPageSize == "A5 (P)",
-                  onTap: () => setState(() => _selectedPageSize = "A5 (P)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A5 (P)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "A5 (P)");
+                  },
                 ),
                 _buildToolItem(
                   label: "A5 (L)",
@@ -1051,7 +1190,11 @@ class _MergeScreenState extends State<MergeScreen> {
                   tooltipMessage: "A5 Landscape",
                   //onTap: () => showToast("A5 Landscape applied"),
                   isSelected: _selectedPageSize == "A5 (L)",
-                  onTap: () => setState(() => _selectedPageSize = "A5 (L)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A5 (L)"),
+                  onTap: () {
+                    _saveStateToHistory();
+                    setState(() => _selectedPageSize = "A5 (L)");
+                  },
                 ),
               ],
             ),
@@ -1115,6 +1258,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null || isTop,
                   onTap: () {
                     if (_selectedImageIndex != null && !isTop) {
+                      _saveStateToHistory();
                       setState(() {
                         var item = _imageStates.removeAt(_selectedImageIndex!);
                         _imageStates.add(item);
@@ -1132,6 +1276,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null || isTop,
                   onTap: () {
                     if (_selectedImageIndex != null && !isTop) {
+                      _saveStateToHistory();
                       setState(() {
                         var item = _imageStates.removeAt(_selectedImageIndex!);
                         _imageStates.insert(_selectedImageIndex! + 1, item);
@@ -1149,6 +1294,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null || isBottom,
                   onTap: () {
                     if (_selectedImageIndex != null && !isBottom) {
+                      _saveStateToHistory();
                       setState(() {
                         var item = _imageStates.removeAt(_selectedImageIndex!);
                         _imageStates.insert(_selectedImageIndex! - 1, item);
@@ -1166,6 +1312,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null || isBottom,
                   onTap: () {
                     if (_selectedImageIndex != null && !isBottom) {
+                      _saveStateToHistory();
                       setState(() {
                         var item = _imageStates.removeAt(_selectedImageIndex!);
                         _imageStates.insert(0, item);
@@ -1220,6 +1367,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null,
                   onTap: () {
                     if (_selectedImageIndex != null) {
+                      _saveStateToHistory();
                       setState(() {
                         // 🚨 bottom offset +5 karne se image upar jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(0, 5);
@@ -1233,6 +1381,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null,
                   onTap: () {
                     if (_selectedImageIndex != null) {
+                      _saveStateToHistory();
                       setState(() {
                         // 🚨 bottom offset -5 karne se image niche jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(0, -5);
@@ -1246,6 +1395,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null,
                   onTap: () {
                     if (_selectedImageIndex != null) {
+                      _saveStateToHistory();
                       setState(() {
                         // 🚨 left offset -5 karne se image left jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(-5, 0);
@@ -1259,6 +1409,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: _selectedImageIndex == null,
                   onTap: () {
                     if (_selectedImageIndex != null) {
+                      _saveStateToHistory();
                       setState(() {
                         //  left offset +5 karne se image right jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(5, 0);
@@ -1313,6 +1464,7 @@ class _MergeScreenState extends State<MergeScreen> {
             isDisabled: _selectedImageIndex == null,
             onTap: () {
               if (_selectedImageIndex != null) {
+                _saveStateToHistory();
                 setState(() {
                   _imageStates[_selectedImageIndex!].rotation -= 0.78539816;
                 });
@@ -1327,6 +1479,7 @@ class _MergeScreenState extends State<MergeScreen> {
             isDisabled: _selectedImageIndex == null,
             onTap: () {
               if (_selectedImageIndex != null) {
+                _saveStateToHistory();
                 setState(() {
                   _imageStates[_selectedImageIndex!].rotation += 0.78539816;
                 });
@@ -1355,6 +1508,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       // 360 degrees
                       activeColor: Colors.blueAccent,
                       inactiveColor: Colors.white24,
+                      onChangeStart: _selectedImageIndex == null ? null : (value) => _saveStateToHistory(),
                       onChanged: _selectedImageIndex == null
                           ? null
                           : (value) {
@@ -1447,6 +1601,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                 max: maxVal,
                                 activeColor: Colors.blueAccent,
                                 inactiveColor: Colors.white24,
+                                onChangeStart: _selectedImageIndex == null ? null : (value) => _saveStateToHistory(),
                                 onChanged: _selectedImageIndex == null
                                     ? null
                                     : (value) {
@@ -1586,6 +1741,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                 max: maxVal,
                                 activeColor: Colors.blueAccent,
                                 inactiveColor: Colors.white24,
+                                onChangeStart: _selectedImageIndex == null ? null : (value) => _saveStateToHistory(),
                                 onChanged: _selectedImageIndex == null
                                     ? null
                                     : (value) {
@@ -1675,6 +1831,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
     // Agar user ne 'Delete' (true) press kiya hai, tabhi state update hogi
     if (confirm) {
+      _saveStateToHistory();
       setState(() {
         _imageStates.removeAt(index);
         _selectedImageIndex = null;
