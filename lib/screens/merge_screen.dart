@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 
+import 'custom_dialog.dart';
+
 class MergeScreen extends StatefulWidget {
   //  Editor screen se selected files yahan receive karenge
   final List<File> selectedImages;
@@ -668,7 +670,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       });
                     }
                 ),
-                _buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded, isDisabled: false),
+                //_buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded, isDisabled: false),
                // _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
                 _buildToolItem(
                     label: "Grid",
@@ -684,12 +686,18 @@ class _MergeScreenState extends State<MergeScreen> {
                   label: "Delete",
                   icon: Icons.delete_outline_rounded,
                   isDisabled: _selectedImageIndex == null || _imageStates[_selectedImageIndex!].isLocked,
+                  // onTap: () {
+                  //   if (_selectedImageIndex != null && !_imageStates[_selectedImageIndex!].isLocked) {
+                  //     setState(() {
+                  //       _imageStates.removeAt(_selectedImageIndex!);
+                  //       _selectedImageIndex = null;
+                  //     });
+                  //   }
+                  // },
                   onTap: () {
                     if (_selectedImageIndex != null && !_imageStates[_selectedImageIndex!].isLocked) {
-                      setState(() {
-                        _imageStates.removeAt(_selectedImageIndex!);
-                        _selectedImageIndex = null;
-                      });
+                      // 🚨 TUMHARA FUNCTION CALL HOGA
+                      _handleDeletePhoto(_selectedImageIndex!);
                     }
                   },
                 ),
@@ -1328,6 +1336,27 @@ class _MergeScreenState extends State<MergeScreen> {
     isOpacityMode = false;
     // isCollageMode = false;
     // isLayerMode = false;
+  }
+
+  // --- 🚨 NAYA: Delete handle karne ka async function ---
+  void _handleDeletePhoto(int index) async {
+    // Tumhara custom dialog call kiya
+    bool confirm = await showCustomConfirmDialog(
+      context,
+      title: "Delete Photo?",
+      message: "Are you sure you want to remove this photo from the canvas? This action cannot be undone.",
+      positiveBtnText: "Delete",
+      positiveBtnColor: Colors.redAccent, // Delete ke liye red color
+    );
+
+    // Agar user ne 'Delete' (true) press kiya hai, tabhi state update hogi
+    if (confirm) {
+      setState(() {
+        _imageStates.removeAt(index);
+        _selectedImageIndex = null;
+      });
+      HapticFeedback.mediumImpact(); // Delete hone par vibration
+    }
   }
 
   // Dynamic aspect ratio calculator
