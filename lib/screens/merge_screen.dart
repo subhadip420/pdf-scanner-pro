@@ -49,7 +49,8 @@ class _MergeScreenState extends State<MergeScreen> {
   bool isRotateMode = false;
   bool isSizeMode = false;
   bool isOpacityMode = false;
-// State Variables
+
+  // State Variables
   bool isGridVisible = false; // Grid dikhane ke liye variable
   bool isLayerMode = false;
   int? _initialLayerIndex;
@@ -89,8 +90,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-   // return Scaffold(
+    // return Scaffold(
     return PopScope(
       canPop: false,
 
@@ -108,430 +108,458 @@ class _MergeScreenState extends State<MergeScreen> {
           Navigator.pop(context);
         }
       },
-        child: Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C), // Dark theme
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
-          //onPressed: () => Navigator.pop(context),
-          onPressed: () async {
-            bool shouldExit = await _onWillPop();
-            if (shouldExit && context.mounted) {
-              Navigator.pop(context); // Agar user ne 'Exit' dabaya, tabhi pop hoga
-            }
-          },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF2C2C2C), // Dark theme
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF1E1E1E),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
+            //onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              bool shouldExit = await _onWillPop();
+              if (shouldExit && context.mounted) {
+                Navigator.pop(context); // Agar user ne 'Exit' dabaya, tabhi pop hoga
+              }
+            },
+          ),
+
+          //centerTitle false kar diya taaki title left me aa jaye
+          title: const Text(
+            "Merge Pages",
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          centerTitle: false,
+
+          actions: [
+            // Undo Button (Tick se pehle)
+            IconButton(
+              icon: const Icon(Icons.undo_rounded, color: Colors.white, size: 24),
+              tooltip: "Undo",
+              onPressed: () {
+                // Undo logic baad me aayega
+              },
+            ),
+
+            //  Redo Button (Undo ke theek baad)
+            IconButton(
+              icon: const Icon(Icons.redo_rounded, color: Colors.white, size: 24),
+              tooltip: "Redo",
+              onPressed: () {
+                // Redo logic baad me aayega
+              },
+            ),
+
+            IconButton(
+              icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
+              tooltip: "Save",
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            const SizedBox(width: 4),
+          ],
         ),
 
-        //centerTitle false kar diya taaki title left me aa jaye
-        title: const Text(
-          "Merge Pages",
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: false,
+        body: Column(
+          children: [
+            Expanded(
+              child: ClipRect(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _closeAllSubTools(); // Sabhi sub-tools ek sath band
+                      _selectedImageIndex = null; // Image deselect kardo
+                    });
+                  },
+                  child: InteractiveViewer(
+                    minScale: 1.0,
+                    maxScale: 4.0,
+                    boundaryMargin: EdgeInsets.zero,
 
-        actions: [
-          // Undo Button (Tick se pehle)
-          IconButton(
-            icon: const Icon(Icons.undo_rounded, color: Colors.white, size: 24),
-            tooltip: "Undo",
-            onPressed: () {
-              // Undo logic baad me aayega
-            },
-          ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        // 1. Calculate Available Space (40px padding = 80px dono taraf se)
+                        double availableW = constraints.maxWidth - 80;
+                        double availableH = constraints.maxHeight - 80;
+                        double ratio = _getPageAspectRatio();
 
-          //  Redo Button (Undo ke theek baad)
-          IconButton(
-            icon: const Icon(Icons.redo_rounded, color: Colors.white, size: 24),
-            tooltip: "Redo",
-            onPressed: () {
-              // Redo logic baad me aayega
-            },
-          ),
+                        // 2. Mathematically exact Paper Size nikalo (AspectRatio jaisa kaam)
+                        double paperW = availableW;
+                        double paperH = paperW / ratio;
+                        if (paperH > availableH) {
+                          paperH = availableH;
+                          paperW = paperH * ratio;
+                        }
 
-          IconButton(
-            icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
-            tooltip: "Save",
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
+                        // 3. Center me rakhne ke liye Offset nikalna (Taaki purani positioning kharab na ho)
+                        double offsetX = (constraints.maxWidth - paperW) / 2;
+                        double offsetY = (constraints.maxHeight - paperH) / 2;
 
-      body: Column(
-        children: [
-          Expanded(
-            child: ClipRect(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _closeAllSubTools(); // Sabhi sub-tools ek sath band
-                    _selectedImageIndex = null; // Image deselect kardo
-                  });
-                },
-                child: InteractiveViewer(
-                  minScale: 1.0,
-                  maxScale: 4.0,
-                  boundaryMargin: EdgeInsets.zero,
-
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      // 1. Calculate Available Space (40px padding = 80px dono taraf se)
-                      double availableW = constraints.maxWidth - 80;
-                      double availableH = constraints.maxHeight - 80;
-                      double ratio = _getPageAspectRatio();
-
-                      // 2. Mathematically exact Paper Size nikalo (AspectRatio jaisa kaam)
-                      double paperW = availableW;
-                      double paperH = paperW / ratio;
-                      if (paperH > availableH) {
-                        paperH = availableH;
-                        paperW = paperH * ratio;
-                      }
-
-                      // 3. Center me rakhne ke liye Offset nikalna (Taaki purani positioning kharab na ho)
-                      double offsetX = (constraints.maxWidth - paperW) / 2;
-                      double offsetY = (constraints.maxHeight - paperH) / 2;
-
-                      return Container(
-                        width: constraints.maxWidth,
-                        height: constraints.maxHeight,
-                        color: Colors.transparent,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-
-                            // --- LAYER 1: WHITE PAPER (Apni jagah par fixed) ---
-                            if (_selectedPageSize != "Auto Fit")
-                            Positioned(
-                              left: offsetX,
-                              bottom: offsetY,
-                              width: paperW,
-                              height: paperH,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            // --- LAYER 2: PHOTO STACK WITH CONTROLS ---
-                            ...List.generate(_imageStates.length, (index) {
-                              bool isSelected = _selectedImageIndex == index;
-                              var imgState = _imageStates[index];
-                              if (imgState.isHidden) {
-                                return const SizedBox.shrink();
-                              }
-
-                              double baseWidth = 150.0;
-
-                              return Positioned(
-                                left: offsetX + imgState.position.dx,
-                                bottom: offsetY + imgState.position.dy,
-                                child: Transform.rotate(
-                                  angle: imgState.rotation,
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      // --- MAIN IMAGE CONTAINER ---
-                                      GestureDetector(
-                                        onTap: imgState.isLocked
-                                            ? null
-                                            : () {
-                                          setState(() {
-                                            _selectedImageIndex = index;
-                                          });
-                                        },
-                                        onPanUpdate: imgState.isLocked
-                                            ? null
-                                            : (details) {
-                                          setState(() {
-                                            _selectedImageIndex = index;
-
-                                            double angle = imgState.rotation;
-                                            double cosA = math.cos(angle);
-                                            double sinA = math.sin(angle);
-
-                                            double adjustedDx = (details.delta.dx * cosA) - (details.delta.dy * sinA);
-                                            double adjustedDy = (details.delta.dx * sinA) + (details.delta.dy * cosA);
-
-                                            _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
-                                          });
-                                        },
-                                        child: Container(
-                                          width: baseWidth * imgState.scale,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: (isSelected && !imgState.isLocked)
-                                                  ? Colors.blueAccent
-                                                  : Colors.transparent,
-                                              width: 2,
-                                            ),
-                                          ),
-                                          child: Opacity(
-                                            opacity: imgState.opacity,
-                                            child: Image.file(imgState.file, fit: BoxFit.contain),
-                                          ),
-                                        ),
-                                      ),
-
-                                      // --- CORNER CONTROLS ---
-                                      if (isSelected && !imgState.isLocked) ...[
-                                        // 1. TOP-LEFT: HIDE ICON
-                                      Positioned(
-                                        top: -12,
-                                        left: -12,
-                                        child: GestureDetector(
-                                          onTap: () => setState(() {
-                                            _imageStates[index].isHidden = true;
-                                            _selectedImageIndex = null;
-                                          }),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.redAccent,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.visibility_off_rounded,
-                                              color: Colors.white,
-                                              size: 16,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-
-                                        // 2. SCALE ICON
-                                        Positioned(
-                                          top: -12, right: -12,
-                                          child: GestureDetector(
-                                            onPanUpdate: (details) {
-                                              setState(() {
-                                                double sensitivity = 0.003;
-                                                double scaleChange = (details.delta.dx - details.delta.dy) * sensitivity;
-                                                _imageStates[index].scale = (_imageStates[index].scale + scaleChange).clamp(0.2, 5.0);
-                                              });
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
-                                              child: const Icon(Icons.open_in_full_rounded, color: Colors.white, size: 16),
-                                            ),
-                                          ),
-                                        ),
-
-                                        // 3. ROTATE ICON
-                                        Positioned(
-                                          bottom: -12, right: -12,
-                                          child: GestureDetector(
-                                            onPanUpdate: (details) {
-                                              setState(() {
-                                                _imageStates[index].rotation += details.delta.dx * 0.02;
-                                              });
-                                            },
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
-                                              child: const Icon(Icons.rotate_right_rounded, color: Colors.black, size: 16),
-                                            ),
-                                          ),
+                        return Container(
+                          width: constraints.maxWidth,
+                          height: constraints.maxHeight,
+                          color: Colors.transparent,
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              // --- LAYER 1: WHITE PAPER (Apni jagah par fixed) ---
+                              if (_selectedPageSize != "Auto Fit")
+                                Positioned(
+                                  left: offsetX,
+                                  bottom: offsetY,
+                                  width: paperW,
+                                  height: paperH,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.5),
+                                          blurRadius: 10,
+                                          spreadRadius: 2,
                                         ),
                                       ],
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              );
-                            }),
 
-                            // --- LAYER 3: GRID LINES (Sabse upar, taaki paper par dikhe) ---
-                            if (isGridVisible)
-                              Positioned(
-                                left: offsetX,
-                                bottom: offsetY,
-                                width: paperW,
-                                height: paperH,
-                                child: IgnorePointer(
-                                  ignoring: true,
-                                  child: CustomPaint(
-                                    painter: GraphPaperPainter(),
+                              // --- LAYER 2: PHOTO STACK WITH CONTROLS ---
+                              ...List.generate(_imageStates.length, (index) {
+                                bool isSelected = _selectedImageIndex == index;
+                                var imgState = _imageStates[index];
+                                if (imgState.isHidden) {
+                                  return const SizedBox.shrink();
+                                }
+
+                                double baseWidth = 150.0;
+
+                                return Positioned(
+                                  left: offsetX + imgState.position.dx,
+                                  bottom: offsetY + imgState.position.dy,
+                                  child: Transform.rotate(
+                                    angle: imgState.rotation,
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        // --- MAIN IMAGE CONTAINER ---
+                                        GestureDetector(
+                                          onTap: imgState.isLocked
+                                              ? null
+                                              : () {
+                                                  setState(() {
+                                                    _selectedImageIndex = index;
+                                                  });
+                                                },
+                                          onPanUpdate: imgState.isLocked
+                                              ? null
+                                              : (details) {
+                                                  setState(() {
+                                                    _selectedImageIndex = index;
+
+                                                    double angle = imgState.rotation;
+                                                    double cosA = math.cos(angle);
+                                                    double sinA = math.sin(angle);
+
+                                                    double adjustedDx =
+                                                        (details.delta.dx * cosA) - (details.delta.dy * sinA);
+                                                    double adjustedDy =
+                                                        (details.delta.dx * sinA) + (details.delta.dy * cosA);
+
+                                                    _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
+                                                  });
+                                                },
+                                          child: Container(
+                                            width: baseWidth * imgState.scale,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: (isSelected && !imgState.isLocked)
+                                                    ? Colors.blueAccent
+                                                    : Colors.transparent,
+                                                width: 2,
+                                              ),
+                                            ),
+                                            child: Opacity(
+                                              opacity: imgState.opacity,
+                                              child: Image.file(imgState.file, fit: BoxFit.contain),
+                                            ),
+                                          ),
+                                        ),
+
+                                        // --- CORNER CONTROLS ---
+                                        if (isSelected && !imgState.isLocked) ...[
+                                          // 1. TOP-LEFT: HIDE ICON
+                                          Positioned(
+                                            top: -12,
+                                            left: -12,
+                                            child: GestureDetector(
+                                              onTap: () => setState(() {
+                                                _imageStates[index].isHidden = true;
+                                                _selectedImageIndex = null;
+                                              }),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.redAccent,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.visibility_off_rounded,
+                                                  color: Colors.white,
+                                                  size: 16,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+
+                                          // 2. SCALE ICON
+                                          Positioned(
+                                            top: -12,
+                                            right: -12,
+                                            child: GestureDetector(
+                                              onPanUpdate: (details) {
+                                                setState(() {
+                                                  double sensitivity = 0.003;
+                                                  double scaleChange =
+                                                      (details.delta.dx - details.delta.dy) * sensitivity;
+                                                  _imageStates[index].scale = (_imageStates[index].scale + scaleChange)
+                                                      .clamp(0.2, 5.0);
+                                                });
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.blueAccent,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.open_in_full_rounded,
+                                                  color: Colors.white,
+                                                  size: 16,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+
+                                          // 3. ROTATE ICON
+                                          Positioned(
+                                            bottom: -12,
+                                            right: -12,
+                                            child: GestureDetector(
+                                              onPanUpdate: (details) {
+                                                setState(() {
+                                                  _imageStates[index].rotation += details.delta.dx * 0.02;
+                                                });
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.amber,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.rotate_right_rounded,
+                                                  color: Colors.black,
+                                                  size: 16,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }),
+
+                              // --- LAYER 3: GRID LINES (Sabse upar, taaki paper par dikhe) ---
+                              if (isGridVisible)
+                                Positioned(
+                                  left: offsetX,
+                                  bottom: offsetY,
+                                  width: paperW,
+                                  height: paperH,
+                                  child: IgnorePointer(
+                                    ignoring: true,
+                                    child: CustomPaint(painter: GraphPaperPainter()),
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
             GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-            setState(() {
-            _closeAllSubTools();
-
-            });
-            },
-            child: Container(
-            height: 90,
-            color: const Color(0xFF1E1E1E),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _imageStates.length,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              itemBuilder: (context, index) {
-                bool isSelected = _selectedImageIndex == index;
-                bool isHidden = _imageStates[index].isHidden; // Check if hidden
-
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedImageIndex = index;
-                    });
-                  },
-                  child: Container(
-                    width: 60,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent, width: 3),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(2),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // Base Image (Hidden hone par 30% opacity)
-                          Opacity(
-                            opacity: isHidden ? 0.3 : 1.0,
-                            child: Image.file(_imageStates[index].file, fit: BoxFit.cover),
-                          ),
-                          if (isHidden)
-                            Container(
-                              color: Colors.black45, // Thoda dark shade photo ke upar
-                              child: const Icon(Icons.visibility_off_rounded, color: Colors.white, size: 24),
-                            ),
-
-                          // Lock Icon (Agar photo locked hai)
-                          if (_imageStates[index].isLocked)
-                            Positioned(
-                              bottom: 4,
-                              right: 4,
-                              child: Container(
-                                padding: const EdgeInsets.all(2), // Circle ka size adjust karne ke liye
-                                decoration: const BoxDecoration(
-                                  color: Colors.white, // White background
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.lock_rounded,
-                                  color: Colors.redAccent,
-                                  size: 14, // Icon thoda chhota kiya taaki circle me fit aaye
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                setState(() {
+                  _closeAllSubTools();
+                });
               },
-            ),
-          ),
-            ),
+              child: Container(
+                height: 90,
+                color: const Color(0xFF1E1E1E),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _imageStates.length,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  itemBuilder: (context, index) {
+                    bool isSelected = _selectedImageIndex == index;
+                    bool isHidden = _imageStates[index].isHidden; // Check if hidden
 
-          Container(
-            height: 68,
-            color: const Color(0xFF151515),
-            child: ClipRect(
-              child: Stack(
-                children: [
-                  // --- A. MAIN TOOLBAR (Animated Slide Down) ---
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: (isPageSizeMode || isPositionMode || isRotateMode || isSizeMode || isOpacityMode || isLayerMode) ? const Offset(0, 1.0) : Offset.zero,
-                    child: _buildNormalTools(),
-                  ),
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedImageIndex = index;
+                        });
+                      },
+                      child: Container(
+                        width: 60,
+                        margin: const EdgeInsets.only(right: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent, width: 3),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // Base Image (Hidden hone par 30% opacity)
+                              Opacity(
+                                opacity: isHidden ? 0.3 : 1.0,
+                                child: Image.file(_imageStates[index].file, fit: BoxFit.cover),
+                              ),
+                              if (isHidden)
+                                Container(
+                                  color: Colors.black45, // Thoda dark shade photo ke upar
+                                  child: const Icon(Icons.visibility_off_rounded, color: Colors.white, size: 24),
+                                ),
 
-                  // --- B. TOP LAYER: RESIZE SUB-TOOLS (Animated Slide Up) ---
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isPageSizeMode ? Offset.zero : const Offset(0, 1.0),
-                    child: _buildPageSizeSubTools(),
-                  ),
-
-                  // --- C. POSITION SUB-TOOLS (Animated Slide Up) ---
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isPositionMode ? Offset.zero : const Offset(0, 1.0),
-                    child: _buildPositionSubTools(),
-                  ),
-
-                  // --- D. ROTATE SUB-TOOLS (Animated Slide Up) ---
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isRotateMode ? Offset.zero : const Offset(0, 1.0),
-                    child: _buildRotateSubTools(),
-                  ),
-
-                  // --- E. SIZE SUB-TOOLS (Animated Slide Up) ---
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isSizeMode ? Offset.zero : const Offset(0, 1.0),
-                    child: _buildSizeSubTools(),
-                  ),
-
-                  // --- F. OPACITY SUB-TOOLS (Animated Slide Up) ---
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isOpacityMode ? Offset.zero : const Offset(0, 1.0),
-                    child: _buildOpacitySubTools(),
-                  ),
-
-                  // --- G. LAYER SUB-TOOLS (Animated Slide Up) ---
-                  AnimatedSlide(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    offset: isLayerMode ? Offset.zero : const Offset(0, 1.0),
-                    child: _buildLayerSubTools(),
-                  ),
-                ],
+                              // Lock Icon (Agar photo locked hai)
+                              if (_imageStates[index].isLocked)
+                                Positioned(
+                                  bottom: 4,
+                                  right: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2), // Circle ka size adjust karne ke liye
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white, // White background
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.lock_rounded,
+                                      color: Colors.redAccent,
+                                      size: 14, // Icon thoda chhota kiya taaki circle me fit aaye
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
 
-          // ==========================================
-          // 4. BOTTOM BANNER AD PLACEHOLDER
-          // ==========================================
-          SafeArea(
-            top: false,
-            child: Container(
-              height: 50,
-              // Standard banner ad ki height
-              width: double.infinity,
-              color: Colors.black,
-              // Dark background Ad ke peeche
-              alignment: Alignment.center,
-              child: const Text("Banner Ad Space", style: TextStyle(color: Colors.white38, fontSize: 14)),
+            Container(
+              height: 68,
+              color: const Color(0xFF151515),
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    // --- A. MAIN TOOLBAR (Animated Slide Down) ---
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset:
+                          (isPageSizeMode ||
+                              isPositionMode ||
+                              isRotateMode ||
+                              isSizeMode ||
+                              isOpacityMode ||
+                              isLayerMode)
+                          ? const Offset(0, 1.0)
+                          : Offset.zero,
+                      child: _buildNormalTools(),
+                    ),
+
+                    // --- B. TOP LAYER: RESIZE SUB-TOOLS (Animated Slide Up) ---
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isPageSizeMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildPageSizeSubTools(),
+                    ),
+
+                    // --- C. POSITION SUB-TOOLS (Animated Slide Up) ---
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isPositionMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildPositionSubTools(),
+                    ),
+
+                    // --- D. ROTATE SUB-TOOLS (Animated Slide Up) ---
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isRotateMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildRotateSubTools(),
+                    ),
+
+                    // --- E. SIZE SUB-TOOLS (Animated Slide Up) ---
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isSizeMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildSizeSubTools(),
+                    ),
+
+                    // --- F. OPACITY SUB-TOOLS (Animated Slide Up) ---
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isOpacityMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildOpacitySubTools(),
+                    ),
+
+                    // --- G. LAYER SUB-TOOLS (Animated Slide Up) ---
+                    AnimatedSlide(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      offset: isLayerMode ? Offset.zero : const Offset(0, 1.0),
+                      child: _buildLayerSubTools(),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ], // Column Children Ends
-      ),
-        ),// Column Ends
+
+            // ==========================================
+            // 4. BOTTOM BANNER AD PLACEHOLDER
+            // ==========================================
+            SafeArea(
+              top: false,
+              child: Container(
+                height: 50,
+                // Standard banner ad ki height
+                width: double.infinity,
+                color: Colors.black,
+                // Dark background Ad ke peeche
+                alignment: Alignment.center,
+                child: const Text("Banner Ad Space", style: TextStyle(color: Colors.white38, fontSize: 14)),
+              ),
+            ),
+          ], // Column Children Ends
+        ),
+      ), // Column Ends
     ); // Scaffold Ends
   }
 
@@ -544,7 +572,6 @@ class _MergeScreenState extends State<MergeScreen> {
     bool isDisabled = false,
     String? tooltipMessage,
   }) {
-
     return Tooltip(
       message: tooltipMessage ?? label,
       waitDuration: const Duration(milliseconds: 500), // 0.5 sec hold karne par tooltip aayega
@@ -631,18 +658,18 @@ class _MergeScreenState extends State<MergeScreen> {
                 ),
 
                 _buildToolItem(
-                    label: "Layer",
-                    icon: Icons.layers_rounded,
-                    isDisabled:
-                    _selectedImageIndex == null ||
-                        _imageStates[_selectedImageIndex!].isLocked ||
-                        _imageStates[_selectedImageIndex!].isHidden,
-                    onTap: () {
-                      setState(() {
-                        isLayerMode = true;
-                        _initialLayerIndex = _selectedImageIndex;
-                      });
-                    }
+                  label: "Layer",
+                  icon: Icons.layers_rounded,
+                  isDisabled:
+                      _selectedImageIndex == null ||
+                      _imageStates[_selectedImageIndex!].isLocked ||
+                      _imageStates[_selectedImageIndex!].isHidden,
+                  onTap: () {
+                    setState(() {
+                      isLayerMode = true;
+                      _initialLayerIndex = _selectedImageIndex;
+                    });
+                  },
                 ),
 
                 _buildToolItem(
@@ -652,11 +679,11 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
-                    onTap: () {
-                      setState(() {
-                        isPositionMode = true; // 🚨 ISKO TRUE KARNE SE ANIMATION TRIGGER HOGA
-                      });
-                    }
+                  onTap: () {
+                    setState(() {
+                      isPositionMode = true; // 🚨 ISKO TRUE KARNE SE ANIMATION TRIGGER HOGA
+                    });
+                  },
                 ),
                 _buildToolItem(
                   label: "Rotate",
@@ -665,18 +692,17 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
-                    onTap: () {
-                      setState(() {
-                        isRotateMode = true; // 🚨 ROTATE ANIMATION TRIGGER KAREGA
-                        if (_selectedImageIndex != null) {
-                          // 45 degrees = 0.785398 radians
-                          //_imageStates[_selectedImageIndex!].rotation += 0.78539816;
-                          //_imageStates[_selectedImageIndex!].rotation += 1.57079633;
-                        }
-                      });
-                      // Click karte hi direct 45 degree right ghuma do
-
-                    }
+                  onTap: () {
+                    setState(() {
+                      isRotateMode = true; // 🚨 ROTATE ANIMATION TRIGGER KAREGA
+                      if (_selectedImageIndex != null) {
+                        // 45 degrees = 0.785398 radians
+                        //_imageStates[_selectedImageIndex!].rotation += 0.78539816;
+                        //_imageStates[_selectedImageIndex!].rotation += 1.57079633;
+                      }
+                    });
+                    // Click karte hi direct 45 degree right ghuma do
+                  },
                 ),
                 _buildToolItem(
                   label: "Size",
@@ -685,11 +711,11 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
-                    onTap: () {
-                      setState(() {
-                        isSizeMode = true; // 🚨 SIZE ANIMATION TRIGGER KAREGA
-                      });
-                    }
+                  onTap: () {
+                    setState(() {
+                      isSizeMode = true; // 🚨 SIZE ANIMATION TRIGGER KAREGA
+                    });
+                  },
                 ),
                 _buildToolItem(
                   label: "Opacity",
@@ -698,23 +724,23 @@ class _MergeScreenState extends State<MergeScreen> {
                       _selectedImageIndex == null ||
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
-                    onTap: () {
-                      setState(() {
-                        isOpacityMode = true; // 🚨 OPACITY ANIMATION TRIGGER KAREGA
-                      });
-                    }
+                  onTap: () {
+                    setState(() {
+                      isOpacityMode = true; // 🚨 OPACITY ANIMATION TRIGGER KAREGA
+                    });
+                  },
                 ),
                 //_buildToolItem(label: "Collage", icon: Icons.auto_awesome_mosaic_rounded, isDisabled: false),
-               // _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
+                // _buildToolItem(label: "Grid Line", icon: Icons.grid_on_rounded, isDisabled: false),
                 _buildToolItem(
-                    label: "Grid",
-                    icon: isGridVisible ? Icons.grid_on_rounded : Icons.grid_off_rounded,
-                    isSelected: isGridVisible, // ON hone par blue highlight hoga
-                    onTap: () {
-                      setState(() {
-                        isGridVisible = !isGridVisible; // Grid ko toggle karega
-                      });
-                    }
+                  label: "Grid",
+                  icon: isGridVisible ? Icons.grid_on_rounded : Icons.grid_off_rounded,
+                  isSelected: isGridVisible, // ON hone par blue highlight hoga
+                  onTap: () {
+                    setState(() {
+                      isGridVisible = !isGridVisible; // Grid ko toggle karega
+                    });
+                  },
                 ),
 
                 _buildToolItem(
@@ -832,7 +858,6 @@ class _MergeScreenState extends State<MergeScreen> {
                   onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
                 ),
 
-
                 // 2. US Letter
                 _buildToolItem(
                   label: "Letter (P)",
@@ -942,7 +967,8 @@ class _MergeScreenState extends State<MergeScreen> {
               label: isLayerChanged ? "Done" : "Close",
               icon: isLayerChanged ? Icons.check_rounded : Icons.close_rounded,
               tooltipMessage: isLayerChanged ? "Apply Layer" : "Close Tool",
-              isSelected: isLayerChanged, // Change hone par Blue color ho jayega
+              isSelected: isLayerChanged,
+              // Change hone par Blue color ho jayega
               onTap: () {
                 setState(() {
                   _closeAllSubTools();
@@ -962,70 +988,70 @@ class _MergeScreenState extends State<MergeScreen> {
               children: [
                 // A. Ekdam Upar (Bring to Front)
                 _buildToolItem(
-                    label: "To Front",
-                    icon: Icons.vertical_align_top_rounded,
-                    isDisabled: _selectedImageIndex == null || isTop,
-                    onTap: () {
-                      if (_selectedImageIndex != null && !isTop) {
-                        setState(() {
-                          var item = _imageStates.removeAt(_selectedImageIndex!);
-                          _imageStates.add(item);
-                          _selectedImageIndex = _imageStates.length - 1;
-                        });
-                        HapticFeedback.lightImpact();
-                      }
+                  label: "To Front",
+                  icon: Icons.vertical_align_top_rounded,
+                  isDisabled: _selectedImageIndex == null || isTop,
+                  onTap: () {
+                    if (_selectedImageIndex != null && !isTop) {
+                      setState(() {
+                        var item = _imageStates.removeAt(_selectedImageIndex!);
+                        _imageStates.add(item);
+                        _selectedImageIndex = _imageStates.length - 1;
+                      });
+                      HapticFeedback.lightImpact();
                     }
+                  },
                 ),
 
                 // B. 1 Layer Upar (Bring Forward)
                 _buildToolItem(
-                    label: "Up",
-                    icon: Icons.arrow_upward_rounded,
-                    isDisabled: _selectedImageIndex == null || isTop,
-                    onTap: () {
-                      if (_selectedImageIndex != null && !isTop) {
-                        setState(() {
-                          var item = _imageStates.removeAt(_selectedImageIndex!);
-                          _imageStates.insert(_selectedImageIndex! + 1, item);
-                          _selectedImageIndex = _selectedImageIndex! + 1;
-                        });
-                        HapticFeedback.lightImpact();
-                      }
+                  label: "Up",
+                  icon: Icons.arrow_upward_rounded,
+                  isDisabled: _selectedImageIndex == null || isTop,
+                  onTap: () {
+                    if (_selectedImageIndex != null && !isTop) {
+                      setState(() {
+                        var item = _imageStates.removeAt(_selectedImageIndex!);
+                        _imageStates.insert(_selectedImageIndex! + 1, item);
+                        _selectedImageIndex = _selectedImageIndex! + 1;
+                      });
+                      HapticFeedback.lightImpact();
                     }
+                  },
                 ),
 
                 // C. 1 Layer Niche (Send Backward)
                 _buildToolItem(
-                    label: "Down",
-                    icon: Icons.arrow_downward_rounded,
-                    isDisabled: _selectedImageIndex == null || isBottom,
-                    onTap: () {
-                      if (_selectedImageIndex != null && !isBottom) {
-                        setState(() {
-                          var item = _imageStates.removeAt(_selectedImageIndex!);
-                          _imageStates.insert(_selectedImageIndex! - 1, item);
-                          _selectedImageIndex = _selectedImageIndex! - 1;
-                        });
-                        HapticFeedback.lightImpact();
-                      }
+                  label: "Down",
+                  icon: Icons.arrow_downward_rounded,
+                  isDisabled: _selectedImageIndex == null || isBottom,
+                  onTap: () {
+                    if (_selectedImageIndex != null && !isBottom) {
+                      setState(() {
+                        var item = _imageStates.removeAt(_selectedImageIndex!);
+                        _imageStates.insert(_selectedImageIndex! - 1, item);
+                        _selectedImageIndex = _selectedImageIndex! - 1;
+                      });
+                      HapticFeedback.lightImpact();
                     }
+                  },
                 ),
 
                 // D. Ekdam Niche (Send to Back)
                 _buildToolItem(
-                    label: "To Back",
-                    icon: Icons.vertical_align_bottom_rounded,
-                    isDisabled: _selectedImageIndex == null || isBottom,
-                    onTap: () {
-                      if (_selectedImageIndex != null && !isBottom) {
-                        setState(() {
-                          var item = _imageStates.removeAt(_selectedImageIndex!);
-                          _imageStates.insert(0, item);
-                          _selectedImageIndex = 0;
-                        });
-                        HapticFeedback.lightImpact();
-                      }
+                  label: "To Back",
+                  icon: Icons.vertical_align_bottom_rounded,
+                  isDisabled: _selectedImageIndex == null || isBottom,
+                  onTap: () {
+                    if (_selectedImageIndex != null && !isBottom) {
+                      setState(() {
+                        var item = _imageStates.removeAt(_selectedImageIndex!);
+                        _imageStates.insert(0, item);
+                        _selectedImageIndex = 0;
+                      });
+                      HapticFeedback.lightImpact();
                     }
+                  },
                 ),
               ],
             ),
@@ -1067,56 +1093,56 @@ class _MergeScreenState extends State<MergeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildToolItem(
-                    label: "Up",
-                    icon: Icons.keyboard_arrow_up,
-                    isDisabled: _selectedImageIndex == null,
-                    onTap: () {
-                      if (_selectedImageIndex != null) {
-                        setState(() {
-                          // 🚨 bottom offset +5 karne se image upar jayegi
-                          _imageStates[_selectedImageIndex!].position += const Offset(0, 5);
-                        });
-                      }
+                  label: "Up",
+                  icon: Icons.keyboard_arrow_up,
+                  isDisabled: _selectedImageIndex == null,
+                  onTap: () {
+                    if (_selectedImageIndex != null) {
+                      setState(() {
+                        // 🚨 bottom offset +5 karne se image upar jayegi
+                        _imageStates[_selectedImageIndex!].position += const Offset(0, 5);
+                      });
                     }
+                  },
                 ),
                 _buildToolItem(
-                    label: "Down",
-                    icon: Icons.keyboard_arrow_down,
-                    isDisabled: _selectedImageIndex == null,
-                    onTap: () {
-                      if (_selectedImageIndex != null) {
-                        setState(() {
-                          // 🚨 bottom offset -5 karne se image niche jayegi
-                          _imageStates[_selectedImageIndex!].position += const Offset(0, -5);
-                        });
-                      }
+                  label: "Down",
+                  icon: Icons.keyboard_arrow_down,
+                  isDisabled: _selectedImageIndex == null,
+                  onTap: () {
+                    if (_selectedImageIndex != null) {
+                      setState(() {
+                        // 🚨 bottom offset -5 karne se image niche jayegi
+                        _imageStates[_selectedImageIndex!].position += const Offset(0, -5);
+                      });
                     }
+                  },
                 ),
                 _buildToolItem(
-                    label: "Left",
-                    icon: Icons.keyboard_arrow_left,
-                    isDisabled: _selectedImageIndex == null,
-                    onTap: () {
-                      if (_selectedImageIndex != null) {
-                        setState(() {
-                          // 🚨 left offset -5 karne se image left jayegi
-                          _imageStates[_selectedImageIndex!].position += const Offset(-5, 0);
-                        });
-                      }
+                  label: "Left",
+                  icon: Icons.keyboard_arrow_left,
+                  isDisabled: _selectedImageIndex == null,
+                  onTap: () {
+                    if (_selectedImageIndex != null) {
+                      setState(() {
+                        // 🚨 left offset -5 karne se image left jayegi
+                        _imageStates[_selectedImageIndex!].position += const Offset(-5, 0);
+                      });
                     }
+                  },
                 ),
                 _buildToolItem(
-                    label: "Right",
-                    icon: Icons.keyboard_arrow_right,
-                    isDisabled: _selectedImageIndex == null,
-                    onTap: () {
-                      if (_selectedImageIndex != null) {
-                        setState(() {
-                          //  left offset +5 karne se image right jayegi
-                          _imageStates[_selectedImageIndex!].position += const Offset(5, 0);
-                        });
-                      }
+                  label: "Right",
+                  icon: Icons.keyboard_arrow_right,
+                  isDisabled: _selectedImageIndex == null,
+                  onTap: () {
+                    if (_selectedImageIndex != null) {
+                      setState(() {
+                        //  left offset +5 karne se image right jayegi
+                        _imageStates[_selectedImageIndex!].position += const Offset(5, 0);
+                      });
                     }
+                  },
                 ),
               ],
             ),
@@ -1160,30 +1186,30 @@ class _MergeScreenState extends State<MergeScreen> {
 
           //Rotate Left (-90 degrees)
           _buildToolItem(
-              label: "Left",
-              icon: Icons.rotate_left_rounded,
-              isDisabled: _selectedImageIndex == null,
-              onTap: () {
-                if (_selectedImageIndex != null) {
-                  setState(() {
-                    _imageStates[_selectedImageIndex!].rotation -= 0.78539816;
-                  });
-                }
+            label: "Left",
+            icon: Icons.rotate_left_rounded,
+            isDisabled: _selectedImageIndex == null,
+            onTap: () {
+              if (_selectedImageIndex != null) {
+                setState(() {
+                  _imageStates[_selectedImageIndex!].rotation -= 0.78539816;
+                });
               }
+            },
           ),
 
           //Rotate Right (+90 degrees)
           _buildToolItem(
-              label: "Right",
-              icon: Icons.rotate_right_rounded,
-              isDisabled: _selectedImageIndex == null,
-              onTap: () {
-                if (_selectedImageIndex != null) {
-                  setState(() {
-                    _imageStates[_selectedImageIndex!].rotation += 0.78539816;
-                  });
-                }
+            label: "Right",
+            icon: Icons.rotate_right_rounded,
+            isDisabled: _selectedImageIndex == null,
+            onTap: () {
+              if (_selectedImageIndex != null) {
+                setState(() {
+                  _imageStates[_selectedImageIndex!].rotation += 0.78539816;
+                });
               }
+            },
           ),
 
           //Slider for Fine Degree Adjustment
@@ -1195,23 +1221,26 @@ class _MergeScreenState extends State<MergeScreen> {
                 children: [
                   Text(
                     // Current angle ko wapas degree me convert karke dikhane ke liye
-                      "Angle: ${(currentRotation * (180 / 3.14159265)).toStringAsFixed(0)}°",
-                      style: const TextStyle(color: Colors.white70, fontSize: 11)
+                    "Angle: ${(currentRotation * (180 / 3.14159265)).toStringAsFixed(0)}°",
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                   SizedBox(
                     height: 24, // Slider ki height kam ki taaki fit ho jaye
                     child: Slider(
                       value: currentRotation,
                       min: 0.0,
-                      max: 2 * 3.14159265, // 360 degrees
+                      max: 2 * 3.14159265,
+                      // 360 degrees
                       activeColor: Colors.blueAccent,
                       inactiveColor: Colors.white24,
-                      onChanged: _selectedImageIndex == null ? null : (value) {
-                        setState(() {
-                          // Direct slider ki value lagao
-                          _imageStates[_selectedImageIndex!].rotation = value;
-                        });
-                      },
+                      onChanged: _selectedImageIndex == null
+                          ? null
+                          : (value) {
+                              setState(() {
+                                // Direct slider ki value lagao
+                                _imageStates[_selectedImageIndex!].rotation = value;
+                              });
+                            },
                     ),
                   ),
                 ],
@@ -1222,7 +1251,6 @@ class _MergeScreenState extends State<MergeScreen> {
       ),
     );
   }
-
 
   // --- MULTI-DOT PREMIUM SIZE SUB-TOOLS ---
   Widget _buildSizeSubTools() {
@@ -1267,8 +1295,8 @@ class _MergeScreenState extends State<MergeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                      "Scale: ${currentScale.toStringAsFixed(2)}x",
-                      style: const TextStyle(color: Colors.white70, fontSize: 11)
+                    "Scale: ${currentScale.toStringAsFixed(2)}x",
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                   SizedBox(
                     height: 30,
@@ -1284,7 +1312,6 @@ class _MergeScreenState extends State<MergeScreen> {
                         return Stack(
                           alignment: Alignment.centerLeft,
                           children: [
-
                             // --- BACKGROUND SLIDER ---
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
@@ -1298,29 +1325,31 @@ class _MergeScreenState extends State<MergeScreen> {
                                 max: maxVal,
                                 activeColor: Colors.blueAccent,
                                 inactiveColor: Colors.white24,
-                                onChanged: _selectedImageIndex == null ? null : (value) {
-                                  double newVal = value;
-                                  bool snapped = false;
+                                onChanged: _selectedImageIndex == null
+                                    ? null
+                                    : (value) {
+                                        double newVal = value;
+                                        bool snapped = false;
 
-                                  // MULTI-SNAP LOGIC
-                                  for (double snap in snapValues) {
-                                    // Scale badi range hai, isliye gap 0.15 rakha hai
-                                    if ((newVal - snap).abs() < 0.15) {
-                                      newVal = snap;
-                                      snapped = true;
-                                      break;
-                                    }
-                                  }
+                                        // MULTI-SNAP LOGIC
+                                        for (double snap in snapValues) {
+                                          // Scale badi range hai, isliye gap 0.15 rakha hai
+                                          if ((newVal - snap).abs() < 0.15) {
+                                            newVal = snap;
+                                            snapped = true;
+                                            break;
+                                          }
+                                        }
 
-                                  //VIBRATION LOGIC
-                                  if (snapped && _imageStates[_selectedImageIndex!].scale != newVal) {
-                                    HapticFeedback.lightImpact();
-                                  }
+                                        //VIBRATION LOGIC
+                                        if (snapped && _imageStates[_selectedImageIndex!].scale != newVal) {
+                                          HapticFeedback.lightImpact();
+                                        }
 
-                                  setState(() {
-                                    _imageStates[_selectedImageIndex!].scale = newVal;
-                                  });
-                                },
+                                        setState(() {
+                                          _imageStates[_selectedImageIndex!].scale = newVal;
+                                        });
+                                      },
                               ),
                             ),
 
@@ -1349,7 +1378,6 @@ class _MergeScreenState extends State<MergeScreen> {
                                 ),
                               );
                             }),
-
                           ],
                         );
                       },
@@ -1407,8 +1435,8 @@ class _MergeScreenState extends State<MergeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                      "Opacity: ${(currentOpacity * 100).toInt()}%",
-                      style: const TextStyle(color: Colors.white70, fontSize: 11)
+                    "Opacity: ${(currentOpacity * 100).toInt()}%",
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                   SizedBox(
                     height: 30,
@@ -1423,7 +1451,6 @@ class _MergeScreenState extends State<MergeScreen> {
                         return Stack(
                           alignment: Alignment.centerLeft,
                           children: [
-
                             // --- BACKGROUND SLIDER ---
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
@@ -1437,29 +1464,31 @@ class _MergeScreenState extends State<MergeScreen> {
                                 max: maxVal,
                                 activeColor: Colors.blueAccent,
                                 inactiveColor: Colors.white24,
-                                onChanged: _selectedImageIndex == null ? null : (value) {
-                                  double newVal = value;
-                                  bool snapped = false;
+                                onChanged: _selectedImageIndex == null
+                                    ? null
+                                    : (value) {
+                                        double newVal = value;
+                                        bool snapped = false;
 
-                                  // MULTI-SNAP LOGIC: Har dot ke paas magnet effect
-                                  for (double snap in snapValues) {
-                                    // Agar slider snap value ke +/- 4% range me hai
-                                    if ((newVal - snap).abs() < 0.04) {
-                                      newVal = snap;
-                                      snapped = true;
-                                      break;
-                                    }
-                                  }
+                                        // MULTI-SNAP LOGIC: Har dot ke paas magnet effect
+                                        for (double snap in snapValues) {
+                                          // Agar slider snap value ke +/- 4% range me hai
+                                          if ((newVal - snap).abs() < 0.04) {
+                                            newVal = snap;
+                                            snapped = true;
+                                            break;
+                                          }
+                                        }
 
-                                  // VIBRATION LOGIC: Agar naye dot par snap hua
-                                  if (snapped && _imageStates[_selectedImageIndex!].opacity != newVal) {
-                                    HapticFeedback.lightImpact();
-                                  }
+                                        // VIBRATION LOGIC: Agar naye dot par snap hua
+                                        if (snapped && _imageStates[_selectedImageIndex!].opacity != newVal) {
+                                          HapticFeedback.lightImpact();
+                                        }
 
-                                  setState(() {
-                                    _imageStates[_selectedImageIndex!].opacity = newVal;
-                                  });
-                                },
+                                        setState(() {
+                                          _imageStates[_selectedImageIndex!].opacity = newVal;
+                                        });
+                                      },
                               ),
                             ),
 
@@ -1479,15 +1508,11 @@ class _MergeScreenState extends State<MergeScreen> {
                                   child: Container(
                                     width: 6,
                                     height: 6,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
+                                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                                   ),
                                 ),
                               );
                             }),
-
                           ],
                         );
                       },
@@ -1566,8 +1591,7 @@ class _MergeScreenState extends State<MergeScreen> {
       case "Square (1:1)":
         return 1.0;
       case "Auto Fit":
-        return 210 /
-            297;
+        return 210 / 297;
       default:
         return 210 / 297;
     }
@@ -1579,7 +1603,8 @@ class GraphPaperPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black12 // Ekdum halki premium lines
+      ..color = Colors
+          .black12 // Ekdum halki premium lines
       ..strokeWidth = 1.0; // Patli lines
 
     const double step = 25.0; // Graph paper ke dabbo ka size (25px)
