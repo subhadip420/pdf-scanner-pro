@@ -393,6 +393,84 @@ class _MergeScreenState extends State<MergeScreen> {
                 ),
               ),
             ),
+            // ==========================================
+            // 2. THUMBNAILS LIST
+            // ==========================================
+            // GestureDetector(
+            //   behavior: HitTestBehavior.opaque,
+            //   onTap: () {
+            //     setState(() {
+            //       _closeAllSubTools();
+            //     });
+            //   },
+            //   child: Container(
+            //     height: 90,
+            //     color: const Color(0xFF1E1E1E),
+            //     child: ListView.builder(
+            //       scrollDirection: Axis.horizontal,
+            //       itemCount: _imageStates.length,
+            //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            //       itemBuilder: (context, index) {
+            //         bool isSelected = _selectedImageIndex == index;
+            //         bool isHidden = _imageStates[index].isHidden; // Check if hidden
+            //
+            //         return GestureDetector(
+            //           onTap: () {
+            //             setState(() {
+            //               _selectedImageIndex = index;
+            //             });
+            //           },
+            //           child: Container(
+            //             width: 60,
+            //             margin: const EdgeInsets.only(right: 12),
+            //             decoration: BoxDecoration(
+            //               border: Border.all(color: isSelected ? Colors.blueAccent : Colors.transparent, width: 3),
+            //               borderRadius: BorderRadius.circular(4),
+            //             ),
+            //             child: ClipRRect(
+            //               borderRadius: BorderRadius.circular(2),
+            //               child: Stack(
+            //                 fit: StackFit.expand,
+            //                 children: [
+            //                   // Base Image (Hidden hone par 30% opacity)
+            //                   Opacity(
+            //                     opacity: isHidden ? 0.3 : 1.0,
+            //                     child: Image.file(_imageStates[index].file, fit: BoxFit.cover),
+            //                   ),
+            //                   if (isHidden)
+            //                     Container(
+            //                       color: Colors.black45, // Thoda dark shade photo ke upar
+            //                       child: const Icon(Icons.visibility_off_rounded, color: Colors.white, size: 24),
+            //                     ),
+            //
+            //                   // Lock Icon (Agar photo locked hai)
+            //                   if (_imageStates[index].isLocked)
+            //                     Positioned(
+            //                       bottom: 4,
+            //                       right: 4,
+            //                       child: Container(
+            //                         padding: const EdgeInsets.all(2), // Circle ka size adjust karne ke liye
+            //                         decoration: const BoxDecoration(
+            //                           color: Colors.white, // White background
+            //                           shape: BoxShape.circle,
+            //                         ),
+            //                         child: const Icon(
+            //                           Icons.lock_rounded,
+            //                           color: Colors.redAccent,
+            //                           size: 14, // Icon thoda chhota kiya taaki circle me fit aaye
+            //                         ),
+            //                       ),
+            //                     ),
+            //                 ],
+            //               ),
+            //             ),
+            //           ),
+            //         );
+            //       },
+            //     ),
+            //   ),
+            // ),
+
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
@@ -403,15 +481,59 @@ class _MergeScreenState extends State<MergeScreen> {
               child: Container(
                 height: 90,
                 color: const Color(0xFF1E1E1E),
-                child: ListView.builder(
+
+                // 🚨 FIX: ListView.builder ki jagah ReorderableListView.builder lagaya
+                child: ReorderableListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: _imageStates.length,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+
+                  onReorderStart: (int index) {
+                    HapticFeedback.mediumImpact(); // "Uthane" ka solid feel
+                  },
+
+                  // 🚨 NAYA: Hold and Drag karke re-arrange karne ka logic
+                  onReorder: (int oldIndex, int newIndex) {
+                    setState(() {
+                      if (oldIndex < newIndex) {
+                        newIndex -= 1;
+                      }
+                      // Photo layer change karo
+                      final MergedImageState item = _imageStates.removeAt(oldIndex);
+                      _imageStates.insert(newIndex, item);
+
+                      // Selected photo ka border gayab na ho, isliye uski position bhi update ki
+                      if (_selectedImageIndex == oldIndex) {
+                        _selectedImageIndex = newIndex;
+                      } else if (_selectedImageIndex != null) {
+                        if (_selectedImageIndex! > oldIndex && _selectedImageIndex! <= newIndex) {
+                          _selectedImageIndex = _selectedImageIndex! - 1;
+                        } else if (_selectedImageIndex! < oldIndex && _selectedImageIndex! >= newIndex) {
+                          _selectedImageIndex = _selectedImageIndex! + 1;
+                        }
+                      }
+                    });
+                    HapticFeedback.lightImpact(); // Drag karne par vibration
+                  },
+
+                  // 🚨 NAYA: Hawa me drag hote waqt premium UI (transparent background)
+                  proxyDecorator: (Widget child, int index, Animation<double> animation) {
+                    return Material(
+                      color: Colors.transparent,
+                      elevation: 10,
+                      shadowColor: Colors.black54,
+                      child: child,
+                    );
+                  },
+
                   itemBuilder: (context, index) {
                     bool isSelected = _selectedImageIndex == index;
                     bool isHidden = _imageStates[index].isHidden; // Check if hidden
 
                     return GestureDetector(
+                      // 🚨 FIX: Reorderable items ko pehchanne ke liye Key zaroori hoti hai
+                      key: ObjectKey(_imageStates[index]),
+
                       onTap: () {
                         setState(() {
                           _selectedImageIndex = index;
