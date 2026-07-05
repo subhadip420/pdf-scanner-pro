@@ -117,7 +117,6 @@ class _MergeScreenState extends State<MergeScreen> {
           icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
           //onPressed: () => Navigator.pop(context),
           onPressed: () async {
-            // 🚨 NAYA: Cross icon dabane par pehle dialog khulega
             bool shouldExit = await _onWillPop();
             if (shouldExit && context.mounted) {
               Navigator.pop(context); // Agar user ne 'Exit' dabaya, tabhi pop hoga
@@ -151,7 +150,6 @@ class _MergeScreenState extends State<MergeScreen> {
             },
           ),
 
-          // Tick Button (Done) - Apni purani jagah par
           IconButton(
             icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
             tooltip: "Save",
@@ -165,218 +163,6 @@ class _MergeScreenState extends State<MergeScreen> {
 
       body: Column(
         children: [
-          // Expanded(
-          //   child: ClipRect(
-          //     child: GestureDetector(
-          //       onTap: () {
-          //         setState(() {
-          //           _closeAllSubTools(); // Sabhi sub-tools ek sath band
-          //           _selectedImageIndex = null; // Image deselect kardo
-          //         });
-          //       },
-          //       child: InteractiveViewer(
-          //         minScale: 1.0,
-          //         maxScale: 4.0,
-          //         boundaryMargin: EdgeInsets.zero,
-          //         child: Center(
-          //           child: Padding(
-          //             padding: const EdgeInsets.all(40.0),
-          //             child: AspectRatio(
-          //               aspectRatio: _getPageAspectRatio(),
-          //               child: Container(
-          //                 decoration: BoxDecoration(
-          //                   color: Colors.white, // Paper Color
-          //                   boxShadow: [
-          //                     BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
-          //                   ],
-          //                 ),
-          //                 // PHOTO STACK WITH CONTROLS
-          //                 child: Stack(
-          //                   clipBehavior: Clip.none,
-          //                     children: [ ...List.generate (_imageStates.length, (index) {
-          //                     bool isSelected = _selectedImageIndex == index;
-          //                     var imgState = _imageStates[index];
-          //                     //  Agar image hidden hai, toh usko canvas par draw hi mat karo
-          //                     if (imgState.isHidden) {
-          //                       return const SizedBox.shrink(); // Empty space return karega
-          //                     }
-          //
-          //                     double baseWidth = 150.0; // Initial fixed width
-          //
-          //                     return Positioned(
-          //                       left: imgState.position.dx,
-          //                       bottom: imgState.position.dy,
-          //
-          //                       child: Transform.rotate(
-          //                         angle: imgState.rotation,
-          //                         child: Stack(
-          //                           clipBehavior: Clip.none,
-          //                           children: [
-          //                             // --- MAIN IMAGE CONTAINER ---
-          //                             GestureDetector(
-          //                               // Agar locked hai toh preview canvas par click ya drag puri tarah disable
-          //                               onTap: imgState.isLocked
-          //                                   ? null
-          //                                   : () {
-          //                                       setState(() {
-          //                                         //_closeAllSubTools();
-          //                                         _selectedImageIndex = index;
-          //                                       });
-          //                                     },
-          //                               onPanUpdate: imgState.isLocked
-          //                                   ? null
-          //                                   : (details) {
-          //                                       setState(() {
-          //                                         //_closeAllSubTools();
-          //                                         _selectedImageIndex = index;
-          //                                         // Drag direction ko rotation ke hisaab se adjust karna
-          //                                         double angle = imgState.rotation;
-          //                                         double cosA = math.cos(angle);
-          //                                         double sinA = math.sin(angle);
-          //
-          //                                         // Local rotated movement ko Real screen movement me convert kiya
-          //                                         double adjustedDx = (details.delta.dx * cosA) - (details.delta.dy * sinA);
-          //                                         double adjustedDy = (details.delta.dx * sinA) + (details.delta.dy * cosA);
-          //
-          //                                         // Ab hum adjusted value lagayenge
-          //                                         _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
-          //                                       });
-          //                                     },
-          //                               // child: Transform.rotate(
-          //                               //   angle: imgState.rotation,
-          //                                 child: Container(
-          //                                   width: baseWidth * imgState.scale,
-          //                                   decoration: BoxDecoration(
-          //                                     border: Border.all(
-          //                                       //Agar locked hai, toh preview me KOI BORDER nahi aayega, chahe thumbnail se select kiya ho
-          //                                       color: (isSelected && !imgState.isLocked)
-          //                                           ? Colors.blueAccent
-          //                                           : Colors.transparent,
-          //                                       width: 2,
-          //                                     ),
-          //                                   ),
-          //                                   // Image ko Opacity widget ke andar daala
-          //                                   child: Opacity(
-          //                                     opacity: imgState.opacity, // Yahan se value apply hogi
-          //                                     child: Image.file(imgState.file, fit: BoxFit.contain),
-          //                                   ),
-          //                                 // ),
-          //                               ),
-          //                             ),
-          //
-          //                             // --- CORNER CONTROLS (Sirf tab dikhenge jab select ho) ---
-          //                             if (isSelected && !imgState.isLocked) ...[
-          //                               // 1. TOP-LEFT: DELETE ICON
-          //                               Positioned(
-          //                                 top: -12,
-          //                                 left: -12,
-          //                                 child: GestureDetector(
-          //                                   onTap: () => setState(() {
-          //                                     // Image hide kardo aur deselect kardo
-          //                                     _imageStates[index].isHidden = true;
-          //                                     _selectedImageIndex = null;
-          //                                   }),
-          //                                   child: Container(
-          //                                     padding: const EdgeInsets.all(4),
-          //                                     decoration: const BoxDecoration(
-          //                                       color: Colors.redAccent,
-          //                                       shape: BoxShape.circle,
-          //                                     ),
-          //                                     child: const Icon(
-          //                                       Icons.visibility_off_rounded,
-          //                                       color: Colors.white,
-          //                                       size: 16,
-          //                                     ),
-          //                                   ),
-          //                                 ),
-          //                               ),
-          //
-          //                               // 2. TOP-RIGHT: SCALE ICON
-          //                               Positioned(
-          //                                 top: -12,
-          //                                 right: -12,
-          //                                 child: GestureDetector(
-          //                                   onPanUpdate: (details) {
-          //                                     setState(() {
-          //                                       double sensitivity = 0.003;
-          //                                       double scaleChange =
-          //                                           (details.delta.dx - details.delta.dy) * sensitivity;
-          //                                       _imageStates[index].scale = (_imageStates[index].scale + scaleChange)
-          //                                           .clamp(0.2, 5.0);
-          //                                     });
-          //                                   },
-          //                                   child: Container(
-          //                                     padding: const EdgeInsets.all(4),
-          //                                     decoration: const BoxDecoration(
-          //                                       color: Colors.blueAccent,
-          //                                       shape: BoxShape.circle,
-          //                                     ),
-          //                                     child: const Icon(
-          //                                       Icons.open_in_full_rounded,
-          //                                       color: Colors.white,
-          //                                       size: 16,
-          //                                     ),
-          //                                   ),
-          //                                 ),
-          //                               ),
-          //
-          //                               // BOTTOM-RIGHT: ROTATE ICON
-          //                               Positioned(
-          //                                 bottom: -12,
-          //                                 right: -12,
-          //                                 child: GestureDetector(
-          //                                   onPanUpdate: (details) {
-          //                                     setState(() {
-          //                                       _imageStates[index].rotation += details.delta.dx * 0.02;
-          //                                     });
-          //                                   },
-          //                                   child: Container(
-          //                                     padding: const EdgeInsets.all(4),
-          //                                     decoration: const BoxDecoration(
-          //                                       color: Colors.amber,
-          //                                       shape: BoxShape.circle,
-          //                                     ),
-          //                                     child: const Icon(
-          //                                       Icons.rotate_right_rounded,
-          //                                       color: Colors.black,
-          //                                       size: 16,
-          //                                     ),
-          //                                   ),
-          //                                 ),
-          //                               ),
-          //                             ],
-          //
-          //
-          //                           ],
-          //                         ),
-          //                       ),
-          //                     );
-          //                   }),
-          //
-          //                     // YAHAN RAKHNA HAI GRID KO
-          //                     if (isGridVisible)
-          //                         Positioned.fill(
-          //                       child: IgnorePointer(
-          //                       ignoring: true, // Yeh touch event ko block nahi karega
-          //                         child: CustomPaint(
-          //                           painter: GraphPaperPainter(),
-          //                         ),
-          //                       ),
-          //                     ),
-          //                     ]
-          //                 ),
-          //               ),
-          //             ),
-          //           ),
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // ==========================================
-          // 2. THUMBNAILS LIST
-          // ==========================================
-
           Expanded(
             child: ClipRect(
               child: GestureDetector(
@@ -389,9 +175,8 @@ class _MergeScreenState extends State<MergeScreen> {
                 child: InteractiveViewer(
                   minScale: 1.0,
                   maxScale: 4.0,
-                  boundaryMargin: EdgeInsets.zero, // 🚨 NAYA: Isse page apni jagah par lock rahega, hilega nahi
+                  boundaryMargin: EdgeInsets.zero,
 
-                  // 🚨 FIX: LayoutBuilder ka use kiya taaki touch area poore screen tak fail jaye!
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       // 1. Calculate Available Space (40px padding = 80px dono taraf se)
@@ -414,7 +199,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       return Container(
                         width: constraints.maxWidth,
                         height: constraints.maxHeight,
-                        color: Colors.transparent, // 🚨 MAGIC: Ab poori screen par touch detect hoga
+                        color: Colors.transparent,
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
@@ -440,8 +225,6 @@ class _MergeScreenState extends State<MergeScreen> {
                             ...List.generate(_imageStates.length, (index) {
                               bool isSelected = _selectedImageIndex == index;
                               var imgState = _imageStates[index];
-
-                              // Agar image hidden hai, toh usko canvas par draw hi mat karo
                               if (imgState.isHidden) {
                                 return const SizedBox.shrink();
                               }
@@ -449,7 +232,6 @@ class _MergeScreenState extends State<MergeScreen> {
                               double baseWidth = 150.0;
 
                               return Positioned(
-                                // 🚨 FIX: Purani position me offsetX aur offsetY add kar diya, taaki logic same rahe
                                 left: offsetX + imgState.position.dx,
                                 bottom: offsetY + imgState.position.dy,
                                 child: Transform.rotate(
@@ -501,26 +283,12 @@ class _MergeScreenState extends State<MergeScreen> {
 
                                       // --- CORNER CONTROLS ---
                                       if (isSelected && !imgState.isLocked) ...[
-                                        // // 1. DELETE ICON
-                                        // Positioned(
-                                        //   top: -12, left: -12,
-                                        //   child: GestureDetector(
-                                        //     onTap: () => _handleDeletePhoto(index),
-                                        //     child: Container(
-                                        //       padding: const EdgeInsets.all(4),
-                                        //       decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                                        //       child: const Icon(Icons.delete_rounded, color: Colors.white, size: 16),
-                                        //     ),
-                                        //   ),
-                                        // ),
-
                                         // 1. TOP-LEFT: HIDE ICON
                                       Positioned(
                                         top: -12,
                                         left: -12,
                                         child: GestureDetector(
                                           onTap: () => setState(() {
-                                            // Image hide kardo aur deselect kardo
                                             _imageStates[index].isHidden = true;
                                             _selectedImageIndex = null;
                                           }),
@@ -585,11 +353,11 @@ class _MergeScreenState extends State<MergeScreen> {
                             if (isGridVisible)
                               Positioned(
                                 left: offsetX,
-                                bottom: offsetY, // Grid ko bhi theek paper ke upar rakha
+                                bottom: offsetY,
                                 width: paperW,
                                 height: paperH,
                                 child: IgnorePointer(
-                                  ignoring: true, // Yeh touch event ko block nahi karega
+                                  ignoring: true,
                                   child: CustomPaint(
                                     painter: GraphPaperPainter(),
                                   ),
@@ -605,14 +373,11 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
             GestureDetector(
-            //Ye line ensure karegi ki khali space par bhi click kaam kare
             behavior: HitTestBehavior.opaque,
             onTap: () {
             setState(() {
-            _closeAllSubTools(); // Khali space tap karte hi sub-tools close honge
-            // Agar tum chahte ho ki khali space par click karne se image bhi deselect ho jaye,
-            // toh niche wali line ka comment hata dena:
-            // _selectedImageIndex = null;
+            _closeAllSubTools();
+
             });
             },
             child: Container(
@@ -629,11 +394,6 @@ class _MergeScreenState extends State<MergeScreen> {
                 return GestureDetector(
                   onTap: () {
                     setState(() {
-                      // Agar image hidden thi aur user ne uske thumbnail pe click kiya, toh use wapas unhide kardo
-                      // if (_imageStates[index].isHidden) {
-                      //   _imageStates[index].isHidden = false;
-                      // }
-                      //_closeAllSubTools();
                       _selectedImageIndex = index;
                     });
                   },
@@ -654,7 +414,6 @@ class _MergeScreenState extends State<MergeScreen> {
                             opacity: isHidden ? 0.3 : 1.0,
                             child: Image.file(_imageStates[index].file, fit: BoxFit.cover),
                           ),
-                          // Overlay Icon (Sirf tab dikhega jab hidden hogi)
                           if (isHidden)
                             Container(
                               color: Colors.black45, // Thoda dark shade photo ke upar
@@ -700,7 +459,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
                     offset: (isPageSizeMode || isPositionMode || isRotateMode || isSizeMode || isOpacityMode || isLayerMode) ? const Offset(0, 1.0) : Offset.zero,
-                    child: _buildNormalTools(), // Yahan function call ho gaya
+                    child: _buildNormalTools(),
                   ),
 
                   // --- B. TOP LAYER: RESIZE SUB-TOOLS (Animated Slide Up) ---
@@ -743,7 +502,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     child: _buildOpacitySubTools(),
                   ),
 
-                  // --- G. 🚨 NAYA: LAYER SUB-TOOLS (Animated Slide Up) ---
+                  // --- G. LAYER SUB-TOOLS (Animated Slide Up) ---
                   AnimatedSlide(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
@@ -785,10 +544,8 @@ class _MergeScreenState extends State<MergeScreen> {
     bool isDisabled = false,
     String? tooltipMessage,
   }) {
-    //return GestureDetector(
-    //onTap: onTap,
+
     return Tooltip(
-      // Agar custom tooltipMessage nahi diya hai, toh default button ka 'label' hi dikhayega
       message: tooltipMessage ?? label,
       waitDuration: const Duration(milliseconds: 500), // 0.5 sec hold karne par tooltip aayega
       preferBelow: false, // Tooltip button ke upar dikhega taaki ungli se chhupe na
@@ -806,7 +563,6 @@ class _MergeScreenState extends State<MergeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                //Icon(icon, color: Colors.white, size: 22),
                 Icon(
                   icon,
                   // Disabled hone par icon dhundhla (grey) ho jayega
@@ -816,7 +572,6 @@ class _MergeScreenState extends State<MergeScreen> {
                 const SizedBox(height: 6),
                 Text(
                   label,
-                  //style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
                   style: TextStyle(
                     // Disabled hone par text bhi dhundhla (grey) ho jayega
                     color: isDisabled ? Colors.white24 : Colors.white,
@@ -1159,8 +914,6 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- 🚨 NAYA BLOCK: LAYER SUB-TOOLS ---
-  // --- 🚨 UPDATED BLOCK: LAYER SUB-TOOLS (SCROLLABLE) ---
   // --- 🚨 UPDATED BLOCK: LAYER SUB-TOOLS (Dynamic X / Tick) ---
   Widget _buildLayerSubTools() {
     bool isTop = false;
@@ -1470,7 +1223,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-// --- PERFECT SIZE SUB-TOOLS ---
+
   // --- MULTI-DOT PREMIUM SIZE SUB-TOOLS ---
   Widget _buildSizeSubTools() {
     double currentScale = 1.0;
@@ -1753,7 +1506,6 @@ class _MergeScreenState extends State<MergeScreen> {
   void _closeAllSubTools() {
     isPageSizeMode = false;
     isSizeMode = false;
-    // Future ke liye jab tum naye tools add karoge:
     isPositionMode = false;
     isRotateMode = false;
     isOpacityMode = false;
@@ -1763,7 +1515,7 @@ class _MergeScreenState extends State<MergeScreen> {
     // isLayerMode = false;
   }
 
-  // --- 🚨 NAYA: Delete handle karne ka async function ---
+  // Delete handle karne ka async function ---
   void _handleDeletePhoto(int index) async {
     // Tumhara custom dialog call kiya
     bool confirm = await showCustomConfirmDialog(
@@ -1815,14 +1567,14 @@ class _MergeScreenState extends State<MergeScreen> {
         return 1.0;
       case "Auto Fit":
         return 210 /
-            297; // NOTE: Auto-fit ka actual math (bounding box) hum baad me likhenge, abhi default A4 rakha hai
+            297;
       default:
         return 210 / 297;
     }
   }
 }
 
-// --- NAYA: GRAPH PAPER PAINTER CLASS ---
+// ---GRAPH PAPER PAINTER CLASS ---
 class GraphPaperPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
