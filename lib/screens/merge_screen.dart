@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
-
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'custom_dialog.dart';
 
 class MergeScreen extends StatefulWidget {
@@ -858,18 +858,19 @@ class _MergeScreenState extends State<MergeScreen> {
             // ==========================================
             // 4. BOTTOM BANNER AD PLACEHOLDER
             // ==========================================
-            SafeArea(
-              top: false,
-              child: Container(
-                height: 50,
-                // Standard banner ad ki height
-                width: double.infinity,
-                color: Colors.black,
-                // Dark background Ad ke peeche
-                alignment: Alignment.center,
-                child: const Text("Banner Ad Space", style: TextStyle(color: Colors.white38, fontSize: 14)),
-              ),
-            ),
+            // SafeArea(
+            //   top: false,
+            //   child: Container(
+            //     height: 50,
+            //     // Standard banner ad ki height
+            //     width: double.infinity,
+            //     color: Colors.black,
+            //     // Dark background Ad ke peeche
+            //     alignment: Alignment.center,
+            //     child: const Text("Banner Ad Space", style: TextStyle(color: Colors.white38, fontSize: 14)),
+            //   ),
+            // ),
+            const CustomBannerAd(),
           ], // Column Children Ends
         ),
       ), // Column Ends
@@ -1936,4 +1937,78 @@ class GraphPaperPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+
+// --- 🚨 NAYA: ADMOB BANNER AD WIDGET ---
+class CustomBannerAd extends StatefulWidget {
+  const CustomBannerAd({Key? key}) : super(key: key);
+
+  @override
+  State<CustomBannerAd> createState() => _CustomBannerAdState();
+}
+
+class _CustomBannerAdState extends State<CustomBannerAd> {
+  BannerAd? _bannerAd;
+  bool _isLoaded = false;
+
+  // 🚨 Sirf Android Test Ad ID
+  final String adUnitId = 'ca-app-pub-3940256099942544/6300978111';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAd();
+  }
+
+  void _loadAd() {
+    _bannerAd = BannerAd(
+      adUnitId: adUnitId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          debugPrint('Ad loaded.');
+          setState(() {
+            _isLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          debugPrint('Ad failed to load: $err');
+          ad.dispose(); // Fail hone par memory free karna zaroori hai
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose(); // Screen band hone par Ad ko hatao taaki app hang na ho
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoaded && _bannerAd != null) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          color: Colors.black, // Dark theme se match karta background
+          width: double.infinity, // Poori width lega
+          height: _bannerAd!.size.height.toDouble(), // Ad ki perfect height
+          alignment: Alignment.center,
+          child: AdWidget(ad: _bannerAd!),
+        ),
+      );
+    }
+
+    // Jab tak Ad load ho raha hai, tab tak khali space dikhao
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 50,
+        color: Colors.black,
+      ),
+    );
+  }
 }
