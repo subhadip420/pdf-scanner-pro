@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -882,21 +883,61 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
 
       // --- STEP 4: ADD TO PDF ---
+    //   final image = pw.MemoryImage(imageBytes);
+    //
+    //   // 🚨 FIX: User ka select kiya hua format uthao
+    //   PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
+    //   pdf.addPage(
+    //     pw.Page(
+    //       margin: pw.EdgeInsets.zero,
+    //       // 🚨 FIX: Agar auto fit hai (null), toh image ka size use karega, warna user ka A4/Letter
+    //       pageFormat: selectedFormat ?? PdfPageFormat(image.width!.toDouble(), image.height!.toDouble()),
+    //       build: (context) {
+    //         return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+    //       },
+    //     ),
+    //   );
+    // }
+
+      // --- STEP 4: ADD TO PDF ---
       final image = pw.MemoryImage(imageBytes);
 
-      // 🚨 FIX: User ka select kiya hua format uthao
       PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
+
+      // 🚨 MAGIC FIX: "Auto Fit" me badi camera images ko normal page size me shrink karna
+      PdfPageFormat finalPageFormat;
+
+      if (selectedFormat != null) {
+        // Agar user ne explicitly A4, Letter etc select kiya hai
+        finalPageFormat = selectedFormat;
+      } else {
+        // Agar "Auto Fit" hai, toh pixels naapo
+        double imgWidth = image.width!.toDouble();
+        double imgHeight = image.height!.toDouble();
+
+        // Standard A4 paper ki lambaai lagbhag 842 points hoti hai
+        double maxDimension = 842.0;
+
+        // Agar phone ke camera se aayi giant photo hai (>842), toh math se scale down karo
+        if (imgWidth > maxDimension || imgHeight > maxDimension) {
+          double scale = math.min(maxDimension / imgWidth, maxDimension / imgHeight);
+          imgWidth *= scale;
+          imgHeight *= scale;
+        }
+
+        finalPageFormat = PdfPageFormat(imgWidth, imgHeight);
+      }
+
       pdf.addPage(
         pw.Page(
           margin: pw.EdgeInsets.zero,
-          // 🚨 FIX: Agar auto fit hai (null), toh image ka size use karega, warna user ka A4/Letter
-          pageFormat: selectedFormat ?? PdfPageFormat(image.width!.toDouble(), image.height!.toDouble()),
+          pageFormat: finalPageFormat, // Naya calculation yahan pass hoga
           build: (context) {
             return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
           },
         ),
       );
-    }
+    } // <-- For loop yahan khatam hota hai
 
     try {
       // 1. Storage Permission Manage Karo
@@ -3039,6 +3080,33 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         label: "Merge",
                         icon: Symbols.stack_group_rounded, // Tum chaho toh Icons.view_comfy_rounded bhi use kar sakte ho
                         tooltipMessage: "Merge selected photos into one page",
+                        // onTap: () async {
+                        //   // 1. Loading UI dikhao taaki app hang na lage
+                        //   showDialog(
+                        //     context: context,
+                        //     barrierDismissible: false,
+                        //     builder: (_) => const Center(
+                        //       child: CircularProgressIndicator(color: Colors.blueAccent),
+                        //     ),
+                        //   );
+                        //
+                        //   // 2. Apne naye function ko call karke Baked (Final) files mango
+                        //   List<File> filesToMerge = await _prepareImagesForMerge();
+                        //
+                        //   // 3. Loading band karo
+                        //   if (mounted) Navigator.pop(context);
+                        //
+                        //   // 4. Merge Screen open karo naye baked data ke sath
+                        //   if (filesToMerge.isNotEmpty && mounted) {
+                        //     Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //         builder: (context) => MergeScreen(selectedImages: filesToMerge),
+                        //       ),
+                        //     );
+                        //   }
+                        // },
+
                         onTap: () async {
                           // 1. Loading UI dikhao taaki app hang na lage
                           showDialog(
@@ -3055,16 +3123,62 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           // 3. Loading band karo
                           if (mounted) Navigator.pop(context);
 
-                          // 4. Merge Screen open karo naye baked data ke sath
+                          // 4. Merge Screen open karo aur result ka WAIT karo
                           if (filesToMerge.isNotEmpty && mounted) {
-                            Navigator.push(
+
+                            // 🚨 FIX 1: Yahan 'await' lagaya aur aane wali merged file ko receive kiya
+                            final mergedFile = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => MergeScreen(selectedImages: filesToMerge),
                               ),
                             );
+
+                            // 🚨 FIX 2: Jab user save karke wapas aaye toh us file ko list me add karo
+                            if (mergedFile != null && mergedFile is File) {
+                              setState(() {
+                                // A. Photo ko original list me daalo
+                                widget.imageFiles.add({
+                                  'original': mergedFile,
+                                  'cropped': mergedFile,
+                                  'rotation': 0,
+                                  'filter': _defaultFilter,
+                                  'brightness': 0.0,
+                                  'contrast': 0.0,
+                                  'markups': null,
+                                  'cropPosition': null,
+                                  'autoCropPosition': null,
+                                });
+
+                                // B. 🚨 MAGIC FIX: Saari parallel lists ko regenerate karo taaki RangeError crash na aaye
+                                _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
+                                _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
+                                _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
+                                _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? _defaultFilter);
+                                _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
+                                _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
+                                _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
+
+                                // Selection list ko bhi nayi length do aur sabko false (untick) kardo
+                                selectedPagesList = List.generate(widget.imageFiles.length, (i) => false);
+
+                                // C. UI Adjustments
+                                isSelectionMode = false;
+                                currentPage = widget.imageFiles.length - 1; // Naye page par focus
+                              });
+
+                              // PageView ko animate karke naye page par le jao
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (_pageController.hasClients) {
+                                  _pageController.jumpToPage(currentPage);
+                                }
+                              });
+
+                              showToast("Merged photo added!");
+                            }
                           }
                         },
+
                       ),
                     ),
                   ),
