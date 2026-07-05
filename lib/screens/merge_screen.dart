@@ -71,16 +71,56 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
+  // --- 🚨 NAYA: Exit Confirmation Handle Karne Ke Liye ---
+  Future<bool> _onWillPop() async {
+    // Tumhara custom dialog popup hoga
+    bool confirm = await showCustomConfirmDialog(
+      context,
+      title: "Exit Editor?",
+      message: "Are you sure you want to exit? Any unsaved changes will be lost.",
+      positiveBtnText: "Exit",
+      positiveBtnColor: Colors.redAccent,
+    );
+
+    return confirm; // Agar true aaya, toh screen band ho jayegi
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+
+   // return Scaffold(
+    return PopScope(
+      canPop: false,
+
+      // 🚨 FIX: Yahan 'Object? result' add kiya gaya hai deprecation warning hatane ke liye
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) {
+          return;
+        }
+
+        // Apni custom exit dialog call karo
+        bool shouldExit = await _onWillPop();
+
+        // Agar user ne 'Exit' (true) press kiya hai, tab screen ko manually band karo
+        if (shouldExit && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+        child: Scaffold(
       backgroundColor: const Color(0xFF2C2C2C), // Dark theme
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
-          onPressed: () => Navigator.pop(context),
+          //onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            // 🚨 NAYA: Cross icon dabane par pehle dialog khulega
+            bool shouldExit = await _onWillPop();
+            if (shouldExit && context.mounted) {
+              Navigator.pop(context); // Agar user ne 'Exit' dabaya, tabhi pop hoga
+            }
+          },
         ),
 
         //centerTitle false kar diya taaki title left me aa jaye
@@ -493,7 +533,8 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
         ], // Column Children Ends
-      ), // Column Ends
+      ),
+        ),// Column Ends
     ); // Scaffold Ends
   }
 
