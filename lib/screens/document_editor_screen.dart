@@ -97,29 +97,35 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   String? _extractedText; // Detect kiya hua text save karne ke liye
   bool _showCopyBanner = false; // Banner hide/show karne ke liye
 
+  // 🚨 NAYA VARIABLE: True Dynamic List
+  late List<Map<String, dynamic>> docFiles;
+
   @override
   void initState() {
     super.initState();
     _loadDefaultFilter();
     documentName = _generateDefaultName();
     // Open the latest captured photo first
-    currentPage = widget.imageFiles.length - 1;
+
+    docFiles = widget.imageFiles.map((e) => Map<String, dynamic>.from(e)).toList();
+
+    currentPage = docFiles.length - 1;
     _pageController = PageController(initialPage: currentPage);
 
-    _savedCropPositions = List.generate(widget.imageFiles.length, (index) => null);
-    _autoCropPositions = List.generate(widget.imageFiles.length, (index) => null); // Auto memory init
+    _savedCropPositions = List.generate(docFiles.length, (index) => null);
+    _autoCropPositions = List.generate(docFiles.length, (index) => null); // Auto memory init
 
     _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
     _loadBannerAd();
-    _imageQuarterTurns = List.filled(widget.imageFiles.length, 0);
-    _pageFilters = List.filled(widget.imageFiles.length, "Original color"); // 🚨 Default filter set kiya
-    _pageBrightness = List.filled(widget.imageFiles.length, 0.0); // Default 0
-    _pageContrast = List.filled(widget.imageFiles.length, 0.0); // Default 0
+    _imageQuarterTurns = List.filled(docFiles.length, 0);
+    _pageFilters = List.filled(docFiles.length, "Original color"); // 🚨 Default filter set kiya
+    _pageBrightness = List.filled(docFiles.length, 0.0); // Default 0
+    _pageContrast = List.filled(docFiles.length, 0.0); // Default 0
 
     // 🚨 NAYA: Empty markups list init
-    _pageMarkups = List.filled(widget.imageFiles.length, null);
+    _pageMarkups = List.filled(docFiles.length, null);
 
-    selectedPagesList = List.filled(widget.imageFiles.length, false);
+    selectedPagesList = List.filled(docFiles.length, false);
 
     _loadEditsFromMemory();
   }
@@ -140,10 +146,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       _defaultFilter = savedFilter;
 
       // 🚨 MAIN FIX: Jab saved filter memory se mil jaye, toh usko list me apply karo
-      for (int i = 0; i < widget.imageFiles.length; i++) {
+      for (int i = 0; i < docFiles.length; i++) {
         // Agar photo Scanner se aayi hai aur usme filter set nahi hai (ya default par hai)
-        if (widget.imageFiles[i]['filter'] == null || widget.imageFiles[i]['filter'] == "Original color") {
-          widget.imageFiles[i]['filter'] = savedFilter; // Map me save karo
+        if (docFiles[i]['filter'] == null || docFiles[i]['filter'] == "Original color") {
+          docFiles[i]['filter'] = savedFilter; // Map me save karo
 
           // Agar _pageFilters list pehle initialize ho chuki hai, toh use bhi update karo
           if (_pageFilters.isNotEmpty) {
@@ -236,16 +242,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // 🚨 NEW: State reload helper (Init aur Reorder dono me kaam aayega)
   void _loadEditsFromMemory() {
     setState(() {
-      _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
-      _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
-      _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
-      _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? "Original color");
-      _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
-      _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
-      _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
+      _savedCropPositions = List.generate(docFiles.length, (i) => docFiles[i]['cropPosition']);
+      _autoCropPositions = List.generate(docFiles.length, (i) => docFiles[i]['autoCropPosition']);
+      _imageQuarterTurns = List.generate(docFiles.length, (i) => docFiles[i]['rotation'] ?? 0);
+      _pageFilters = List.generate(docFiles.length, (i) => docFiles[i]['filter'] ?? "Original color");
+      _pageBrightness = List.generate(docFiles.length, (i) => docFiles[i]['brightness'] ?? 0.0);
+      _pageContrast = List.generate(docFiles.length, (i) => docFiles[i]['contrast'] ?? 0.0);
+      _pageMarkups = List.generate(docFiles.length, (i) => docFiles[i]['markups']);
 
       // Safety check: Agar current page bounds se bahar ho jaye toh 0 pe set kar do
-      if (currentPage >= widget.imageFiles.length) {
+      if (currentPage >= docFiles.length) {
         currentPage = 0;
       }
     });
@@ -253,14 +259,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // 🚨 FIX 2: Back jaane se pehle saari settings ko map me save karne ka function
   void _saveEditsToMemory() {
-    for (int i = 0; i < widget.imageFiles.length; i++) {
-      widget.imageFiles[i]['rotation'] = _imageQuarterTurns[i];
-      widget.imageFiles[i]['filter'] = _pageFilters[i];
-      widget.imageFiles[i]['brightness'] = _pageBrightness[i];
-      widget.imageFiles[i]['contrast'] = _pageContrast[i];
-      widget.imageFiles[i]['markups'] = _pageMarkups[i];
-      widget.imageFiles[i]['cropPosition'] = _savedCropPositions[i];
-      widget.imageFiles[i]['autoCropPosition'] = _autoCropPositions[i];
+    for (int i = 0; i < docFiles.length; i++) {
+      docFiles[i]['rotation'] = _imageQuarterTurns[i];
+      docFiles[i]['filter'] = _pageFilters[i];
+      docFiles[i]['brightness'] = _pageBrightness[i];
+      docFiles[i]['contrast'] = _pageContrast[i];
+      docFiles[i]['markups'] = _pageMarkups[i];
+      docFiles[i]['cropPosition'] = _savedCropPositions[i];
+      docFiles[i]['autoCropPosition'] = _autoCropPositions[i];
     }
   }
 
@@ -427,7 +433,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     try {
       // Current image file lo
-      File currentFile = widget.imageFiles[currentPage]['cropped'] as File;
+      File currentFile = docFiles[currentPage]['cropped'] as File;
 
       final inputImage = InputImage.fromFile(currentFile);
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
@@ -468,8 +474,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       await Future.delayed(const Duration(milliseconds: 150));
 
       // 3. HEAVY WORK: Ab photo read aur decode hogi (Ab screen freez nahi lagegi, loading dikhegi)
-      File origFile = widget.imageFiles[currentPage]['original']!;
-      File cropFile = widget.imageFiles[currentPage]['cropped']!;
+      File origFile = docFiles[currentPage]['original']!;
+      File cropFile = docFiles[currentPage]['cropped']!;
 
       final origBytes = await origFile.readAsBytes();
       final cropBytes = await cropFile.readAsBytes();
@@ -498,8 +504,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
 
           // 🚨 FINAL FIX: Agar Scanner ne exact coordinates bheje hain, toh Center (auto) ki jagah wo use karo!
-          if (widget.imageFiles[currentPage]['crop_ratios'] != null) {
-            final ratios = widget.imageFiles[currentPage]['crop_ratios'];
+          if (docFiles[currentPage]['crop_ratios'] != null) {
+            final ratios = docFiles[currentPage]['crop_ratios'];
             autoTop = (ratios['top'] as num).toDouble();
             autoBottom = (ratios['bottom'] as num).toDouble();
             autoLeft = (ratios['left'] as num).toDouble();
@@ -551,7 +557,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // 🚨 NEW: Reorder logic
   Future<void> _openReorderScreen() async {
-    if (widget.imageFiles.length <= 1) {
+    if (docFiles.length <= 1) {
       showToast("Only one page available");
       return;
     }
@@ -575,15 +581,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       MaterialPageRoute(
         builder: (context) => ReorderScreen(
           // List ki copy bhej rahe hain taaki original safe rahe
-          imageFiles: List.from(widget.imageFiles),
+          imageFiles: List.from(docFiles),
         ),
       ),
     );
 
     // Jab user OK (Checkmark) dabayega toh nai list yahan aayegi
     if (reorderedList != null && reorderedList is List<Map<String, dynamic>>) {
-      widget.imageFiles.clear();
-      widget.imageFiles.addAll(reorderedList);
+      docFiles.clear();
+      docFiles.addAll(reorderedList);
 
       // Naye order ke hisab se memory wapas load karo
       _loadEditsFromMemory();
@@ -703,8 +709,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     showToast("Generating PDF...");
 
     final pdf = pw.Document();
-    for (int i = 0; i < widget.imageFiles.length; i++) {
-      var map = widget.imageFiles[i];
+    for (int i = 0; i < docFiles.length; i++) {
+      var map = docFiles[i];
       //final File file = map['cropped']!;
       // PDF function me yaha update karna:
       final File file = map['cropped'] as File;
@@ -1011,7 +1017,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   // Go to next page
   void _nextPage() {
-    if (currentPage < widget.imageFiles.length - 1) {
+    if (currentPage < docFiles.length - 1) {
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
       showToast("Last page");
@@ -1043,7 +1049,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       if (result != null && result is File) {
         setState(() {
           // Current page par purani photo ki jagah nayi photo set kardo
-          widget.imageFiles[currentPage] = {'original': result, 'cropped': result};
+          docFiles[currentPage] = {'original': result, 'cropped': result};
 
           // 🚨 ZAROORI: Is naye page ke liye purani settings (crop/rotate) RESET kardo
           _imageQuarterTurns[currentPage] = 0;
@@ -1196,7 +1202,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     currentPage = index;
                                   });
                                 },
-                                itemCount: widget.imageFiles.length,
+                                itemCount: docFiles.length,
                                 allowImplicitScrolling: true,
 
                                 itemBuilder: (context, index) {
@@ -1253,7 +1259,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                 BlendMode.multiply,
                                                               ),
                                                           child: Image.file(
-                                                            widget.imageFiles[index]['cropped'] as File,
+                                                            docFiles[index]['cropped'] as File,
                                                             fit: BoxFit.contain,
                                                             // 🚨 FIX 3: Swipe karte time purani image gayab nahi hogi (no flicker)
                                                             gaplessPlayback: true,
@@ -1551,7 +1557,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                     Text(
                                                       isSelectionMode
                                                           ? "${selectedPagesList.where((e) => e == true).length} selected"
-                                                          : "Page ${currentPage + 1} of ${widget.imageFiles.length}",
+                                                          : "Page ${currentPage + 1} of ${docFiles.length}",
                                                       style: const TextStyle(
                                                         color: Colors.white,
                                                         fontSize: 14,
@@ -1576,19 +1582,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Tooltip(
                                         message: "Next Page",
                                         child: GestureDetector(
-                                          onTap: currentPage < widget.imageFiles.length - 1 ? _nextPage : null,
+                                          onTap: currentPage < docFiles.length - 1 ? _nextPage : null,
                                           child: Container(
                                             width: 40,
                                             height: 40,
                                             decoration: BoxDecoration(
-                                              color: currentPage < widget.imageFiles.length - 1
+                                              color: currentPage < docFiles.length - 1
                                                   ? Colors.black87
                                                   : Colors.black38,
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
                                               Icons.arrow_forward_ios_rounded,
-                                              color: currentPage < widget.imageFiles.length - 1
+                                              color: currentPage < docFiles.length - 1
                                                   ? Colors.white
                                                   : Colors.white30,
                                               size: 18,
@@ -1614,7 +1620,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               color: const Color(0xFF1E1E1E),
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: widget.imageFiles.length,
+                                itemCount: docFiles.length,
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 itemBuilder: (context, index) {
                                   bool isSelected = currentPage == index;
@@ -1670,7 +1676,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                   BlendMode.multiply,
                                                                 ),
                                                             child: Image.file(
-                                                              widget.imageFiles[index]['cropped'] as File,
+                                                              docFiles[index]['cropped'] as File,
                                                               fit: BoxFit.contain, // Image apni jagah par lock rahegi
                                                             ),
                                                           ),
@@ -2353,7 +2359,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 colorFilter:
                                     _getColorFilter(filterName) ??
                                     const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                                child: Image.file(widget.imageFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
+                                child: Image.file(docFiles[currentPage]['cropped'] as File, fit: BoxFit.cover),
                               ),
                             ),
                           ),
@@ -2623,7 +2629,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   setState(() {
                     // 🚨 FIX 3: Bulk Adjust Logic for Selection Mode
                     if (isSelectionMode) {
-                      for (int i = 0; i < widget.imageFiles.length; i++) {
+                      for (int i = 0; i < docFiles.length; i++) {
                         if (selectedPagesList[i] == true) {
                           if (isBrightness) {
                             _pageBrightness[i] = val;
@@ -2702,7 +2708,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       setState(() {
                         if (isSelectionMode) {
                           // Agar selection mode ON hai, toh sirf selected ko reset karo
-                          for (int i = 0; i < widget.imageFiles.length; i++) {
+                          for (int i = 0; i < docFiles.length; i++) {
                             if (selectedPagesList[i] == true) {
                               _pageBrightness[i] = 0.0;
                               _pageContrast[i] = 0.0;
@@ -3138,7 +3144,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             if (mergedFile != null && mergedFile is File) {
                               setState(() {
                                 // A. Photo ko original list me daalo
-                                widget.imageFiles.add({
+                                docFiles.add({
                                   'original': mergedFile,
                                   'cropped': mergedFile,
                                   'rotation': 0,
@@ -3151,20 +3157,20 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 });
 
                                 // B. 🚨 MAGIC FIX: Saari parallel lists ko regenerate karo taaki RangeError crash na aaye
-                                _savedCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['cropPosition']);
-                                _autoCropPositions = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['autoCropPosition']);
-                                _imageQuarterTurns = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['rotation'] ?? 0);
-                                _pageFilters = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['filter'] ?? _defaultFilter);
-                                _pageBrightness = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['brightness'] ?? 0.0);
-                                _pageContrast = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['contrast'] ?? 0.0);
-                                _pageMarkups = List.generate(widget.imageFiles.length, (i) => widget.imageFiles[i]['markups']);
+                                _savedCropPositions = List.generate(docFiles.length, (i) => docFiles[i]['cropPosition']);
+                                _autoCropPositions = List.generate(docFiles.length, (i) => docFiles[i]['autoCropPosition']);
+                                _imageQuarterTurns = List.generate(docFiles.length, (i) => docFiles[i]['rotation'] ?? 0);
+                                _pageFilters = List.generate(docFiles.length, (i) => docFiles[i]['filter'] ?? _defaultFilter);
+                                _pageBrightness = List.generate(docFiles.length, (i) => docFiles[i]['brightness'] ?? 0.0);
+                                _pageContrast = List.generate(docFiles.length, (i) => docFiles[i]['contrast'] ?? 0.0);
+                                _pageMarkups = List.generate(docFiles.length, (i) => docFiles[i]['markups']);
 
                                 // Selection list ko bhi nayi length do aur sabko false (untick) kardo
-                                selectedPagesList = List.generate(widget.imageFiles.length, (i) => false);
+                                selectedPagesList = List.generate(docFiles.length, (i) => false);
 
                                 // C. UI Adjustments
                                 isSelectionMode = false;
-                                currentPage = widget.imageFiles.length - 1; // Naye page par focus
+                                currentPage = docFiles.length - 1; // Naye page par focus
                               });
 
                               // PageView ko animate karke naye page par le jao
@@ -3235,9 +3241,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     List<File> bakedFiles = [];
     final tempDir = await getTemporaryDirectory();
 
-    for (int i = 0; i < widget.imageFiles.length; i++) {
+    for (int i = 0; i < docFiles.length; i++) {
       if (selectedPagesList[i] == true) {
-        var map = widget.imageFiles[i];
+        var map = docFiles[i];
         final File file = map['cropped'] as File;
         final Uint8List bytes = await file.readAsBytes();
 
@@ -3423,7 +3429,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       _iconRotationTurns += 0.25;
 
       // 2. Loop chala kar sirf selected pages ko rotate karo
-      for (int i = 0; i < widget.imageFiles.length; i++) {
+      for (int i = 0; i < docFiles.length; i++) {
         if (selectedPagesList[i] == true) {
           // % 4 ensures ki 4 baar ghumne par wapas 0 (normal) ho jaye
           _imageQuarterTurns[i] = (_imageQuarterTurns[i] + 1) % 4;
@@ -3453,7 +3459,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     // 2. Agar user ne 'Delete' confirm kiya
     if (confirmDelete) {
-      if (widget.imageFiles.length == 1) {
+      if (docFiles.length == 1) {
         // CASE A: Agar sirf 1 hi page tha aur usko delete kar diya
         showToast("Document deleted");
         if (mounted) {
@@ -3467,11 +3473,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         // CASE B: Agar 1 se zyada pages hain
         setState(() {
           // Main list se wo specific page hata do
-          widget.imageFiles.removeAt(currentPage);
+          docFiles.removeAt(currentPage);
           //selectedPagesList.removeAt(currentPage);
           // Agar user aakhri page pe tha, toh current page ko 1 step peeche kar do
-          if (currentPage >= widget.imageFiles.length) {
-            currentPage = widget.imageFiles.length - 1;
+          if (currentPage >= docFiles.length) {
+            currentPage = docFiles.length - 1;
           }
         });
 
@@ -3522,7 +3528,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
 
     if (confirmDelete) {
-      if (selectedCount == widget.imageFiles.length) {
+      if (selectedCount == docFiles.length) {
         // CASE A: Agar saare hi select karke delete kar diye
         showToast("Document deleted");
         if (mounted) {
@@ -3536,20 +3542,20 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         // CASE B: Agar kuch pages bache hain
         setState(() {
           // 🚨 MAGIC: Hamesha pichhe se (reverse) delete karna chahiye taaki index shift na ho
-          for (int i = widget.imageFiles.length - 1; i >= 0; i--) {
+          for (int i = docFiles.length - 1; i >= 0; i--) {
             if (selectedPagesList[i] == true) {
-              widget.imageFiles.removeAt(i);
+              docFiles.removeAt(i);
             }
           }
 
           // Agar current page out of bounds ho gaya, toh usko adjust karo
-          if (currentPage >= widget.imageFiles.length) {
-            currentPage = widget.imageFiles.length - 1;
+          if (currentPage >= docFiles.length) {
+            currentPage = docFiles.length - 1;
           }
 
           // Delete hone ke baad selection mode band kar do aur list clear kar do
           isSelectionMode = false;
-          selectedPagesList = List.filled(widget.imageFiles.length, false);
+          selectedPagesList = List.filled(docFiles.length, false);
         });
 
         // Nayi list ke hisaab se memory wapas load karo
@@ -3579,7 +3585,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
-    File currentImage = widget.imageFiles[currentPage]['cropped']!;
+    File currentImage = docFiles[currentPage]['cropped']!;
 
     // 1. Saari current settings variables me save karo
     int turns = _imageQuarterTurns[currentPage];
@@ -3693,7 +3699,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     // 3. HEAVY WORK: Crop save logic chalega
     try {
-      File originalFile = widget.imageFiles[currentPage]['original']!;
+      File originalFile = docFiles[currentPage]['original']!;
       final bytes = await originalFile.readAsBytes();
       img.Image? originalImage = img.decodeImage(bytes);
 
@@ -3719,7 +3725,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
         // 🚨 4. FINAL UPDATE: File update karo, menus adjust karo, aur loading band karo
         setState(() {
-          widget.imageFiles[currentPage]['cropped'] = newFile;
+          docFiles[currentPage]['cropped'] = newFile;
           // Crop position save hogi agle baar ke liye
           _savedCropPositions[currentPage] = {
             'top': cropTopRatio,
@@ -3751,7 +3757,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   Widget _buildInPlaceCropView() {
-    File originalFile = widget.imageFiles[currentPage]['original']!;
+    File originalFile = docFiles[currentPage]['original']!;
 
     return Center(
       child: Padding(
