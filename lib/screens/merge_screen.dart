@@ -45,7 +45,6 @@ class MergedImageState {
       isLocked: isLocked,
     )..opacity = opacity;
   }
-
 }
 
 // CLASS: Yeh canvas ka poora snapshot save karega
@@ -54,13 +53,8 @@ class EditorSnapshot {
   final String pageSize;
   final int? selectedIndex;
 
-  EditorSnapshot({
-    required this.imageStates,
-    required this.pageSize,
-    this.selectedIndex,
-  });
+  EditorSnapshot({required this.imageStates, required this.pageSize, this.selectedIndex});
 }
-
 
 class _MergeScreenState extends State<MergeScreen> {
   //Thumbnail selection (Last photo default select hogi)
@@ -81,6 +75,7 @@ class _MergeScreenState extends State<MergeScreen> {
   bool isGridVisible = false; // Grid dikhane ke liye variable
   bool isLayerMode = false;
   int? _initialLayerIndex;
+
   // --- 🚨 UNDO / REDO VARIABLES ---
   List<EditorSnapshot> _undoHistory = [];
   List<EditorSnapshot> _redoHistory = [];
@@ -120,12 +115,14 @@ class _MergeScreenState extends State<MergeScreen> {
 
   // ---  1. STATE SAVE FUNCTION (Action hone se theek pehle call hoga) ---
   void _saveStateToHistory() {
-    _undoHistory.add(EditorSnapshot(
-      // .map().clone() karna zaroori hai taaki original list modify na ho
-      imageStates: _imageStates.map((e) => e.clone()).toList(),
-      pageSize: _selectedPageSize,
-      selectedIndex: _selectedImageIndex,
-    ));
+    _undoHistory.add(
+      EditorSnapshot(
+        // .map().clone() karna zaroori hai taaki original list modify na ho
+        imageStates: _imageStates.map((e) => e.clone()).toList(),
+        pageSize: _selectedPageSize,
+        selectedIndex: _selectedImageIndex,
+      ),
+    );
     // Naya action hone par aage ki Redo history bekaar ho jati hai, so clear it
     _redoHistory.clear();
   }
@@ -135,11 +132,13 @@ class _MergeScreenState extends State<MergeScreen> {
     if (_undoHistory.isEmpty) return; // Agar history khali hai toh kuch mat karo
     setState(() {
       // Current state ko pehle Redo me daal do
-      _redoHistory.add(EditorSnapshot(
-        imageStates: _imageStates.map((e) => e.clone()).toList(),
-        pageSize: _selectedPageSize,
-        selectedIndex: _selectedImageIndex,
-      ));
+      _redoHistory.add(
+        EditorSnapshot(
+          imageStates: _imageStates.map((e) => e.clone()).toList(),
+          pageSize: _selectedPageSize,
+          selectedIndex: _selectedImageIndex,
+        ),
+      );
 
       // Undo list se last state nikalo aur Canvas par apply kardo
       EditorSnapshot prevState = _undoHistory.removeLast();
@@ -155,11 +154,13 @@ class _MergeScreenState extends State<MergeScreen> {
     if (_redoHistory.isEmpty) return;
     setState(() {
       // Current state ko Undo me daal do
-      _undoHistory.add(EditorSnapshot(
-        imageStates: _imageStates.map((e) => e.clone()).toList(),
-        pageSize: _selectedPageSize,
-        selectedIndex: _selectedImageIndex,
-      ));
+      _undoHistory.add(
+        EditorSnapshot(
+          imageStates: _imageStates.map((e) => e.clone()).toList(),
+          pageSize: _selectedPageSize,
+          selectedIndex: _selectedImageIndex,
+        ),
+      );
 
       // Redo list se next state nikalo aur Canvas par apply kardo
       EditorSnapshot nextState = _redoHistory.removeLast();
@@ -823,8 +824,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   onTap: () {
                     setState(() {
                       isRotateMode = true; // 🚨 ROTATE ANIMATION TRIGGER KAREGA
-                      if (_selectedImageIndex != null) {
-                      }
+                      if (_selectedImageIndex != null) {}
                     });
                   },
                 ),
@@ -902,7 +902,6 @@ class _MergeScreenState extends State<MergeScreen> {
 
   // --- RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildPageSizeSubTools() {
-
     bool isChanged = _selectedPageSize != "A4 (P)";
 
     return SizedBox(
@@ -941,7 +940,6 @@ class _MergeScreenState extends State<MergeScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
               children: [
-
                 _buildToolItem(
                   label: "Auto Fit",
                   icon: Icons.fit_screen_rounded,
@@ -1503,10 +1501,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                   child: Container(
                                     width: 6,
                                     height: 6,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
+                                    decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                                   ),
                                 ),
                               );
