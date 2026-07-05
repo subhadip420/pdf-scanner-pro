@@ -4,6 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'custom_dialog.dart';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
 
 class MergeScreen extends StatefulWidget {
   //  Editor screen se selected files yahan receive karenge
@@ -24,6 +28,7 @@ class MergedImageState {
   bool isHidden;
   bool isLocked;
   double opacity = 1.0;
+  final GlobalKey imageKey = GlobalKey();
 
   MergedImageState({
     required this.file,
@@ -79,6 +84,9 @@ class _MergeScreenState extends State<MergeScreen> {
   // --- 🚨 UNDO / REDO VARIABLES ---
   List<EditorSnapshot> _undoHistory = [];
   List<EditorSnapshot> _redoHistory = [];
+
+  final GlobalKey _canvasKey = GlobalKey();
+  final GlobalKey _paperKey = GlobalKey();
 
   @override
   void initState() {
@@ -234,7 +242,8 @@ class _MergeScreenState extends State<MergeScreen> {
               icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
               tooltip: "Save",
               onPressed: () {
-                Navigator.pop(context);
+                //Navigator.pop(context);
+                _saveAndExport();
               },
             ),
             const SizedBox(width: 4),
@@ -280,6 +289,8 @@ class _MergeScreenState extends State<MergeScreen> {
                           width: constraints.maxWidth,
                           height: constraints.maxHeight,
                           color: Colors.transparent,
+                          child: RepaintBoundary( // 🚨 NAYA WRAP
+                            key: _canvasKey,
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
@@ -291,6 +302,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                   width: paperW,
                                   height: paperH,
                                   child: Container(
+                                    key: _paperKey,
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       boxShadow: [
@@ -303,339 +315,6 @@ class _MergeScreenState extends State<MergeScreen> {
                                     ),
                                   ),
                                 ),
-
-                              // --- LAYER 2: PHOTO STACK WITH CONTROLS ---
-                              // ...List.generate(_imageStates.length, (index) {
-                              //   bool isSelected = _selectedImageIndex == index;
-                              //   var imgState = _imageStates[index];
-                              //   if (imgState.isHidden) {
-                              //     return const SizedBox.shrink();
-                              //   }
-                              //
-                              //   double baseWidth = 150.0;
-                              //
-                              //   return Positioned(
-                              //     left: offsetX + imgState.position.dx,
-                              //     bottom: offsetY + imgState.position.dy,
-                              //     child: Transform.rotate(
-                              //       angle: imgState.rotation,
-                              //       child: Stack(
-                              //         clipBehavior: Clip.none,
-                              //         children: [
-                              //           // --- MAIN IMAGE CONTAINER ---
-                              //           GestureDetector(
-                              //             onTap: imgState.isLocked
-                              //                 ? null
-                              //                 : () {
-                              //                     setState(() {
-                              //                       _selectedImageIndex = index;
-                              //                     });
-                              //                   },
-                              //             onPanStart: imgState.isLocked ? null : (details) => _saveStateToHistory(),
-                              //             onPanUpdate: imgState.isLocked
-                              //                 ? null
-                              //                 : (details) {
-                              //                     setState(() {
-                              //                       _selectedImageIndex = index;
-                              //
-                              //                       double angle = imgState.rotation;
-                              //                       double cosA = math.cos(angle);
-                              //                       double sinA = math.sin(angle);
-                              //
-                              //                       double adjustedDx =
-                              //                           (details.delta.dx * cosA) - (details.delta.dy * sinA);
-                              //                       double adjustedDy =
-                              //                           (details.delta.dx * sinA) + (details.delta.dy * cosA);
-                              //
-                              //                       _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
-                              //                     });
-                              //                   },
-                              //             child: Container(
-                              //               width: baseWidth * imgState.scale,
-                              //               decoration: BoxDecoration(
-                              //                 border: Border.all(
-                              //                   color: (isSelected && !imgState.isLocked)
-                              //                       ? Colors.blueAccent
-                              //                       : Colors.transparent,
-                              //                   width: 2,
-                              //                 ),
-                              //               ),
-                              //               child: Opacity(
-                              //                 opacity: imgState.opacity,
-                              //                 child: Image.file(imgState.file, fit: BoxFit.contain),
-                              //               ),
-                              //             ),
-                              //           ),
-                              //
-                              //           // --- CORNER CONTROLS ---
-                              //           if (isSelected && !imgState.isLocked) ...[
-                              //             // 1. TOP-LEFT: HIDE ICON
-                              //             Positioned(
-                              //               top: -12,
-                              //               left: -12,
-                              //               child: GestureDetector(
-                              //                 onTap: () => setState(() {
-                              //                   _imageStates[index].isHidden = true;
-                              //                   _selectedImageIndex = null;
-                              //                 }),
-                              //                 child: Container(
-                              //                   padding: const EdgeInsets.all(4),
-                              //                   decoration: const BoxDecoration(
-                              //                     color: Colors.redAccent,
-                              //                     shape: BoxShape.circle,
-                              //                   ),
-                              //                   child: const Icon(
-                              //                     Icons.visibility_off_rounded,
-                              //                     color: Colors.white,
-                              //                     size: 16,
-                              //                   ),
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //
-                              //             // 2. SCALE ICON
-                              //             Positioned(
-                              //               top: -12,
-                              //               right: -12,
-                              //               child: GestureDetector(
-                              //                 onPanUpdate: (details) {
-                              //                   setState(() {
-                              //                     double sensitivity = 0.003;
-                              //                     double scaleChange =
-                              //                         (details.delta.dx - details.delta.dy) * sensitivity;
-                              //                     _imageStates[index].scale = (_imageStates[index].scale + scaleChange)
-                              //                         .clamp(0.2, 5.0);
-                              //                   });
-                              //                 },
-                              //                 child: Container(
-                              //                   padding: const EdgeInsets.all(4),
-                              //                   decoration: const BoxDecoration(
-                              //                     color: Colors.blueAccent,
-                              //                     shape: BoxShape.circle,
-                              //                   ),
-                              //                   child: const Icon(
-                              //                     Icons.open_in_full_rounded,
-                              //                     color: Colors.white,
-                              //                     size: 16,
-                              //                   ),
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //
-                              //             // 3. ROTATE ICON
-                              //             Positioned(
-                              //               bottom: -12,
-                              //               right: -12,
-                              //               child: GestureDetector(
-                              //                 onPanUpdate: (details) {
-                              //                   setState(() {
-                              //                     _imageStates[index].rotation += details.delta.dx * 0.02;
-                              //                   });
-                              //                 },
-                              //                 child: Container(
-                              //                   padding: const EdgeInsets.all(4),
-                              //                   decoration: const BoxDecoration(
-                              //                     color: Colors.amber,
-                              //                     shape: BoxShape.circle,
-                              //                   ),
-                              //                   child: const Icon(
-                              //                     Icons.rotate_right_rounded,
-                              //                     color: Colors.black,
-                              //                     size: 16,
-                              //                   ),
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //           ],
-                              //         ],
-                              //       ),
-                              //     ),
-                              //   );
-                              // }),
-
-                              // --- LAYER 2: PHOTO STACK WITH CONTROLS ---
-                              // ...List.generate(_imageStates.length, (index) {
-                              //   bool isSelected = _selectedImageIndex == index;
-                              //   var imgState = _imageStates[index];
-                              //   if (imgState.isHidden) {
-                              //     return const SizedBox.shrink();
-                              //   }
-                              //
-                              //   double baseWidth = 150.0;
-                              //   bool isAutoFit = _selectedPageSize == "Auto Fit";
-                              //
-                              //   // 🟩 1. AGAR SELECTED NAHI HAI YA LOCKED HAI (Normal render, No border)
-                              //   if (!isSelected || imgState.isLocked) {
-                              //     return Positioned(
-                              //       left: offsetX + imgState.position.dx,
-                              //       bottom: offsetY + imgState.position.dy,
-                              //       child: Transform.rotate(
-                              //         angle: imgState.rotation,
-                              //         child: GestureDetector(
-                              //           onTap: imgState.isLocked ? null : () {
-                              //             setState(() => _selectedImageIndex = index);
-                              //           },
-                              //           child: Container(
-                              //             width: baseWidth * imgState.scale,
-                              //             decoration: BoxDecoration(
-                              //               border: Border.all(color: Colors.transparent, width: 2),
-                              //             ),
-                              //             child: Opacity(
-                              //               opacity: imgState.opacity,
-                              //               child: Image.file(imgState.file, fit: BoxFit.contain),
-                              //             ),
-                              //           ),
-                              //         ),
-                              //       ),
-                              //     );
-                              //   }
-                              //
-                              //   // 🚨 2. AGAR SELECTED HAI (Dual-Border Magic Trick)
-                              //   return Positioned.fill(
-                              //     child: Stack(
-                              //       clipBehavior: Clip.none,
-                              //       children: [
-                              //
-                              //         // 🔴 LAYER A: UNCLIPPED (Main Image + Controls + Red Border)
-                              //         Positioned(
-                              //           left: offsetX + imgState.position.dx,
-                              //           bottom: offsetY + imgState.position.dy,
-                              //           child: Transform.rotate(
-                              //             angle: imgState.rotation,
-                              //             child: Stack(
-                              //               clipBehavior: Clip.none,
-                              //               children: [
-                              //                 // --- MAIN IMAGE CONTAINER ---
-                              //                 GestureDetector(
-                              //                   onTap: () => setState(() => _selectedImageIndex = index),
-                              //                   onPanStart: (details) => _saveStateToHistory(), // Undo Save
-                              //                   onPanUpdate: (details) {
-                              //                     setState(() {
-                              //                       _selectedImageIndex = index;
-                              //                       double angle = imgState.rotation;
-                              //                       double cosA = math.cos(angle);
-                              //                       double sinA = math.sin(angle);
-                              //                       double adjustedDx = (details.delta.dx * cosA) - (details.delta.dy * sinA);
-                              //                       double adjustedDy = (details.delta.dx * sinA) + (details.delta.dy * cosA);
-                              //                       _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
-                              //                     });
-                              //                   },
-                              //                   child: Container(
-                              //                     width: baseWidth * imgState.scale,
-                              //                     decoration: BoxDecoration(
-                              //                       // Auto Fit me Red ki zaroorat nahi
-                              //                       border: Border.all(color: isAutoFit ? Colors.blueAccent : Colors.redAccent, width: 2),
-                              //                     ),
-                              //                     child: Opacity(
-                              //                       opacity: imgState.opacity,
-                              //                       child: Image.file(imgState.file, fit: BoxFit.contain),
-                              //                     ),
-                              //                   ),
-                              //                 ),
-                              //
-                              //                 // --- CORNER CONTROLS ---
-                              //                 // 1. TOP-LEFT: HIDE ICON
-                              //                 Positioned(
-                              //                   top: -12, left: -12,
-                              //                   child: GestureDetector(
-                              //                     onTap: () {
-                              //                       _saveStateToHistory(); // Undo Save
-                              //                       setState(() {
-                              //                         _imageStates[index].isHidden = true;
-                              //                         _selectedImageIndex = null;
-                              //                       });
-                              //                     },
-                              //                     child: Container(
-                              //                       padding: const EdgeInsets.all(4),
-                              //                       decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                              //                       child: const Icon(Icons.visibility_off_rounded, color: Colors.white, size: 16),
-                              //                     ),
-                              //                   ),
-                              //                 ),
-                              //
-                              //                 // 2. SCALE ICON
-                              //                 Positioned(
-                              //                   top: -12, right: -12,
-                              //                   child: GestureDetector(
-                              //                     onPanStart: (details) => _saveStateToHistory(), // Undo Save
-                              //                     onPanUpdate: (details) {
-                              //                       setState(() {
-                              //                         double sensitivity = 0.003;
-                              //                         double scaleChange = (details.delta.dx - details.delta.dy) * sensitivity;
-                              //                         _imageStates[index].scale = (_imageStates[index].scale + scaleChange).clamp(0.2, 5.0);
-                              //                       });
-                              //                     },
-                              //                     child: Container(
-                              //                       padding: const EdgeInsets.all(4),
-                              //                       decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
-                              //                       child: const Icon(Icons.open_in_full_rounded, color: Colors.white, size: 16),
-                              //                     ),
-                              //                   ),
-                              //                 ),
-                              //
-                              //                 // 3. ROTATE ICON
-                              //                 Positioned(
-                              //                   bottom: -12, right: -12,
-                              //                   child: GestureDetector(
-                              //                     onPanStart: (details) => _saveStateToHistory(), // Undo Save
-                              //                     onPanUpdate: (details) {
-                              //                       setState(() {
-                              //                         _imageStates[index].rotation += details.delta.dx * 0.02;
-                              //                       });
-                              //                     },
-                              //                     child: Container(
-                              //                       padding: const EdgeInsets.all(4),
-                              //                       decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
-                              //                       child: const Icon(Icons.rotate_right_rounded, color: Colors.black, size: 16),
-                              //                     ),
-                              //                   ),
-                              //                 ),
-                              //               ],
-                              //             ),
-                              //           ),
-                              //         ),
-                              //
-                              //         // 🔵 LAYER B: CLIPPED TO PAGE (Sirf Andar Blue Border Dikhayega)
-                              //         if (!isAutoFit)
-                              //           Positioned(
-                              //             left: offsetX,
-                              //             bottom: offsetY,
-                              //             width: paperW,
-                              //             height: paperH,
-                              //             child: IgnorePointer(
-                              //               ignoring: true, // Taps sirf Layer A par jayenge
-                              //               child: ClipRect(
-                              //                 child: Stack(
-                              //                   clipBehavior: Clip.none,
-                              //                   children: [
-                              //                     Positioned(
-                              //                       left: imgState.position.dx,
-                              //                       bottom: imgState.position.dy,
-                              //                       child: Transform.rotate(
-                              //                         angle: imgState.rotation,
-                              //                         child: Container(
-                              //                           width: baseWidth * imgState.scale,
-                              //                           decoration: BoxDecoration(
-                              //                             border: Border.all(color: Colors.blueAccent, width: 2),
-                              //                           ),
-                              //                           // MAGIC: Image invisible, height barabar rahegi
-                              //                           child: Opacity(
-                              //                             opacity: 0.0,
-                              //                             child: Image.file(imgState.file, fit: BoxFit.contain),
-                              //                           ),
-                              //                         ),
-                              //                       ),
-                              //                     ),
-                              //                   ],
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //           ),
-                              //
-                              //       ],
-                              //     ),
-                              //   );
-                              // }),
 
                               // --- LAYER 2: PHOTO STACK WITH CONTROLS ---
                               ...List.generate(_imageStates.length, (index) {
@@ -672,6 +351,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                           });
                                         },
                                         child: Container(
+                                          key: imgState.imageKey,
                                           width: baseWidth * imgState.scale,
                                           decoration: BoxDecoration(
                                             border: Border.all(color: Colors.transparent, width: 2),
@@ -713,6 +393,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                               });
                                             },
                                             child: Container(
+                                              key: imgState.imageKey,
                                               width: baseWidth * imgState.scale,
                                               decoration: BoxDecoration(
                                                 border: Border.all(color: isAutoFit ? Colors.blueAccent : Colors.redAccent, width: 2),
@@ -864,6 +545,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                   ),
                                 ),
                             ],
+                          ),
                           ),
                         );
                       },
@@ -1072,18 +754,6 @@ class _MergeScreenState extends State<MergeScreen> {
             // ==========================================
             // 4. BOTTOM BANNER AD PLACEHOLDER
             // ==========================================
-            // SafeArea(
-            //   top: false,
-            //   child: Container(
-            //     height: 50,
-            //     // Standard banner ad ki height
-            //     width: double.infinity,
-            //     color: Colors.black,
-            //     // Dark background Ad ke peeche
-            //     alignment: Alignment.center,
-            //     child: const Text("Banner Ad Space", style: TextStyle(color: Colors.white38, fontSize: 14)),
-            //   ),
-            // ),
             const CustomBannerAd(),
           ], // Column Children Ends
         ),
@@ -2066,6 +1736,116 @@ class _MergeScreenState extends State<MergeScreen> {
     _initialLayerIndex = null;
     // isCollageMode = false;
     // isLayerMode = false;
+  }
+
+  Future<void> _saveAndExport() async {
+    // 1. Loading Dialog dikhao
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+    );
+
+    // 2. Sabhi tools aur selection hata do
+    bool wasGridVisible = isGridVisible;
+    setState(() {
+      _selectedImageIndex = null;
+      isGridVisible = false;
+      _closeAllSubTools();
+    });
+
+    // 3. UI ko refresh hone do
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    try {
+      RenderRepaintBoundary boundary = _canvasKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image fullImage = await boundary.toImage(pixelRatio: 3.0); // 3x Quality HD
+
+      Rect cropRect;
+
+      if (_selectedPageSize != "Auto Fit") {
+        // A. Agar Page hai, toh exact Safed Paper ko cut karo
+        RenderBox paperBox = _paperKey.currentContext!.findRenderObject() as RenderBox;
+        Offset topLeft = paperBox.localToGlobal(Offset.zero, ancestor: boundary);
+        cropRect = Rect.fromLTWH(topLeft.dx, topLeft.dy, paperBox.size.width, paperBox.size.height);
+      } else {
+        // B. Agar Auto Fit hai, toh mathematically images ki boundaries nikalo
+        double minX = double.infinity, minY = double.infinity;
+        double maxX = -double.infinity, maxY = -double.infinity;
+
+        for (var img in _imageStates) {
+          if (img.isHidden) continue;
+
+          RenderBox? box = img.imageKey.currentContext?.findRenderObject() as RenderBox?;
+          if (box != null) {
+            Offset p1 = box.localToGlobal(Offset.zero, ancestor: boundary);
+            Offset p2 = box.localToGlobal(Offset(box.size.width, 0), ancestor: boundary);
+            Offset p3 = box.localToGlobal(Offset(0, box.size.height), ancestor: boundary);
+            Offset p4 = box.localToGlobal(Offset(box.size.width, box.size.height), ancestor: boundary);
+
+            double localMinX = [p1.dx, p2.dx, p3.dx, p4.dx].reduce(math.min);
+            double localMaxX = [p1.dx, p2.dx, p3.dx, p4.dx].reduce(math.max);
+            double localMinY = [p1.dy, p2.dy, p3.dy, p4.dy].reduce(math.min);
+            double localMaxY = [p1.dy, p2.dy, p3.dy, p4.dy].reduce(math.max);
+
+            if (localMinX < minX) minX = localMinX;
+            if (localMaxX > maxX) maxX = localMaxX;
+            if (localMinY < minY) minY = localMinY;
+            if (localMaxY > maxY) maxY = localMaxY;
+          }
+        }
+
+        if (minX == double.infinity) {
+          if (context.mounted) Navigator.pop(context);
+          setState(() { isGridVisible = wasGridVisible; });
+          return;
+        }
+
+        // 🚨 AUTO FIT FIX: Halka sa 5px ka padding margin diya taaki edge border se na takraye
+        cropRect = Rect.fromLTRB(minX - 5, minY - 5, maxX + 5, maxY + 5);
+      }
+
+      double pr = 3.0;
+      Rect pixelCropRect = Rect.fromLTRB(
+        cropRect.left * pr, cropRect.top * pr, cropRect.right * pr, cropRect.bottom * pr,
+      ).intersect(Rect.fromLTWH(0, 0, fullImage.width.toDouble(), fullImage.height.toDouble()));
+
+      if (pixelCropRect.width <= 0 || pixelCropRect.height <= 0) {
+        if (context.mounted) Navigator.pop(context);
+        setState(() { isGridVisible = wasGridVisible; });
+        return;
+      }
+
+      ui.PictureRecorder recorder = ui.PictureRecorder();
+      Canvas canvas = Canvas(recorder);
+
+      Rect exactCanvasRect = Rect.fromLTWH(0, 0, pixelCropRect.width, pixelCropRect.height);
+
+      canvas.drawImageRect(
+        fullImage, pixelCropRect, exactCanvasRect, Paint(),
+      );
+
+      ui.Image croppedImage = await recorder.endRecording().toImage(pixelCropRect.width.toInt(), pixelCropRect.height.toInt());
+      ByteData? byteData = await croppedImage.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      Directory tempDir = await getTemporaryDirectory();
+      File savedFile = File('${tempDir.path}/merged_page_${DateTime.now().millisecondsSinceEpoch}.png');
+      await savedFile.writeAsBytes(pngBytes);
+
+      if (context.mounted) {
+        Navigator.pop(context); // Dialog close
+        Navigator.pop(context, savedFile); // Pichle page me wapas
+      }
+
+    } catch (e) {
+      debugPrint("Export Error: $e");
+      if (context.mounted) Navigator.pop(context);
+    } finally {
+      setState(() {
+        isGridVisible = wasGridVisible;
+      });
+    }
   }
 
   // Delete handle karne ka async function ---
