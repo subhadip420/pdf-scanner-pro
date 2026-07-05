@@ -163,6 +163,218 @@ class _MergeScreenState extends State<MergeScreen> {
 
       body: Column(
         children: [
+          // Expanded(
+          //   child: ClipRect(
+          //     child: GestureDetector(
+          //       onTap: () {
+          //         setState(() {
+          //           _closeAllSubTools(); // Sabhi sub-tools ek sath band
+          //           _selectedImageIndex = null; // Image deselect kardo
+          //         });
+          //       },
+          //       child: InteractiveViewer(
+          //         minScale: 1.0,
+          //         maxScale: 4.0,
+          //         boundaryMargin: EdgeInsets.zero,
+          //         child: Center(
+          //           child: Padding(
+          //             padding: const EdgeInsets.all(40.0),
+          //             child: AspectRatio(
+          //               aspectRatio: _getPageAspectRatio(),
+          //               child: Container(
+          //                 decoration: BoxDecoration(
+          //                   color: Colors.white, // Paper Color
+          //                   boxShadow: [
+          //                     BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
+          //                   ],
+          //                 ),
+          //                 // PHOTO STACK WITH CONTROLS
+          //                 child: Stack(
+          //                   clipBehavior: Clip.none,
+          //                     children: [ ...List.generate (_imageStates.length, (index) {
+          //                     bool isSelected = _selectedImageIndex == index;
+          //                     var imgState = _imageStates[index];
+          //                     //  Agar image hidden hai, toh usko canvas par draw hi mat karo
+          //                     if (imgState.isHidden) {
+          //                       return const SizedBox.shrink(); // Empty space return karega
+          //                     }
+          //
+          //                     double baseWidth = 150.0; // Initial fixed width
+          //
+          //                     return Positioned(
+          //                       left: imgState.position.dx,
+          //                       bottom: imgState.position.dy,
+          //
+          //                       child: Transform.rotate(
+          //                         angle: imgState.rotation,
+          //                         child: Stack(
+          //                           clipBehavior: Clip.none,
+          //                           children: [
+          //                             // --- MAIN IMAGE CONTAINER ---
+          //                             GestureDetector(
+          //                               // Agar locked hai toh preview canvas par click ya drag puri tarah disable
+          //                               onTap: imgState.isLocked
+          //                                   ? null
+          //                                   : () {
+          //                                       setState(() {
+          //                                         //_closeAllSubTools();
+          //                                         _selectedImageIndex = index;
+          //                                       });
+          //                                     },
+          //                               onPanUpdate: imgState.isLocked
+          //                                   ? null
+          //                                   : (details) {
+          //                                       setState(() {
+          //                                         //_closeAllSubTools();
+          //                                         _selectedImageIndex = index;
+          //                                         // Drag direction ko rotation ke hisaab se adjust karna
+          //                                         double angle = imgState.rotation;
+          //                                         double cosA = math.cos(angle);
+          //                                         double sinA = math.sin(angle);
+          //
+          //                                         // Local rotated movement ko Real screen movement me convert kiya
+          //                                         double adjustedDx = (details.delta.dx * cosA) - (details.delta.dy * sinA);
+          //                                         double adjustedDy = (details.delta.dx * sinA) + (details.delta.dy * cosA);
+          //
+          //                                         // Ab hum adjusted value lagayenge
+          //                                         _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
+          //                                       });
+          //                                     },
+          //                               // child: Transform.rotate(
+          //                               //   angle: imgState.rotation,
+          //                                 child: Container(
+          //                                   width: baseWidth * imgState.scale,
+          //                                   decoration: BoxDecoration(
+          //                                     border: Border.all(
+          //                                       //Agar locked hai, toh preview me KOI BORDER nahi aayega, chahe thumbnail se select kiya ho
+          //                                       color: (isSelected && !imgState.isLocked)
+          //                                           ? Colors.blueAccent
+          //                                           : Colors.transparent,
+          //                                       width: 2,
+          //                                     ),
+          //                                   ),
+          //                                   // Image ko Opacity widget ke andar daala
+          //                                   child: Opacity(
+          //                                     opacity: imgState.opacity, // Yahan se value apply hogi
+          //                                     child: Image.file(imgState.file, fit: BoxFit.contain),
+          //                                   ),
+          //                                 // ),
+          //                               ),
+          //                             ),
+          //
+          //                             // --- CORNER CONTROLS (Sirf tab dikhenge jab select ho) ---
+          //                             if (isSelected && !imgState.isLocked) ...[
+          //                               // 1. TOP-LEFT: DELETE ICON
+          //                               Positioned(
+          //                                 top: -12,
+          //                                 left: -12,
+          //                                 child: GestureDetector(
+          //                                   onTap: () => setState(() {
+          //                                     // Image hide kardo aur deselect kardo
+          //                                     _imageStates[index].isHidden = true;
+          //                                     _selectedImageIndex = null;
+          //                                   }),
+          //                                   child: Container(
+          //                                     padding: const EdgeInsets.all(4),
+          //                                     decoration: const BoxDecoration(
+          //                                       color: Colors.redAccent,
+          //                                       shape: BoxShape.circle,
+          //                                     ),
+          //                                     child: const Icon(
+          //                                       Icons.visibility_off_rounded,
+          //                                       color: Colors.white,
+          //                                       size: 16,
+          //                                     ),
+          //                                   ),
+          //                                 ),
+          //                               ),
+          //
+          //                               // 2. TOP-RIGHT: SCALE ICON
+          //                               Positioned(
+          //                                 top: -12,
+          //                                 right: -12,
+          //                                 child: GestureDetector(
+          //                                   onPanUpdate: (details) {
+          //                                     setState(() {
+          //                                       double sensitivity = 0.003;
+          //                                       double scaleChange =
+          //                                           (details.delta.dx - details.delta.dy) * sensitivity;
+          //                                       _imageStates[index].scale = (_imageStates[index].scale + scaleChange)
+          //                                           .clamp(0.2, 5.0);
+          //                                     });
+          //                                   },
+          //                                   child: Container(
+          //                                     padding: const EdgeInsets.all(4),
+          //                                     decoration: const BoxDecoration(
+          //                                       color: Colors.blueAccent,
+          //                                       shape: BoxShape.circle,
+          //                                     ),
+          //                                     child: const Icon(
+          //                                       Icons.open_in_full_rounded,
+          //                                       color: Colors.white,
+          //                                       size: 16,
+          //                                     ),
+          //                                   ),
+          //                                 ),
+          //                               ),
+          //
+          //                               // BOTTOM-RIGHT: ROTATE ICON
+          //                               Positioned(
+          //                                 bottom: -12,
+          //                                 right: -12,
+          //                                 child: GestureDetector(
+          //                                   onPanUpdate: (details) {
+          //                                     setState(() {
+          //                                       _imageStates[index].rotation += details.delta.dx * 0.02;
+          //                                     });
+          //                                   },
+          //                                   child: Container(
+          //                                     padding: const EdgeInsets.all(4),
+          //                                     decoration: const BoxDecoration(
+          //                                       color: Colors.amber,
+          //                                       shape: BoxShape.circle,
+          //                                     ),
+          //                                     child: const Icon(
+          //                                       Icons.rotate_right_rounded,
+          //                                       color: Colors.black,
+          //                                       size: 16,
+          //                                     ),
+          //                                   ),
+          //                                 ),
+          //                               ),
+          //                             ],
+          //
+          //
+          //                           ],
+          //                         ),
+          //                       ),
+          //                     );
+          //                   }),
+          //
+          //                     // YAHAN RAKHNA HAI GRID KO
+          //                     if (isGridVisible)
+          //                         Positioned.fill(
+          //                       child: IgnorePointer(
+          //                       ignoring: true, // Yeh touch event ko block nahi karega
+          //                         child: CustomPaint(
+          //                           painter: GraphPaperPainter(),
+          //                         ),
+          //                       ),
+          //                     ),
+          //                     ]
+          //                 ),
+          //               ),
+          //             ),
+          //           ),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          // ==========================================
+          // 2. THUMBNAILS LIST
+          // ==========================================
+
           Expanded(
             child: ClipRect(
               child: GestureDetector(
@@ -175,36 +387,68 @@ class _MergeScreenState extends State<MergeScreen> {
                 child: InteractiveViewer(
                   minScale: 1.0,
                   maxScale: 4.0,
-                  boundaryMargin: EdgeInsets.zero,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(40.0),
-                      child: AspectRatio(
-                        aspectRatio: _getPageAspectRatio(),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white, // Paper Color
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
-                            ],
-                          ),
-                          // PHOTO STACK WITH CONTROLS
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                              children: [ ...List.generate (_imageStates.length, (index) {
+                  boundaryMargin: EdgeInsets.zero, // 🚨 NAYA: Isse page apni jagah par lock rahega, hilega nahi
+
+                  // 🚨 FIX: LayoutBuilder ka use kiya taaki touch area poore screen tak fail jaye!
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // 1. Calculate Available Space (40px padding = 80px dono taraf se)
+                      double availableW = constraints.maxWidth - 80;
+                      double availableH = constraints.maxHeight - 80;
+                      double ratio = _getPageAspectRatio();
+
+                      // 2. Mathematically exact Paper Size nikalo (AspectRatio jaisa kaam)
+                      double paperW = availableW;
+                      double paperH = paperW / ratio;
+                      if (paperH > availableH) {
+                        paperH = availableH;
+                        paperW = paperH * ratio;
+                      }
+
+                      // 3. Center me rakhne ke liye Offset nikalna (Taaki purani positioning kharab na ho)
+                      double offsetX = (constraints.maxWidth - paperW) / 2;
+                      double offsetY = (constraints.maxHeight - paperH) / 2;
+
+                      return Container(
+                        width: constraints.maxWidth,
+                        height: constraints.maxHeight,
+                        color: Colors.transparent, // 🚨 MAGIC: Ab poori screen par touch detect hoga
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+
+                            // --- LAYER 1: WHITE PAPER (Apni jagah par fixed) ---
+                            Positioned(
+                              left: offsetX,
+                              bottom: offsetY,
+                              width: paperW,
+                              height: paperH,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            // --- LAYER 2: PHOTO STACK WITH CONTROLS ---
+                            ...List.generate(_imageStates.length, (index) {
                               bool isSelected = _selectedImageIndex == index;
                               var imgState = _imageStates[index];
-                              //  Agar image hidden hai, toh usko canvas par draw hi mat karo
+
+                              // Agar image hidden hai, toh usko canvas par draw hi mat karo
                               if (imgState.isHidden) {
-                                return const SizedBox.shrink(); // Empty space return karega
+                                return const SizedBox.shrink();
                               }
 
-                              double baseWidth = 150.0; // Initial fixed width
+                              double baseWidth = 150.0;
 
                               return Positioned(
-                                left: imgState.position.dx,
-                                bottom: imgState.position.dy,
-
+                                // 🚨 FIX: Purani position me offsetX aur offsetY add kar diya, taaki logic same rahe
+                                left: offsetX + imgState.position.dx,
+                                bottom: offsetY + imgState.position.dy,
                                 child: Transform.rotate(
                                   angle: imgState.rotation,
                                   child: Stack(
@@ -212,116 +456,83 @@ class _MergeScreenState extends State<MergeScreen> {
                                     children: [
                                       // --- MAIN IMAGE CONTAINER ---
                                       GestureDetector(
-                                        // Agar locked hai toh preview canvas par click ya drag puri tarah disable
                                         onTap: imgState.isLocked
                                             ? null
                                             : () {
-                                                setState(() {
-                                                  //_closeAllSubTools();
-                                                  _selectedImageIndex = index;
-                                                });
-                                              },
+                                          setState(() {
+                                            _selectedImageIndex = index;
+                                          });
+                                        },
                                         onPanUpdate: imgState.isLocked
                                             ? null
                                             : (details) {
-                                                setState(() {
-                                                  //_closeAllSubTools();
-                                                  _selectedImageIndex = index;
-                                                  // Drag direction ko rotation ke hisaab se adjust karna
-                                                  double angle = imgState.rotation;
-                                                  double cosA = math.cos(angle);
-                                                  double sinA = math.sin(angle);
+                                          setState(() {
+                                            _selectedImageIndex = index;
 
-                                                  // Local rotated movement ko Real screen movement me convert kiya
-                                                  double adjustedDx = (details.delta.dx * cosA) - (details.delta.dy * sinA);
-                                                  double adjustedDy = (details.delta.dx * sinA) + (details.delta.dy * cosA);
+                                            double angle = imgState.rotation;
+                                            double cosA = math.cos(angle);
+                                            double sinA = math.sin(angle);
 
-                                                  // Ab hum adjusted value lagayenge
-                                                  _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
-                                                });
-                                              },
-                                        // child: Transform.rotate(
-                                        //   angle: imgState.rotation,
-                                          child: Container(
-                                            width: baseWidth * imgState.scale,
-                                            decoration: BoxDecoration(
-                                              border: Border.all(
-                                                //Agar locked hai, toh preview me KOI BORDER nahi aayega, chahe thumbnail se select kiya ho
-                                                color: (isSelected && !imgState.isLocked)
-                                                    ? Colors.blueAccent
-                                                    : Colors.transparent,
-                                                width: 2,
-                                              ),
+                                            double adjustedDx = (details.delta.dx * cosA) - (details.delta.dy * sinA);
+                                            double adjustedDy = (details.delta.dx * sinA) + (details.delta.dy * cosA);
+
+                                            _imageStates[index].position += Offset(adjustedDx, -adjustedDy);
+                                          });
+                                        },
+                                        child: Container(
+                                          width: baseWidth * imgState.scale,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: (isSelected && !imgState.isLocked)
+                                                  ? Colors.blueAccent
+                                                  : Colors.transparent,
+                                              width: 2,
                                             ),
-                                            // Image ko Opacity widget ke andar daala
-                                            child: Opacity(
-                                              opacity: imgState.opacity, // Yahan se value apply hogi
-                                              child: Image.file(imgState.file, fit: BoxFit.contain),
-                                            ),
-                                          // ),
+                                          ),
+                                          child: Opacity(
+                                            opacity: imgState.opacity,
+                                            child: Image.file(imgState.file, fit: BoxFit.contain),
+                                          ),
                                         ),
                                       ),
 
-                                      // --- CORNER CONTROLS (Sirf tab dikhenge jab select ho) ---
+                                      // --- CORNER CONTROLS ---
                                       if (isSelected && !imgState.isLocked) ...[
-                                        // 1. TOP-LEFT: DELETE ICON
+                                        // 1. DELETE ICON
                                         Positioned(
-                                          top: -12,
-                                          left: -12,
+                                          top: -12, left: -12,
                                           child: GestureDetector(
-                                            onTap: () => setState(() {
-                                              // Image hide kardo aur deselect kardo
-                                              _imageStates[index].isHidden = true;
-                                              _selectedImageIndex = null;
-                                            }),
+                                            onTap: () => _handleDeletePhoto(index),
                                             child: Container(
                                               padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(
-                                                color: Colors.redAccent,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                Icons.visibility_off_rounded,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
+                                              decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                                              child: const Icon(Icons.delete_rounded, color: Colors.white, size: 16),
                                             ),
                                           ),
                                         ),
 
-                                        // 2. TOP-RIGHT: SCALE ICON
+                                        // 2. SCALE ICON
                                         Positioned(
-                                          top: -12,
-                                          right: -12,
+                                          top: -12, right: -12,
                                           child: GestureDetector(
                                             onPanUpdate: (details) {
                                               setState(() {
                                                 double sensitivity = 0.003;
-                                                double scaleChange =
-                                                    (details.delta.dx - details.delta.dy) * sensitivity;
-                                                _imageStates[index].scale = (_imageStates[index].scale + scaleChange)
-                                                    .clamp(0.2, 5.0);
+                                                double scaleChange = (details.delta.dx - details.delta.dy) * sensitivity;
+                                                _imageStates[index].scale = (_imageStates[index].scale + scaleChange).clamp(0.2, 5.0);
                                               });
                                             },
                                             child: Container(
                                               padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(
-                                                color: Colors.blueAccent,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                Icons.open_in_full_rounded,
-                                                color: Colors.white,
-                                                size: 16,
-                                              ),
+                                              decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
+                                              child: const Icon(Icons.open_in_full_rounded, color: Colors.white, size: 16),
                                             ),
                                           ),
                                         ),
 
-                                        // BOTTOM-RIGHT: ROTATE ICON
+                                        // 3. ROTATE ICON
                                         Positioned(
-                                          bottom: -12,
-                                          right: -12,
+                                          bottom: -12, right: -12,
                                           child: GestureDetector(
                                             onPanUpdate: (details) {
                                               setState(() {
@@ -330,50 +541,41 @@ class _MergeScreenState extends State<MergeScreen> {
                                             },
                                             child: Container(
                                               padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(
-                                                color: Colors.amber,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(
-                                                Icons.rotate_right_rounded,
-                                                color: Colors.black,
-                                                size: 16,
-                                              ),
+                                              decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
+                                              child: const Icon(Icons.rotate_right_rounded, color: Colors.black, size: 16),
                                             ),
                                           ),
                                         ),
                                       ],
-
-
                                     ],
                                   ),
                                 ),
                               );
                             }),
 
-                              // YAHAN RAKHNA HAI GRID KO
-                              if (isGridVisible)
-                                  Positioned.fill(
+                            // --- LAYER 3: GRID LINES (Sabse upar, taaki paper par dikhe) ---
+                            if (isGridVisible)
+                              Positioned(
+                                left: offsetX,
+                                bottom: offsetY, // Grid ko bhi theek paper ke upar rakha
+                                width: paperW,
+                                height: paperH,
                                 child: IgnorePointer(
-                                ignoring: true, // Yeh touch event ko block nahi karega
+                                  ignoring: true, // Yeh touch event ko block nahi karega
                                   child: CustomPaint(
                                     painter: GraphPaperPainter(),
                                   ),
                                 ),
                               ),
-                              ]
-                          ),
+                          ],
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
               ),
             ),
           ),
-          // ==========================================
-          // 2. THUMBNAILS LIST
-          // ==========================================
             GestureDetector(
             //Ye line ensure karegi ki khali space par bhi click kaam kare
             behavior: HitTestBehavior.opaque,
