@@ -51,6 +51,8 @@ class _MergeScreenState extends State<MergeScreen> {
   bool isOpacityMode = false;
 // State Variables
   bool isGridVisible = false; // Grid dikhane ke liye variable
+  bool isLayerMode = false;
+  int? _initialLayerIndex;
 
   @override
   void initState() {
@@ -697,7 +699,7 @@ class _MergeScreenState extends State<MergeScreen> {
                   AnimatedSlide(
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeInOut,
-                    offset: (isPageSizeMode || isPositionMode || isRotateMode || isSizeMode || isOpacityMode) ? const Offset(0, 1.0) : Offset.zero,
+                    offset: (isPageSizeMode || isPositionMode || isRotateMode || isSizeMode || isOpacityMode || isLayerMode) ? const Offset(0, 1.0) : Offset.zero,
                     child: _buildNormalTools(), // Yahan function call ho gaya
                   ),
 
@@ -739,6 +741,14 @@ class _MergeScreenState extends State<MergeScreen> {
                     curve: Curves.easeInOut,
                     offset: isOpacityMode ? Offset.zero : const Offset(0, 1.0),
                     child: _buildOpacitySubTools(),
+                  ),
+
+                  // --- G. 🚨 NAYA: LAYER SUB-TOOLS (Animated Slide Up) ---
+                  AnimatedSlide(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    offset: isLayerMode ? Offset.zero : const Offset(0, 1.0),
+                    child: _buildLayerSubTools(),
                   ),
                 ],
               ),
@@ -865,6 +875,20 @@ class _MergeScreenState extends State<MergeScreen> {
                   onTap: () => setState(() => isPageSizeMode = true),
                 ),
 
+                _buildToolItem(
+                    label: "Layer",
+                    icon: Icons.layers_rounded,
+                    isDisabled:
+                    _selectedImageIndex == null ||
+                        _imageStates[_selectedImageIndex!].isLocked ||
+                        _imageStates[_selectedImageIndex!].isHidden,
+                    onTap: () {
+                      setState(() {
+                        isLayerMode = true;
+                        _initialLayerIndex = _selectedImageIndex;
+                      });
+                    }
+                ),
 
                 _buildToolItem(
                   label: "Position",
@@ -1126,6 +1150,129 @@ class _MergeScreenState extends State<MergeScreen> {
                   //onTap: () => showToast("A5 Landscape applied"),
                   isSelected: _selectedPageSize == "A5 (L)",
                   onTap: () => setState(() => _selectedPageSize = "A5 (L)"),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 🚨 NAYA BLOCK: LAYER SUB-TOOLS ---
+  // --- 🚨 UPDATED BLOCK: LAYER SUB-TOOLS (SCROLLABLE) ---
+  // --- 🚨 UPDATED BLOCK: LAYER SUB-TOOLS (Dynamic X / Tick) ---
+  Widget _buildLayerSubTools() {
+    bool isTop = false;
+    bool isBottom = false;
+    bool isLayerChanged = false; // 🚨 NAYA: Check karne ke liye ki change hua ya nahi
+
+    if (_selectedImageIndex != null && _imageStates.isNotEmpty) {
+      isTop = _selectedImageIndex == _imageStates.length - 1;
+      isBottom = _selectedImageIndex == 0;
+
+      // 🚨 NAYA LOGIC: Agar abhi ka index initial index se alag hai, toh matlab change hua hai!
+      if (_initialLayerIndex != null) {
+        isLayerChanged = _selectedImageIndex != _initialLayerIndex;
+      }
+    }
+
+    return SizedBox(
+      height: 75,
+      width: double.infinity,
+      child: Row(
+        children: [
+          // 1. 🚨 DYNAMIC Tick/Close Button
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0),
+            child: _buildToolItem(
+              label: isLayerChanged ? "Done" : "Close",
+              icon: isLayerChanged ? Icons.check_rounded : Icons.close_rounded,
+              tooltipMessage: isLayerChanged ? "Apply Layer" : "Close Tool",
+              isSelected: isLayerChanged, // Change hone par Blue color ho jayega
+              onTap: () {
+                setState(() {
+                  _closeAllSubTools();
+                });
+              },
+            ),
+          ),
+
+          // Divider
+          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 0)),
+
+          // 2. LAYER OPTIONS (SCROLLABLE LIST)
+          Expanded(
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 0),
+              children: [
+                // A. Ekdam Upar (Bring to Front)
+                _buildToolItem(
+                    label: "To Front",
+                    icon: Icons.vertical_align_top_rounded,
+                    isDisabled: _selectedImageIndex == null || isTop,
+                    onTap: () {
+                      if (_selectedImageIndex != null && !isTop) {
+                        setState(() {
+                          var item = _imageStates.removeAt(_selectedImageIndex!);
+                          _imageStates.add(item);
+                          _selectedImageIndex = _imageStates.length - 1;
+                        });
+                        HapticFeedback.lightImpact();
+                      }
+                    }
+                ),
+
+                // B. 1 Layer Upar (Bring Forward)
+                _buildToolItem(
+                    label: "Up",
+                    icon: Icons.arrow_upward_rounded,
+                    isDisabled: _selectedImageIndex == null || isTop,
+                    onTap: () {
+                      if (_selectedImageIndex != null && !isTop) {
+                        setState(() {
+                          var item = _imageStates.removeAt(_selectedImageIndex!);
+                          _imageStates.insert(_selectedImageIndex! + 1, item);
+                          _selectedImageIndex = _selectedImageIndex! + 1;
+                        });
+                        HapticFeedback.lightImpact();
+                      }
+                    }
+                ),
+
+                // C. 1 Layer Niche (Send Backward)
+                _buildToolItem(
+                    label: "Down",
+                    icon: Icons.arrow_downward_rounded,
+                    isDisabled: _selectedImageIndex == null || isBottom,
+                    onTap: () {
+                      if (_selectedImageIndex != null && !isBottom) {
+                        setState(() {
+                          var item = _imageStates.removeAt(_selectedImageIndex!);
+                          _imageStates.insert(_selectedImageIndex! - 1, item);
+                          _selectedImageIndex = _selectedImageIndex! - 1;
+                        });
+                        HapticFeedback.lightImpact();
+                      }
+                    }
+                ),
+
+                // D. Ekdam Niche (Send to Back)
+                _buildToolItem(
+                    label: "To Back",
+                    icon: Icons.vertical_align_bottom_rounded,
+                    isDisabled: _selectedImageIndex == null || isBottom,
+                    onTap: () {
+                      if (_selectedImageIndex != null && !isBottom) {
+                        setState(() {
+                          var item = _imageStates.removeAt(_selectedImageIndex!);
+                          _imageStates.insert(0, item);
+                          _selectedImageIndex = 0;
+                        });
+                        HapticFeedback.lightImpact();
+                      }
+                    }
                 ),
               ],
             ),
@@ -1610,6 +1757,8 @@ class _MergeScreenState extends State<MergeScreen> {
     isPositionMode = false;
     isRotateMode = false;
     isOpacityMode = false;
+    isLayerMode = false;
+    _initialLayerIndex = null;
     // isCollageMode = false;
     // isLayerMode = false;
   }
