@@ -1315,7 +1315,7 @@ class _MergeScreenState extends State<MergeScreen> {
               children: [
                 _buildToolItem(
                     label: "Up",
-                    icon: Icons.arrow_upward_rounded,
+                    icon: Icons.keyboard_arrow_up,
                     isDisabled: _selectedImageIndex == null,
                     onTap: () {
                       if (_selectedImageIndex != null) {
@@ -1328,7 +1328,7 @@ class _MergeScreenState extends State<MergeScreen> {
                 ),
                 _buildToolItem(
                     label: "Down",
-                    icon: Icons.arrow_downward_rounded,
+                    icon: Icons.keyboard_arrow_down,
                     isDisabled: _selectedImageIndex == null,
                     onTap: () {
                       if (_selectedImageIndex != null) {
@@ -1341,7 +1341,7 @@ class _MergeScreenState extends State<MergeScreen> {
                 ),
                 _buildToolItem(
                     label: "Left",
-                    icon: Icons.arrow_back_rounded,
+                    icon: Icons.keyboard_arrow_left,
                     isDisabled: _selectedImageIndex == null,
                     onTap: () {
                       if (_selectedImageIndex != null) {
@@ -1354,7 +1354,7 @@ class _MergeScreenState extends State<MergeScreen> {
                 ),
                 _buildToolItem(
                     label: "Right",
-                    icon: Icons.arrow_forward_rounded,
+                    icon: Icons.keyboard_arrow_right,
                     isDisabled: _selectedImageIndex == null,
                     onTap: () {
                       if (_selectedImageIndex != null) {
