@@ -955,7 +955,8 @@ class _MergeScreenState extends State<MergeScreen> {
   // --- RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildPageSizeSubTools() {
     // Check karo ki custom size apply hua hai ya original 'Auto Fit' par hai
-    bool hasCustomSize = _selectedPageSize != "Auto Fit";
+    //bool hasCustomSize = _selectedPageSize != "Auto Fit";
+    bool isChanged = _selectedPageSize != "A4 (P)";
 
     return SizedBox(
       key: const ValueKey("ResizeSubTools"),
@@ -969,12 +970,12 @@ class _MergeScreenState extends State<MergeScreen> {
             padding: const EdgeInsets.only(left: 8.0),
             child: _buildToolItem(
               // Condition ke hisaab se label, icon aur tooltip change hoga
-              label: hasCustomSize ? "Done" : "Close",
-              icon: hasCustomSize ? Icons.check_rounded : Icons.close_rounded,
-              tooltipMessage: hasCustomSize ? "Apply changes" : "Close resize options",
+              label: isChanged ? "Done" : "Close",
+              icon: isChanged ? Icons.check_rounded : Icons.close_rounded,
+              tooltipMessage: isChanged ? "Apply changes" : "Close resize options",
 
               // isSelected true hote hi icon aur text automatically BLUE ho jayega!
-              isSelected: hasCustomSize,
+              isSelected: isChanged,
 
               onTap: () {
                 setState(() {
@@ -1004,6 +1005,24 @@ class _MergeScreenState extends State<MergeScreen> {
                   // 🚨 NAYA: Highlight hoga
                   onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
                 ),
+
+                _buildToolItem(
+                  label: "A4 (P)",
+                  icon: Icons.crop_portrait_rounded,
+                  tooltipMessage: "A4 Portrait",
+                  //onTap: () => showToast("A4 Portrait applied"),
+                  isSelected: _selectedPageSize == "A4 (P)",
+                  onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
+                ),
+                _buildToolItem(
+                  label: "A4 (L)",
+                  icon: Icons.crop_landscape_rounded,
+                  tooltipMessage: "A4 Landscape",
+                  //onTap: () => showToast("A4 Landscape applied"),
+                  isSelected: _selectedPageSize == "A4 (L)",
+                  onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
+                ),
+
 
                 // 2. US Letter
                 _buildToolItem(
@@ -1042,22 +1061,6 @@ class _MergeScreenState extends State<MergeScreen> {
                 ),
 
                 // 4. A4 Size
-                _buildToolItem(
-                  label: "A4 (P)",
-                  icon: Icons.crop_portrait_rounded,
-                  tooltipMessage: "A4 Portrait",
-                  //onTap: () => showToast("A4 Portrait applied"),
-                  isSelected: _selectedPageSize == "A4 (P)",
-                  onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
-                ),
-                _buildToolItem(
-                  label: "A4 (L)",
-                  icon: Icons.crop_landscape_rounded,
-                  tooltipMessage: "A4 Landscape",
-                  //onTap: () => showToast("A4 Landscape applied"),
-                  isSelected: _selectedPageSize == "A4 (L)",
-                  onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
-                ),
 
                 // 5. A3 Size
                 _buildToolItem(
