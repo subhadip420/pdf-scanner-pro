@@ -418,6 +418,7 @@ class _MergeScreenState extends State<MergeScreen> {
                           children: [
 
                             // --- LAYER 1: WHITE PAPER (Apni jagah par fixed) ---
+                            if (_selectedPageSize != "Auto Fit")
                             Positioned(
                               left: offsetX,
                               bottom: offsetY,
