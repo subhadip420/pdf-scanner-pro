@@ -499,18 +499,43 @@ class _MergeScreenState extends State<MergeScreen> {
 
                                       // --- CORNER CONTROLS ---
                                       if (isSelected && !imgState.isLocked) ...[
-                                        // 1. DELETE ICON
-                                        Positioned(
-                                          top: -12, left: -12,
-                                          child: GestureDetector(
-                                            onTap: () => _handleDeletePhoto(index),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                                              child: const Icon(Icons.delete_rounded, color: Colors.white, size: 16),
+                                        // // 1. DELETE ICON
+                                        // Positioned(
+                                        //   top: -12, left: -12,
+                                        //   child: GestureDetector(
+                                        //     onTap: () => _handleDeletePhoto(index),
+                                        //     child: Container(
+                                        //       padding: const EdgeInsets.all(4),
+                                        //       decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                                        //       child: const Icon(Icons.delete_rounded, color: Colors.white, size: 16),
+                                        //     ),
+                                        //   ),
+                                        // ),
+
+                                        // 1. TOP-LEFT: HIDE ICON
+                                      Positioned(
+                                        top: -12,
+                                        left: -12,
+                                        child: GestureDetector(
+                                          onTap: () => setState(() {
+                                            // Image hide kardo aur deselect kardo
+                                            _imageStates[index].isHidden = true;
+                                            _selectedImageIndex = null;
+                                          }),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.redAccent,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.visibility_off_rounded,
+                                              color: Colors.white,
+                                              size: 16,
                                             ),
                                           ),
                                         ),
+                                      ),
 
                                         // 2. SCALE ICON
                                         Positioned(
@@ -839,22 +864,8 @@ class _MergeScreenState extends State<MergeScreen> {
                   isDisabled: false,
                   onTap: () => setState(() => isPageSizeMode = true),
                 ),
-                _buildToolItem(
-                  label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden)
-                      ? "Unhide"
-                      : "Hide",
-                  icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden)
-                      ? Icons.visibility_rounded
-                      : Icons.visibility_off_rounded,
-                  isDisabled: _selectedImageIndex == null,
-                  onTap: () {
-                    if (_selectedImageIndex != null) {
-                      setState(() {
-                        _imageStates[_selectedImageIndex!].isHidden = !_imageStates[_selectedImageIndex!].isHidden;
-                      });
-                    }
-                  },
-                ),
+
+
                 _buildToolItem(
                   label: "Position",
                   icon: Icons.control_camera_rounded,
@@ -926,6 +937,24 @@ class _MergeScreenState extends State<MergeScreen> {
                       });
                     }
                 ),
+
+                _buildToolItem(
+                  label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden)
+                      ? "Unhide"
+                      : "Hide",
+                  icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden)
+                      ? Icons.visibility_rounded
+                      : Icons.visibility_off_rounded,
+                  isDisabled: _selectedImageIndex == null,
+                  onTap: () {
+                    if (_selectedImageIndex != null) {
+                      setState(() {
+                        _imageStates[_selectedImageIndex!].isHidden = !_imageStates[_selectedImageIndex!].isHidden;
+                      });
+                    }
+                  },
+                ),
+
                 _buildToolItem(
                   label: "Delete",
                   icon: Icons.delete_outline_rounded,
