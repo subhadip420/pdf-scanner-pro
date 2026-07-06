@@ -14,6 +14,7 @@ import 'custom_gallery_screen.dart'; // Apni gallery wali screen
 import 'document_editor_screen.dart'; // Apna editor
 
 import 'package:permission_handler/permission_handler.dart'; // Uint8List ke liye zaroori hai
+import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -573,7 +574,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Tooltip(
                                   message: "Share",
                                   child: InkWell(
-                                    onTap: () => showToast("Share clicked"),
+                                    //onTap: () => showToast("Share clicked"),
+                                    onTap: () => _sharePdfFile(file),
                                     child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
                                   ),
                                 ),
@@ -600,8 +602,27 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-}
 
+  //PDF Share karne ke liye
+  // 🚨 NAYA FUNCTION: PDF Share karne ke liye (Fixed for Latest ShareParams API)
+  Future<void> _sharePdfFile(File file) async {
+    try {
+      final xFile = XFile(file.path);
+
+      // 🚨 FIX: 'xFiles' ki jagah sirf 'files' aayega
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [xFile], // Yahan change kiya hai
+          text: 'Document shared from PDF Scanner Pro',
+        ),
+      );
+    } catch (e) {
+      showToast("Error sharing file");
+      print("Share Error: $e");
+    }
+  }
+
+}//end main class
 ///end main class
 ///
 
