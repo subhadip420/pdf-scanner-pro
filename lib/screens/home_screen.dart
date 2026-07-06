@@ -580,11 +580,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 16),
+                                // Tooltip(
+                                //   message: "More",
+                                //   child: InkWell(
+                                //     onTap: () => showToast("More options"),
+                                //     child: const Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+                                //   ),
+                                // ),
                                 Tooltip(
-                                  message: "More",
+                                  message: "More options",
                                   child: InkWell(
-                                    onTap: () => showToast("More options"),
-                                    child: const Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+                                    borderRadius: BorderRadius.circular(20),
+                                    onTap: () => _showFileOptionsBottomSheet(context, file),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(6.0),
+                                      child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -600,6 +611,144 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
+    );
+  }
+
+// 🚨 NAYA FUNCTION: Updated with New Options & Scrollable Support
+  void _showFileOptionsBottomSheet(BuildContext context, File file) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Zaroori hai taaki list badi hone par scroll ho sake
+      backgroundColor: const Color(0xFF1E1E1E),
+      elevation: 10,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              // Niche drag karne wala handle bar
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // File ka Real Name Header me dikhao
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  file.path.split('/').last,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Divider(color: Colors.white12, height: 24, thickness: 1),
+
+              // 🚨 FIX: Options ko scrollable banaya taaki chhote phones me overflow na ho
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 1. Share Option (Tumhara asli function call karega)
+                      ListTile(
+                        leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
+                        title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(context); // Pehle menu close karo
+                          _sharePdfFile(file); // Phir file share menu kholo
+                        },
+                      ),
+
+                      // 2. Open with
+                      ListTile(
+                        leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
+                        title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showToast("Open with clicked");
+                        },
+                      ),
+
+                      // 3. Copy Option
+                      ListTile(
+                        leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
+                        title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showToast("Copy clicked");
+                        },
+                      ),
+
+                      // 4. Save pages as JPEG
+                      ListTile(
+                        leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
+                        title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showToast("Save pages as JPEG clicked");
+                        },
+                      ),
+
+                      // 5. Rename Option
+                      ListTile(
+                        leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
+                        title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showToast("Rename clicked");
+                        },
+                      ),
+
+                      // 6. Print Option
+                      ListTile(
+                        leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
+                        title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showToast("Print clicked");
+                        },
+                      ),
+
+                      // 7. Details Option
+                      ListTile(
+                        leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
+                        title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showToast("Details clicked");
+                        },
+                      ),
+
+                      const Divider(color: Colors.white12, height: 16),
+
+                      // 8. Delete Option (Danger Zone - Red)
+                      ListTile(
+                        leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+                        title: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                        onTap: () {
+                          Navigator.pop(context);
+                          showToast("Delete clicked");
+                        },
+                      ),
+                      const SizedBox(height: 10), // Safe spacing
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
