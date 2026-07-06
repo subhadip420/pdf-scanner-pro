@@ -468,47 +468,74 @@ class _HomeScreenState extends State<HomeScreen> {
     // List with Date Grouping Headers
     String? lastCategory;
 
-    // Total items calculate karna (Files + Ads)
-    int totalItemCount;
-    if (_pdfFiles.length < 5) {
-      totalItemCount = _pdfFiles.length + 1; // 1 Ad at the end
-    } else {
-      // Har 5 item ke baad 1 ad (6th item)
-      totalItemCount = _pdfFiles.length + (_pdfFiles.length ~/ 5);
-    }
+    // // Total items calculate karna (Files + Ads)
+    // int totalItemCount;
+    // if (_pdfFiles.length < 5) {
+    //   totalItemCount = _pdfFiles.length + 1; // 1 Ad at the end
+    // } else {
+    //   // Har 5 item ke baad 1 ad (6th item)
+    //   totalItemCount = _pdfFiles.length + (_pdfFiles.length ~/ 5);
+    // }
+    //
+    // return RefreshIndicator(
+    //   onRefresh: _loadPdfFiles, // Niche swipe karne par list refresh hogi
+    //   color: Colors.blueAccent,
+    //   backgroundColor: const Color(0xFF1E1E1E),
+    //   child: ListView.builder(
+    //     // 'AlwaysScrollableScrollPhysics' add kiya taaki list chhoti hone par bhi refresh ho sake
+    //     physics: const AlwaysScrollableScrollPhysics(),
+    //     padding: const EdgeInsets.only(bottom: 80, top: 10),
+    //     itemCount: totalItemCount,
+    //     itemBuilder: (context, index) {
+    //       // Logic: Decide karein ki yeh index Ad ka hai ya File ka
+    //       bool isAdIndex;
+    //       if (_pdfFiles.length < 5) {
+    //         isAdIndex = (index == _pdfFiles.length); // Sabse last index ad hoga
+    //       } else {
+    //         isAdIndex = (index + 1) % 6 == 0; // Har 6th position par ad (index 5, 11, 17...)
+    //       }
+    //
+    //       // Agar yeh position Ad ki hai, toh NativeAd return karein
+    //       if (isAdIndex) {
+    //         return const NativeAdCard();
+    //       }
+    //
+    //       // Agar File hai, toh asli file index nikalein
+    //       int fileIndex;
+    //       if (_pdfFiles.length < 5) {
+    //         fileIndex = index;
+    //       } else {
+    //         fileIndex = index - (index ~/ 6); // Ad ke index ko minus kar diya taaki list sahi chale
+    //       }
+    //
+    //       final file = _pdfFiles[fileIndex];
+
+    // 🚨 NAYA LOGIC: Sirf ek Ad dikhega 3rd position par (Index 3 par)
+    // Agar files 3 ya usse zyada hain, toh total items me 1 Ad jud jayega.
+    int totalItemCount = _pdfFiles.length >= 3 ? _pdfFiles.length + 1 : _pdfFiles.length;
 
     return RefreshIndicator(
-      onRefresh: _loadPdfFiles, // Niche swipe karne par list refresh hogi
+      onRefresh: _loadPdfFiles,
       color: Colors.blueAccent,
       backgroundColor: const Color(0xFF1E1E1E),
       child: ListView.builder(
-        // 'AlwaysScrollableScrollPhysics' add kiya taaki list chhoti hone par bhi refresh ho sake
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 80, top: 10),
         itemCount: totalItemCount,
         itemBuilder: (context, index) {
-          // Logic: Decide karein ki yeh index Ad ka hai ya File ka
-          bool isAdIndex;
-          if (_pdfFiles.length < 5) {
-            isAdIndex = (index == _pdfFiles.length); // Sabse last index ad hoga
-          } else {
-            isAdIndex = (index + 1) % 6 == 0; // Har 6th position par ad (index 5, 11, 17...)
-          }
 
-          // Agar yeh position Ad ki hai, toh NativeAd return karein
+          // 🚨 Sirf 3rd index par Ad dikhega (Yaani shuru ki 3 files ke thik baad)
+          bool isAdIndex = (index == 3);
+
           if (isAdIndex) {
-            return const NativeAdCard();
+            return const NativeAdCard(); // Yahan Ad show hoga
           }
 
-          // Agar File hai, toh asli file index nikalein
-          int fileIndex;
-          if (_pdfFiles.length < 5) {
-            fileIndex = index;
-          } else {
-            fileIndex = index - (index ~/ 6); // Ad ke index ko minus kar diya taaki list sahi chale
-          }
+          // 🚨 Asli file index nikalna (Kyunki ek ad index 3 pe aa gaya, toh aage ki files minus 1 hongi)
+          int fileIndex = index > 3 ? index - 1 : index;
 
           final file = _pdfFiles[fileIndex];
+
           final fileStat = file.statSync();
           final dateCategory = _getDateCategory(fileStat.modified);
 
