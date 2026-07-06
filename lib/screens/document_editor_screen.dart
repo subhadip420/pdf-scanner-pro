@@ -1615,17 +1615,107 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           curve: Curves.easeInOut,
                           height: isThumbnailVisible ? 90.0 : 0.0,
                           child: ClipRect(
+                            // child: Container(
+                            //   height: 90,
+                            //   color: const Color(0xFF1E1E1E),
+                            //   child: ListView.builder(
+                            //     scrollDirection: Axis.horizontal,
+                            //     itemCount: docFiles.length,
+                            //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            //     itemBuilder: (context, index) {
+                            //       bool isSelected = currentPage == index;
+                            //       bool isChecked = selectedPagesList[index];
+                            //       return GestureDetector(
+                            //         onTap: () {
+
                             child: Container(
                               height: 90,
                               color: const Color(0xFF1E1E1E),
-                              child: ListView.builder(
+
+                              // 🚨 MAGIC START: ListView.builder ki jagah ReorderableListView.builder
+                              child: ReorderableListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: docFiles.length,
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+
+                                // 🚨 NAYA: Hold (Long Press) karte hi kya hoga?
+                                onReorderStart: (int index) {
+                                  _saveEditsToMemory(); // Memory me save kardo
+                                  HapticFeedback.mediumImpact(); // Solid vibration feel
+
+                                  // Agar Selection Mode OFF hai, toh hold karte hi ON kardo aur is item ko tick kardo
+                                  if (!isSelectionMode) {
+                                    setState(() {
+                                      isSelectionMode = true;
+                                      //selectedPagesList[index] = true;
+
+                                      // Agar koi aur menu khula hai toh use band kardo
+                                      _showFilterMenu = false;
+                                      _showAdjustMenu = false;
+                                      isResizeMode = false;
+                                    });
+                                  }
+                                },
+
+                                // 🚨 NAYA CORRECTION: Growable list error fix kiya
+                                onReorder: (int oldIndex, int newIndex) {
+                                  setState(() {
+                                    if (oldIndex < newIndex) {
+                                      newIndex -= 1; // Flutter ka default offset adjustment
+                                    }
+
+                                    if (oldIndex == newIndex) return; // Agar apni jagah wapas chhoda toh kuch mat karo
+
+                                    // 1. Main DocFiles list ko reorder karo
+                                    final Map<String, dynamic> item = docFiles.removeAt(oldIndex);
+                                    docFiles.insert(newIndex, item);
+
+                                    // 🚨 MAGIC FIX: selectedPagesList ko force karke Growable banaya taaki removeAt crash na ho!
+                                    List<bool> growableSelection = List<bool>.from(selectedPagesList);
+                                    final bool selItem = growableSelection.removeAt(oldIndex);
+                                    growableSelection.insert(newIndex, selItem);
+                                    selectedPagesList = growableSelection; // Wapas primary variable me copy kardo
+
+                                    // 3. Current Page track karo taaki bada wala preview galat jagah na jaye
+                                    if (currentPage == oldIndex) {
+                                      currentPage = newIndex;
+                                    } else if (currentPage > oldIndex && currentPage <= newIndex) {
+                                      currentPage -= 1;
+                                    } else if (currentPage < oldIndex && currentPage >= newIndex) {
+                                      currentPage += 1;
+                                    }
+                                  });
+
+                                  // 4. Memory se baaki arrays (rotation, filters) regenerate kar lo
+                                  _loadEditsFromMemory();
+
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    if (_pageController.hasClients) {
+                                      _pageController.jumpToPage(currentPage);
+                                    }
+                                  });
+
+                                  HapticFeedback.lightImpact(); // Drop karne par light vibration
+                                },
+
+                                // 🚨 NAYA: Hawa me drag hote waqt premium UI (shadow effect)
+                                proxyDecorator: (Widget child, int index, Animation<double> animation) {
+                                  return Material(
+                                    color: Colors.transparent,
+                                    elevation: 10,
+                                    shadowColor: Colors.black54,
+                                    child: child,
+                                  );
+                                },
+
                                 itemBuilder: (context, index) {
                                   bool isSelected = currentPage == index;
                                   bool isChecked = selectedPagesList[index];
+
                                   return GestureDetector(
+                                    // 🚨 ZAROORI FIX: Reorderable list me har item ki Unique 'Key' honi zaruri hai
+                                    key: ObjectKey(docFiles[index]),
+
                                     onTap: () {
                                       _pageController.animateToPage(
                                         index,
