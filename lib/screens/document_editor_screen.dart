@@ -607,7 +607,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   String _generateDefaultName() {
     final now = DateTime.now();
     final months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return "Scanner Pro ${months[now.month - 1]} ${now.day}, ${now.year}";
+    return "PDF Scanner Pro ${months[now.month - 1]} ${now.day}, ${now.year}";
   }
 
   // 1. Ad load karne ka function (With Memory Management)
