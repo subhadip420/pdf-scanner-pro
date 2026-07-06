@@ -727,7 +727,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
                         onTap: () {
                           Navigator.pop(context);
-                          showToast("Details clicked");
+                          //showToast("Details clicked");
+                          _showPdfDetails(context, file);
                         },
                       ),
 
@@ -886,6 +887,61 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
       },
+    );
+  }
+
+  // 🚨 NAYA FUNCTION: PDF File ki details dikhane ke liye
+  void _showPdfDetails(BuildContext context, File file) {
+    // File ki information (Size, Date) nikalna
+    final stat = file.statSync();
+    final String fileName = file.path.split('/').last;
+    final String fileSize = _getFileSize(stat.size); // Tumhara hi banaya hua function!
+    final String modifiedDate = DateFormat('dd MMM yyyy, hh:mm a').format(stat.modified);
+    final String filePath = file.path;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C), // Premium Dark Grey
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('File Details', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min, // Jitna content utni jagah lega
+              children: [
+                _buildDetailRow("Name", fileName),
+                _buildDetailRow("Type", "PDF Document (.pdf)"),
+                _buildDetailRow("Size", fileSize),
+                _buildDetailRow("Modified", modifiedDate),
+                _buildDetailRow("Location", filePath),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Dialog band karne ke liye
+              child: const Text('Close', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 🚨 HELPER WIDGET: Details ko sundar design me dikhane ke liye
+  Widget _buildDetailRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 15)),
+        ],
+      ),
     );
   }
 
