@@ -6,15 +6,19 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
+import 'package:pdf/pdf.dart' hide PdfDocument;
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:pdfx/pdfx.dart';
 import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:printing/printing.dart';
 import 'custom_gallery_screen.dart'; // Apni gallery wali screen
 import 'document_editor_screen.dart'; // Apna editor
 
 import 'package:permission_handler/permission_handler.dart'; // Uint8List ke liye zaroori hai
 import 'package:share_plus/share_plus.dart';
+
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -717,7 +721,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
                         onTap: () {
                           Navigator.pop(context);
-                          showToast("Print clicked");
+                          //showToast("Print clicked");
+                          _printPdfFile(file);
                         },
                       ),
 
@@ -943,6 +948,25 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  // 🚨 NAYA FUNCTION: PDF File ko Print karne ke liye
+  Future<void> _printPdfFile(File file) async {
+    try {
+      // File ka naam nikalna taaki Print menu me wahi naam dikhe
+      final String fileName = file.path.split('/').last;
+
+      // 🚨 Asli Magic: Flutter ka native print manager call karna
+      await Printing.layoutPdf(
+        name: fileName,
+        onLayout: (PdfPageFormat format) async {
+          return await file.readAsBytes(); // PDF ko bytes me convert karke printer ko de dega
+        },
+      );
+    } catch (e) {
+      print("Print Error: $e");
+      showToast("Error printing file");
+    }
   }
 
 }//end main class
