@@ -685,7 +685,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
                         onTap: () {
                           Navigator.pop(context);
-                          showToast("Copy clicked");
+                          _copyPdfFile(file);
+                          //showToast("Copy clicked");
                         },
                       ),
 
@@ -705,7 +706,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
                         onTap: () {
                           Navigator.pop(context);
-                          showToast("Rename clicked");
+                          //showToast("Rename clicked");
+                          _renamePdfFile(context, file);
                         },
                       ),
 
@@ -769,6 +771,122 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast("Error sharing file");
       print("Share Error: $e");
     }
+  }
+
+  // 🚨 NAYA FUNCTION: PDF File ko duplicate (copy) karne ke liye
+  Future<void> _copyPdfFile(File originalFile) async {
+    try {
+      String originalPath = originalFile.path;
+
+      // Path ko 3 hisso me todna: Folder path, File ka naam, aur Extension (.pdf)
+      String dir = originalPath.substring(0, originalPath.lastIndexOf('/'));
+      String fileName = originalPath.substring(originalPath.lastIndexOf('/') + 1);
+      String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+      String extension = fileName.substring(fileName.lastIndexOf('.'));
+
+      // Naya naam banayenge: "OriginalName_copy.pdf"
+      String newPath = '$dir/${baseName}_copy$extension';
+      File newFile = File(newPath);
+
+      // Agar "OriginalName_copy.pdf" pehle se hai, toh aage number badhate jayenge (e.g., _copy(1), _copy(2))
+      int counter = 1;
+      while (await newFile.exists()) {
+        newPath = '$dir/${baseName}_copy($counter)$extension';
+        newFile = File(newPath);
+        counter++;
+      }
+
+      // Asli magic: File ko naye path par copy kar diya
+      await originalFile.copy(newPath);
+
+      // List ko refresh karo taaki nayi file turant upar dikhe
+      await _loadPdfFiles();
+
+      showToast("File copied successfully");
+    } catch (e) {
+      print("Copy Error: $e");
+      showToast("Error copying file");
+    }
+  }
+
+
+  // 🚨 NAYA FUNCTION: PDF File ko Rename karne ke liye (Popup ke sath)
+  void _renamePdfFile(BuildContext context, File originalFile) {
+    String originalPath = originalFile.path;
+    String dir = originalPath.substring(0, originalPath.lastIndexOf('/'));
+    String fileName = originalPath.substring(originalPath.lastIndexOf('/') + 1);
+    String baseName = fileName.substring(0, fileName.lastIndexOf('.')); // Sirf naam, '.pdf' ke bina
+
+    // TextField me purana naam pre-fill karne ke liye controller
+    TextEditingController nameController = TextEditingController(text: baseName);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C), // Premium Dark Grey
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Rename File', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          content: TextField(
+            controller: nameController,
+            style: const TextStyle(color: Colors.white),
+            autofocus: true, // Dialog khulte hi keyboard open ho jayega
+            decoration: const InputDecoration(
+              hintText: "Enter new name",
+              hintStyle: TextStyle(color: Colors.white54),
+              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white54)),
+              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.lightBlueAccent)),
+              suffixText: '.pdf', // User ko dikhega ki yeh PDF banegi
+              suffixStyle: TextStyle(color: Colors.white54),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Cancel button
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54, fontSize: 16)),
+            ),
+            TextButton(
+              onPressed: () async {
+                String newName = nameController.text.trim();
+
+                // 1. Agar naam khali chhod diya
+                if (newName.isEmpty) {
+                  showToast("Name cannot be empty");
+                  return;
+                }
+
+                String newPath = '$dir/$newName.pdf';
+                File newFile = File(newPath);
+
+                // 2. Agar naam change hi nahi kiya
+                if (newPath == originalPath) {
+                  Navigator.pop(context);
+                  return;
+                }
+
+                // 3. Agar is naam ki file pehle se wahan hai
+                if (await newFile.exists()) {
+                  showToast("A file with this name already exists");
+                  return;
+                }
+
+                // 4. Asli Magic: File ka naam badlo aur list refresh karo
+                try {
+                  await originalFile.rename(newPath);
+                  Navigator.pop(context); // Dialog band karo
+                  await _loadPdfFiles(); // 🚨 Naye naam ke sath list refresh!
+                  showToast("File renamed successfully");
+                } catch (e) {
+                  print("Rename Error: $e");
+                  showToast("Error renaming file");
+                }
+              },
+              child: const Text('Rename', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
 }//end main class
