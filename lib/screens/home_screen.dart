@@ -12,6 +12,7 @@ import 'package:pdfx/pdfx.dart';
 import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
+import 'custom_dialog.dart';
 import 'custom_gallery_screen.dart'; // Apni gallery wali screen
 import 'document_editor_screen.dart'; // Apna editor
 
@@ -547,7 +548,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           border: Border.all(color: Colors.white12),
                         ),
                         clipBehavior: Clip.hardEdge,
-                        child: PdfThumbnailView(filePath: file.path),
+                        //child: PdfThumbnailView(filePath: file.path),
+                        child: PdfThumbnailView(
+                          key: ValueKey(file.path),
+                          filePath: file.path,
+                        ),
                       ),
                       const SizedBox(width: 16),
 
@@ -743,9 +748,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       ListTile(
                         leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
                         title: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
-                        onTap: () {
+                        onTap: () async {
                           Navigator.pop(context);
-                          showToast("Delete clicked");
+                          //showToast("Delete clicked");
+                          // 2. 🚨 Tumhara apna Global Custom Dialog Call!
+                          bool shouldDelete = await showCustomConfirmDialog(
+                            context,
+                            title: "Delete Document",
+                            message: "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
+                            positiveBtnText: "Delete",
+                            negativeBtnText: "Cancel",
+                            positiveBtnColor: Colors.redAccent, // Danger actions ke liye Lal rang
+                          );
+
+                          // 3. Agar user ne tumhare dialog me 'Delete' (true) press kiya hai
+                          if (shouldDelete) {
+                            await _deletePdfFile(file); // 🚨 File delete kar do aur list refresh karo
+                          }
                         },
                       ),
                       const SizedBox(height: 10), // Safe spacing
@@ -966,6 +985,46 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print("Print Error: $e");
       showToast("Error printing file");
+    }
+  }
+
+  // 🚨 HELPER FUNCTION: Storage se file delete aur list refresh karne ke liye
+  // 🚨 NAYA FUNCTION: Scoped Storage ko bypass karke file delete karna
+  Future<void> _deletePdfFile(File file) async {
+    try {
+      if (await file.exists()) {
+
+        // 1. Storage Permission Double Check (Zaroori hai Scoped Storage me)
+        if (await Permission.manageExternalStorage.isDenied) {
+          await Permission.manageExternalStorage.request();
+        }
+
+        // 2. Android ka naya "File.writeAsBytesSync([])" hack
+        // Direct .delete() kabhi-kabhi crash/ignore ho jata hai Android 13/14 me.
+        // Isliye pehle file ko khali (0 bytes) karte hain, fir delete marte hain.
+        try {
+          file.writeAsBytesSync([]); // File data mitao pehle
+        } catch (_) {
+          // Agar permission issue aaya yahan, to pakka system block kar raha hai
+        }
+
+        // 3. Final Delete Call
+        await file.delete();
+
+        // 4. List turant update hogi
+        await _loadPdfFiles();
+
+        showToast("File deleted successfully");
+      } else {
+        showToast("File already deleted or not found");
+      }
+    } catch (e) {
+      print("Delete Error: $e");
+
+      // Agar catch me aata hai, matlab Android 11+ ne block kiya hai.
+      // Iska sabse aasaan fix user ko File Manager se delete karne bolna hai,
+      // Ya MediaStore API (Jo complex hai) use karna. Par 99% time upar wala hack kaam kar jayega.
+      showToast("Error: Permission denied by Android System.");
     }
   }
 
