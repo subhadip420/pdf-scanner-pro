@@ -100,6 +100,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // 🚨 NAYA VARIABLE: True Dynamic List
   late List<Map<String, dynamic>> docFiles;
 
+  // 🚨 NAYA: Double tap aur Zoom control karne ke liye
+  final TransformationController _transformationController = TransformationController();
+  TapDownDetails? _doubleTapDetails;
+
   @override
   void initState() {
     super.initState();
@@ -126,7 +130,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageMarkups = List.filled(docFiles.length, null);
 
     selectedPagesList = List.filled(docFiles.length, false);
-
     _loadEditsFromMemory();
   }
 
@@ -1201,6 +1204,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   setState(() {
                                     currentPage = index;
                                   });
+                                  // 🚨 NAYA FIX: Page swipe karte hi zoom wapas normal (Reset) ho jayega
+                                  _transformationController.value = Matrix4.identity();
                                 },
                                 itemCount: docFiles.length,
                                 allowImplicitScrolling: true,
@@ -1212,23 +1217,65 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   return GestureDetector(
                                     behavior: HitTestBehavior.translucent,
 
+                                    // onTap: () {
+                                    //   if (_showFilterMenu) setState(() => _showFilterMenu = false);
+                                    //   if (_showAdjustMenu)
+                                    //     setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+                                    //
+                                    //   if (isResizeMode) {
+                                    //     setState(() {
+                                    //       isResizeMode = false;
+                                    //       isThumbnailVisible = true;
+                                    //
+                                    //       if (_showAdjustMenu) _showFilterMenu = false;
+                                    //       if (_showFilterMenu) _showAdjustMenu = false;
+                                    //     });
+                                    //   }
+                                    // },
+
                                     onTap: () {
+                                      // Agar koi menu khula hai toh band karo
                                       if (_showFilterMenu) setState(() => _showFilterMenu = false);
-                                      if (_showAdjustMenu)
-                                        setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
+                                      if (_showAdjustMenu) setState(() => _showAdjustMenu = false);
 
                                       if (isResizeMode) {
                                         setState(() {
                                           isResizeMode = false;
                                           isThumbnailVisible = true;
-
                                           if (_showAdjustMenu) _showFilterMenu = false;
                                           if (_showFilterMenu) _showAdjustMenu = false;
                                         });
                                       }
                                     },
 
+                                    // 1. Pata lagana ki user ne kahan double tap kiya hai
+                                    onDoubleTapDown: (details) {
+                                      _doubleTapDetails = details;
+                                    },
+
+                                    // 2. Double tap karte hi Zoom In ya Zoom Out karna
+                                    onDoubleTap: () {
+                                      if (isCroppingMode || isSelectionMode || isResizeMode) return;
+
+                                      final double currentScale = _transformationController.value.getMaxScaleOnAxis();
+
+                                      if (currentScale <= 1.05) {
+                                        final position = _doubleTapDetails?.localPosition ?? Offset.zero;
+
+                                        // 🚨 MAGIC FIX: Direct matrix values set kiye hain.
+                                        // Yeh Zindagi me kabhi 'deprecated' ya error nahi denge!
+                                        _transformationController.value = Matrix4.identity()
+                                          ..setTranslationRaw(-position.dx * 1.5, -position.dy * 1.5, 0.0) // X aur Y ko translate kiya
+                                          ..setEntry(0, 0, 2.5) // X-Axis par 2.5x Zoom
+                                          ..setEntry(1, 1, 2.5) // Y-Axis par 2.5x Zoom
+                                          ..setEntry(2, 2, 1.0); // Z-Axis (Normal)
+                                      } else {
+                                        _transformationController.value = Matrix4.identity(); // Zoom Out
+                                      }
+                                    },
+
                                     child: InteractiveViewer(
+                                      transformationController: _transformationController,
                                       minScale: 1.0,
                                       maxScale: 5.0,
                                       clipBehavior: Clip.none,
