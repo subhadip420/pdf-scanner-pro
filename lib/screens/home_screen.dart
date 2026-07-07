@@ -1494,15 +1494,16 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           _buildToolIcon(Icons.share_outlined, "Share", Colors.white, () {
             // TODO: Bulk Share function
-            showToast("Share ${_selectedFiles.length} files");
-          }),
-          _buildToolIcon(Icons.merge_type_rounded, "Merge", Colors.white, () {
-            // TODO: Merge function
-            showToast("Merge ${_selectedFiles.length} files");
+            //showToast("Share ${_selectedFiles.length} files");
+            _shareSelectedFiles();
           }),
           _buildToolIcon(Icons.bookmark_border_rounded, "Tag", Colors.white, () {
             // TODO: Bulk Save/Tag function
             showToast("Tag ${_selectedFiles.length} files");
+          }),
+          _buildToolIcon(Icons.merge_type_rounded, "Merge", Colors.white, () {
+            // TODO: Merge function
+            showToast("Merge ${_selectedFiles.length} files");
           }),
           _buildToolIcon(Icons.delete_outline, "Delete", Colors.redAccent, () {
             // TODO: Bulk Delete function
@@ -1721,6 +1722,39 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  // 🚨 NAYA FUNCTION: Ek saath bahut saari files Share karne ke liye
+  Future<void> _shareSelectedFiles() async {
+    // Safety check: Agar galti se 0 files par click ho jaye
+    if (_selectedFiles.isEmpty) {
+      showToast("Please select at least one file to share");
+      return;
+    }
+
+    try {
+      showToast("Preparing ${_selectedFiles.length} files...");
+
+      // 1. Saare selected paths ko 'XFile' objects ki list me convert karo
+      List<XFile> filesToShare = _selectedFiles.map((path) => XFile(path)).toList();
+
+      // 2. Tumhara purana share logic (Multiple files ke sath)
+      // Note: Tumhare purane function ka ShareParams wala syntax use kar raha hoon
+      await SharePlus.instance.share(
+        ShareParams(
+          files: filesToShare, // 🚨 MAGIC: Yahan ab ek file ki jagah poori list pass ho gayi!
+          text: 'Documents shared from PDF Scanner Pro',
+        ),
+      );
+
+      // (Optional) Agar tum chahte ho ki share hone ke baad Select Mode apne aap band ho jaye,
+      // toh is line ko uncomment kar dena:
+      setState(() { _isSelectionMode = false; _selectedFiles.clear(); });
+
+    } catch (e) {
+      print("Bulk Share Error: $e");
+      showToast("Error sharing files");
+    }
   }
 
   // 🚨 NAYA FUNCTION: PDF File ko Print karne ke liye
