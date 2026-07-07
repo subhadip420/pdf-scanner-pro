@@ -1518,7 +1518,8 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
           _buildToolIcon(Icons.bookmark_border_rounded, "Tag", Colors.white, () {
             // TODO: Bulk Save/Tag function
-            showToast("Tag ${_selectedFiles.length} files");
+            //showToast("Tag ${_selectedFiles.length} files");
+            _bulkToggleSaveFiles();
           }),
           _buildToolIcon(Icons.merge_type_rounded, "Merge", Colors.white, () {
             // TODO: Merge function
@@ -1570,6 +1571,47 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       showToast("Error sharing file");
       print("Share Error: $e");
+    }
+  }
+
+  // 🚨 NAYA FUNCTION: Bulk Tag (Save/Unsave) Logic
+  Future<void> _bulkToggleSaveFiles() async {
+    if (_selectedFiles.isEmpty) return;
+
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // SMART LOGIC: Check karo ki kya saari selected files pehle se hi saved hain?
+      bool areAllSaved = _selectedFiles.every((path) => _savedFilePaths.contains(path));
+
+      setState(() {
+        if (areAllSaved) {
+          // Agar saari pehle se saved hain, toh sabko Unsave (remove) kar do
+          for (String path in _selectedFiles) {
+            _savedFilePaths.remove(path);
+          }
+          showToast("${_selectedFiles.length} files removed from saved");
+        } else {
+          // Agar kuch unsaved hain, toh sabko Save (add) kar do
+          for (String path in _selectedFiles) {
+            if (!_savedFilePaths.contains(path)) {
+              _savedFilePaths.add(path);
+            }
+          }
+          showToast("${_selectedFiles.length} files added to saved");
+        }
+
+        // Action hone ke baad Selection Mode ko OFF kar do
+        _isSelectionMode = false;
+        _selectedFiles.clear();
+      });
+
+      // 🚨 Permanent Persistence: Disk par nayi list save kar do
+      await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
+
+    } catch (e) {
+      print("Bulk Tag Error: $e");
+      showToast("Error updating tags");
     }
   }
 
