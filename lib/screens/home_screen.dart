@@ -434,6 +434,9 @@ class _HomeScreenState extends State<HomeScreen> {
       tooltip: "More options",
       offset: const Offset(0, 45), // Menu ko thoda neeche se open karne ke liye
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      constraints: const BoxConstraints(
+        maxWidth: 180, // Isko apne hisaab se kam ya zyada kar sakte ho (e.g., 150 ya 200)
+      ),
       onSelected: (String value) {
         showToast("$value clicked");
       },
