@@ -1507,7 +1507,8 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
           _buildToolIcon(Icons.delete_outline, "Delete", Colors.redAccent, () {
             // TODO: Bulk Delete function
-            showToast("Delete ${_selectedFiles.length} files");
+            //showToast("Delete ${_selectedFiles.length} files");
+            _confirmBulkDelete();
           }),
         ],
       ),
@@ -1550,6 +1551,60 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       showToast("Error sharing file");
       print("Share Error: $e");
+    }
+  }
+
+  // 🚨 NAYA FUNCTION: Bulk Delete Confirmation & Execution
+  // 🚨 NAYA FUNCTION: Bulk Delete Confirmation (Custom Dialog ke sath)
+  Future<void> _confirmBulkDelete() async {
+    if (_selectedFiles.isEmpty) {
+      showToast("Please select files to delete");
+      return;
+    }
+
+    // Tumhara apna Custom Dialog reuse kiya!
+    bool shouldDelete = await showCustomConfirmDialog(
+      context,
+      title: "Delete Files",
+      message: "Are you sure you want to permanently delete ${_selectedFiles.length} selected files? This action cannot be undone.",
+      positiveBtnText: "Delete",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.redAccent, // Danger action
+    );
+
+    // Agar user ne 'Delete' dabaya hai, tabhi asli delete logic chalega
+    if (shouldDelete) {
+      await _executeBulkDelete();
+    }
+  }
+
+  // 🚨 ASLI DELETE LOGIC: Jo storage se files udhayega
+  Future<void> _executeBulkDelete() async {
+    try {
+      int count = _selectedFiles.length;
+
+      for (String path in _selectedFiles) {
+        final file = File(path);
+        if (file.existsSync()) {
+          file.deleteSync();
+        }
+        if (_savedFilePaths.contains(path)) {
+          _toggleSaveFile(path);
+        }
+      }
+
+      showToast("$count files deleted");
+
+      setState(() {
+        _isSelectionMode = false;
+        _selectedFiles.clear();
+      });
+
+      _loadPdfFiles();
+
+    } catch (e) {
+      print("Bulk Delete Error: $e");
+      showToast("Error deleting some files");
     }
   }
 
