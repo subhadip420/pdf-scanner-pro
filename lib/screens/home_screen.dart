@@ -12,6 +12,7 @@ import 'package:pdfx/pdfx.dart';
 import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
 import 'custom_gallery_screen.dart'; // Apni gallery wali screen
 import 'document_editor_screen.dart'; // Apna editor
@@ -37,12 +38,15 @@ class _HomeScreenState extends State<HomeScreen> {
   List<File> _pdfFiles = [];
   bool _isLoadingFiles = true;
   bool _isFabMenuOpen = false;
+// 🚨 NAYA: Saved (Bookmarked) files ke paths ko yaad rakhne ke liye list
+  List<String> _savedFilePaths = [];
 
   @override
   void initState() {
     super.initState();
     _loadBannerAd();
     _loadPdfFiles(); // Screen open hote hi files load karega
+    _loadSavedFiles();
   }
 
   // Load Banner Ad
@@ -113,6 +117,44 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (mounted) setState(() => _isLoadingFiles = false);
       print("Error loading files: $e");
+    }
+  }
+
+  // 🚨 NAYA FUNCTION: SharedPreferences se saved files ke paths load karne ke liye
+  Future<void> _loadSavedFiles() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final List<String>? savedList = prefs.getStringList('saved_pdf_paths');
+      if (savedList != null && mounted) {
+        setState(() {
+          _savedFilePaths = savedList;
+        });
+      }
+    } catch (e) {
+      print("SharedPreferences Load Error: $e");
+    }
+  }
+
+  // 🚨 NAYA FUNCTION: File ko Save/Unsave karne aur SharedPreferences me permanently store karne ke liye
+  Future<void> _toggleSaveFile(String filePath) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      setState(() {
+        if (_savedFilePaths.contains(filePath)) {
+          _savedFilePaths.remove(filePath);
+          showToast("Removed from saved");
+        } else {
+          _savedFilePaths.add(filePath);
+          showToast("Added to saved");
+        }
+      });
+
+      // 🚨 Permanent Persistence: Nayi list ko disk par save kar do
+      await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
+    } catch (e) {
+      print("SharedPreferences Save Error: $e");
+      showToast("Error updating save status");
     }
   }
 
@@ -684,6 +726,27 @@ class _HomeScreenState extends State<HomeScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
+                                // 🚨 UPDATED FEATURE: Alag function ke sath integrated
+                                    () {
+                                  final bool isSaved = _savedFilePaths.contains(file.path);
+                                  return Tooltip(
+                                    message: isSaved ? "Unsave document" : "Save document",
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(20),
+                                      // 🚨 MAGIC CALL: Ab direct naya function call ho raha hai
+                                      onTap: () => _toggleSaveFile(file.path),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(6.0),
+                                        child: Icon(
+                                          isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                          color: isSaved ? Colors.lightBlueAccent : Colors.white70,
+                                          size: 22,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }(),
+                                const SizedBox(width: 16), // Beech ka safe gap
                                 Tooltip(
                                   message: "Share",
                                   child: InkWell(
