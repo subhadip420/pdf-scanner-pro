@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:io';
@@ -1082,6 +1083,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // 🚨 PRO FEATURE: Kisi bhi file ko Long Press karke direct select mode chalu karo
                 onLongPress: () {
                   if (!_isSelectionMode) {
+                    HapticFeedback.heavyImpact();
                     setState(() {
                       _isSelectionMode = true;
                       _selectedFiles.add(file.path);
