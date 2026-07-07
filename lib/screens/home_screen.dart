@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String baseName = name.substring(0, name.lastIndexOf('.'));
 
     if (baseName.length <= 16) return name;
-    return "${baseName.substring(0, 16)}...${baseName.substring(baseName.length - 6)}.$extension";
+    return "${baseName.substring(0, 16)}...${baseName.substring(baseName.length - 10)}.$extension";
   }
 
   String _getFileSize(int bytes) {
@@ -220,7 +220,6 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (context) => const CustomGalleryScreen()),
       );
 
-      // Agar user ne cancel kar diya (bina select kiye back aagaya)
       if (selectedFiles == null || selectedFiles.isEmpty) return;
       List<Map<String, File>> imagesToEdit = [];
       for (var file in selectedFiles) {
@@ -699,9 +698,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 },
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
 
-                  padding: const EdgeInsets.only(left: 8, top: 4, right: 12, bottom: 4),
+                  padding: const EdgeInsets.only(left: 8, top: 8, right: 12, bottom: 8),
                   decoration: BoxDecoration(
                     color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
                     borderRadius: BorderRadius.circular(12),
@@ -732,7 +731,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               _truncateFileName(file.path.split('/').last),
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
                               maxLines: 1,
                             ),
                             const SizedBox(height: 6),
