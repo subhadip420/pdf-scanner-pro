@@ -89,7 +89,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool isSelectionMode = false;
   late List<bool> selectedPagesList;
   bool isResizeMode = false;
-  static String _selectedPageSize = "Auto Fit";
+  String _defaultPageSize = "Auto Fit";
+  String _selectedPageSize = "Auto Fit";
   bool isProcessing = false;
 
   // --- OCR Variables ---
@@ -108,6 +109,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   void initState() {
     super.initState();
     _loadDefaultFilter();
+    _loadSavedPageSize();
     documentName = _generateDefaultName();
     // Open the latest captured photo first
 
@@ -138,6 +140,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageController.dispose();
     _bannerAd?.dispose();
     super.dispose();
+  }
+
+  // 🚨 NAYA FUNCTION: Settings se saved defaults uthana
+  Future<void> _loadSavedPageSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      // 'pref_page_size' wahi exact key hai jo humne Settings screen me use ki thi
+      // Agar kuch save nahi hai, toh 'Auto Fit' aayega
+      _defaultPageSize = prefs.getString('pref_page_size') ?? 'Auto Fit';
+      _selectedPageSize = _defaultPageSize;
+    });
   }
 
   // SharedPreferences se default filter nikalne ka function
@@ -2951,7 +2964,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
 
           _buildToolItem(
-            label: "Resize",
+            label: "Page Size",
             icon: Icons.aspect_ratio_rounded,
             tooltipMessage: "Change page layout size",
             isSelected: isResizeMode,
@@ -3015,7 +3028,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   // --- 🚨 NAYA BLOCK: RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildResizeSubTools() {
     // 🚨 FIX 1: Check karo ki custom size apply hua hai ya original 'Auto Fit' par hai
-    bool hasCustomSize = _selectedPageSize != "Auto Fit";
+    //bool hasCustomSize = _selectedPageSize != "Auto Fit";
+    bool hasSizeChanged = _selectedPageSize != _defaultPageSize;
 
     return SizedBox(
       key: const ValueKey("ResizeSubTools"),
@@ -3028,12 +3042,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             padding: const EdgeInsets.only(left: 8.0),
             child: _buildToolItem(
               // 🚨 FIX 2: Condition ke hisaab se label, icon aur tooltip change hoga
-              label: hasCustomSize ? "Done" : "Close",
-              icon: hasCustomSize ? Icons.check_rounded : Icons.close_rounded,
-              tooltipMessage: hasCustomSize ? "Apply changes" : "Close resize options",
+              label: hasSizeChanged ? "Done" : "Close",
+              icon: hasSizeChanged ? Icons.check_rounded : Icons.close_rounded,
+              tooltipMessage: hasSizeChanged ? "Apply changes" : "Close resize options",
 
               // 🚨 MAGIC: isSelected true hote hi icon aur text automatically BLUE ho jayega!
-              isSelected: hasCustomSize,
+              isSelected: hasSizeChanged,
 
               onTap: () {
                 setState(() {
