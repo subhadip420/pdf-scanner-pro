@@ -20,6 +20,7 @@ import 'document_editor_screen.dart'; // Apna editor
 import 'package:permission_handler/permission_handler.dart'; // Uint8List ke liye zaroori hai
 import 'package:share_plus/share_plus.dart';
 
+import 'package:syncfusion_flutter_pdf/pdf.dart' as syncfusion; // 🚨 MAGIC: Humne isko ek nick-name de diya!
 
 
 class HomeScreen extends StatefulWidget {
@@ -1523,7 +1524,8 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
           _buildToolIcon(Icons.merge_type_rounded, "Merge", Colors.white, () {
             // TODO: Merge function
-            showToast("Merge ${_selectedFiles.length} files");
+            //showToast("Merge ${_selectedFiles.length} files");
+            _mergeSelectedFiles();
           }),
           _buildToolIcon(Icons.delete_outline, "Delete", Colors.redAccent, () {
             // TODO: Bulk Delete function
@@ -1533,6 +1535,95 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  // 🚨 NAYA FUNCTION: Syncfusion Flutter PDF Merge (100% Bug-Free Dart Logic)
+  Future<void> _mergeSelectedFiles() async {
+    if (_selectedFiles.length < 2) {
+      showToast("Please select at least 2 files to merge");
+      return;
+    }
+
+    // 1. SCREEN PAR LOADING DIALOG DIKHAO
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: const Row(
+            children: [
+              CircularProgressIndicator(color: Colors.lightBlueAccent),
+              SizedBox(width: 20),
+              Text(
+                "Merging PDFs... Please wait",
+                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      // Order maintain rakhte hue file paths lena
+      List<String> filesToMerge = _selectedFiles.toList();
+      String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      String newFileName = "Merged_PDF_$timestamp.pdf";
+
+      String outputDirectory = filesToMerge.first.substring(0, filesToMerge.first.lastIndexOf('/'));
+      String finalOutputPath = "$outputDirectory/$newFileName";
+
+      // 🚨 2. SYNCFUSION MERGE LOGIC
+      // 🚨 2. SYNCFUSION MERGE LOGIC (Prefix ke sath)
+      // Jahan jahan Pdf tha, wahan syncfusion.Pdf kar diya hai
+      syncfusion.PdfDocument newDocument = syncfusion.PdfDocument();
+
+      for (String filePath in filesToMerge) {
+        final Uint8List bytes = await File(filePath).readAsBytes();
+
+        // Syncfusion wala document
+        syncfusion.PdfDocument loadedDocument = syncfusion.PdfDocument(inputBytes: bytes);
+
+        for (int i = 0; i < loadedDocument.pages.count; i++) {
+          syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
+          syncfusion.PdfTemplate template = loadedPage.createTemplate();
+
+          syncfusion.PdfSection section = newDocument.sections!.add();
+          section.pageSettings.size = template.size;
+          section.pageSettings.margins.all = 0;
+
+          syncfusion.PdfPage newPage = section.pages.add();
+          newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+        }
+        loadedDocument.dispose();
+      }
+
+      // 3. FINAL FILE DISK PAR SAVE KARO
+      final List<int> mergedBytes = await newDocument.save();
+      newDocument.dispose();
+
+      File finalFile = File(finalOutputPath);
+      await finalFile.writeAsBytes(mergedBytes, flush: true);
+      // 4. LOADING DIALOG BAND KARO
+      Navigator.pop(context);
+
+      showToast("PDF Merged Successfully!");
+
+      // UI Reset aur list update
+      setState(() {
+        _isSelectionMode = false;
+        _selectedFiles.clear();
+      });
+
+      _loadPdfFiles();
+
+    } catch (e) {
+      Navigator.pop(context);
+      print("Syncfusion Merge Error: $e");
+      showToast("Something went wrong while merging");
+    }
   }
 
   // 🚨 HELPER WIDGET: Tool buttons ko sundar dikhane ke liye
