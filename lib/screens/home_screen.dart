@@ -887,6 +887,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
 
+                      // 🚨 NAYA FEATURE: Dynamic Save / Unsave Option
+                          () {
+                        final bool isSaved = _savedFilePaths.contains(file.path);
+                        return ListTile(
+                          leading: Icon(
+                            isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                            color: isSaved ? Colors.lightBlueAccent : Colors.white,
+                            size: 22,
+                          ),
+                          title: Text(
+                            isSaved ? 'Remove from saved' : 'Save document',
+                            style: TextStyle(
+                              color: isSaved ? Colors.lightBlueAccent : Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.pop(context); // Pehle bottom sheet band karo
+                            _toggleSaveFile(file.path); // Fir save/unsave ka function chalao
+                          },
+                        );
+                      }(),
+
                       // 6. Print Option
                       ListTile(
                         leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
