@@ -27,6 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _defaultPageSize = prefs.getString('pref_page_size') ?? 'A4 (P)';
+      _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
     });
   }
 
@@ -137,15 +138,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: const Text("Save to Gallery", style: TextStyle(color: Colors.white, fontSize: 15)),
                 subtitle: const Text("Automatically save scanned photos to phone gallery", style: TextStyle(color: Colors.white54, fontSize: 12)),
                 value: _saveToGallery,
-                activeColor: Colors.lightBlueAccent,
                 activeTrackColor: Colors.lightBlueAccent.withOpacity(0.3),
                 inactiveThumbColor: Colors.white54,
                 inactiveTrackColor: Colors.white12,
-                onChanged: (bool value) {
+                onChanged: (bool value) async { // 🚨 NAYA: async banaya
                   setState(() {
                     _saveToGallery = value;
                   });
-                  _showSettingToast(_saveToGallery ? "Enabled: Photos will save to gallery" : "Disabled: Photos will stay in app only");
+
+                  // 🚨 NAYA: Disk me save karo taaki hamesha yaad rahe
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('pref_save_to_gallery', value);
+
+                  _showSettingToast(value ? "Enabled: Photos will save to gallery" : "Disabled: Photos will stay in app only");
                 },
               ),
             ),
