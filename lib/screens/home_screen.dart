@@ -441,7 +441,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       /// 5. CENTER CAMERA BUTTON (Dynamic X or Camera)
-      floatingActionButton: FloatingActionButton(
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     setState(() {
+      //       _isFabMenuOpen = !_isFabMenuOpen; // Toggle Open/Close
+      //     });
+      //   },
+      //   backgroundColor: Colors.lightBlueAccent,
+      //   shape: const CircleBorder(),
+      //   elevation: 4,
+      //   child: Icon(
+      //     _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded, // Icon change hoga
+      //     color: Colors.black,
+      //     size: 28,
+      //   ),
+      // ),
+
+      /// 5. CENTER CAMERA BUTTON (Selection mode me hide ho jayega)
+      floatingActionButton: _isSelectionMode
+          ? null // 🚨 MAGIC: Null dene se button smoothly gayab ho jayega!
+          : FloatingActionButton(
         onPressed: () {
           setState(() {
             _isFabMenuOpen = !_isFabMenuOpen; // Toggle Open/Close
@@ -451,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: const CircleBorder(),
         elevation: 4,
         child: Icon(
-          _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded, // Icon change hoga
+          _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded,
           color: Colors.black,
           size: 28,
         ),
@@ -465,92 +484,190 @@ class _HomeScreenState extends State<HomeScreen> {
       // Normal rehne par notch me
 
       /// 4. BOTTOM TAB BAR (Hidden when menu is open)
-      bottomNavigationBar: _isFabMenuOpen
-          ? const SizedBox.shrink() // Menu open hone par bottom bar gayab!
-          : BottomAppBar(
-              color: const Color(0xFF1E1E1E),
-              shape: const CircularNotchedRectangle(),
-              notchMargin: 8.0,
-              child: SizedBox(
-                height: 60,
-                // ... (Tumhara bacha hua BottomAppBar ka Row() wala code bilkul same rahega) ...
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    // HOME OPTION
-                    Tooltip(
-                      message: "Home",
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          setState(() {
-                            _currentIndex = 0;
-                          });
-                          showToast("Home Tab selected");
-                        },
-                        child: SizedBox(
-                          width: 80,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.home_filled,
-                                color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Home",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
-                                  color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+      // bottomNavigationBar: _isFabMenuOpen
+      //     ? const SizedBox.shrink() // Menu open hone par bottom bar gayab!
+      //     : BottomAppBar(
+      //         color: const Color(0xFF1E1E1E),
+      //         shape: const CircularNotchedRectangle(),
+      //         notchMargin: 8.0,
+      //         child: SizedBox(
+      //           height: 60,
+      //           // ... (Tumhara bacha hua BottomAppBar ka Row() wala code bilkul same rahega) ...
+      //           child: Row(
+      //             mainAxisAlignment: MainAxisAlignment.spaceAround,
+      //             children: [
+      //               // HOME OPTION
+      //               Tooltip(
+      //                 message: "Home",
+      //                 child: GestureDetector(
+      //                   behavior: HitTestBehavior.opaque,
+      //                   onTap: () {
+      //                     setState(() {
+      //                       _currentIndex = 0;
+      //                     });
+      //                     showToast("Home Tab selected");
+      //                   },
+      //                   child: SizedBox(
+      //                     width: 80,
+      //                     child: Column(
+      //                       mainAxisAlignment: MainAxisAlignment.center,
+      //                       children: [
+      //                         Icon(
+      //                           Icons.home_filled,
+      //                           color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+      //                         ),
+      //                         const SizedBox(height: 4),
+      //                         Text(
+      //                           "Home",
+      //                           style: TextStyle(
+      //                             fontSize: 12,
+      //                             fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+      //                             color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+      //                           ),
+      //                         ),
+      //                       ],
+      //                     ),
+      //                   ),
+      //                 ),
+      //               ),
+      //
+      //               const SizedBox(width: 40), // Beech me Camera button ke liye space
+      //               // FILES OPTION
+      //               Tooltip(
+      //                 message: "Files",
+      //                 child: GestureDetector(
+      //                   behavior: HitTestBehavior.opaque,
+      //                   onTap: () {
+      //                     setState(() {
+      //                       _currentIndex = 1;
+      //                     });
+      //                     showToast("Files Tab selected");
+      //                   },
+      //                   child: SizedBox(
+      //                     width: 80,
+      //                     child: Column(
+      //                       mainAxisAlignment: MainAxisAlignment.center,
+      //                       children: [
+      //                         Icon(
+      //                           Icons.insert_drive_file_outlined,
+      //                           color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+      //                         ),
+      //                         const SizedBox(height: 4),
+      //                         Text(
+      //                           "Files",
+      //                           style: TextStyle(
+      //                             fontSize: 12,
+      //                             fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+      //                             color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+      //                           ),
+      //                         ),
+      //                       ],
+      //                     ),
+      //                   ),
+      //                 ),
+      //               ),
+      //             ],
+      //           ),
+      //         ),
+      //       ),
 
-                    const SizedBox(width: 40), // Beech me Camera button ke liye space
-                    // FILES OPTION
-                    Tooltip(
-                      message: "Files",
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          setState(() {
-                            _currentIndex = 1;
-                          });
-                          showToast("Files Tab selected");
-                        },
-                        child: SizedBox(
-                          width: 80,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.insert_drive_file_outlined,
-                                color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Files",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
-                                  color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
-                                ),
-                              ),
-                            ],
+      /// 4. BOTTOM TAB BAR (With Slide-Up Animation)
+      bottomNavigationBar: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300), // Smooth animation speed
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.0, 1.0), // 1.0 ka matlab bottom se bahar
+              end: Offset.zero, // Zero ka matlab screen par
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          );
+        },
+        // 🚨 LOGIC: Kaunsa bar dikhana hai?
+        child: _isSelectionMode
+            ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
+            : (_isFabMenuOpen
+            ? const SizedBox.shrink(key: ValueKey('emptyBar'))
+            : BottomAppBar(
+          key: const ValueKey('normalModeBar'),
+          color: const Color(0xFF1E1E1E),
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8.0,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // HOME OPTION
+                Tooltip(
+                  message: "Home",
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      setState(() => _currentIndex = 0);
+                    },
+                    child: SizedBox(
+                      width: 80,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.home_filled,
+                            color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Home",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                              color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+
+                const SizedBox(width: 40), // Beech me Camera button ke liye space
+
+                // FILES OPTION
+                Tooltip(
+                  message: "Files",
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      setState(() => _currentIndex = 1);
+                    },
+                    child: SizedBox(
+                      width: 80,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.insert_drive_file_outlined,
+                            color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Files",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                              color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+        )),
+      ),
     );
   }
 
@@ -1248,6 +1365,57 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+    );
+  }
+
+  // 🚨 NAYA FUNCTION: Bulk Selection Mode ka Bottom Bar
+  Widget _buildSelectionBottomBar({Key? key}) {
+    return BottomAppBar(
+      key: key,
+      color: const Color(0xFF1E1E1E), // Dark Premium Background
+      padding: EdgeInsets.zero,
+      height: 70, // Thoda sleek rakha hai
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildToolIcon(Icons.share_outlined, "Share", Colors.white, () {
+            // TODO: Bulk Share function
+            showToast("Share ${_selectedFiles.length} files");
+          }),
+          _buildToolIcon(Icons.merge_type_rounded, "Merge", Colors.white, () {
+            // TODO: Merge function
+            showToast("Merge ${_selectedFiles.length} files");
+          }),
+          _buildToolIcon(Icons.bookmark_border_rounded, "Tag", Colors.white, () {
+            // TODO: Bulk Save/Tag function
+            showToast("Tag ${_selectedFiles.length} files");
+          }),
+          _buildToolIcon(Icons.delete_outline, "Delete", Colors.redAccent, () {
+            // TODO: Bulk Delete function
+            showToast("Delete ${_selectedFiles.length} files");
+          }),
+        ],
+      ),
+    );
+  }
+
+  // 🚨 HELPER WIDGET: Tool buttons ko sundar dikhane ke liye
+  Widget _buildToolIcon(IconData icon, String label, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 4),
+            Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500)),
+          ],
+        ),
+      ),
     );
   }
 
