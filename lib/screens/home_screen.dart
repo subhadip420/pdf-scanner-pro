@@ -572,101 +572,215 @@ class _HomeScreenState extends State<HomeScreen> {
       //       ),
 
       /// 4. BOTTOM TAB BAR (With Slide-Up Animation)
-      bottomNavigationBar: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300), // Smooth animation speed
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0.0, 1.0), // 1.0 ka matlab bottom se bahar
-              end: Offset.zero, // Zero ka matlab screen par
-            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-            child: child,
-          );
-        },
-        // 🚨 LOGIC: Kaunsa bar dikhana hai?
-        child: _isSelectionMode
-            ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
-            : (_isFabMenuOpen
-            ? const SizedBox.shrink(key: ValueKey('emptyBar'))
-            : BottomAppBar(
-          key: const ValueKey('normalModeBar'),
-          color: const Color(0xFF1E1E1E),
-          shape: const CircularNotchedRectangle(),
-          notchMargin: 8.0,
-          child: SizedBox(
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                // HOME OPTION
-                Tooltip(
-                  message: "Home",
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      setState(() => _currentIndex = 0);
-                    },
-                    child: SizedBox(
-                      width: 80,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.home_filled,
-                            color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Home",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+      // bottomNavigationBar: AnimatedSwitcher(
+      //   duration: const Duration(milliseconds: 300), // Smooth animation speed
+      //   transitionBuilder: (Widget child, Animation<double> animation) {
+      //     return SlideTransition(
+      //       position: Tween<Offset>(
+      //         begin: const Offset(0.0, 1.0), // 1.0 ka matlab bottom se bahar
+      //         end: Offset.zero, // Zero ka matlab screen par
+      //       ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+      //       child: child,
+      //     );
+      //   },
+      //   // 🚨 LOGIC: Kaunsa bar dikhana hai?
+      //   child: _isSelectionMode
+      //       ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
+      //       : (_isFabMenuOpen
+      //       ? const SizedBox.shrink(key: ValueKey('emptyBar'))
+      //       : BottomAppBar(
+      //     key: const ValueKey('normalModeBar'),
+      //     color: const Color(0xFF1E1E1E),
+      //     shape: const CircularNotchedRectangle(),
+      //     notchMargin: 8.0,
+      //     child: SizedBox(
+      //       height: 60,
+      //       child: Row(
+      //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+      //         children: [
+      //           // HOME OPTION
+      //           Tooltip(
+      //             message: "Home",
+      //             child: GestureDetector(
+      //               behavior: HitTestBehavior.opaque,
+      //               onTap: () {
+      //                 setState(() => _currentIndex = 0);
+      //               },
+      //               child: SizedBox(
+      //                 width: 80,
+      //                 child: Column(
+      //                   mainAxisAlignment: MainAxisAlignment.center,
+      //                   children: [
+      //                     Icon(
+      //                       Icons.home_filled,
+      //                       color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+      //                     ),
+      //                     const SizedBox(height: 4),
+      //                     Text(
+      //                       "Home",
+      //                       style: TextStyle(
+      //                         fontSize: 12,
+      //                         fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+      //                         color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+      //                       ),
+      //                     ),
+      //                   ],
+      //                 ),
+      //               ),
+      //             ),
+      //           ),
+      //
+      //           const SizedBox(width: 40), // Beech me Camera button ke liye space
+      //
+      //           // FILES OPTION
+      //           Tooltip(
+      //             message: "Files",
+      //             child: GestureDetector(
+      //               behavior: HitTestBehavior.opaque,
+      //               onTap: () {
+      //                 setState(() => _currentIndex = 1);
+      //               },
+      //               child: SizedBox(
+      //                 width: 80,
+      //                 child: Column(
+      //                   mainAxisAlignment: MainAxisAlignment.center,
+      //                   children: [
+      //                     Icon(
+      //                       Icons.insert_drive_file_outlined,
+      //                       color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+      //                     ),
+      //                     const SizedBox(height: 4),
+      //                     Text(
+      //                       "Files",
+      //                       style: TextStyle(
+      //                         fontSize: 12,
+      //                         fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+      //                         color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+      //                       ),
+      //                     ),
+      //                   ],
+      //                 ),
+      //               ),
+      //             ),
+      //           ),
+      //         ],
+      //       ),
+      //     ),
+      //   )),
+      // ),
+
+      /// 4. BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
+      bottomNavigationBar: SizedBox(
+        height: 70, // 🚨 FIX: Scaffold ko bata diya ki bottom space hamesha 60 hi rahega
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350), // Thoda aur smooth kiya
+          // 🚨 FIX: LayoutBuilder lagane se flicker chala jata hai kyunki ye previous widget ko overlap karta hai
+          layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+            return Stack(
+              alignment: Alignment.bottomCenter,
+              children: <Widget>[
+                ...previousChildren,
+                if (currentChild != null) currentChild,
+              ],
+            );
+          },
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, 1.2), // 1.2 taaki ekdum bahar se smoothly aaye
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCirc, // 🚨 FIX: easeOutCubic se easeOutCirc zyada smooth lagta hai UI transitions me
+              )),
+              child: child,
+            );
+          },
+
+          child: _isSelectionMode
+              ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
+              : (_isFabMenuOpen
+              ? const SizedBox.shrink(key: ValueKey('emptyBar'))
+              : BottomAppBar(
+            key: const ValueKey('normalModeBar'),
+            color: const Color(0xFF1E1E1E),
+            shape: const CircularNotchedRectangle(),
+            notchMargin: 8.0,
+            child: SizedBox(
+              height: 60,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  // HOME OPTION
+                  Tooltip(
+                    message: "Home",
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        setState(() => _currentIndex = 0);
+                      },
+                      child: SizedBox(
+                        width: 80,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.home_filled,
                               color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            Text(
+                              "Home",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                                color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                const SizedBox(width: 40), // Beech me Camera button ke liye space
+                  const SizedBox(width: 40), // Beech me Camera button ke liye space
 
-                // FILES OPTION
-                Tooltip(
-                  message: "Files",
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      setState(() => _currentIndex = 1);
-                    },
-                    child: SizedBox(
-                      width: 80,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.insert_drive_file_outlined,
-                            color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Files",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                  // FILES OPTION
+                  Tooltip(
+                    message: "Files",
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        setState(() => _currentIndex = 1);
+                      },
+                      child: SizedBox(
+                        width: 80,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.insert_drive_file_outlined,
                               color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            Text(
+                              "Files",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                                color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        )),
+          )),
+        ),
       ),
     );
   }
@@ -694,7 +808,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _isSelectionMode = true;
             _selectedFiles.clear(); // Purani koi selection ho to clear ho jayegi
           });
-          showToast("Selection mode enabled");
+          //showToast("Selection mode enabled");
         }
         else if (value == 'Settings') {
           // TODO: Future me yahan Settings screen open karne ka code aayega
