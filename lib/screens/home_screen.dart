@@ -40,6 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isFabMenuOpen = false;
 // 🚨 NAYA: Saved (Bookmarked) files ke paths ko yaad rakhne ke liye list
   List<String> _savedFilePaths = [];
+// 🚨 NAYA: Sort track karne ke liye variable (Default: Date)
+  String _sortBy = 'Date';
+  bool _isAscending = false;
+  // 🚨 NAYA: Bulk Selection Variables
+  bool _isSelectionMode = false;
+  Set<String> _selectedFiles = {}; // Set use kar rahe hain taaki duplicates na aayein
 
   @override
   void initState() {
@@ -101,8 +107,24 @@ class _HomeScreenState extends State<HomeScreen> {
         List<File> files = entities.whereType<File>().where((f) => f.path.toLowerCase().endsWith('.pdf')).toList();
 
         // Sort: Latest file sabse upar (Descending order)
+        // files.sort((a, b) {
+        //   return b.lastModifiedSync().compareTo(a.lastModifiedSync());
+        // });
+
+        // 🚨 NAYA SORT LOGIC: User ki pasand ke hisaab se sort hoga
+        // 🚨 ULTIMATE SORT LOGIC: (Ascending / Descending dono support karega)
         files.sort((a, b) {
-          return b.lastModifiedSync().compareTo(a.lastModifiedSync());
+          int result;
+          if (_sortBy == 'Name') {
+            result = a.path.split('/').last.toLowerCase().compareTo(b.path.split('/').last.toLowerCase());
+          } else if (_sortBy == 'Size') {
+            result = a.statSync().size.compareTo(b.statSync().size);
+          } else {
+            result = a.lastModifiedSync().compareTo(b.lastModifiedSync());
+          }
+
+          // Agar Ascending hai toh normal order, warna Descending ke liye ulta (-result) kar do!
+          return _isAscending ? result : -result;
         });
 
         if (mounted) {
@@ -252,7 +274,82 @@ class _HomeScreenState extends State<HomeScreen> {
       // Dark theme matching screenshot
 
       /// 1. APP BAR
-      appBar: AppBar(
+      // appBar: AppBar(
+      //   backgroundColor: Colors.black,
+      //   title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 20)),
+      //   actions: [
+      //     Tooltip(
+      //       message: "Search documents",
+      //       child: IconButton(
+      //         icon: const Icon(Icons.search, color: Colors.white),
+      //         //onPressed: () => showToast("Search clicked"),
+      //         onPressed: () {
+      //           // 🚨 MAGIC: Ye default search page ko animate karke open karega!
+      //           showSearch(
+      //             context: context,
+      //             delegate: PdfSearchDelegate(_pdfFiles), // Tumhari loaded files isko de di
+      //           );
+      //         },
+      //       ),
+      //     ),
+      //     // Tooltip(
+      //     //   message: "More options",
+      //     //   child: IconButton(
+      //     //     icon: const Icon(Icons.more_vert, color: Colors.white),
+      //     //     onPressed: () => showToast("More options clicked"),
+      //     //   ),
+      //     // ),
+      //     // 🚨 MAGIC: Poora bara code gayab, ab sirf ye function call hoga!
+      //     _buildMainAppBarMenu(),
+      //   ],
+      // ),
+
+      /// 1. APP BAR
+      appBar: _isSelectionMode
+          ? AppBar(
+        backgroundColor: const Color(0xFF1E1E1E), // Dark selection header
+        leadingWidth: 80, // 🚨 MAGIC FIX: Text ko poori jagah dene ke liye width badhayi
+        leading: TextButton(
+          onPressed: () {
+            setState(() {
+              _isSelectionMode = false; // Mode OFF
+              _selectedFiles.clear(); // Sab deselect kar do
+            });
+          },
+          child: const Text(
+            "Cancel",
+            style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+        ),
+        title: Text(
+          "${_selectedFiles.length} Selected",
+          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true, // 🚨 NAYA: Title ko center me rakha taaki dono side ke text buttons balance lagein
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                // Agar saari files select ho chuki hain, toh clear kar do
+                if (_selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty) {
+                  _selectedFiles.clear();
+                } else {
+                  // Nahi toh saari files select kar lo
+                  _selectedFiles = _pdfFiles.map((file) => file.path).toSet();
+                }
+              });
+            },
+            child: Text(
+              // 🚨 DYNAMIC TEXT LOGIC: Sab select hone par "Deselect" likha aayega
+              _selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty ? "Deselect" : "Select All",
+              style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(width: 8), // Right side screen edge se thodi safe padding
+        ],
+      )
+          : AppBar(
+        // ... TUMHARA NORMAL APP BAR (PDF Scanner Pro wala) YAHAN AAYEGA ...
         backgroundColor: Colors.black,
         title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 20)),
         actions: [
@@ -260,24 +357,14 @@ class _HomeScreenState extends State<HomeScreen> {
             message: "Search documents",
             child: IconButton(
               icon: const Icon(Icons.search, color: Colors.white),
-              //onPressed: () => showToast("Search clicked"),
               onPressed: () {
-                // 🚨 MAGIC: Ye default search page ko animate karke open karega!
                 showSearch(
                   context: context,
-                  delegate: PdfSearchDelegate(_pdfFiles), // Tumhari loaded files isko de di
+                  delegate: PdfSearchDelegate(_pdfFiles),
                 );
               },
             ),
           ),
-          // Tooltip(
-          //   message: "More options",
-          //   child: IconButton(
-          //     icon: const Icon(Icons.more_vert, color: Colors.white),
-          //     onPressed: () => showToast("More options clicked"),
-          //   ),
-          // ),
-          // 🚨 MAGIC: Poora bara code gayab, ab sirf ye function call hoga!
           _buildMainAppBarMenu(),
         ],
       ),
@@ -479,9 +566,33 @@ class _HomeScreenState extends State<HomeScreen> {
       constraints: const BoxConstraints(
         maxWidth: 180, // Isko apne hisaab se kam ya zyada kar sakte ho (e.g., 150 ya 200)
       ),
+      // onSelected: (String value) {
+      //   showToast("$value clicked");
+      // },
+
       onSelected: (String value) {
-        showToast("$value clicked");
+        // 🚨 UPDATED LOGIC: Har value ke liye alag-alag dynamic actions aur toasts
+        if (value == 'Select') {
+          setState(() {
+            _isSelectionMode = true;
+            _selectedFiles.clear(); // Purani koi selection ho to clear ho jayegi
+          });
+          showToast("Selection mode enabled");
+        }
+        else if (value == 'Settings') {
+          // TODO: Future me yahan Settings screen open karne ka code aayega
+          showToast("Opening Settings...");
+        }
+        else if (value == 'Help & Feedback') {
+          // TODO: Future me yahan Support email ya helper page open hoga
+          showToast("Opening Help & Support...");
+        }
+        else if (value == 'About') {
+          // TODO: Future me yahan App Info ya Privacy Policy dialog dikhayenge
+          showToast("PDF Scanner Pro v1.0.0");
+        }
       },
+
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         // 1. Select Option
         const PopupMenuItem<String>(
@@ -658,7 +769,23 @@ class _HomeScreenState extends State<HomeScreen> {
           final fileStat = file.statSync();
           final dateCategory = _getDateCategory(fileStat.modified);
 
+          // bool showHeader = lastCategory != dateCategory;
+          // lastCategory = dateCategory;
+          //
+          // return Column(
+          //   crossAxisAlignment: CrossAxisAlignment.start,
+          //   children: [
+          //     if (showHeader)
+          //       Padding(
+          //         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          //         child: Text(
+          //           dateCategory,
+          //           style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+          //         ),
+          //       ),
+
           bool showHeader = lastCategory != dateCategory;
+          bool isFirstHeader = lastCategory == null; // 🚨 MAGIC: Check karega ki kya ye pehla header hai
           lastCategory = dateCategory;
 
           return Column(
@@ -666,22 +793,61 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               if (showHeader)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Text(
-                    dateCategory,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Text Left me, Icon Right me
+                    children: [
+                      Text(
+                        dateCategory,
+                        style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+                      ),
+
+                      // 🚨 Sirf pehle (top) header me Sort menu dikhega!
+                      if (isFirstHeader)
+                        _buildSortMenu(),
+                    ],
                   ),
                 ),
 
               // PDF File Card
               GestureDetector(
+                // onTap: () {
+                //   OpenFile.open(file.path);
+                // },
                 onTap: () {
-                  OpenFile.open(file.path);
+                  // 🚨 NAYA LOGIC: Mode ke hisaab se tap handle karo
+                  if (_isSelectionMode) {
+                    setState(() {
+                      if (_selectedFiles.contains(file.path)) {
+                        _selectedFiles.remove(file.path);
+                      } else {
+                        _selectedFiles.add(file.path);
+                      }
+                    });
+                  } else {
+                    OpenFile.open(file.path); // Normal tap pe open hogi
+                  }
+                },
+                // 🚨 PRO FEATURE: Kisi bhi file ko Long Press karke direct select mode chalu karo
+                onLongPress: () {
+                  if (!_isSelectionMode) {
+                    setState(() {
+                      _isSelectionMode = true;
+                      _selectedFiles.add(file.path);
+                    });
+                  }
                 },
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
+                  //decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                    color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _selectedFiles.contains(file.path) ? Colors.lightBlueAccent.withOpacity(0.5) : Colors.white12,
+                    ),
+                  ),
                   child: Row(
                     children: [
                       // Left Side: Real PDF Thumbnail
@@ -723,7 +889,37 @@ class _HomeScreenState extends State<HomeScreen> {
                               style: const TextStyle(color: Colors.white54, fontSize: 13),
                             ),
                             const SizedBox(height: 8),
-                            Row(
+                            //Row(
+
+                            // 🚨 NAYA: Mode check karke ya toh Checkbox dikhao, ya phir Tools dikhao
+                            _isSelectionMode
+                                ? Align(
+                              alignment: Alignment.centerRight,
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: Checkbox(
+                                    value: _selectedFiles.contains(file.path),
+                                    activeColor: Colors.lightBlueAccent,
+                                    checkColor: Colors.black,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                    side: const BorderSide(color: Colors.white54, width: 1.5),
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        if (value == true) {
+                                          _selectedFiles.add(file.path);
+                                        } else {
+                                          _selectedFiles.remove(file.path);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            )
+                                : Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 // 🚨 UPDATED FEATURE: Alag function ke sath integrated
@@ -786,6 +982,92 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  // 🚨 UPGRADED FUNCTION: Professional Sort Menu (With Ascending/Descending Toggle)
+  Widget _buildSortMenu() {
+    return PopupMenuButton<String>(
+      color: const Color(0xFF2C2C2C), // Dark theme
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      offset: const Offset(0, 40),
+      constraints: const BoxConstraints(
+        maxWidth: 180, // Isko 160 rakha hai, Arrow aur Text dono perfectly fit aayenge
+      ),
+      // 🚨 MAGIC FIX: Padding laga di taaki click area bada ho jaye
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Left/Right 12px aur Top/Bottom 8px extra click area
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.sort_rounded, color: Colors.lightBlueAccent, size: 18),
+            SizedBox(width: 4),
+            Text("Sort", style: TextStyle(color: Colors.lightBlueAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+      onSelected: (String value) {
+        setState(() {
+          if (_sortBy == value) {
+            // 🚨 MAGIC 1: Agar same option dubara click kiya, toh direction ulta (toggle) kar do
+            _isAscending = !_isAscending;
+          } else {
+            // 🚨 MAGIC 2: Agar naya option click kiya, toh default direction set karo
+            _sortBy = value;
+            if (value == 'Name') {
+              _isAscending = true; // Name A-Z se start achha lagta hai
+            } else {
+              _isAscending = false; // Date/Size bado/naye se shuru achha lagta hai
+            }
+          }
+          _isLoadingFiles = true;
+        });
+
+        _loadPdfFiles(); // List refresh karo
+
+        String orderText = _isAscending ? "Ascending" : "Descending";
+        showToast("Sorted by $_sortBy ($orderText)");
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        _buildSortMenuItem('Date', Icons.calendar_today_rounded),
+        const PopupMenuDivider(height: 1),
+        _buildSortMenuItem('Name', Icons.sort_by_alpha_rounded),
+        const PopupMenuDivider(height: 1),
+        _buildSortMenuItem('Size', Icons.data_usage_rounded),
+      ],
+    );
+  }
+
+  // 🚨 UPGRADED WIDGET: Sort Menu me Arrows dikhane ke liye
+  PopupMenuItem<String> _buildSortMenuItem(String value, IconData icon) {
+    final bool isSelected = _sortBy == value; // Pata chalega ki current konsa active hai
+
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, color: isSelected ? Colors.lightBlueAccent : Colors.white70, size: 20),
+          const SizedBox(width: 12),
+          Expanded( // Text ko failayega taaki arrow ekdum right me jaye
+            child: Text(
+              value,
+              style: TextStyle(
+                color: isSelected ? Colors.lightBlueAccent : Colors.white,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ),
+
+          // 🚨 ARROW LOGIC: Agar yeh item active (selected) hai, tabhi right side me arrow dikhega
+          if (isSelected)
+            Icon(
+              _isAscending ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+              color: Colors.lightBlueAccent,
+              size: 20, // Same size ka icon
+            ),
+        ],
       ),
     );
   }
