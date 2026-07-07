@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // Agar path_provider use kar rahe ho cache ke liye toh import kar lena, abhi ke liye functional UI bana diya hai.
 
 class SettingsScreen extends StatefulWidget {
@@ -11,9 +12,30 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   // Settings ki State Variables
-  String _defaultPageSize = 'A4';
+  String _defaultPageSize = 'Auto Fit';
   bool _saveToGallery = true;
   String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings(); // Page open hote hi settings load karo
+  }
+
+  // 🚨 FUNCTION: Settings Load Karna
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _defaultPageSize = prefs.getString('pref_page_size') ?? 'A4 (P)';
+    });
+  }
+
+  // 🚨 FUNCTION: Settings Save Karna
+  Future<void> _saveSetting(String key, String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, value);
+    _showSettingToast("Setting updated to $value");
+  }
 
   // Dummy Toast Function (Agar tumhare app me already custom toast hai toh wahi chalega)
   void _showSettingToast(String msg) {
@@ -70,21 +92,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   dropdownColor: const Color(0xFF2C2C2C),
                   icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
                   underline: const SizedBox(), // Line hatane ke liye
-                  items: <String>['A4', 'Letter', 'Legal', 'Fit to Image'].map((String value) {
+                  items: <String>[
+                    'Auto Fit',
+                    'Letter (P)',
+                    'Letter (L)',
+                    'Legal (P)',
+                    'Legal (L)',
+                    'A4 (P)',
+                    'A4 (L)',
+                    'A3 (P)',
+                    'A3 (L)',
+                    'A5 (P)',
+                    'A5 (L)'
+                  ].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(value, style: const TextStyle(color: Colors.white)),
                     );
                   }).toList(),
                   onChanged: (newValue) {
-                    setState(() {
-                      _defaultPageSize = newValue!;
-                    });
-                    _showSettingToast("Default size set to $_defaultPageSize");
+                    if (newValue != null) {
+                      setState(() {
+                        _defaultPageSize = newValue;
+                      });
+
+                      // 🚨 NAYA: Disk (SharedPreferences) mein save karne ka call
+                      _saveSetting('pref_page_size', newValue);
+
+                      _showSettingToast("Default size set to $_defaultPageSize");
+                    }
                   },
                 ),
               ),
             ),
+
 
             // 2. Save to Gallery Toggle
             Card(
