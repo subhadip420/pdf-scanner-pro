@@ -9,6 +9,7 @@ import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:pdf/pdf.dart' hide PdfDocument;
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
+import 'package:pdf_scanner_pro/screens/settings_screen.dart';
 import 'package:pdfx/pdfx.dart';
 import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
@@ -514,35 +515,42 @@ class _HomeScreenState extends State<HomeScreen> {
       constraints: const BoxConstraints(maxWidth: 180),
 
       onSelected: (String value) {
-        if (value == 'Select') {
+        if (value == 'Select Files') {
           setState(() {
             _isSelectionMode = true;
             _selectedFiles.clear();
           });
         } else if (value == 'Settings') {
           // TODO: Future me yahan Settings screen open karne ka code aayega
-          showToast("Opening Settings...");
-        } else if (value == 'Help & Feedback') {
-          // TODO: Future me yahan Support email ya helper page open hoga
-          showToast("Opening Help & Support...");
-        } else if (value == 'About') {
-          // TODO: Future me yahan App Info ya Privacy Policy dialog dikhayenge
-          showToast("PDF Scanner Pro v1.0.0");
+          //showToast("Opening Settings...");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SettingsScreen(), // Bina kisi extra dialog ya function ke
+            ),
+          );
         }
+        // } else if (value == 'Help & Feedback') {
+        //   // TODO: Future me yahan Support email ya helper page open hoga
+        //   showToast("Opening Help & Support...");
+        // } else if (value == 'About') {
+        //   // TODO: Future me yahan App Info ya Privacy Policy dialog dikhayenge
+        //   showToast("PDF Scanner Pro v1.0.0");
+        // }
       },
 
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         const PopupMenuItem<String>(
-          value: 'Select',
+          value: 'Select Files',
           child: Row(
             children: [
               Icon(Icons.checklist_rounded, color: Colors.white, size: 20),
               SizedBox(width: 12),
-              Text('Select', style: TextStyle(color: Colors.white, fontSize: 15)),
+              Text('Select Files', style: TextStyle(color: Colors.white, fontSize: 15)),
             ],
           ),
         ),
-        const PopupMenuDivider(height: 1), // Divider
+        //const PopupMenuDivider(height: 1), // Divider
         // 2. Settings Option
         const PopupMenuItem<String>(
           value: 'Settings',
@@ -555,29 +563,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // 3. Help & Feedback Option
-        const PopupMenuItem<String>(
-          value: 'Help & Feedback',
-          child: Row(
-            children: [
-              Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Text('Help & Feedback', style: TextStyle(color: Colors.white, fontSize: 15)),
-            ],
-          ),
-        ),
-
-        // 4. About Option
-        const PopupMenuItem<String>(
-          value: 'About',
-          child: Row(
-            children: [
-              Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Text('About', style: TextStyle(color: Colors.white, fontSize: 15)),
-            ],
-          ),
-        ),
+        // // 3. Help & Feedback Option
+        // const PopupMenuItem<String>(
+        //   value: 'Help & Feedback',
+        //   child: Row(
+        //     children: [
+        //       Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
+        //       SizedBox(width: 12),
+        //       Text('Help & Feedback', style: TextStyle(color: Colors.white, fontSize: 15)),
+        //     ],
+        //   ),
+        // ),
+        //
+        // // 4. About Option
+        // const PopupMenuItem<String>(
+        //   value: 'About',
+        //   child: Row(
+        //     children: [
+        //       Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+        //       SizedBox(width: 12),
+        //       Text('About', style: TextStyle(color: Colors.white, fontSize: 15)),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }
