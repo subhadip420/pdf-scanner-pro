@@ -118,15 +118,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 2. File name ko truncate (short) karna: start...end.pdf
   String _truncateFileName(String name) {
-    if (name.length <= 25) return name; // Agar chhota hai to waise hi chhod do
+    if (name.length <= 26) return name; // Agar chhota hai to waise hi chhod do
 
     String extension = name.split('.').last;
     String baseName = name.substring(0, name.lastIndexOf('.'));
 
-    if (baseName.length <= 15) return name;
+    if (baseName.length <= 16) return name;
 
     // First 12 chars + ... + Last 4 chars + extension
-    return "${baseName.substring(0, 12)}...${baseName.substring(baseName.length - 4)}.$extension";
+    return "${baseName.substring(0, 16)}...${baseName.substring(baseName.length - 6)}.$extension";
   }
 
   // 3. File size ko KB/MB mein convert karna
