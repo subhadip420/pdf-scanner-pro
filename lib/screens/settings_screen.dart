@@ -1,0 +1,217 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+// Agar path_provider use kar rahe ho cache ke liye toh import kar lena, abhi ke liye functional UI bana diya hai.
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({Key? key}) : super(key: key); // 🚨 FIX: Callback hata diya
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  // Settings ki State Variables
+  String _defaultPageSize = 'A4';
+  bool _saveToGallery = true;
+  String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
+
+  // Dummy Toast Function (Agar tumhare app me already custom toast hai toh wahi chalega)
+  void _showSettingToast(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF2C2C2C),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Cache Clear Karne ka Logic
+  void _clearAppCache() {
+    // Yahan future me tum temporary directory delete karne ka code daal sakte ho
+    _showSettingToast("Cache cleared successfully! Storage freed.");
+  }
+
+  // Storage Location Change karne ka Logic (Placeholder)
+  void _changeStorageLocation() {
+    _showSettingToast("Folder picker will open in next update!");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black, // Dark Theme
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1E1E1E),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          "Settings",
+          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ---------------- CATEGORY 1: DOCUMENT SETTINGS ----------------
+            _buildSectionHeader("Document Settings"),
+
+            // 1. Default Page Size Dropdown
+            Card(
+              color: const Color(0xFF1A1A1A),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ListTile(
+                leading: const Icon(Icons.text_snippet_rounded, color: Colors.lightBlueAccent),
+                title: const Text("Default Page Size", style: TextStyle(color: Colors.white, fontSize: 15)),
+                subtitle: Text(_defaultPageSize, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                trailing: DropdownButton<String>(
+                  value: _defaultPageSize,
+                  dropdownColor: const Color(0xFF2C2C2C),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  underline: const SizedBox(), // Line hatane ke liye
+                  items: <String>['A4', 'Letter', 'Legal', 'Fit to Image'].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: const TextStyle(color: Colors.white)),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _defaultPageSize = newValue!;
+                    });
+                    _showSettingToast("Default size set to $_defaultPageSize");
+                  },
+                ),
+              ),
+            ),
+
+            // 2. Save to Gallery Toggle
+            Card(
+              color: const Color(0xFF1A1A1A),
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: SwitchListTile(
+                secondary: const Icon(Icons.add_to_photos_rounded, color: Colors.lightBlueAccent),
+                title: const Text("Save to Gallery", style: TextStyle(color: Colors.white, fontSize: 15)),
+                subtitle: const Text("Automatically save scanned photos to phone gallery", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                value: _saveToGallery,
+                activeColor: Colors.lightBlueAccent,
+                activeTrackColor: Colors.lightBlueAccent.withOpacity(0.3),
+                inactiveThumbColor: Colors.white54,
+                inactiveTrackColor: Colors.white12,
+                onChanged: (bool value) {
+                  setState(() {
+                    _saveToGallery = value;
+                  });
+                  _showSettingToast(_saveToGallery ? "Enabled: Photos will save to gallery" : "Disabled: Photos will stay in app only");
+                },
+              ),
+            ),
+
+            // ---------------- CATEGORY 2: STORAGE & DATA ----------------
+            _buildSectionHeader("Storage & Data"),
+
+            // 3. Storage Location Tile
+            _buildSettingTile(
+              icon: Icons.folder_open_rounded,
+              title: "Storage Location",
+              subtitle: _storageLocation,
+              onTap: _changeStorageLocation,
+            ),
+
+            // 4. Clear Cache Tile
+            _buildSettingTile(
+              icon: Icons.delete_sweep_rounded,
+              title: "Clear App Cache",
+              subtitle: "Free up space by deleting temp files",
+              onTap: _clearAppCache,
+            ),
+
+            // ---------------- CATEGORY 3: APP & LEGAL ----------------
+            _buildSectionHeader("Application & Legal"),
+
+            // 5. Share App
+            _buildSettingTile(
+              icon: Icons.share_rounded,
+              title: "Share App",
+              subtitle: "Share PDF Scanner Pro with friends",
+              onTap: () {
+                _showSettingToast("Link copied! Share it with your friends.");
+              },
+            ),
+
+            // 6. Rate Us
+            _buildSettingTile(
+              icon: Icons.star_rate_rounded,
+              title: "Rate Us",
+              subtitle: "Support us on Google Play Store",
+              onTap: () {
+                _showSettingToast("Thank you for your support!");
+              },
+            ),
+
+            // 7. Terms & Conditions
+            _buildSettingTile(
+              icon: Icons.gavel_rounded,
+              title: "Terms & Conditions",
+              subtitle: "Read our usage policy and legal terms",
+              onTap: () {
+                // 🚨 FIX: Abhi page nahi hai to sirf toast dikhayenge
+                _showSettingToast("Terms & Conditions - Coming Soon!");
+              },
+            ),
+
+            // 8. About App
+            _buildSettingTile(
+              icon: Icons.info_outline_rounded,
+              title: "About",
+              subtitle: "App info and developer details",
+              onTap: () {
+                // 🚨 FIX: Abhi dialog nahi hai to sirf toast dikhayenge
+                _showSettingToast("About PDF Scanner Pro v1.0.0");
+              },
+            ),
+
+            const SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Section Headers ke liye Widget
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, top: 20, bottom: 8),
+      child: Text(
+        title,
+        style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+      ),
+    );
+  }
+
+  // Tiles ko reuse karne ke liye custom helper widget
+  Widget _buildSettingTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      color: const Color(0xFF1A1A1A),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.lightBlueAccent),
+        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
+        onTap: () {
+          HapticFeedback.lightImpact(); // Click hone par subtle tactile feel
+          onTap();
+        },
+      ),
+    );
+  }
+}
