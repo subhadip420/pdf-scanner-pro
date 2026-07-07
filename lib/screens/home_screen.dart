@@ -218,7 +218,14 @@ class _HomeScreenState extends State<HomeScreen> {
             message: "Search documents",
             child: IconButton(
               icon: const Icon(Icons.search, color: Colors.white),
-              onPressed: () => showToast("Search clicked"),
+              //onPressed: () => showToast("Search clicked"),
+              onPressed: () {
+                // 🚨 MAGIC: Ye default search page ko animate karke open karega!
+                showSearch(
+                  context: context,
+                  delegate: PdfSearchDelegate(_pdfFiles), // Tumhari loaded files isko de di
+                );
+              },
             ),
           ),
           Tooltip(
@@ -1218,6 +1225,130 @@ class _NativeAdCardState extends State<NativeAdCard> {
           child: AdWidget(ad: _nativeAd!),
         ),
       ),
+    );
+  }
+}
+
+// 🚨 NAYA CLASS: Professional Search Feature ke liye
+class PdfSearchDelegate extends SearchDelegate {
+  final List<File> pdfFiles;
+
+  PdfSearchDelegate(this.pdfFiles);
+
+  // 1. Search Bar ka Theme (Tumhare Dark Theme se match karne ke liye)
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    return ThemeData.dark().copyWith(
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1E1E1E), // Dark Premium Header
+        elevation: 0,
+      ),
+      scaffoldBackgroundColor: const Color(0xFF121212), // Dark Background
+      inputDecorationTheme: const InputDecorationTheme(
+        border: InputBorder.none, // Clean search text area
+        hintStyle: TextStyle(color: Colors.white54),
+      ),
+    );
+  }
+
+  // 2. Right side me 'Clear (X)' button
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      if (query.isNotEmpty)
+        IconButton(
+          icon: const Icon(Icons.clear, color: Colors.white70),
+          onPressed: () {
+            query = ''; // Text clear karega
+          },
+        )
+    ];
+  }
+
+  // 3. Left side me 'Back' button
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back, color: Colors.white70),
+      onPressed: () => close(context, null), // Search close karega
+    );
+  }
+
+  // 4. Asli Search Logic aur Results Dikhana
+  @override
+  Widget buildResults(BuildContext context) => _buildSearchResults();
+
+  @override
+  Widget buildSuggestions(BuildContext context) => _buildSearchResults();
+
+  Widget _buildSearchResults() {
+    final lowercaseQuery = query.toLowerCase();
+
+    // 1. Pehle saari files filter karo jisme search letter kahin bhi ho
+    final results = pdfFiles.where((file) {
+      final fileName = file.path.split('/').last.toLowerCase();
+      return fileName.contains(lowercaseQuery);
+    }).toList();
+
+    // 2. 🚨 MAGIC LOGIC: Relevance Sorting
+    if (lowercaseQuery.isNotEmpty) {
+      results.sort((a, b) {
+        final nameA = a.path.split('/').last.toLowerCase();
+        final nameB = b.path.split('/').last.toLowerCase();
+
+        final startsWithA = nameA.startsWith(lowercaseQuery);
+        final startsWithB = nameB.startsWith(lowercaseQuery);
+
+        if (startsWithA && !startsWithB) {
+          return -1; // Agar 'a' match word se shuru hota hai, toh usko UP (top) push karo
+        } else if (!startsWithA && startsWithB) {
+          return 1;  // Agar 'b' shuru hota hai, toh usko UP push karo
+        } else {
+          return 0;  // Agar dono same hain, toh default order (Date wise) hi rakho
+        }
+      });
+    }
+
+    // 3. Agar koi file nahi mili
+    if (results.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off_rounded, color: Colors.white24, size: 60),
+            const SizedBox(height: 12),
+            Text("No document found for '$query'", style: const TextStyle(color: Colors.white54, fontSize: 16)),
+          ],
+        ),
+      );
+    }
+
+    // 4. Sorted Result List dikhao
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 10),
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final file = results[index];
+        final fileName = file.path.split('/').last;
+
+        return ListTile(
+          leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+          title: Text(
+            fileName,
+            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Text(
+            DateFormat('dd MMM yyyy').format(file.statSync().modified),
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
+          onTap: () {
+            // Click karne par file open ho jayegi
+            OpenFile.open(file.path);
+          },
+        );
+      },
     );
   }
 }
