@@ -23,7 +23,6 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:syncfusion_flutter_pdf/pdf.dart' as syncfusion;
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -139,6 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
       print("SharedPreferences Load Error: $e");
     }
   }
+
   Future<void> _toggleSaveFile(String filePath) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -249,267 +249,258 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         }
       },
-    child: Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      /// 1. APP BAR
-      appBar: _isSelectionMode
-          ? AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        leadingWidth: 80,
-        leading: TextButton(
-          onPressed: () {
-            setState(() {
-              _isSelectionMode = false;
-              _selectedFiles.clear();
-            });
-          },
-          child: const Text(
-            "Cancel",
-            style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ),
-        title: Text(
-          "${_selectedFiles.length} Selected",
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                if (_selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty) {
-                  _selectedFiles.clear();
-                } else {
-                  _selectedFiles = _pdfFiles.map((file) => file.path).toSet();
-                }
-              });
-            },
-            child: Text(
-              _selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty ? "Deselect" : "Select All",
-              style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
-      )
-          : AppBar(
-        backgroundColor: Colors.black,
-        title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 20)),
-        actions: [
-          Tooltip(
-            message: "Search documents",
-            child: IconButton(
-              icon: const Icon(Icons.search, color: Colors.white),
-              onPressed: () {
-                showSearch(
-                  context: context,
-                  delegate: PdfSearchDelegate(_pdfFiles),
-                );
-              },
-            ),
-          ),
-          _buildMainAppBarMenu(),
-        ],
-      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFF121212),
 
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              if (_isBannerAdLoaded && _bannerAd != null)
-                Container(
-                  alignment: Alignment.center,
-                  width: _bannerAd!.size.width.toDouble(),
-                  height: _bannerAd!.size.height.toDouble(),
-                  color: Colors.black,
-                  child: AdWidget(ad: _bannerAd!),
+        /// 1. APP BAR
+        appBar: _isSelectionMode
+            ? AppBar(
+                backgroundColor: const Color(0xFF1E1E1E),
+                leadingWidth: 80,
+                leading: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isSelectionMode = false;
+                      _selectedFiles.clear();
+                    });
+                  },
+                  child: const Text(
+                    "Cancel",
+                    style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              Expanded(
-                child: IndexedStack(
-                  index: _currentIndex,
-                  children: [
-                    _buildHomeTabContent(),
-                    const Center(
-                      child: Text("Files View", style: TextStyle(color: Colors.white70)),
+                title: Text(
+                  "${_selectedFiles.length} Selected",
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                centerTitle: true,
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        if (_selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty) {
+                          _selectedFiles.clear();
+                        } else {
+                          _selectedFiles = _pdfFiles.map((file) => file.path).toSet();
+                        }
+                      });
+                    },
+                    child: Text(
+                      _selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty ? "Deselect" : "Select All",
+                      style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w600),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              )
+            : AppBar(
+                backgroundColor: Colors.black,
+                title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 20)),
+                actions: [
+                  Tooltip(
+                    message: "Search documents",
+                    child: IconButton(
+                      icon: const Icon(Icons.search, color: Colors.white),
+                      onPressed: () {
+                        showSearch(context: context, delegate: PdfSearchDelegate(_pdfFiles));
+                      },
+                    ),
+                  ),
+                  _buildMainAppBarMenu(),
+                ],
+              ),
+
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                if (_isBannerAdLoaded && _bannerAd != null)
+                  Container(
+                    alignment: Alignment.center,
+                    width: _bannerAd!.size.width.toDouble(),
+                    height: _bannerAd!.size.height.toDouble(),
+                    color: Colors.black,
+                    child: AdWidget(ad: _bannerAd!),
+                  ),
+                Expanded(
+                  child: IndexedStack(
+                    index: _currentIndex,
+                    children: [
+                      _buildHomeTabContent(),
+                      const Center(
+                        child: Text("Files View", style: TextStyle(color: Colors.white70)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            if (_isFabMenuOpen)
+              GestureDetector(
+                onTap: () {
+                  setState(() => _isFabMenuOpen = false);
+                },
+                child: Container(
+                  color: Colors.black.withOpacity(0.85),
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              ),
+
+            if (_isFabMenuOpen)
+              Positioned(
+                bottom: 90,
+                left: 0,
+                right: 0,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildMenuPill("Create from photos", Icons.photo_library_outlined, () {
+                      showToast("Gallery opening...");
+                      setState(() => _isFabMenuOpen = false);
+                      _openGalleryForPdf();
+                    }),
+                    const SizedBox(height: 12),
+                    _buildMenuPill("Create scan", Icons.add_a_photo_outlined, () {
+                      setState(() => _isFabMenuOpen = false);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
+                    }),
                   ],
                 ),
               ),
-            ],
+          ],
+        ),
+
+        floatingActionButton: _isSelectionMode
+            ? null // 🚨 MAGIC: Null dene se button smoothly gayab ho jayega!
+            : FloatingActionButton(
+                onPressed: () {
+                  setState(() {
+                    _isFabMenuOpen = !_isFabMenuOpen; // Toggle Open/Close
+                  });
+                },
+                backgroundColor: Colors.lightBlueAccent,
+                shape: const CircleBorder(),
+                elevation: 4,
+                child: Icon(
+                  _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded,
+                  color: Colors.black,
+                  size: 28,
+                ),
+              ),
+
+        floatingActionButtonLocation: _isFabMenuOpen
+            ? FloatingActionButtonLocation.centerFloat
+            : FloatingActionButtonLocation.centerDocked,
+
+        /// 4. BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
+        bottomNavigationBar: SizedBox(
+          height: 70,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 350),
+            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+              return Stack(
+                alignment: Alignment.bottomCenter,
+                children: <Widget>[...previousChildren, if (currentChild != null) currentChild],
+              );
+            },
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.0, 1.2),
+                  end: Offset.zero,
+                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCirc)),
+                child: child,
+              );
+            },
+
+            child: _isSelectionMode
+                ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
+                : (_isFabMenuOpen
+                      ? const SizedBox.shrink(key: ValueKey('emptyBar'))
+                      : BottomAppBar(
+                          key: const ValueKey('normalModeBar'),
+                          color: const Color(0xFF1E1E1E),
+                          shape: const CircularNotchedRectangle(),
+                          notchMargin: 8.0,
+                          child: SizedBox(
+                            height: 60,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                // HOME OPTION
+                                Tooltip(
+                                  message: "Home",
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      setState(() => _currentIndex = 0);
+                                    },
+                                    child: SizedBox(
+                                      width: 80,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.home_filled,
+                                            color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            "Home",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                                              color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 40),
+
+                                // FILES OPTION
+                                Tooltip(
+                                  message: "Files",
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      setState(() => _currentIndex = 1);
+                                    },
+                                    child: SizedBox(
+                                      width: 80,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.insert_drive_file_outlined,
+                                            color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            "Files",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                                              color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )),
           ),
-
-          if (_isFabMenuOpen)
-            GestureDetector(
-              onTap: () {
-                setState(() => _isFabMenuOpen = false);
-              },
-              child: Container(
-                color: Colors.black.withOpacity(0.85),
-                width: double.infinity,
-                height: double.infinity,
-              ),
-            ),
-
-          if (_isFabMenuOpen)
-            Positioned(
-              bottom: 90,
-              left: 0,
-              right: 0,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildMenuPill("Create from photos", Icons.photo_library_outlined, () {
-                    showToast("Gallery opening...");
-                    setState(() => _isFabMenuOpen = false);
-                    _openGalleryForPdf();
-                  }),
-                  const SizedBox(height: 12),
-                  _buildMenuPill("Create scan", Icons.add_a_photo_outlined, () {
-                    setState(() => _isFabMenuOpen = false);
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
-                  }),
-                ],
-              ),
-            ),
-        ],
-      ),
-
-      floatingActionButton: _isSelectionMode
-          ? null // 🚨 MAGIC: Null dene se button smoothly gayab ho jayega!
-          : FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            _isFabMenuOpen = !_isFabMenuOpen; // Toggle Open/Close
-          });
-        },
-        backgroundColor: Colors.lightBlueAccent,
-        shape: const CircleBorder(),
-        elevation: 4,
-        child: Icon(
-          _isFabMenuOpen ? Icons.close_rounded : Icons.camera_enhance_rounded,
-          color: Colors.black,
-          size: 28,
         ),
       ),
-
-      floatingActionButtonLocation: _isFabMenuOpen
-          ? FloatingActionButtonLocation
-                .centerFloat
-          : FloatingActionButtonLocation.centerDocked,
-
-      /// 4. BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
-      bottomNavigationBar: SizedBox(
-        height: 70,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 350),
-          layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
-            return Stack(
-              alignment: Alignment.bottomCenter,
-              children: <Widget>[
-                ...previousChildren,
-                if (currentChild != null) currentChild,
-              ],
-            );
-          },
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.0, 1.2),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: animation,
-                curve: Curves.easeOutCirc,
-              )),
-              child: child,
-            );
-          },
-
-          child: _isSelectionMode
-              ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
-              : (_isFabMenuOpen
-              ? const SizedBox.shrink(key: ValueKey('emptyBar'))
-              : BottomAppBar(
-            key: const ValueKey('normalModeBar'),
-            color: const Color(0xFF1E1E1E),
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8.0,
-            child: SizedBox(
-              height: 60,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  // HOME OPTION
-                  Tooltip(
-                    message: "Home",
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        setState(() => _currentIndex = 0);
-                      },
-                      child: SizedBox(
-                        width: 80,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.home_filled,
-                              color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Home",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
-                                color: _currentIndex == 0 ? Colors.lightBlueAccent : Colors.white54,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 40),
-
-                  // FILES OPTION
-                  Tooltip(
-                    message: "Files",
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        setState(() => _currentIndex = 1);
-                      },
-                      child: SizedBox(
-                        width: 80,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.insert_drive_file_outlined,
-                              color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "Files",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
-                                color: _currentIndex == 1 ? Colors.lightBlueAccent : Colors.white54,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )),
-        ),
-      ),
-    ),
     );
   }
 
@@ -521,9 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
       tooltip: "More options",
       offset: const Offset(0, 45),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      constraints: const BoxConstraints(
-        maxWidth: 180,
-      ),
+      constraints: const BoxConstraints(maxWidth: 180),
 
       onSelected: (String value) {
         if (value == 'Select') {
@@ -531,16 +520,13 @@ class _HomeScreenState extends State<HomeScreen> {
             _isSelectionMode = true;
             _selectedFiles.clear();
           });
-        }
-        else if (value == 'Settings') {
+        } else if (value == 'Settings') {
           // TODO: Future me yahan Settings screen open karne ka code aayega
           showToast("Opening Settings...");
-        }
-        else if (value == 'Help & Feedback') {
+        } else if (value == 'Help & Feedback') {
           // TODO: Future me yahan Support email ya helper page open hoga
           showToast("Opening Help & Support...");
-        }
-        else if (value == 'About') {
+        } else if (value == 'About') {
           // TODO: Future me yahan App Info ya Privacy Policy dialog dikhayenge
           showToast("PDF Scanner Pro v1.0.0");
         }
@@ -558,7 +544,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const PopupMenuDivider(height: 1), // Divider
-
         // 2. Settings Option
         const PopupMenuItem<String>(
           value: 'Settings',
@@ -684,8 +669,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
                       ),
 
-                      if (isFirstHeader)
-                        _buildSortMenu(),
+                      if (isFirstHeader) _buildSortMenu(),
                     ],
                   ),
                 ),
@@ -717,17 +701,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
 
-                  padding: const EdgeInsets.only(
-                    left: 8,
-                    top: 4,
-                    right: 12,
-                    bottom: 4,
-                  ),
+                  padding: const EdgeInsets.only(left: 8, top: 4, right: 12, bottom: 4),
                   decoration: BoxDecoration(
                     color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _selectedFiles.contains(file.path) ? Colors.lightBlueAccent.withOpacity(0.5) : Colors.white12,
+                      color: _selectedFiles.contains(file.path)
+                          ? Colors.lightBlueAccent.withOpacity(0.5)
+                          : Colors.white12,
                     ),
                   ),
                   child: Row(
@@ -741,10 +722,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           border: Border.all(color: Colors.white12),
                         ),
                         clipBehavior: Clip.hardEdge,
-                        child: PdfThumbnailView(
-                          key: ValueKey(file.path),
-                          filePath: file.path,
-                        ),
+                        child: PdfThumbnailView(key: ValueKey(file.path), filePath: file.path),
                       ),
                       const SizedBox(width: 16),
 
@@ -770,74 +748,74 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 8),
                             _isSelectionMode
                                 ? Align(
-                              alignment: Alignment.centerRight,
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 8.0),
-                                child: SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: Checkbox(
-                                    value: _selectedFiles.contains(file.path),
-                                    activeColor: Colors.lightBlueAccent,
-                                    checkColor: Colors.black,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                    side: const BorderSide(color: Colors.white54, width: 1.5),
-                                    onChanged: (bool? value) {
-                                      setState(() {
-                                        if (value == true) {
-                                          _selectedFiles.add(file.path);
-                                        } else {
-                                          _selectedFiles.remove(file.path);
-                                        }
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ),
-                            )
-                                : Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                    () {
-                                  final bool isSaved = _savedFilePaths.contains(file.path);
-                                  return Tooltip(
-                                    message: isSaved ? "Unsave document" : "Save document",
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(20),
-                                      onTap: () => _toggleSaveFile(file.path),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(6.0),
-                                        child: Icon(
-                                          isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                                          color: isSaved ? Colors.lightBlueAccent : Colors.white70,
-                                          size: 22,
+                                    alignment: Alignment.centerRight,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: Checkbox(
+                                          value: _selectedFiles.contains(file.path),
+                                          activeColor: Colors.lightBlueAccent,
+                                          checkColor: Colors.black,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                          side: const BorderSide(color: Colors.white54, width: 1.5),
+                                          onChanged: (bool? value) {
+                                            setState(() {
+                                              if (value == true) {
+                                                _selectedFiles.add(file.path);
+                                              } else {
+                                                _selectedFiles.remove(file.path);
+                                              }
+                                            });
+                                          },
                                         ),
                                       ),
                                     ),
-                                  );
-                                }(),
-                                const SizedBox(width: 16),
-                                Tooltip(
-                                  message: "Share",
-                                  child: InkWell(
-                                    onTap: () => _sharePdfFile(file),
-                                    child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      () {
+                                        final bool isSaved = _savedFilePaths.contains(file.path);
+                                        return Tooltip(
+                                          message: isSaved ? "Unsave document" : "Save document",
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(20),
+                                            onTap: () => _toggleSaveFile(file.path),
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(6.0),
+                                              child: Icon(
+                                                isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                                color: isSaved ? Colors.lightBlueAccent : Colors.white70,
+                                                size: 22,
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }(),
+                                      const SizedBox(width: 16),
+                                      Tooltip(
+                                        message: "Share",
+                                        child: InkWell(
+                                          onTap: () => _sharePdfFile(file),
+                                          child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Tooltip(
+                                        message: "More options",
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(20),
+                                          onTap: () => _showFileOptionsBottomSheet(context, file),
+                                          child: const Padding(
+                                            padding: EdgeInsets.all(6.0),
+                                            child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Tooltip(
-                                  message: "More options",
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(20),
-                                    onTap: () => _showFileOptionsBottomSheet(context, file),
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(6.0),
-                                      child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -854,13 +832,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSortMenu() {
     return PopupMenuButton<String>(
-      color: const Color(0xFF2C2C2C), // Dark theme
+      color: const Color(0xFF2C2C2C),
+      // Dark theme
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       offset: const Offset(0, 40),
-      constraints: const BoxConstraints(
-        maxWidth: 180,
-      ),
+      constraints: const BoxConstraints(maxWidth: 180),
       child: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
@@ -868,7 +845,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.sort_rounded, color: Colors.lightBlueAccent, size: 18),
             SizedBox(width: 4),
-            Text("Sort", style: TextStyle(color: Colors.lightBlueAccent, fontSize: 13, fontWeight: FontWeight.bold)),
+            Text(
+              "Sort",
+              style: TextStyle(color: Colors.lightBlueAccent, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),
@@ -937,9 +917,7 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: const Color(0xFF1E1E1E),
       elevation: 10,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (BuildContext context) {
         return SafeArea(
           child: Column(
@@ -949,10 +927,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
               ),
               const SizedBox(height: 16),
               Padding(
@@ -1015,7 +990,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           _renamePdfFile(context, file);
                         },
                       ),
-                          () {
+                      () {
                         final bool isSaved = _savedFilePaths.contains(file.path);
                         return ListTile(
                           leading: Icon(
@@ -1025,10 +1000,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           title: Text(
                             isSaved ? 'Remove from saved' : 'Save document',
-                            style: TextStyle(
-                              color: isSaved ? Colors.lightBlueAccent : Colors.white,
-                              fontSize: 16,
-                            ),
+                            style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
                           ),
                           onTap: () {
                             Navigator.pop(context);
@@ -1059,13 +1031,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       ListTile(
                         leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
-                        title: const Text('Delete', style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+                        title: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                         onTap: () async {
                           Navigator.pop(context);
                           bool shouldDelete = await showCustomConfirmDialog(
                             context,
                             title: "Delete Document",
-                            message: "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
+                            message:
+                                "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
                             positiveBtnText: "Delete",
                             negativeBtnText: "Cancel",
                             positiveBtnColor: Colors.redAccent,
@@ -1196,7 +1172,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(icon, color: color, size: 22),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500)),
+            Text(
+              label,
+              style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500),
+            ),
           ],
         ),
       ),
@@ -1206,12 +1185,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _sharePdfFile(File file) async {
     try {
       final xFile = XFile(file.path);
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [xFile],
-          text: 'Document shared from PDF Scanner Pro',
-        ),
-      );
+      await SharePlus.instance.share(ShareParams(files: [xFile], text: 'Document shared from PDF Scanner Pro'));
     } catch (e) {
       showToast("Error sharing file");
       print("Share Error: $e");
@@ -1243,7 +1217,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedFiles.clear();
       });
       await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
-
     } catch (e) {
       print("Bulk Tag Error: $e");
       showToast("Error updating tags");
@@ -1258,7 +1231,8 @@ class _HomeScreenState extends State<HomeScreen> {
     bool shouldDelete = await showCustomConfirmDialog(
       context,
       title: "Delete Files",
-      message: "Are you sure you want to permanently delete ${_selectedFiles.length} selected files? This action cannot be undone.",
+      message:
+          "Are you sure you want to permanently delete ${_selectedFiles.length} selected files? This action cannot be undone.",
       positiveBtnText: "Delete",
       negativeBtnText: "Cancel",
       positiveBtnColor: Colors.redAccent,
@@ -1291,7 +1265,6 @@ class _HomeScreenState extends State<HomeScreen> {
       });
 
       _loadPdfFiles();
-
     } catch (e) {
       print("Bulk Delete Error: $e");
       showToast("Error deleting some files");
@@ -1338,7 +1311,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF2C2C2C),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Rename File', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          title: const Text(
+            'Rename File',
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           content: TextField(
             controller: nameController,
             style: const TextStyle(color: Colors.white),
@@ -1389,7 +1365,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   showToast("Error renaming file");
                 }
               },
-              child: const Text('Rename', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Rename',
+                style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
@@ -1398,7 +1377,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showPdfDetails(BuildContext context, File file) {
-
     final stat = file.statSync();
     final String fileName = file.path.split('/').last;
     final String fileSize = _getFileSize(stat.size); // Tumhara hi banaya hua function!
@@ -1409,9 +1387,13 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C), // Premium Dark Grey
+          backgroundColor: const Color(0xFF2C2C2C),
+          // Premium Dark Grey
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('File Details', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          title: const Text(
+            'File Details',
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1428,7 +1410,10 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close', style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Close',
+                style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         );
@@ -1451,7 +1436,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _shareSelectedFiles() async {
-
     if (_selectedFiles.isEmpty) {
       showToast("Please select at least one file to share");
       return;
@@ -1466,8 +1450,10 @@ class _HomeScreenState extends State<HomeScreen> {
           text: 'Documents shared from PDF Scanner Pro',
         ),
       );
-      setState(() { _isSelectionMode = false; _selectedFiles.clear(); });
-
+      setState(() {
+        _isSelectionMode = false;
+        _selectedFiles.clear();
+      });
     } catch (e) {
       print("Bulk Share Error: $e");
       showToast("Error sharing files");
@@ -1476,7 +1462,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _printPdfFile(File file) async {
     try {
-
       final String fileName = file.path.split('/').last;
 
       await Printing.layoutPdf(
@@ -1516,8 +1501,7 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast("Error: Permission denied by Android System.");
     }
   }
-
-}//end main class
+} //end main class
 ///end main class
 ///
 
@@ -1666,10 +1650,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
       ),
       clipBehavior: Clip.hardEdge,
       child: Center(
-        child: SizedBox(
-          height: 91,
-          child: AdWidget(ad: _nativeAd!),
-        ),
+        child: SizedBox(height: 91, child: AdWidget(ad: _nativeAd!)),
       ),
     );
   }
@@ -1683,10 +1664,7 @@ class PdfSearchDelegate extends SearchDelegate {
   @override
   ThemeData appBarTheme(BuildContext context) {
     return ThemeData.dark().copyWith(
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF1E1E1E),
-        elevation: 0,
-      ),
+      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF1E1E1E), elevation: 0),
       scaffoldBackgroundColor: const Color(0xFF121212),
       inputDecorationTheme: const InputDecorationTheme(
         border: InputBorder.none,
@@ -1704,7 +1682,7 @@ class PdfSearchDelegate extends SearchDelegate {
           onPressed: () {
             query = ''; // Text clear karega
           },
-        )
+        ),
     ];
   }
 
