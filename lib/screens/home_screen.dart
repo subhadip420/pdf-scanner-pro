@@ -1045,7 +1045,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               if (showHeader)
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 4),
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, // Text Left me, Icon Right me
                     children: [
@@ -1092,7 +1092,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  padding: const EdgeInsets.all(12),
+                  //padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.only(
+                    left: 8,
+                    top: 4,
+                    right: 12,
+                    bottom: 4,
+                  ),
                   //decoration: BoxDecoration(color: const Color(0xFF1E1E1E), borderRadius: BorderRadius.circular(12)),
                   decoration: BoxDecoration(
                     color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
@@ -1106,7 +1112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Left Side: Real PDF Thumbnail
                       Container(
                         width: 70,
-                        height: 90,
+                        height: 95,
                         decoration: BoxDecoration(
                           color: Colors.grey.shade800,
                           borderRadius: BorderRadius.circular(6),
