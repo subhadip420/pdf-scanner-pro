@@ -294,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               )
             : AppBar(
-                backgroundColor: Colors.black,
+                backgroundColor: Color(0xFF1E1E1E),
                 title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 20)),
                 actions: [
                   Tooltip(

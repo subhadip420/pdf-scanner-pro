@@ -40,7 +40,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Dark Theme
+      backgroundColor: Color(0xFF100F0F), // Dark Theme
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -64,7 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: ListTile(
                 leading: const Icon(Icons.text_snippet_rounded, color: Colors.lightBlueAccent),
                 title: const Text("Default Page Size", style: TextStyle(color: Colors.white, fontSize: 15)),
-                subtitle: Text(_defaultPageSize, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                //subtitle: Text(_defaultPageSize, style: const TextStyle(color: Colors.white54, fontSize: 13)),
                 trailing: DropdownButton<String>(
                   value: _defaultPageSize,
                   dropdownColor: const Color(0xFF2C2C2C),

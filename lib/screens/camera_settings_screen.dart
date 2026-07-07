@@ -50,9 +50,9 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color(0xFF100F0F),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF151515),
+        backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 26),
@@ -73,7 +73,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
         children: [
           // CARD VIEW START
           Card(
-            color: const Color(0xFF383838),
+            color: const Color(0xFF1A1A1A),
             elevation: 4,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
