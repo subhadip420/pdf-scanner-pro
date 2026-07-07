@@ -269,7 +269,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // return Scaffold(
+
+    // 🚨 MAGIC WIDGET: Back button ko intercept karne ke liye PopScope
+    return PopScope(
+      canPop: !_isSelectionMode,
+      onPopInvokedWithResult: (bool didPop, Object? result) { // 🚨 NAYA: result parameter add kiya
+        if (didPop) {
+          return; // Agar pop ho chuka hai, toh aage kuch mat karo
+        }
+
+        // Agar select mode ON tha, toh cancel karke normal mode me wapas aao
+        if (_isSelectionMode) {
+          setState(() {
+            _isSelectionMode = false;
+            _selectedFiles.clear();
+          });
+        }
+      },
+    child: Scaffold(
       backgroundColor: const Color(0xFF121212),
       // Dark theme matching screenshot
 
@@ -782,6 +800,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )),
         ),
       ),
+    ),
     );
   }
 
