@@ -228,13 +228,15 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
           ),
-          Tooltip(
-            message: "More options",
-            child: IconButton(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-              onPressed: () => showToast("More options clicked"),
-            ),
-          ),
+          // Tooltip(
+          //   message: "More options",
+          //   child: IconButton(
+          //     icon: const Icon(Icons.more_vert, color: Colors.white),
+          //     onPressed: () => showToast("More options clicked"),
+          //   ),
+          // ),
+          // 🚨 MAGIC: Poora bara code gayab, ab sirf ye function call hoga!
+          _buildMainAppBarMenu(),
         ],
       ),
 
@@ -420,6 +422,71 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  // 🚨 APP BAR MENU WIDGET FUNCTION: Code ko saaf rakhne ke liye alag kiya
+  Widget _buildMainAppBarMenu() {
+    return PopupMenuButton<String>(
+      color: const Color(0xFF2C2C2C), // Dark Premium Background
+      surfaceTintColor: Colors.transparent, // Material 3 White Tint Fix
+      icon: const Icon(Icons.more_vert, color: Colors.white),
+      tooltip: "More options",
+      offset: const Offset(0, 45), // Menu ko thoda neeche se open karne ke liye
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (String value) {
+        showToast("$value clicked");
+      },
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        // 1. Select Option
+        const PopupMenuItem<String>(
+          value: 'Select',
+          child: Row(
+            children: [
+              Icon(Icons.checklist_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 12),
+              Text('Select', style: TextStyle(color: Colors.white, fontSize: 15)),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(height: 1), // Divider
+
+        // 2. Settings Option
+        const PopupMenuItem<String>(
+          value: 'Settings',
+          child: Row(
+            children: [
+              Icon(Icons.settings_outlined, color: Colors.white, size: 20),
+              SizedBox(width: 12),
+              Text('Settings', style: TextStyle(color: Colors.white, fontSize: 15)),
+            ],
+          ),
+        ),
+
+        // 3. Help & Feedback Option
+        const PopupMenuItem<String>(
+          value: 'Help & Feedback',
+          child: Row(
+            children: [
+              Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 12),
+              Text('Help & Feedback', style: TextStyle(color: Colors.white, fontSize: 15)),
+            ],
+          ),
+        ),
+
+        // 4. About Option
+        const PopupMenuItem<String>(
+          value: 'About',
+          child: Row(
+            children: [
+              Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+              SizedBox(width: 12),
+              Text('About', style: TextStyle(color: Colors.white, fontSize: 15)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
