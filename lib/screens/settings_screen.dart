@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 // Agar path_provider use kar rahe ho cache ke liye toh import kar lena, abhi ke liye functional UI bana diya hai.
 
 class SettingsScreen extends StatefulWidget {
@@ -49,11 +51,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Cache Clear Karne ka Logic
-  void _clearAppCache() {
-    // Yahan future me tum temporary directory delete karne ka code daal sakte ho
-    _showSettingToast("Cache cleared successfully! Storage freed.");
-  }
+  // // Cache Clear Karne ka Logic
+  // void _clearAppCache() {
+  //   // Yahan future me tum temporary directory delete karne ka code daal sakte ho
+  //   _showSettingToast("Cache cleared successfully! Storage freed.");
+  // }
 
   // Storage Location Change karne ka Logic (Placeholder)
   void _changeStorageLocation() {
@@ -224,6 +226,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  // 🚨 NAYA FUNCTION: Cache Clear karne ka Asli Logic
+  Future<void> _clearAppCache() async {
+    // 1. User ko wait karne ka message dikhao (Kyunki delete me thoda time lag sakta hai)
+    _showSettingToast("Clearing cache... Please wait.");
+
+    try {
+      // 2. App ki Temporary (Cache) Directory ka path nikalo
+      final Directory tempDir = await getTemporaryDirectory();
+
+      // 3. Check karo ki folder exist karta hai ya nahi
+      if (tempDir.existsSync()) {
+
+        // 4. Folder ke andar ki saari files aur sub-folders ki list banao
+        final List<FileSystemEntity> tempFiles = tempDir.listSync();
+        int deletedFilesCount = 0;
+
+        for (FileSystemEntity file in tempFiles) {
+          try {
+            // Har file/folder ko delete karo (recursive: true se andar ke folder bhi delete honge)
+            file.deleteSync(recursive: true);
+            deletedFilesCount++;
+          } catch (e) {
+            // Kuch files locked ho sakti hain, unhe chup-chaap ignore karo
+            print("Skipped locked cache file: $e");
+          }
+        }
+
+        // 5. Success Message
+        _showSettingToast("Success! Freed up space from $deletedFilesCount temp files.");
+      } else {
+        _showSettingToast("Cache is already clean!");
+      }
+    } catch (e) {
+      print("Clear Cache Error: $e");
+      _showSettingToast("Failed to clear cache properly.");
+    }
   }
 
   // Section Headers ke liye Widget
