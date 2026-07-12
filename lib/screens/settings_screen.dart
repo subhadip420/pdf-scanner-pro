@@ -219,7 +219,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: "App info and developer details",
               onTap: () {
                 // 🚨 FIX: Abhi dialog nahi hai to sirf toast dikhayenge
-                _showSettingToast("About PDF Scanner Pro v1.0.0");
+                //_showSettingToast("About PDF Scanner Pro v1.0.0");
+                showAboutAppDialog(context);
               },
             ),
 
@@ -347,4 +348,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-}
+
+  // 🚨 NAYA GLOBAL FUNCTION: Premium About Dialog
+  void showAboutAppDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          contentPadding: const EdgeInsets.all(24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min, // Content ke hisaab se height lega
+            children: [
+              // 1. App Icon with glowing effect
+              // Container(
+              //   padding: const EdgeInsets.all(16),
+              //   decoration: BoxDecoration(
+              //     color: Colors.lightBlueAccent.withOpacity(0.1),
+              //     shape: BoxShape.circle,
+              //   ),
+              //   child: const Icon(Icons.picture_as_pdf_rounded, size: 50, color: Colors.lightBlueAccent),
+              // ),
+              // const SizedBox(height: 16),
+
+              // 2. App Name & Version
+              const Text(
+                "PDF Scanner Pro",
+                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                "Version 1.0.0",
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              ),
+              const SizedBox(height: 20),
+
+              const Divider(color: Colors.white12, thickness: 1),
+              const SizedBox(height: 16),
+
+              // 3. Description
+              const Text(
+                "A fast, secure, and professional tool to manage, merge, and organize all your PDF documents offline.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+              ),
+              const SizedBox(height: 20),
+
+              // 4. Developer Credit
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  //const Icon(Icons.code_rounded, size: 16, color: Colors.white54),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Developed by SP Tech Studios",
+                    style: TextStyle(color: Colors.white54, fontSize: 13, fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // 5. Close Button
+              SizedBox(
+                width: double.infinity,
+                height: 45,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlueAccent,
+                    foregroundColor: Colors.black, // Text color black for contrast
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Close", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+}// end main
