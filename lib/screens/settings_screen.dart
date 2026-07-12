@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:pdf_scanner_pro/screens/terms_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -198,7 +199,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "Rate Us",
               subtitle: "Support us on Google Play Store",
               onTap: () {
-                _showSettingToast("Thank you for your support!");
+                //_showSettingToast("Thank you for your support!");
+                _handleRateUs();
               },
             ),
 
@@ -357,6 +359,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
         },
       ),
     );
+  }
+
+  // 🚨 NAYA FUNCTION: Native In-App Review
+  Future<void> _handleRateUs() async {
+    final InAppReview inAppReview = InAppReview.instance;
+
+    try {
+      // 1. Check karo ki device me Play Store services available hain ya nahi
+      if (await inAppReview.isAvailable()) {
+        // 2. Native Play Store pop-up app ke andar hi dikhao
+        await inAppReview.requestReview();
+      } else {
+        // 3. Agar review popup available nahi hai, toh seedha Play Store app me open karo
+        // (Jab app publish ho jaye, toh apna package name daal dena, ex: 'com.sptech.pdfscanner')
+        await inAppReview.openStoreListing(appStoreId: 'com.yourcompany.yourapp');
+      }
+    } catch (e) {
+      print("Rate Us Error: $e");
+      _showSettingToast("Unable to open rating dialog.");
+    }
   }
 
   // 🚨 NAYA GLOBAL FUNCTION: Premium About Dialog
