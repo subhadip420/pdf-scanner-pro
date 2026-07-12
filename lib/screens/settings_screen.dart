@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pdf_scanner_pro/screens/terms_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -206,9 +207,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               icon: Icons.gavel_rounded,
               title: "Terms & Conditions",
               subtitle: "Read our usage policy and legal terms",
+              // onTap: () {
+              //   // 🚨 FIX: Abhi page nahi hai to sirf toast dikhayenge
+              //   _showSettingToast("Terms & Conditions - Coming Soon!");
+              // },
               onTap: () {
-                // 🚨 FIX: Abhi page nahi hai to sirf toast dikhayenge
-                _showSettingToast("Terms & Conditions - Coming Soon!");
+                // 🚨 FIX: Toast hataya aur naya page open kiya
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TermsAndConditionsScreen(),
+                  ),
+                );
               },
             ),
 
