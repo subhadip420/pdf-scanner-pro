@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:pdf_scanner_pro/screens/terms_screen.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -189,7 +190,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "Share App",
               subtitle: "Share PDF Scanner Pro with friends",
               onTap: () {
-                _showSettingToast("Link copied! Share it with your friends.");
+                //_showSettingToast("Link copied! Share it with your friends.");
+                _shareApp();
               },
             ),
 
@@ -374,11 +376,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // 3. Agar review popup available nahi hai, toh seedha Play Store app me open karo
         // (Jab app publish ho jaye, toh apna package name daal dena, ex: 'com.sptech.pdfscanner')
         await inAppReview.openStoreListing(appStoreId: 'com.sptechstudios.pdfscannerpro');
+        //TODO: change to original link
       }
     } catch (e) {
       print("Rate Us Error: $e");
       _showSettingToast("Unable to open rating dialog.");
     }
+  }
+
+  // 🚨 CORRECT FUNCTION FOR share_plus ^13.2.0
+  void _shareApp() {
+    const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
+    //TODO: change to original link
+    const String shareMessage =
+        "Hey! Check out PDF Scanner Pro by SP Tech Studios. "
+        "It's a fast, secure, and 100% offline PDF creator & document scanner. "
+        "Download it here: $playStoreLink";
+
+    // 🚨 MAGIC FIX: '.instance' ka use karna hai!
+    SharePlus.instance.share(
+      ShareParams(
+        text: shareMessage,
+        subject: "Download PDF Scanner Pro",
+      ),
+    );
   }
 
   // 🚨 NAYA GLOBAL FUNCTION: Premium About Dialog
