@@ -373,7 +373,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } else {
         // 3. Agar review popup available nahi hai, toh seedha Play Store app me open karo
         // (Jab app publish ho jaye, toh apna package name daal dena, ex: 'com.sptech.pdfscanner')
-        await inAppReview.openStoreListing(appStoreId: 'com.yourcompany.yourapp');
+        await inAppReview.openStoreListing(appStoreId: 'com.sptechstudios.pdfscannerpro');
       }
     } catch (e) {
       print("Rate Us Error: $e");
