@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_review/in_app_review.dart';
@@ -36,6 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _defaultPageSize = prefs.getString('pref_page_size') ?? 'A4 (P)';
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
+      _storageLocation = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/PDF Scanner Pro";
     });
   }
 
@@ -63,10 +65,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   //   _showSettingToast("Cache cleared successfully! Storage freed.");
   // }
 
-  // Storage Location Change karne ka Logic (Placeholder)
-  void _changeStorageLocation() {
-    _showSettingToast("Folder picker will open in next update!");
-  }
+  // // Storage Location Change karne ka Logic (Placeholder)
+  // void _changeStorageLocation() {
+  //   _showSettingToast("Folder picker will open in next update!");
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -397,21 +399,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // 🚨 CORRECT FUNCTION FOR share_plus ^13.2.0
+  // void _shareApp() {
+  //   const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
+  //   //TODO: change to original link
+  //   const String shareMessage =
+  //       "Hey! Check out PDF Scanner Pro by SP Tech Studios. "
+  //       "It's a fast, secure, and 100% offline PDF creator & document scanner. "
+  //       "Download it here: $playStoreLink";
+  //
+  //   // 🚨 MAGIC FIX: '.instance' ka use karna hai!
+  //   SharePlus.instance.share(
+  //     ShareParams(
+  //       text: shareMessage,
+  //       subject: "Download PDF Scanner Pro",
+  //     ),
+  //   );
+  // }
+
+  // 🚨 CORRECT FUNCTION FOR share_plus ^12.0.2
   void _shareApp() {
     const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
-    //TODO: change to original link
+
     const String shareMessage =
         "Hey! Check out PDF Scanner Pro by SP Tech Studios. "
         "It's a fast, secure, and 100% offline PDF creator & document scanner. "
         "Download it here: $playStoreLink";
 
-    // 🚨 MAGIC FIX: '.instance' ka use karna hai!
-    SharePlus.instance.share(
-      ShareParams(
-        text: shareMessage,
-        subject: "Download PDF Scanner Pro",
-      ),
-    );
+    // 🚨 FIX: v12 ke hisaab se hum wapas classic Share.share use karenge
+    Share.share(shareMessage, subject: "Download PDF Scanner Pro");
   }
 
   // 🚨 NAYA GLOBAL FUNCTION: Customer Support Dialog
@@ -580,6 +595,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       },
     );
+  }
+
+  // 🚨 NAYA FUNCTION: Folder Picker & Storage Location Logic
+  // 🚨 CORRECT FUNCTION: Folder Picker (Bina dialogTitle ke)
+  Future<void> _changeStorageLocation() async {
+    try {
+      // 1. Native folder picker open karo (Error wala parameter hata diya)
+      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+
+      // 2. Agar user ne koi folder select kiya (cancel nahi kiya)
+      if (selectedDirectory != null) {
+        setState(() {
+          _storageLocation = selectedDirectory;
+        });
+
+        // 3. Naya path disk (SharedPreferences) mein hamesha ke liye save kar lo
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('pref_storage_location', selectedDirectory);
+
+        _showSettingToast("Folder updated successfully!");
+      }
+    } catch (e) {
+      print("Folder Picker Error: $e");
+      _showSettingToast("Failed to pick folder.");
+    }
   }
 
 }// end main
