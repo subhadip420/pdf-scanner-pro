@@ -184,8 +184,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: _clearAppCache,
             ),
 
-            // ---------------- CATEGORY 3: APP & LEGAL ----------------
-            _buildSectionHeader("Application & Legal"),
+            // ---------------- CATEGORY 3: SUPPORT & FEEDBACK ----------------
+            _buildSectionHeader("Support & Feedback"),
 
             // 5. Share App
             _buildSettingTile(
@@ -193,7 +193,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "Share App",
               subtitle: "Share PDF Scanner Pro with friends",
               onTap: () {
-                //_showSettingToast("Link copied! Share it with your friends.");
                 _shareApp();
               },
             ),
@@ -204,22 +203,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "Rate Us",
               subtitle: "Support us on Google Play Store",
               onTap: () {
-                //_showSettingToast("Thank you for your support!");
                 _handleRateUs();
               },
             ),
 
-            // 7. Terms & Conditions
+            // 7. Customer Help
+            _buildSettingTile(
+              icon: Icons.support_agent_rounded,
+              title: "Customer Help",
+              subtitle: "Get help or report a problem",
+              onTap: () {
+                showSupportDialog(context);
+              },
+            ),
+
+            // ---------------- CATEGORY 4: ABOUT & LEGAL ----------------
+            _buildSectionHeader("About & Legal"),
+
+            // 8. Terms & Conditions
             _buildSettingTile(
               icon: Icons.gavel_rounded,
               title: "Terms & Conditions",
               subtitle: "Read our usage policy and legal terms",
-              // onTap: () {
-              //   // 🚨 FIX: Abhi page nahi hai to sirf toast dikhayenge
-              //   _showSettingToast("Terms & Conditions - Coming Soon!");
-              // },
               onTap: () {
-                // 🚨 FIX: Toast hataya aur naya page open kiya
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -229,26 +235,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
 
-            // 8. About App
+            // 9. About App
             _buildSettingTile(
               icon: Icons.info_outline_rounded,
               title: "About",
               subtitle: "App info and developer details",
               onTap: () {
-                // 🚨 FIX: Abhi dialog nahi hai to sirf toast dikhayenge
-                //_showSettingToast("About PDF Scanner Pro v1.0.0");
                 showAboutAppDialog(context);
-              },
-            ),
-
-            // 8. Customer Help
-            _buildSettingTile(
-              icon: Icons.support_agent_rounded, // 🚨 Customer support jaisa icon
-              title: "Customer Help",
-              subtitle: "Get help or report a problem",
-              onTap: () {
-                // 🚨 Naya function call kiya
-                showSupportDialog(context);
               },
             ),
 
