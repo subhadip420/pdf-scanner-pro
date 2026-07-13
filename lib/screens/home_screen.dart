@@ -968,6 +968,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
                         onTap: () {
                           Navigator.pop(context);
+                          //TODO
                           showToast("Open with clicked");
                         },
                       ),
@@ -981,14 +982,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           _copyPdfFile(file);
                         },
                       ),
+
                       ListTile(
                         leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
                         title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
                         onTap: () {
                           Navigator.pop(context);
                           showToast("Save pages as JPEG clicked");
+                          //TODO
+                          _savePagesAsJpeg(file);
                         },
-                      ),
+                      )
+                      ,
                       ListTile(
                         leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
                         title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -1508,8 +1513,66 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast("Error: Permission denied by Android System.");
     }
   }
+
+
+  // 🚨 CORRECT FUNCTION: PDF file se pages nikaal kar 'Images' folder me save karna
+  Future<void> _savePagesAsJpeg(File pdfFile) async {
+    showToast("Extracting pages... Please wait.");
+    try {
+      // 1. User ki set ki hui storage location nikaalo
+      final prefs = await SharedPreferences.getInstance();
+      String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+
+      // 🚨 NAYA LOGIC: 'Images' naam ka ek sub-folder banao
+      String imagesFolderPath = "$baseSavePath/Images";
+      final directory = Directory(imagesFolderPath);
+
+      // Agar folder pehle se nahi hai, toh naya create karo
+      if (!(await directory.exists())) {
+        await directory.create(recursive: true);
+      }
+
+      // 2. PDF Document ko open karo
+      final document = await PdfDocument.openFile(pdfFile.path);
+      int pageCount = document.pagesCount;
+
+      // Original file ka naam nikaalo (bina .pdf ke)
+      String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
+
+      // 3. Har page ko loop karke image me convert karo
+      for (int i = 1; i <= pageCount; i++) {
+        final page = await document.getPage(i);
+
+        // Page ko image me render karo
+        final pageImage = await page.render(
+          width: page.width * 2,
+          height: page.height * 2,
+          format: PdfPageImageFormat.jpeg,
+        );
+
+        if (pageImage != null) {
+          // 🚨 FIX: Ab image naye 'Images' folder ke andar save hogi
+          String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
+          File newFile = File(newImagePath);
+
+          // Image ko bytes me likh kar save kar do
+          await newFile.writeAsBytes(pageImage.bytes);
+        }
+        await page.close(); // Memory free karne ke liye
+      }
+
+      await document.close(); // Document close karo
+
+      // 4. Success Message me naya folder path dikhao
+      showToast("Saved $pageCount pages in: $imagesFolderPath");
+    } catch (e) {
+      print("Save JPEG Error: $e");
+      showToast("Failed to extract pages. Check storage permissions.");
+    }
+  }
+
 } //end main class
-///end main class
+///end main class///////////////////////////////////////////////////////////////////
 ///
 
 class PdfThumbnailView extends StatefulWidget {
