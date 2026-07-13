@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'custom_dialog.dart';
 // Agar path_provider use kar rahe ho cache ke liye toh import kar lena, abhi ke liye functional UI bana diya hai.
@@ -238,6 +239,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
 
+            // 8. Customer Help
+            _buildSettingTile(
+              icon: Icons.support_agent_rounded, // 🚨 Customer support jaisa icon
+              title: "Customer Help",
+              subtitle: "Get help or report a problem",
+              onTap: () {
+                // 🚨 Naya function call kiya
+                showSupportDialog(context);
+              },
+            ),
+
             const SizedBox(height: 30),
           ],
         ),
@@ -399,6 +411,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
         text: shareMessage,
         subject: "Download PDF Scanner Pro",
       ),
+    );
+  }
+
+  // 🚨 NAYA GLOBAL FUNCTION: Customer Support Dialog
+  void showSupportDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Customer Help",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              Divider(color: Colors.white24, thickness: 1, height: 1),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "If you have any questions, feedback, or need help with PDF Scanner Pro, feel free to reach out to the SP Tech Studios team at:",
+                style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+              ),
+              const SizedBox(height: 24),
+
+              // 🚨 Clickable Email Box
+              Center(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () async {
+                    // 1. Email open karne ka logic
+                    const String supportEmail = "support.sptechstudios@gmail.com";
+                    final Uri emailUri = Uri.parse("mailto:$supportEmail?subject=Support Request: PDF Scanner Pro");
+
+                    try {
+                      await launchUrl(emailUri);
+                    } catch (e) {
+                      print("Email Error: $e");
+                    }
+
+                    // 2. Click karne ke baad dialog automatically close kar do
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlueAccent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.lightBlueAccent.withOpacity(0.5)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        //Icon(Icons.email_outlined, color: Colors.lightBlueAccent, size: 20),
+                        //SizedBox(width: 10),
+                        Text(
+                          "support.sptechstudios@gmail.com",
+                          style: TextStyle(
+                            color: Colors.lightBlueAccent,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close", style: TextStyle(color: Colors.white54)),
+            ),
+          ],
+        );
+      },
     );
   }
 
