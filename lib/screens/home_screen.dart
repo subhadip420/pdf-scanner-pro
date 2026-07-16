@@ -82,6 +82,26 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  // 🚨 BUSINESS LOGIC: App folder aur Phone ki saari files ko mila kar ek unique list banana
+  List<File> get _getAllKnownFiles {
+    final Set<String> uniquePaths = {};
+    final List<File> combinedList = [];
+
+    // Pehle app folder ki files add karo
+    for (var f in _pdfFiles) {
+      if (uniquePaths.add(f.path)) {
+        combinedList.add(f);
+      }
+    }
+    // Fir phone ki baaki saari files add karo
+    for (var f in _allDevicePdfFiles) {
+      if (uniquePaths.add(f.path)) {
+        combinedList.add(f);
+      }
+    }
+    return combinedList;
+  }
+
   void showToast(String msg) {
     Fluttertoast.showToast(
       msg: msg,
@@ -341,7 +361,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => SavedPdfScreen(
-                              allFiles: _pdfFiles,
+                              //allFiles: _pdfFiles,
+                              allFiles: _getAllKnownFiles,
                               savedPaths: _savedFilePaths,
                             ),
                           ),
@@ -358,7 +379,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                       icon: const Icon(Icons.search, color: Colors.white),
                       onPressed: () {
-                        showSearch(context: context, delegate: PdfSearchDelegate(_pdfFiles));
+                        //showSearch(context: context, delegate: PdfSearchDelegate(_pdfFiles));
+                        showSearch(
+                            context: context,
+                            delegate: PdfSearchDelegate(_getAllKnownFiles)
+                        );
                       },
                     ),
                   ),
