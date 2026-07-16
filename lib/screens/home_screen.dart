@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -43,6 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isAscending = false;
   bool _isSelectionMode = false;
   Set<String> _selectedFiles = {};
+  List<File> _allDevicePdfFiles = [];
+  bool _isLoadingDeviceFiles = true;
 
   @override
   void initState() {
@@ -50,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadBannerAd();
     _loadPdfFiles();
     _loadSavedFiles();
+    _loadAllDevicePdfFiles();
   }
 
   // Load Banner Ad
@@ -123,6 +127,35 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (mounted) setState(() => _isLoadingFiles = false);
       print("Error loading files: $e");
+    }
+  }
+
+  // 🚨 BUSINESS LOGIC: Poore phone ki PDFs background me scan karna
+  Future<void> _loadAllDevicePdfFiles() async {
+    setState(() => _isLoadingDeviceFiles = true);
+    try {
+      if (await Permission.manageExternalStorage.isDenied) {
+        await Permission.manageExternalStorage.request();
+      }
+
+      // 🚨 MAGIC: compute() function heavy loading ko background me bhej deta hai
+      List<String> paths = await compute(searchAllPdfsInBackground, '/storage/emulated/0');
+
+      // Paths ko File objects me convert karo
+      List<File> allPdfs = paths.map((path) => File(path)).toList();
+
+      // Nayi files upar dikhane ke liye Date wise sort kar do
+      allPdfs.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+      if (mounted) {
+        setState(() {
+          _allDevicePdfFiles = allPdfs;
+          _isLoadingDeviceFiles = false;
+        });
+      }
+    } catch (e) {
+      print("Device PDF Search Error: $e");
+      if (mounted) setState(() => _isLoadingDeviceFiles = false);
     }
   }
 
@@ -350,9 +383,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     index: _currentIndex,
                     children: [
                       _buildHomeTabContent(),
-                      const Center(
-                        child: Text("Files View", style: TextStyle(color: Colors.white70)),
-                      ),
+                      // const Center(
+                      //   child: Text("Files View", style: TextStyle(color: Colors.white70)),
+                      // ),
+                      _buildFilesTabContent(),
                     ],
                   ),
                 ),
@@ -523,6 +557,394 @@ class _HomeScreenState extends State<HomeScreen> {
                         )),
           ),
         ),
+      ),
+    );
+  }
+
+  // 🚨 BUSINESS LOGIC & UI: Files Tab Content (Bina categories ke direct list)
+  // Widget _buildFilesTabContent() {
+  //   if (_isLoadingFiles) {
+  //     return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
+  //   }
+  //
+  //   if (_pdfFiles.isEmpty) {
+  //     return Center(
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           const Icon(Icons.folder_open_rounded, color: Colors.white24, size: 80),
+  //           const SizedBox(height: 16),
+  //           const Text(
+  //             "No files found.",
+  //             style: TextStyle(color: Colors.white54, fontSize: 16),
+  //           ),
+  //         ],
+  //       ),
+  //     );
+  //   }
+  //
+  //   return RefreshIndicator(
+  //     onRefresh: _loadPdfFiles,
+  //     color: Colors.blueAccent,
+  //     backgroundColor: const Color(0xFF1E1E1E),
+  //     child: ListView.builder(
+  //       physics: const AlwaysScrollableScrollPhysics(),
+  //       padding: const EdgeInsets.only(bottom: 100, top: 10),
+  //       itemCount: _pdfFiles.length,
+  //       itemBuilder: (context, index) {
+  //         final file = _pdfFiles[index];
+  //         final fileStat = file.statSync();
+  //
+  //         // Premium UI Card (Same as Home Screen)
+  //         return GestureDetector(
+  //           onTap: () {
+  //             if (_isSelectionMode) {
+  //               setState(() {
+  //                 if (_selectedFiles.contains(file.path)) {
+  //                   _selectedFiles.remove(file.path);
+  //                 } else {
+  //                   _selectedFiles.add(file.path);
+  //                 }
+  //               });
+  //             } else {
+  //               OpenFile.open(file.path);
+  //             }
+  //           },
+  //           onLongPress: () {
+  //             if (!_isSelectionMode) {
+  //               HapticFeedback.heavyImpact();
+  //               setState(() {
+  //                 _isSelectionMode = true;
+  //                 _selectedFiles.add(file.path);
+  //               });
+  //             }
+  //           },
+  //           child: Container(
+  //             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+  //             padding: const EdgeInsets.only(left: 8, top: 8, right: 12, bottom: 8),
+  //             decoration: BoxDecoration(
+  //               color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
+  //               borderRadius: BorderRadius.circular(12),
+  //               border: Border.all(
+  //                 color: _selectedFiles.contains(file.path)
+  //                     ? Colors.lightBlueAccent.withOpacity(0.5)
+  //                     : Colors.white12,
+  //               ),
+  //             ),
+  //             child: Row(
+  //               children: [
+  //                 // Thumbnail View
+  //                 Container(
+  //                   width: 70,
+  //                   height: 95,
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.grey.shade800,
+  //                     borderRadius: BorderRadius.circular(6),
+  //                     border: Border.all(color: Colors.white12),
+  //                   ),
+  //                   clipBehavior: Clip.hardEdge,
+  //                   child: PdfThumbnailView(key: ValueKey(file.path), filePath: file.path),
+  //                 ),
+  //                 const SizedBox(width: 16),
+  //
+  //                 // File Details
+  //                 Expanded(
+  //                   child: Column(
+  //                     crossAxisAlignment: CrossAxisAlignment.start,
+  //                     children: [
+  //                       Text(
+  //                         _truncateFileName(file.path.split('/').last),
+  //                         style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+  //                         maxLines: 1,
+  //                       ),
+  //                       const SizedBox(height: 6),
+  //                       Text(
+  //                         DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
+  //                         style: const TextStyle(color: Colors.white54, fontSize: 13),
+  //                       ),
+  //                       const SizedBox(height: 2),
+  //                       Text(
+  //                         _getFileSize(fileStat.size),
+  //                         style: const TextStyle(color: Colors.white54, fontSize: 13),
+  //                       ),
+  //                       const SizedBox(height: 8),
+  //
+  //                       // Action Buttons / Checkbox
+  //                       _isSelectionMode
+  //                           ? Align(
+  //                         alignment: Alignment.centerRight,
+  //                         child: Padding(
+  //                           padding: const EdgeInsets.only(right: 8.0),
+  //                           child: SizedBox(
+  //                             height: 24,
+  //                             width: 24,
+  //                             child: Checkbox(
+  //                               value: _selectedFiles.contains(file.path),
+  //                               activeColor: Colors.lightBlueAccent,
+  //                               checkColor: Colors.black,
+  //                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+  //                               side: const BorderSide(color: Colors.white54, width: 1.5),
+  //                               onChanged: (bool? value) {
+  //                                 setState(() {
+  //                                   if (value == true) {
+  //                                     _selectedFiles.add(file.path);
+  //                                   } else {
+  //                                     _selectedFiles.remove(file.path);
+  //                                   }
+  //                                 });
+  //                               },
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       )
+  //                           : Row(
+  //                         mainAxisAlignment: MainAxisAlignment.end,
+  //                         children: [
+  //                               () {
+  //                             final bool isSaved = _savedFilePaths.contains(file.path);
+  //                             return Tooltip(
+  //                               message: isSaved ? "Unsave document" : "Save document",
+  //                               child: InkWell(
+  //                                 borderRadius: BorderRadius.circular(20),
+  //                                 onTap: () => _toggleSaveFile(file.path),
+  //                                 child: Padding(
+  //                                   padding: const EdgeInsets.all(6.0),
+  //                                   child: Icon(
+  //                                     isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+  //                                     color: isSaved ? Colors.lightBlueAccent : Colors.white70,
+  //                                     size: 22,
+  //                                   ),
+  //                                 ),
+  //                               ),
+  //                             );
+  //                           }(),
+  //                           const SizedBox(width: 16),
+  //                           Tooltip(
+  //                             message: "Share",
+  //                             child: InkWell(
+  //                               onTap: () => _sharePdfFile(file),
+  //                               child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+  //                             ),
+  //                           ),
+  //                           const SizedBox(width: 16),
+  //                           Tooltip(
+  //                             message: "More options",
+  //                             child: InkWell(
+  //                               borderRadius: BorderRadius.circular(20),
+  //                               onTap: () => _showFileOptionsBottomSheet(context, file),
+  //                               child: const Padding(
+  //                                 padding: EdgeInsets.all(6.0),
+  //                                 child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ],
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
+
+  // 🚨 UI LOGIC: Files Tab Content (Poore phone ka PDF list)
+  Widget _buildFilesTabContent() {
+    if (_isLoadingDeviceFiles) { // 🚨 FIX: Naya variable
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.lightBlueAccent),
+            SizedBox(height: 16),
+            Text("Scanning device for PDFs...", style: TextStyle(color: Colors.white54, fontSize: 15))
+          ],
+        ),
+      );
+    }
+
+    if (_allDevicePdfFiles.isEmpty) { // 🚨 FIX: Nayi list
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.folder_open_rounded, color: Colors.white24, size: 80),
+            const SizedBox(height: 16),
+            const Text(
+              "No PDF files found on device.",
+              style: TextStyle(color: Colors.white54, fontSize: 16),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadAllDevicePdfFiles, // 🚨 FIX: Jab khinch ke refresh karenge toh poora phone firse scan hoga
+      color: Colors.blueAccent,
+      backgroundColor: const Color(0xFF1E1E1E),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 100, top: 10),
+        itemCount: _allDevicePdfFiles.length, // 🚨 FIX: Nayi list
+        itemBuilder: (context, index) {
+          final file = _allDevicePdfFiles[index]; // 🚨 FIX: Nayi list se data aayega
+          final fileStat = file.statSync();
+
+          // Premium UI Card (Same as Home Screen)
+          return GestureDetector(
+            onTap: () {
+              if (_isSelectionMode) {
+                setState(() {
+                  if (_selectedFiles.contains(file.path)) {
+                    _selectedFiles.remove(file.path);
+                  } else {
+                    _selectedFiles.add(file.path);
+                  }
+                });
+              } else {
+                OpenFile.open(file.path);
+              }
+            },
+            onLongPress: () {
+              if (!_isSelectionMode) {
+                HapticFeedback.heavyImpact();
+                setState(() {
+                  _isSelectionMode = true;
+                  _selectedFiles.add(file.path);
+                });
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              padding: const EdgeInsets.only(left: 8, top: 8, right: 12, bottom: 8),
+              decoration: BoxDecoration(
+                color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _selectedFiles.contains(file.path)
+                      ? Colors.lightBlueAccent.withOpacity(0.5)
+                      : Colors.white12,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 95,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade800,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    child: PdfThumbnailView(key: ValueKey(file.path), filePath: file.path),
+                  ),
+                  const SizedBox(width: 16),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _truncateFileName(file.path.split('/').last),
+                          style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
+                          style: const TextStyle(color: Colors.white54, fontSize: 13),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _getFileSize(fileStat.size),
+                          style: const TextStyle(color: Colors.white54, fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+
+                        _isSelectionMode
+                            ? Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: Checkbox(
+                                value: _selectedFiles.contains(file.path),
+                                activeColor: Colors.lightBlueAccent,
+                                checkColor: Colors.black,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                side: const BorderSide(color: Colors.white54, width: 1.5),
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    if (value == true) {
+                                      _selectedFiles.add(file.path);
+                                    } else {
+                                      _selectedFiles.remove(file.path);
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        )
+                            : Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                                () {
+                              final bool isSaved = _savedFilePaths.contains(file.path);
+                              return Tooltip(
+                                message: isSaved ? "Unsave document" : "Save document",
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(20),
+                                  onTap: () => _toggleSaveFile(file.path),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(6.0),
+                                    child: Icon(
+                                      isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                      color: isSaved ? Colors.lightBlueAccent : Colors.white70,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }(),
+                            const SizedBox(width: 16),
+                            Tooltip(
+                              message: "Share",
+                              child: InkWell(
+                                onTap: () => _sharePdfFile(file),
+                                child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Tooltip(
+                              message: "More options",
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(20),
+                                onTap: () => _showFileOptionsBottomSheet(context, file),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(6.0),
+                                  child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -2355,4 +2777,40 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
       ),
     );
   }
+}
+
+// 🚨 NAYA: Top-Level Background Function (Phone ka chappa chappa chhan-ne ke liye)
+List<String> searchAllPdfsInBackground(String rootPath) {
+  List<String> pdfPaths = [];
+  try {
+    Directory rootDir = Directory(rootPath);
+    if (!rootDir.existsSync()) return pdfPaths;
+
+    List<Directory> dirsToSearch = [rootDir];
+
+    while (dirsToSearch.isNotEmpty) {
+      Directory currentDir = dirsToSearch.removeLast();
+      try {
+        List<FileSystemEntity> entities = currentDir.listSync(recursive: false);
+        for (var entity in entities) {
+          if (entity is File) {
+            if (entity.path.toLowerCase().endsWith('.pdf')) {
+              pdfPaths.add(entity.path);
+            }
+          } else if (entity is Directory) {
+            String dirName = entity.path.split('/').last;
+            // Android System aur hidden folders ko skip karo (App crash bachane ke liye aur fast hone ke liye)
+            if (!dirName.startsWith('.') && dirName != 'Android') {
+              dirsToSearch.add(entity);
+            }
+          }
+        }
+      } catch (e) {
+        // Skip restricted folders
+      }
+    }
+  } catch (e) {
+    print("Background search error: $e");
+  }
+  return pdfPaths;
 }
