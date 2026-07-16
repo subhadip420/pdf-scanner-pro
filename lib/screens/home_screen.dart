@@ -18,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
 import 'custom_gallery_screen.dart'; // Apni gallery wali screen
 import 'document_editor_screen.dart'; // Apna editor
-
+import 'package:gal/gal.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -918,6 +918,164 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // void _showFileOptionsBottomSheet(BuildContext context, File file) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: const Color(0xFF1E1E1E),
+  //     elevation: 10,
+  //     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+  //     builder: (BuildContext context) {
+  //       return SafeArea(
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             const SizedBox(height: 12),
+  //             Container(
+  //               width: 40,
+  //               height: 4,
+  //               decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+  //             ),
+  //             const SizedBox(height: 16),
+  //             Padding(
+  //               padding: const EdgeInsets.symmetric(horizontal: 20),
+  //               child: Text(
+  //                 file.path.split('/').last,
+  //                 style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+  //                 maxLines: 1,
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             ),
+  //             const Divider(color: Colors.white12, height: 24, thickness: 1),
+  //
+  //             Flexible(
+  //               child: SingleChildScrollView(
+  //                 child: Column(
+  //                   mainAxisSize: MainAxisSize.min,
+  //                   children: [
+  //                     ListTile(
+  //                       leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
+  //                       title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
+  //                       onTap: () {
+  //                         Navigator.pop(context);
+  //                         _sharePdfFile(file);
+  //                       },
+  //                     ),
+  //
+  //                     // 2. Open with
+  //                     ListTile(
+  //                       leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
+  //                       title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
+  //                       onTap: () {
+  //                         Navigator.pop(context);
+  //                         //TODO
+  //                         showToast("Open with clicked");
+  //                       },
+  //                     ),
+  //
+  //                     // 3. Copy Option
+  //                     ListTile(
+  //                       leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
+  //                       title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
+  //                       onTap: () {
+  //                         Navigator.pop(context);
+  //                         _copyPdfFile(file);
+  //                       },
+  //                     ),
+  //
+  //                     ListTile(
+  //                       leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
+  //                       title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
+  //                       onTap: () {
+  //                         Navigator.pop(context);
+  //                         showToast("Save pages as JPEG clicked");
+  //                         //_savePagesAsJpeg(file);
+  //                         _showSavePagesAsJpegConfirmDialog(context, file);
+  //                       },
+  //                     )
+  //                     ,
+  //                     ListTile(
+  //                       leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
+  //                       title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
+  //                       onTap: () {
+  //                         Navigator.pop(context);
+  //                         _renamePdfFile(context, file);
+  //                       },
+  //                     ),
+  //                     () {
+  //                       final bool isSaved = _savedFilePaths.contains(file.path);
+  //                       return ListTile(
+  //                         leading: Icon(
+  //                           isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+  //                           color: isSaved ? Colors.lightBlueAccent : Colors.white,
+  //                           size: 22,
+  //                         ),
+  //                         title: Text(
+  //                           isSaved ? 'Remove from saved' : 'Save document',
+  //                           style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
+  //                         ),
+  //                         onTap: () {
+  //                           Navigator.pop(context);
+  //                           _toggleSaveFile(file.path);
+  //                         },
+  //                       );
+  //                     }(),
+  //
+  //                     ListTile(
+  //                       leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
+  //                       title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
+  //                       onTap: () {
+  //                         Navigator.pop(context);
+  //                         _printPdfFile(file);
+  //                       },
+  //                     ),
+  //
+  //                     ListTile(
+  //                       leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
+  //                       title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+  //                       onTap: () {
+  //                         Navigator.pop(context);
+  //                         _showPdfDetails(context, file);
+  //                       },
+  //                     ),
+  //
+  //                     const Divider(color: Colors.white12, height: 16),
+  //
+  //                     ListTile(
+  //                       leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+  //                       title: const Text(
+  //                         'Delete',
+  //                         style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
+  //                       ),
+  //                       onTap: () async {
+  //                         Navigator.pop(context);
+  //                         bool shouldDelete = await showCustomConfirmDialog(
+  //                           context,
+  //                           title: "Delete Document",
+  //                           message:
+  //                               "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
+  //                           positiveBtnText: "Delete",
+  //                           negativeBtnText: "Cancel",
+  //                           positiveBtnColor: Colors.redAccent,
+  //                         );
+  //                         if (shouldDelete) {
+  //                           await _deletePdfFile(file);
+  //                         }
+  //                       },
+  //                     ),
+  //                     const SizedBox(height: 10),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+
+  // 🚨 FIX: Context shadowing issue solved. (Delete, Rename, aur Save as JPEG sab ab perfectly chalenge)
   void _showFileOptionsBottomSheet(BuildContext context, File file) {
     showModalBottomSheet(
       context: context,
@@ -925,151 +1083,139 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFF1E1E1E),
       elevation: 10,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (BuildContext context) {
+      // 🚨 NAYA: Yahan 'context' ka naam badal kar 'sheetContext' kar diya
+      builder: (BuildContext sheetContext) {
         return SafeArea(
-          child: Column(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  file.path.split('/').last,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const Divider(color: Colors.white12, height: 24, thickness: 1),
+            const SizedBox(height: 12),
+        Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Text(
+        file.path.split('/').last,
+        style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        ),
+        ),
+        const Divider(color: Colors.white12, height: 24, thickness: 1),
 
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
-                        title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _sharePdfFile(file);
-                        },
-                      ),
-
-                      // 2. Open with
-                      ListTile(
-                        leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
-                        title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        onTap: () {
-                          Navigator.pop(context);
-                          //TODO
-                          showToast("Open with clicked");
-                        },
-                      ),
-
-                      // 3. Copy Option
-                      ListTile(
-                        leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
-                        title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _copyPdfFile(file);
-                        },
-                      ),
-
-                      ListTile(
-                        leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
-                        title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        onTap: () {
-                          Navigator.pop(context);
-                          showToast("Save pages as JPEG clicked");
-                          //TODO
-                          _savePagesAsJpeg(file);
-                        },
-                      )
-                      ,
-                      ListTile(
-                        leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
-                        title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _renamePdfFile(context, file);
-                        },
-                      ),
-                      () {
-                        final bool isSaved = _savedFilePaths.contains(file.path);
-                        return ListTile(
-                          leading: Icon(
-                            isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                            color: isSaved ? Colors.lightBlueAccent : Colors.white,
-                            size: 22,
-                          ),
-                          title: Text(
-                            isSaved ? 'Remove from saved' : 'Save document',
-                            style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
-                          ),
-                          onTap: () {
-                            Navigator.pop(context);
-                            _toggleSaveFile(file.path);
-                          },
-                        );
-                      }(),
-
-                      ListTile(
-                        leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
-                        title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _printPdfFile(file);
-                        },
-                      ),
-
-                      ListTile(
-                        leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
-                        title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _showPdfDetails(context, file);
-                        },
-                      ),
-
-                      const Divider(color: Colors.white12, height: 16),
-
-                      ListTile(
-                        leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
-                        title: const Text(
-                          'Delete',
-                          style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        onTap: () async {
-                          Navigator.pop(context);
-                          bool shouldDelete = await showCustomConfirmDialog(
-                            context,
-                            title: "Delete Document",
-                            message:
-                                "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
-                            positiveBtnText: "Delete",
-                            negativeBtnText: "Cancel",
-                            positiveBtnColor: Colors.redAccent,
-                          );
-                          if (shouldDelete) {
-                            await _deletePdfFile(file);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+        Flexible(
+        child: SingleChildScrollView(
+        child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+        ListTile(
+        leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
+        title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onTap: () {
+        Navigator.pop(sheetContext); // 🚨 sheetContext use kiya
+        _sharePdfFile(file);
+        },
+        ),
+        ListTile(
+        leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
+        title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onTap: () {
+        Navigator.pop(sheetContext);
+        showToast("Open with clicked");
+        },
+        ),
+        ListTile(
+        leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
+        title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onTap: () {
+        Navigator.pop(sheetContext);
+        _copyPdfFile(file);
+        },
+        ),
+        ListTile(
+        leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
+        title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onTap: () {
+        Navigator.pop(sheetContext); // Bottom sheet close ho jayegi
+        // 🚨 Main screen ka zinda 'context' pass kiya
+        _showSavePagesAsJpegConfirmDialog(context, file);
+        },
+        ),
+        ListTile(
+        leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
+        title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onTap: () {
+        Navigator.pop(sheetContext);
+        _renamePdfFile(context, file);
+        },
+        ),
+        () {
+        final bool isSaved = _savedFilePaths.contains(file.path);
+        return ListTile(
+        leading: Icon(
+        isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+        color: isSaved ? Colors.lightBlueAccent : Colors.white,
+        size: 22,
+        ),
+        title: Text(
+        isSaved ? 'Remove from saved' : 'Save document',
+        style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
+        ),
+        onTap: () {
+        Navigator.pop(sheetContext);
+        _toggleSaveFile(file.path);
+        },
+        );
+        }(),
+        ListTile(
+        leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
+        title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onTap: () {
+        Navigator.pop(sheetContext);
+        _printPdfFile(file);
+        },
+        ),
+        ListTile(
+        leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
+        title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+        onTap: () {
+        Navigator.pop(sheetContext);
+        _showPdfDetails(context, file);
+        },
+        ),
+        const Divider(color: Colors.white12, height: 16),
+        ListTile(
+        leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+        title: const Text(
+        'Delete',
+        style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        onTap: () async {
+        Navigator.pop(sheetContext);
+        bool shouldDelete = await showCustomConfirmDialog(
+        context,
+        title: "Delete Document",
+        message: "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
+        positiveBtnText: "Delete",
+        negativeBtnText: "Cancel",
+        positiveBtnColor: Colors.redAccent,
+        );
+        if (shouldDelete) {
+        await _deletePdfFile(file);
+        }
+        },
+        ),
+        const SizedBox(height: 10),
+        ],
+        ),
+        ),
+        ),
+        ],
+            ),
         );
       },
     );
@@ -1514,20 +1660,250 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // 🚨 UI LOGIC: Dialog dikhane ke liye aur Path batane ke liye
+  // Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
+  //   // 1. SharedPreferences se save path nikaalo
+  //   final prefs = await SharedPreferences.getInstance();
+  //   String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+  //   String imagesFolderPath = "$baseSavePath/Images"; // Sub-folder for Images
+  //
+  //   // 2. Tumhara custom dialog call karo
+  //   bool isConfirmed = await showCustomConfirmDialog(
+  //     context,
+  //     title: "Save as JPEG",
+  //     message: "Do you want to extract all pages of this PDF as images?\n\nSave Location:\n$imagesFolderPath",
+  //     positiveBtnText: "Confirm",
+  //     negativeBtnText: "Cancel",
+  //     positiveBtnColor: Colors.lightBlueAccent,
+  //   );
+  //
+  //   // 3. Agar user ne Confirm par click kiya hai, toh extract wala function call karo
+  //   if (isConfirmed) {
+  //     _savePagesAsJpeg(pdfFile, imagesFolderPath);
+  //   }
+  // }
+
+  // Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
+  //   // 1. SharedPreferences se save path nikaalo
+  //   final prefs = await SharedPreferences.getInstance();
+  //   String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+  //   String imagesFolderPath = "$baseSavePath/Images"; // Sub-folder for Images
+  //
+  //   // 2. Tumhara custom dialog call karo
+  //   bool isConfirmed = await showCustomConfirmDialog(
+  //     context,
+  //     title: "Save as JPEG",
+  //     message: "Do you want to extract all pages of this PDF as images?\n\nSave Location:\n$imagesFolderPath",
+  //     positiveBtnText: "Confirm",
+  //     negativeBtnText: "Cancel",
+  //     positiveBtnColor: Colors.lightBlueAccent,
+  //   );
+  //
+  //   // 3. Agar user ne Confirm par click kiya hai, toh extract wala function call karo
+  //   if (isConfirmed) {
+  //
+  //     // 🚨 NAYA: Loading Dialog Show Karo
+  //     showDialog(
+  //       context: context,
+  //       barrierDismissible: false, // User screen par bahar click karke dismiss na kar paye
+  //       builder: (BuildContext context) {
+  //         return const AlertDialog(
+  //           backgroundColor: Color(0xFF2C2C2C),
+  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+  //           content: Row(
+  //             children: [
+  //               CircularProgressIndicator(color: Colors.lightBlueAccent),
+  //               SizedBox(width: 20),
+  //               Expanded(
+  //                 child: Text(
+  //                   "Extracting pages... Please wait",
+  //                   style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         );
+  //       },
+  //     );
+  //
+  //     // 🚨 FIX: Yahan 'await' lagana zaroori hai, taaki jab tak save na ho, loading chalti rahe
+  //     await _savePagesAsJpeg(pdfFile, imagesFolderPath);
+  //
+  //     // 🚨 NAYA: Process complete hone ke baad Loading Dialog ko band (pop) kar do
+  //     if (context.mounted) {
+  //       Navigator.pop(context);
+  //     }
+  //   }
+  // }
+
+  // 🚨 UI LOGIC: Custom dialog show karna aur extract start karna
+  Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
+    final prefs = await SharedPreferences.getInstance();
+    String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+    String imagesFolderPath = "$baseSavePath/Images";
+
+    bool isConfirmed = await showCustomConfirmDialog(
+      context,
+      title: "Save as JPEG",
+      message: "Do you want to extract all pages of this PDF as images?\n\nSave Location:\n$imagesFolderPath",
+      positiveBtnText: "Confirm",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.lightBlueAccent,
+    );
+
+    if (isConfirmed) {
+      // Loading Dialog Show Karo
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) { // 🚨 NAYA: Iska context alag rakha
+          return const AlertDialog(
+            backgroundColor: Color(0xFF2C2C2C),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+            content: Row(
+              children: [
+                CircularProgressIndicator(color: Colors.lightBlueAccent),
+                SizedBox(width: 20),
+                Expanded(
+                  child: Text(
+                    "Extracting pages... Please wait",
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      // Extract function ka wait karo
+      await _savePagesAsJpeg(pdfFile, imagesFolderPath);
+
+      // Jaise hi extract ho jaye, Loading dialog ko band (pop) kar do
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
 
   // 🚨 CORRECT FUNCTION: PDF file se pages nikaal kar 'Images' folder me save karna
-  Future<void> _savePagesAsJpeg(File pdfFile) async {
-    showToast("Extracting pages... Please wait.");
+  // Future<void> _savePagesAsJpeg(File pdfFile) async {
+  //   showToast("Extracting pages... Please wait.");
+  //   try {
+  //     // 1. User ki set ki hui storage location nikaalo
+  //     final prefs = await SharedPreferences.getInstance();
+  //     String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+  //
+  //     // 🚨 NAYA LOGIC: 'Images' naam ka ek sub-folder banao
+  //     String imagesFolderPath = "$baseSavePath/Images";
+  //     final directory = Directory(imagesFolderPath);
+  //
+  //     // Agar folder pehle se nahi hai, toh naya create karo
+  //     if (!(await directory.exists())) {
+  //       await directory.create(recursive: true);
+  //     }
+  //
+  //     // 2. PDF Document ko open karo
+  //     final document = await PdfDocument.openFile(pdfFile.path);
+  //     int pageCount = document.pagesCount;
+  //
+  //     // Original file ka naam nikaalo (bina .pdf ke)
+  //     String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
+  //
+  //     // 3. Har page ko loop karke image me convert karo
+  //     for (int i = 1; i <= pageCount; i++) {
+  //       final page = await document.getPage(i);
+  //
+  //       // Page ko image me render karo
+  //       final pageImage = await page.render(
+  //         width: page.width * 2,
+  //         height: page.height * 2,
+  //         format: PdfPageImageFormat.jpeg,
+  //       );
+  //
+  //       if (pageImage != null) {
+  //         // 🚨 FIX: Ab image naye 'Images' folder ke andar save hogi
+  //         String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
+  //         File newFile = File(newImagePath);
+  //
+  //         // Image ko bytes me likh kar save kar do
+  //         await newFile.writeAsBytes(pageImage.bytes);
+  //       }
+  //       await page.close(); // Memory free karne ke liye
+  //     }
+  //
+  //     await document.close(); // Document close karo
+  //
+  //     // 4. Success Message me naya folder path dikhao
+  //     showToast("Saved $pageCount pages in: $imagesFolderPath");
+  //   } catch (e) {
+  //     print("Save JPEG Error: $e");
+  //     showToast("Failed to extract pages. Check storage permissions.");
+  //   }
+  // }
+
+// 🚨 BUSINESS LOGIC: Sirf PDF ko JPEGs me convert aur save karne ka kaam
+  // 🚨 BUSINESS LOGIC: PDF ko JPEGs me convert karna aur Gallery me dikhana
+  // Future<void> _savePagesAsJpeg(File pdfFile, String imagesFolderPath) async {
+  //   showToast("Extracting pages... Please wait.");
+  //   try {
+  //     // 1. Folder create karo agar nahi hai toh
+  //     final directory = Directory(imagesFolderPath);
+  //     if (!(await directory.exists())) {
+  //       await directory.create(recursive: true);
+  //     }
+  //
+  //     // 2. PDF Document ko open karo
+  //     final document = await PdfDocument.openFile(pdfFile.path);
+  //     int pageCount = document.pagesCount;
+  //     String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
+  //
+  //     // 3. Har page ko loop karke convert karo
+  //     for (int i = 1; i <= pageCount; i++) {
+  //       final page = await document.getPage(i);
+  //
+  //       // Page ko high quality image me render karo
+  //       final pageImage = await page.render(
+  //         width: page.width * 2,
+  //         height: page.height * 2,
+  //         format: PdfPageImageFormat.jpeg,
+  //       );
+  //
+  //       // 🚨 SCOPE FIX: Saara kaam in brackets { } ke andar hi hoga
+  //       if (pageImage != null) {
+  //         String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
+  //         File newFile = File(newImagePath);
+  //
+  //         // Image ko folder me save kiya
+  //         await newFile.writeAsBytes(pageImage.bytes);
+  //
+  //         // Gallery ko force update kiya taaki photo turant dikhe
+  //         try {
+  //           await Gal.putImage(newImagePath);
+  //         } catch (e) {
+  //           print("Gallery Sync Error: $e");
+  //         }
+  //       }
+  //
+  //       await page.close(); // Memory free
+  //     }
+  //
+  //     await document.close(); // Document close
+  //
+  //     // 4. Final Success Toast
+  //     showToast("Success! Saved $pageCount pages in: $imagesFolderPath");
+  //
+  //   } catch (e) {
+  //     print("Save JPEG Error: $e");
+  //     showToast("Failed to extract pages. Check storage permissions.");
+  //   }
+  // }
+
+  Future<void> _savePagesAsJpeg(File pdfFile, String imagesFolderPath) async {
+    // showToast("Extracting pages... Please wait."); // (Is toast ko maine hata diya kyunki ab loading dialog dikh raha hai)
     try {
-      // 1. User ki set ki hui storage location nikaalo
-      final prefs = await SharedPreferences.getInstance();
-      String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
-
-      // 🚨 NAYA LOGIC: 'Images' naam ka ek sub-folder banao
-      String imagesFolderPath = "$baseSavePath/Images";
+      // 1. Folder create karo agar nahi hai toh
       final directory = Directory(imagesFolderPath);
-
-      // Agar folder pehle se nahi hai, toh naya create karo
       if (!(await directory.exists())) {
         await directory.create(recursive: true);
       }
@@ -1535,36 +1911,43 @@ class _HomeScreenState extends State<HomeScreen> {
       // 2. PDF Document ko open karo
       final document = await PdfDocument.openFile(pdfFile.path);
       int pageCount = document.pagesCount;
-
-      // Original file ka naam nikaalo (bina .pdf ke)
       String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
 
-      // 3. Har page ko loop karke image me convert karo
+      // 3. Har page ko loop karke convert karo
       for (int i = 1; i <= pageCount; i++) {
         final page = await document.getPage(i);
 
-        // Page ko image me render karo
+        // Page ko high quality image me render karo
         final pageImage = await page.render(
           width: page.width * 2,
           height: page.height * 2,
           format: PdfPageImageFormat.jpeg,
         );
 
+        // 🚨 SCOPE FIX: Saara kaam in brackets { } ke andar hi hoga
         if (pageImage != null) {
-          // 🚨 FIX: Ab image naye 'Images' folder ke andar save hogi
           String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
           File newFile = File(newImagePath);
 
-          // Image ko bytes me likh kar save kar do
+          // Image ko folder me save kiya
           await newFile.writeAsBytes(pageImage.bytes);
+
+          // Gallery ko force update kiya taaki photo turant dikhe
+          try {
+            await Gal.putImage(newImagePath);
+          } catch (e) {
+            print("Gallery Sync Error: $e");
+          }
         }
-        await page.close(); // Memory free karne ke liye
+
+        await page.close(); // Memory free
       }
 
-      await document.close(); // Document close karo
+      await document.close(); // Document close
 
-      // 4. Success Message me naya folder path dikhao
-      showToast("Saved $pageCount pages in: $imagesFolderPath");
+      // 4. Final Success Toast
+      showToast("Success! Saved $pageCount pages in: $imagesFolderPath");
+
     } catch (e) {
       print("Save JPEG Error: $e");
       showToast("Failed to extract pages. Check storage permissions.");
