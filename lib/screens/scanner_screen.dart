@@ -24,11 +24,12 @@ import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:flutter/foundation.dart'; // WriteBuffer ke liye
 
 class ScannerScreen extends StatefulWidget {
+  final List<dynamic>? initialImages;
   final bool isRetakeMode;
 
   const ScannerScreen({
     Key? key,
-    this.isRetakeMode = false, // By default normal mode rahega
+    this.isRetakeMode = false, this.initialImages, // By default normal mode rahega
   }) : super(key: key);
 
   //const ScannerScreen({super.key});
@@ -118,6 +119,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialImages != null) {
+      for (var item in widget.initialImages!) {
+        capturedImagesList.add(Map<String, dynamic>.from(item));
+      }
+    }
+
     _loadSettings();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
@@ -245,7 +252,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (!mounted) return;
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList)),
+      MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: capturedImagesList, isFromGallery: false,)),
     );
 
     // 3. Jab "Keep Scanning" daba ke wapas aao, toh camera naye sire se fresh start hoga

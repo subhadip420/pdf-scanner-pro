@@ -227,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
         imagesToEdit.add({'original': file, 'cropped': file});
       }
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: imagesToEdit)));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: imagesToEdit, isFromGallery: true,)));
     } catch (e) {
       print("Home Screen Gallery Error: $e");
       showToast("Error opening gallery");

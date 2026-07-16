@@ -28,8 +28,9 @@ import 'merge_screen.dart';
 
 class DocumentEditorScreen extends StatefulWidget {
   final List<Map<String, dynamic>> imageFiles;
+  final bool isFromGallery;
 
-  const DocumentEditorScreen({Key? key, required this.imageFiles}) : super(key: key);
+  const DocumentEditorScreen({Key? key, required this.imageFiles, required this.isFromGallery}) : super(key: key);
 
   @override
   State<DocumentEditorScreen> createState() => _DocumentEditorScreenState();
@@ -2267,18 +2268,53 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Keep Scanning Text Button
+                    // Opacity(
+                    //   // 🚨 FIX 1: Tool on hone par button thoda fade ho jayega
+                    //   opacity: isAnyToolActive ? 0.4 : 1.0,
+                    //   child: TextButton(
+                    //     // 🚨 FIX 2: isAnyToolActive true hone par button tap disable (null) ho jayega
+                    //     onPressed: isAnyToolActive
+                    //         ? null
+                    //         : () {
+                    //             _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
+                    //             showToast("Keep scanning");
+                    //             Navigator.pop(context); // Wapas camera par le jayega
+                    //           },
+                    //     child: Text(
+                    //       "Keep scanning",
+                    //       style: TextStyle(
+                    //         color: isAnyToolActive ? Colors.white70 : Colors.white,
+                    //         fontSize: 16,
+                    //         fontWeight: FontWeight.w600,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+
                     Opacity(
-                      // 🚨 FIX 1: Tool on hone par button thoda fade ho jayega
                       opacity: isAnyToolActive ? 0.4 : 1.0,
                       child: TextButton(
-                        // 🚨 FIX 2: isAnyToolActive true hone par button tap disable (null) ho jayega
                         onPressed: isAnyToolActive
                             ? null
                             : () {
-                                _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
-                                showToast("Keep scanning");
-                                Navigator.pop(context); // Wapas camera par le jayega
-                              },
+                          _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
+                          showToast("Keep scanning");
+
+                          // 🚨 NAYA LOGIC: Check karo ki hum kahan se aaye the
+                          if (widget.isFromGallery) {
+                            // Agar seedha Gallery se aaye the, toh Navigator.pop kaam nahi karega.
+                            // Humein zabardasti naya Scanner kholna hoga aur saari photos use deni hongi.
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ScannerScreen(initialImages: widget.imageFiles),
+                              ),
+                            );
+                          } else {
+                            // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao (Purana logic)
+                            Navigator.pop(context);
+                          }
+                        },
                         child: Text(
                           "Keep scanning",
                           style: TextStyle(
