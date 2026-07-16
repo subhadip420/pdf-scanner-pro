@@ -295,8 +295,31 @@ class _HomeScreenState extends State<HomeScreen> {
               )
             : AppBar(
                 backgroundColor: Color(0xFF1E1E1E),
-                title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 20)),
+                title: const Text("PDF Scanner Pro", style: TextStyle(color: Colors.white, fontSize: 18)),
                 actions: [
+                  Tooltip(
+                    message: "Saved documents",
+                    child: IconButton(
+                      icon: const Icon(Icons.bookmark_rounded, color: Colors.white),
+                      onPressed: () {
+                        // TODO: Future me yahan Saved Files ki screen open karne ka logic aayega
+                        //showToast("Saved documents clicked");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SavedPdfScreen(
+                              allFiles: _pdfFiles,
+                              savedPaths: _savedFilePaths,
+                            ),
+                          ),
+                        ).then((_) {
+                          // Wapas aane par list ko refresh kar dega taaki UI update ho jaye
+                          setState(() {});
+                        });
+                      },
+                    ),
+                  ),
+
                   Tooltip(
                     message: "Search documents",
                     child: IconButton(
@@ -2254,6 +2277,82 @@ class PdfSearchDelegate extends SearchDelegate {
           },
         );
       },
+    );
+  }
+}
+
+
+// 🚨 BUSINESS LOGIC & UI: Nayi Screen jo sirf Saved (Bookmarked) files dikhayegi
+class SavedPdfScreen extends StatefulWidget {
+  final List<File> allFiles;
+  final List<String> savedPaths;
+
+  const SavedPdfScreen({super.key, required this.allFiles, required this.savedPaths});
+
+  @override
+  State<SavedPdfScreen> createState() => _SavedPdfScreenState();
+}
+
+class _SavedPdfScreenState extends State<SavedPdfScreen> {
+  late List<File> _savedFilesList;
+
+  @override
+  void initState() {
+    super.initState();
+    // 🚨 NAYA LOGIC: Saari files me se sirf wahi files filter karo jinka path saved list me hai
+    _savedFilesList = widget.allFiles.where((file) => widget.savedPaths.contains(file.path)).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF121212), // Dark theme search jaisa
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1E1E1E),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white70),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text("Saved Documents", style: TextStyle(color: Colors.white, fontSize: 18)),
+      ),
+      body: _savedFilesList.isEmpty
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.bookmark_border_rounded, color: Colors.white24, size: 60),
+            const SizedBox(height: 12),
+            const Text("No saved documents yet", style: TextStyle(color: Colors.white54, fontSize: 16)),
+          ],
+        ),
+      )
+          : ListView.builder(
+        padding: const EdgeInsets.only(top: 10),
+        itemCount: _savedFilesList.length,
+        itemBuilder: (context, index) {
+          final file = _savedFilesList[index];
+          final fileName = file.path.split('/').last;
+
+          return ListTile(
+            leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+            title: Text(
+              fileName,
+              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Text(
+              DateFormat('dd MMM yyyy').format(file.statSync().modified),
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            onTap: () {
+              // Click karne par file direct open ho jayegi
+              OpenFile.open(file.path);
+            },
+          );
+        },
+      ),
     );
   }
 }
