@@ -15,6 +15,7 @@ import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
 import 'dart:async';
 import 'package:image/image.dart' as img;
 import 'camera_settings_screen.dart';
+import 'custom_dialog.dart';
 import 'custom_gallery_screen.dart';
 import 'document_editor_screen.dart';
 import 'home_screen.dart'; // For StreamSubscription
@@ -1450,16 +1451,61 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             children: [
                               /// Home
                               if (!widget.isRetakeMode)
+                                // IconButton(
+                                //   onPressed: () async {
+                                //     //showToast("Home");
+                                //     await _triggerVibration();
+                                //     // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
+                                //     Navigator.pushAndRemoveUntil(
+                                //       context,
+                                //       MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                //       (route) => false, // false matlab saari purani history clear
+                                //     );
+                                //   },
+                                //   icon: _buildRotatedIcon(Icons.home_rounded, color: Colors.white, size: 24),
+                                // )
                                 IconButton(
                                   onPressed: () async {
-                                    //showToast("Home");
                                     await _triggerVibration();
-                                    // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                      (route) => false, // false matlab saari purani history clear
-                                    );
+
+                                    // 🚨 NAYA LOGIC: Check karo ki list me ek bhi photo hai ya nahi
+                                    // Note: 'scannedImages' ko apne actual list variable ke naam se replace kar lena agar alag ho
+                                    if (capturedImagesList.isNotEmpty) {
+
+                                      // Dialog show karo
+                                      bool shouldDiscard = await showCustomConfirmDialog(
+                                        context,
+                                        title: "Discard this scan?",
+                                        message: "This will discard the scan you have captured. Are you sure?",
+                                        positiveBtnText: "Discard",
+                                        negativeBtnText: "Cancel",
+                                        positiveBtnColor: Colors.redAccent,
+                                      );
+
+                                      // Agar user ne 'Discard' dabaya hai
+                                      if (shouldDiscard) {
+                                        setState(() {
+                                          capturedImagesList.clear(); // List clear kar do
+                                        });
+
+                                        if (context.mounted) {
+                                          Navigator.pushAndRemoveUntil(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                                (route) => false, // Saari history clear
+                                          );
+                                        }
+                                      }
+                                      // Agar 'Cancel' dabaya hai, toh kuch nahi hoga. App wahi scanner par rahega.
+
+                                    } else {
+                                      // Agar koi photo capture hi nahi hui hai, toh sidha Home screen par chale jao
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                            (route) => false,
+                                      );
+                                    }
                                   },
                                   icon: _buildRotatedIcon(Icons.home_rounded, color: Colors.white, size: 24),
                                 )
