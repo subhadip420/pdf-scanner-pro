@@ -1112,6 +1112,15 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+
+          ListTile(
+            leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
+            title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+            onTap: () {
+              Navigator.pop(sheetContext);
+              _showPdfDetails(context, file);
+            },
+          ),
         ListTile(
         leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
         title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -1120,14 +1129,15 @@ class _HomeScreenState extends State<HomeScreen> {
         _sharePdfFile(file);
         },
         ),
-        ListTile(
-        leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
-        title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
-        onTap: () {
-        Navigator.pop(sheetContext);
-        showToast("Open with clicked");
-        },
-        ),
+        // ListTile(
+        // leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
+        // title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
+        // onTap: () {
+        // Navigator.pop(sheetContext);
+        // //showToast("Open with clicked");
+        // _openPdfWithOtherApp(file);
+        // },
+        // ),
         ListTile(
         leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
         title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -1179,14 +1189,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _printPdfFile(file);
         },
         ),
-        ListTile(
-        leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
-        title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
-        onTap: () {
-        Navigator.pop(sheetContext);
-        _showPdfDetails(context, file);
-        },
-        ),
+        // ListTile(
+        // leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
+        // title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+        // onTap: () {
+        // Navigator.pop(sheetContext);
+        // _showPdfDetails(context, file);
+        // },
+        // ),
         const Divider(color: Colors.white12, height: 16),
         ListTile(
         leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
@@ -1628,6 +1638,22 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast("Error sharing files");
     }
   }
+
+
+  /// 🚨 BUSINESS LOGIC: PDF ko dusre apps me open karne ke liye (EKDUM PERFECT CODE)
+  // Future<void> _openPdfWithOtherApp(File file) async {
+  //   try {
+  //     // type define karne se OS sirf PDF Apps hi dhundhega
+  //     final result = await OpenFile.open(file.path, type: "application/pdf");
+  //
+  //     if (result.type != ResultType.done) {
+  //       showToast("No PDF viewer app found on your phone!");
+  //     }
+  //   } catch (e) {
+  //     print("Open With Error: $e");
+  //     showToast("Could not open the file.");
+  //   }
+  // }
 
   Future<void> _printPdfFile(File file) async {
     try {
