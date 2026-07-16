@@ -1515,6 +1515,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 try {
                   await originalFile.rename(newPath);
+
+                  // 🚨 FIX: Agar purani file saved list me thi, toh naya path update karo
+                  if (_savedFilePaths.contains(originalPath)) {
+                    final SharedPreferences prefs = await SharedPreferences.getInstance();
+                    setState(() {
+                      _savedFilePaths.remove(originalPath); // Purana path hatao
+                      _savedFilePaths.add(newPath);         // Naya path daalo
+                    });
+                    await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
+                  }
+
                   Navigator.pop(context);
                   await _loadPdfFiles();
                   showToast("File renamed successfully");
