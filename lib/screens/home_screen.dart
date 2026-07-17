@@ -280,7 +280,10 @@ class _HomeScreenState extends State<HomeScreen> {
         imagesToEdit.add({'original': file, 'cropped': file});
       }
       if (!mounted) return;
-      Navigator.push(context, MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: imagesToEdit, isFromGallery: true,)));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DocumentEditorScreen(imageFiles: imagesToEdit, isFromGallery: true)),
+      );
     } catch (e) {
       print("Home Screen Gallery Error: $e");
       showToast("Error opening gallery");
@@ -380,10 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: const Icon(Icons.search, color: Colors.white),
                       onPressed: () {
                         //showSearch(context: context, delegate: PdfSearchDelegate(_pdfFiles));
-                        showSearch(
-                            context: context,
-                            delegate: PdfSearchDelegate(_getAllKnownFiles)
-                        );
+                        showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles));
                       },
                     ),
                   ),
@@ -779,30 +779,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 🚨 UI LOGIC: Files Tab Content (Poore phone ka PDF list)
   Widget _buildFilesTabContent() {
-    if (_isLoadingDeviceFiles) { // 🚨 FIX: Naya variable
+    if (_isLoadingDeviceFiles) {
+      // 🚨 FIX: Naya variable
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(color: Colors.lightBlueAccent),
             SizedBox(height: 16),
-            Text("Scanning device for PDFs...", style: TextStyle(color: Colors.white54, fontSize: 15))
+            Text("Scanning device for PDFs...", style: TextStyle(color: Colors.white54, fontSize: 15)),
           ],
         ),
       );
     }
 
-    if (_allDevicePdfFiles.isEmpty) { // 🚨 FIX: Nayi list
+    if (_allDevicePdfFiles.isEmpty) {
+      // 🚨 FIX: Nayi list
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.folder_open_rounded, color: Colors.white24, size: 80),
             const SizedBox(height: 16),
-            const Text(
-              "No PDF files found on device.",
-              style: TextStyle(color: Colors.white54, fontSize: 16),
-            ),
+            const Text("No PDF files found on device.", style: TextStyle(color: Colors.white54, fontSize: 16)),
           ],
         ),
       );
@@ -851,9 +850,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _selectedFiles.contains(file.path)
-                      ? Colors.lightBlueAccent.withOpacity(0.5)
-                      : Colors.white12,
+                  color: _selectedFiles.contains(file.path) ? Colors.lightBlueAccent.withOpacity(0.5) : Colors.white12,
                 ),
               ),
               child: Row(
@@ -886,82 +883,79 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: const TextStyle(color: Colors.white54, fontSize: 13),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          _getFileSize(fileStat.size),
-                          style: const TextStyle(color: Colors.white54, fontSize: 13),
-                        ),
+                        Text(_getFileSize(fileStat.size), style: const TextStyle(color: Colors.white54, fontSize: 13)),
                         const SizedBox(height: 8),
 
                         _isSelectionMode
                             ? Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: Checkbox(
-                                value: _selectedFiles.contains(file.path),
-                                activeColor: Colors.lightBlueAccent,
-                                checkColor: Colors.black,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                side: const BorderSide(color: Colors.white54, width: 1.5),
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value == true) {
-                                      _selectedFiles.add(file.path);
-                                    } else {
-                                      _selectedFiles.remove(file.path);
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                          ),
-                        )
-                            : Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                                () {
-                              final bool isSaved = _savedFilePaths.contains(file.path);
-                              return Tooltip(
-                                message: isSaved ? "Unsave document" : "Save document",
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(20),
-                                  onTap: () => _toggleSaveFile(file.path),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(6.0),
-                                    child: Icon(
-                                      isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                                      color: isSaved ? Colors.lightBlueAccent : Colors.white70,
-                                      size: 22,
+                                alignment: Alignment.centerRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: Checkbox(
+                                      value: _selectedFiles.contains(file.path),
+                                      activeColor: Colors.lightBlueAccent,
+                                      checkColor: Colors.black,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                      side: const BorderSide(color: Colors.white54, width: 1.5),
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          if (value == true) {
+                                            _selectedFiles.add(file.path);
+                                          } else {
+                                            _selectedFiles.remove(file.path);
+                                          }
+                                        });
+                                      },
                                     ),
                                   ),
                                 ),
-                              );
-                            }(),
-                            const SizedBox(width: 16),
-                            Tooltip(
-                              message: "Share",
-                              child: InkWell(
-                                onTap: () => _sharePdfFile(file),
-                                child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  () {
+                                    final bool isSaved = _savedFilePaths.contains(file.path);
+                                    return Tooltip(
+                                      message: isSaved ? "Unsave document" : "Save document",
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(20),
+                                        onTap: () => _toggleSaveFile(file.path),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(6.0),
+                                          child: Icon(
+                                            isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                                            color: isSaved ? Colors.lightBlueAccent : Colors.white70,
+                                            size: 22,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }(),
+                                  const SizedBox(width: 16),
+                                  Tooltip(
+                                    message: "Share",
+                                    child: InkWell(
+                                      onTap: () => _sharePdfFile(file),
+                                      child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Tooltip(
+                                    message: "More options",
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(20),
+                                      onTap: () => _showFileOptionsBottomSheet(context, file),
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(6.0),
+                                        child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Tooltip(
-                              message: "More options",
-                              child: InkWell(
-                                borderRadius: BorderRadius.circular(20),
-                                onTap: () => _showFileOptionsBottomSheet(context, file),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(6.0),
-                                  child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
@@ -1556,146 +1550,146 @@ class _HomeScreenState extends State<HomeScreen> {
       // 🚨 NAYA: Yahan 'context' ka naam badal kar 'sheetContext' kar diya
       builder: (BuildContext sheetContext) {
         return SafeArea(
-            child: Column(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            const SizedBox(height: 12),
-        Container(
-        width: 40,
-        height: 4,
-        decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-        ),
-        const SizedBox(height: 16),
-        Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Text(
-        file.path.split('/').last,
-        style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        ),
-        ),
-        const Divider(color: Colors.white12, height: 24, thickness: 1),
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  file.path.split('/').last,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Divider(color: Colors.white12, height: 24, thickness: 1),
 
-        Flexible(
-        child: SingleChildScrollView(
-        child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-
-          ListTile(
-            leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
-            title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
-            onTap: () {
-              Navigator.pop(sheetContext);
-              _showPdfDetails(context, file);
-            },
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
+                        title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _showPdfDetails(context, file);
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
+                        title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext); // 🚨 sheetContext use kiya
+                          _sharePdfFile(file);
+                        },
+                      ),
+                      // ListTile(
+                      // leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
+                      // title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
+                      // onTap: () {
+                      // Navigator.pop(sheetContext);
+                      // //showToast("Open with clicked");
+                      // _openPdfWithOtherApp(file);
+                      // },
+                      // ),
+                      ListTile(
+                        leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
+                        title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _copyPdfFile(file);
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
+                        title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext); // Bottom sheet close ho jayegi
+                          // 🚨 Main screen ka zinda 'context' pass kiya
+                          _showSavePagesAsJpegConfirmDialog(context, file);
+                        },
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
+                        title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _renamePdfFile(context, file);
+                        },
+                      ),
+                      () {
+                        final bool isSaved = _savedFilePaths.contains(file.path);
+                        return ListTile(
+                          leading: Icon(
+                            isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                            color: isSaved ? Colors.lightBlueAccent : Colors.white,
+                            size: 22,
+                          ),
+                          title: Text(
+                            isSaved ? 'Remove from saved' : 'Save document',
+                            style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
+                          ),
+                          onTap: () {
+                            Navigator.pop(sheetContext);
+                            _toggleSaveFile(file.path);
+                          },
+                        );
+                      }(),
+                      ListTile(
+                        leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
+                        title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _printPdfFile(file);
+                        },
+                      ),
+                      // ListTile(
+                      // leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
+                      // title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+                      // onTap: () {
+                      // Navigator.pop(sheetContext);
+                      // _showPdfDetails(context, file);
+                      // },
+                      // ),
+                      const Divider(color: Colors.white12, height: 16),
+                      ListTile(
+                        leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+                        title: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        onTap: () async {
+                          Navigator.pop(sheetContext);
+                          bool shouldDelete = await showCustomConfirmDialog(
+                            context,
+                            title: "Delete Document",
+                            message:
+                                "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
+                            positiveBtnText: "Delete",
+                            negativeBtnText: "Cancel",
+                            positiveBtnColor: Colors.redAccent,
+                          );
+                          if (shouldDelete) {
+                            await _deletePdfFile(file);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ListTile(
-        leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
-        title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
-        onTap: () {
-        Navigator.pop(sheetContext); // 🚨 sheetContext use kiya
-        _sharePdfFile(file);
-        },
-        ),
-        // ListTile(
-        // leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
-        // title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
-        // onTap: () {
-        // Navigator.pop(sheetContext);
-        // //showToast("Open with clicked");
-        // _openPdfWithOtherApp(file);
-        // },
-        // ),
-        ListTile(
-        leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
-        title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
-        onTap: () {
-        Navigator.pop(sheetContext);
-        _copyPdfFile(file);
-        },
-        ),
-        ListTile(
-        leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
-        title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
-        onTap: () {
-        Navigator.pop(sheetContext); // Bottom sheet close ho jayegi
-        // 🚨 Main screen ka zinda 'context' pass kiya
-        _showSavePagesAsJpegConfirmDialog(context, file);
-        },
-        ),
-        ListTile(
-        leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
-        title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
-        onTap: () {
-        Navigator.pop(sheetContext);
-        _renamePdfFile(context, file);
-        },
-        ),
-        () {
-        final bool isSaved = _savedFilePaths.contains(file.path);
-        return ListTile(
-        leading: Icon(
-        isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-        color: isSaved ? Colors.lightBlueAccent : Colors.white,
-        size: 22,
-        ),
-        title: Text(
-        isSaved ? 'Remove from saved' : 'Save document',
-        style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
-        ),
-        onTap: () {
-        Navigator.pop(sheetContext);
-        _toggleSaveFile(file.path);
-        },
-        );
-        }(),
-        ListTile(
-        leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
-        title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
-        onTap: () {
-        Navigator.pop(sheetContext);
-        _printPdfFile(file);
-        },
-        ),
-        // ListTile(
-        // leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
-        // title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
-        // onTap: () {
-        // Navigator.pop(sheetContext);
-        // _showPdfDetails(context, file);
-        // },
-        // ),
-        const Divider(color: Colors.white12, height: 16),
-        ListTile(
-        leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
-        title: const Text(
-        'Delete',
-        style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        onTap: () async {
-        Navigator.pop(sheetContext);
-        bool shouldDelete = await showCustomConfirmDialog(
-        context,
-        title: "Delete Document",
-        message: "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
-        positiveBtnText: "Delete",
-        negativeBtnText: "Cancel",
-        positiveBtnColor: Colors.redAccent,
-        );
-        if (shouldDelete) {
-        await _deletePdfFile(file);
-        }
-        },
-        ),
-        const SizedBox(height: 10),
-        ],
-        ),
-        ),
-        ),
-        ],
-            ),
         );
       },
     );
@@ -2001,7 +1995,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     final SharedPreferences prefs = await SharedPreferences.getInstance();
                     setState(() {
                       _savedFilePaths.remove(originalPath); // Purana path hatao
-                      _savedFilePaths.add(newPath);         // Naya path daalo
+                      _savedFilePaths.add(newPath); // Naya path daalo
                     });
                     await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
                   }
@@ -2108,7 +2102,6 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast("Error sharing files");
     }
   }
-
 
   /// 🚨 BUSINESS LOGIC: PDF ko dusre apps me open karne ke liye (EKDUM PERFECT CODE)
   // Future<void> _openPdfWithOtherApp(File file) async {
@@ -2263,7 +2256,8 @@ class _HomeScreenState extends State<HomeScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext dialogContext) { // 🚨 NAYA: Iska context alag rakha
+        builder: (BuildContext dialogContext) {
+          // 🚨 NAYA: Iska context alag rakha
           return const AlertDialog(
             backgroundColor: Color(0xFF2C2C2C),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
@@ -2349,7 +2343,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //   }
   // }
 
-// 🚨 BUSINESS LOGIC: Sirf PDF ko JPEGs me convert aur save karne ka kaam
+  // 🚨 BUSINESS LOGIC: Sirf PDF ko JPEGs me convert aur save karne ka kaam
   // 🚨 BUSINESS LOGIC: PDF ko JPEGs me convert karna aur Gallery me dikhana
   // Future<void> _savePagesAsJpeg(File pdfFile, String imagesFolderPath) async {
   //   showToast("Extracting pages... Please wait.");
@@ -2454,13 +2448,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // 4. Final Success Toast
       showToast("Success! Saved $pageCount pages in: $imagesFolderPath");
-
     } catch (e) {
       print("Save JPEG Error: $e");
       showToast("Failed to extract pages. Check storage permissions.");
     }
   }
-
 } //end main class
 ///end main class///////////////////////////////////////////////////////////////////
 ///
@@ -2728,7 +2720,6 @@ class PdfSearchDelegate extends SearchDelegate {
   }
 }
 
-
 // 🚨 BUSINESS LOGIC & UI: Nayi Screen jo sirf Saved (Bookmarked) files dikhayegi
 class SavedPdfScreen extends StatefulWidget {
   final List<File> allFiles;
@@ -2765,41 +2756,41 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
       ),
       body: _savedFilesList.isEmpty
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.bookmark_border_rounded, color: Colors.white24, size: 60),
-            const SizedBox(height: 12),
-            const Text("No saved documents yet", style: TextStyle(color: Colors.white54, fontSize: 16)),
-          ],
-        ),
-      )
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.bookmark_border_rounded, color: Colors.white24, size: 60),
+                  const SizedBox(height: 12),
+                  const Text("No saved documents yet", style: TextStyle(color: Colors.white54, fontSize: 16)),
+                ],
+              ),
+            )
           : ListView.builder(
-        padding: const EdgeInsets.only(top: 10),
-        itemCount: _savedFilesList.length,
-        itemBuilder: (context, index) {
-          final file = _savedFilesList[index];
-          final fileName = file.path.split('/').last;
+              padding: const EdgeInsets.only(top: 10),
+              itemCount: _savedFilesList.length,
+              itemBuilder: (context, index) {
+                final file = _savedFilesList[index];
+                final fileName = file.path.split('/').last;
 
-          return ListTile(
-            leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
-            title: Text(
-              fileName,
-              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+                return ListTile(
+                  leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+                  title: Text(
+                    fileName,
+                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    DateFormat('dd MMM yyyy').format(file.statSync().modified),
+                    style: const TextStyle(color: Colors.white54, fontSize: 13),
+                  ),
+                  onTap: () {
+                    // Click karne par file direct open ho jayegi
+                    OpenFile.open(file.path);
+                  },
+                );
+              },
             ),
-            subtitle: Text(
-              DateFormat('dd MMM yyyy').format(file.statSync().modified),
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
-            ),
-            onTap: () {
-              // Click karne par file direct open ho jayegi
-              OpenFile.open(file.path);
-            },
-          );
-        },
-      ),
     );
   }
 }
