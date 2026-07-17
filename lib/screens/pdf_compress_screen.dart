@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'home_screen.dart';
 
@@ -21,15 +22,51 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   late String _fileName;
   late String _originalSize;
 
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
+  // Test Ad Unit ID - Release karte time isko apne AdMob ID se replace karna!
+  final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+
   @override
   void initState() {
     super.initState();
     _fileName = widget.pdfFile.path.split('/').last;
     _originalSize = _formatBytes(widget.pdfFile.lengthSync());
+    _loadBannerAd();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startCompression();
     });
   }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose(); // 🚨 Memory leak bachane ke liye Ad ko dispose zarur karna
+    super.dispose();
+  }
+
+  // 🚨 BUSINESS LOGIC: Banner Ad Load karna
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: _bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _isBannerAdLoaded = true;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          print('Compress Screen Banner Ad failed to load: $error');
+        },
+      ),
+    )..load();
+  }
+
+
 
   // File size format karne ka helper function (KB / MB me)
   String _formatBytes(int bytes) {
@@ -110,7 +147,27 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         title: const Text("Compress PDF", style: TextStyle(color: Colors.white, fontSize: 20)),
       ),
       // 1. Scrollable Body
-      body: SingleChildScrollView(
+      //body: SingleChildScrollView(
+
+      body: Column(
+          children: [
+          // 🚨 NAYA: Banner Ad Container
+          if (_isBannerAdLoaded && _bannerAd != null)
+      Container(
+      width: double.infinity,
+      color: const Color(0xFF121212), // Appbar se match karta hua background
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 5), // Thodi breathing space
+      child: SizedBox(
+        width: _bannerAd!.size.width.toDouble(),
+        height: _bannerAd!.size.height.toDouble(),
+        child: AdWidget(ad: _bannerAd!),
+      ),
+    ),
+
+    // 1. Tumhara Scrollable Body (Expanded me daala taaki bachi hui jagah le le)
+    Expanded(
+    child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20,0,20,10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -313,6 +370,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
             ),
           ],
         ),
+      ),
+            ),
+    ],
       ),
     );
   }
