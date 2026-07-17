@@ -30,12 +30,18 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   // Test Ad Unit ID - Release karte time isko apne AdMob ID se replace karna!
   final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialAdLoaded = false;
+  // Test ID - Release se pehle apni AdMob ID lagana
+  final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
+
   @override
   void initState() {
     super.initState();
     _fileName = widget.pdfFile.path.split('/').last;
     _originalSize = _formatBytes(widget.pdfFile.lengthSync());
     _loadBannerAd();
+    _loadInterstitialAd();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startCompression();
     });
@@ -44,6 +50,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   @override
   void dispose() {
     _bannerAd?.dispose(); // 🚨 Memory leak bachane ke liye Ad ko dispose zarur karna
+
     super.dispose();
   }
 
@@ -67,6 +74,24 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         },
       ),
     )..load();
+  }
+
+  // 🚨 BUSINESS LOGIC: Full Screen Ad Load karna
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: _interstitialAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _isInterstitialAdLoaded = true;
+        },
+        onAdFailedToLoad: (error) {
+          print('Interstitial ad failed to load: $error');
+          _isInterstitialAdLoaded = false;
+        },
+      ),
+    );
   }
 
   // 🚨 UI FIX: Toast message dikhane ke liye helper function
@@ -481,45 +506,99 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   }
 
   // 🚨 BUSINESS LOGIC: COMPRESSED FILE KO SAVE KARNA
+  // Future<void> _saveCompressedPdf() async {
+  //   // Agar koi temp file nahi bani hai toh kuch mat karo
+  //   if (_tempCompressedFilePath == null) return;
+  //
+  //   try {
+  //     // 1. Original file ka folder pata karo
+  //     final String dirPath = widget.pdfFile.parent.path;
+  //
+  //     // 2. Naya naam banao (compressed_ + originalName)
+  //     //final String newFileName = "compressed_$_fileName";
+  //
+  //     // 2. Naya naam banao timestamp ke sath
+  //     // Pehle original naam se '.pdf' hata do
+  //     final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+  //
+  //     // Current time ka timestamp nikalo
+  //     final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+  //
+  //     // Ab sabko jod do: compressed_ + naam + _ + timestamp + .pdf
+  //     final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
+  //
+  //     // 3. Pura save path banao
+  //     final String savePath = "$dirPath/$newFileName";
+  //
+  //     // 4. Temporary compressed file ko finally Save path par COPY kar do
+  //     File tempFile = File(_tempCompressedFilePath!);
+  //     await tempFile.copy(savePath);
+  //
+  //     // 5. Success Message dikhao
+  //     showToast("Saved as: $newFileName");
+  //
+  //     // 6. Screen close karke pichhe bhejo taaki user ko result dikh jaye
+  //     if (mounted) {
+  //       Navigator.pop(context);
+  //     }
+  //
+  //   } catch (e) {
+  //     print("Save Compressed PDF Error: $e");
+  //     showToast("Failed to save PDF!");
+  //   }
+  // }
+
+// 🚨 BUSINESS LOGIC: Ad dikhana aur fir Save karna
   Future<void> _saveCompressedPdf() async {
-    // Agar koi temp file nahi bani hai toh kuch mat karo
     if (_tempCompressedFilePath == null) return;
 
-    try {
-      // 1. Original file ka folder pata karo
-      final String dirPath = widget.pdfFile.parent.path;
+    // Asli Save karne ka code (Isko ek local function bana diya)
+    Future<void> performSave() async {
+      try {
+        final String dirPath = widget.pdfFile.parent.path;
+        final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+        final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
 
-      // 2. Naya naam banao (compressed_ + originalName)
-      //final String newFileName = "compressed_$_fileName";
+        final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
+        final String savePath = "$dirPath/$newFileName";
 
-      // 2. Naya naam banao timestamp ke sath
-      // Pehle original naam se '.pdf' hata do
-      final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+        File tempFile = File(_tempCompressedFilePath!);
+        await tempFile.copy(savePath);
 
-      // Current time ka timestamp nikalo
-      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+        showToast("Saved as: $newFileName");
 
-      // Ab sabko jod do: compressed_ + naam + _ + timestamp + .pdf
-      final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
-
-      // 3. Pura save path banao
-      final String savePath = "$dirPath/$newFileName";
-
-      // 4. Temporary compressed file ko finally Save path par COPY kar do
-      File tempFile = File(_tempCompressedFilePath!);
-      await tempFile.copy(savePath);
-
-      // 5. Success Message dikhao
-      showToast("Saved as: $newFileName");
-
-      // 6. Screen close karke pichhe bhejo taaki user ko result dikh jaye
-      if (mounted) {
-        Navigator.pop(context);
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        print("Save Error: $e");
+        showToast("Failed to save PDF!");
       }
+    }
 
-    } catch (e) {
-      print("Save Compressed PDF Error: $e");
-      showToast("Failed to save PDF!");
+    // Check karo: Agar Ad ready hai toh pehle dikhao
+    if (_isInterstitialAdLoaded && _interstitialAd != null) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          // Jab user 'X' daba kar Ad close kare
+          ad.dispose();
+          _loadInterstitialAd(); // Agli baar ke liye nayi ad load pe laga do
+          performSave(); // 🚨 Ad close hote hi automatically File Save aur screen band!
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          // Agar galti se ad show hone me fail ho jaye
+          ad.dispose();
+          _loadInterstitialAd();
+          performSave(); // User ko wait mat karao, direct save kar do
+        },
+      );
+
+      _interstitialAd!.show(); // 🚨 Screen par Ad pop-up karo
+      _isInterstitialAdLoaded = false; // Purani ad use ho gayi, flag reset
+
+    } else {
+      // Agar internet slow hone ki wajah se Ad load hi nahi hui thi
+      performSave(); // Direct save kar do
     }
   }
 
