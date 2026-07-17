@@ -586,197 +586,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 🚨 BUSINESS LOGIC & UI: Files Tab Content (Bina categories ke direct list)
-  // Widget _buildFilesTabContent() {
-  //   if (_isLoadingFiles) {
-  //     return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
-  //   }
-  //
-  //   if (_pdfFiles.isEmpty) {
-  //     return Center(
-  //       child: Column(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           const Icon(Icons.folder_open_rounded, color: Colors.white24, size: 80),
-  //           const SizedBox(height: 16),
-  //           const Text(
-  //             "No files found.",
-  //             style: TextStyle(color: Colors.white54, fontSize: 16),
-  //           ),
-  //         ],
-  //       ),
-  //     );
-  //   }
-  //
-  //   return RefreshIndicator(
-  //     onRefresh: _loadPdfFiles,
-  //     color: Colors.blueAccent,
-  //     backgroundColor: const Color(0xFF1E1E1E),
-  //     child: ListView.builder(
-  //       physics: const AlwaysScrollableScrollPhysics(),
-  //       padding: const EdgeInsets.only(bottom: 100, top: 10),
-  //       itemCount: _pdfFiles.length,
-  //       itemBuilder: (context, index) {
-  //         final file = _pdfFiles[index];
-  //         final fileStat = file.statSync();
-  //
-  //         // Premium UI Card (Same as Home Screen)
-  //         return GestureDetector(
-  //           onTap: () {
-  //             if (_isSelectionMode) {
-  //               setState(() {
-  //                 if (_selectedFiles.contains(file.path)) {
-  //                   _selectedFiles.remove(file.path);
-  //                 } else {
-  //                   _selectedFiles.add(file.path);
-  //                 }
-  //               });
-  //             } else {
-  //               OpenFile.open(file.path);
-  //             }
-  //           },
-  //           onLongPress: () {
-  //             if (!_isSelectionMode) {
-  //               HapticFeedback.heavyImpact();
-  //               setState(() {
-  //                 _isSelectionMode = true;
-  //                 _selectedFiles.add(file.path);
-  //               });
-  //             }
-  //           },
-  //           child: Container(
-  //             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-  //             padding: const EdgeInsets.only(left: 8, top: 8, right: 12, bottom: 8),
-  //             decoration: BoxDecoration(
-  //               color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
-  //               borderRadius: BorderRadius.circular(12),
-  //               border: Border.all(
-  //                 color: _selectedFiles.contains(file.path)
-  //                     ? Colors.lightBlueAccent.withOpacity(0.5)
-  //                     : Colors.white12,
-  //               ),
-  //             ),
-  //             child: Row(
-  //               children: [
-  //                 // Thumbnail View
-  //                 Container(
-  //                   width: 70,
-  //                   height: 95,
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.grey.shade800,
-  //                     borderRadius: BorderRadius.circular(6),
-  //                     border: Border.all(color: Colors.white12),
-  //                   ),
-  //                   clipBehavior: Clip.hardEdge,
-  //                   child: PdfThumbnailView(key: ValueKey(file.path), filePath: file.path),
-  //                 ),
-  //                 const SizedBox(width: 16),
-  //
-  //                 // File Details
-  //                 Expanded(
-  //                   child: Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       Text(
-  //                         _truncateFileName(file.path.split('/').last),
-  //                         style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
-  //                         maxLines: 1,
-  //                       ),
-  //                       const SizedBox(height: 6),
-  //                       Text(
-  //                         DateFormat('MM/dd/yy  •  hh:mm a').format(fileStat.modified),
-  //                         style: const TextStyle(color: Colors.white54, fontSize: 13),
-  //                       ),
-  //                       const SizedBox(height: 2),
-  //                       Text(
-  //                         _getFileSize(fileStat.size),
-  //                         style: const TextStyle(color: Colors.white54, fontSize: 13),
-  //                       ),
-  //                       const SizedBox(height: 8),
-  //
-  //                       // Action Buttons / Checkbox
-  //                       _isSelectionMode
-  //                           ? Align(
-  //                         alignment: Alignment.centerRight,
-  //                         child: Padding(
-  //                           padding: const EdgeInsets.only(right: 8.0),
-  //                           child: SizedBox(
-  //                             height: 24,
-  //                             width: 24,
-  //                             child: Checkbox(
-  //                               value: _selectedFiles.contains(file.path),
-  //                               activeColor: Colors.lightBlueAccent,
-  //                               checkColor: Colors.black,
-  //                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-  //                               side: const BorderSide(color: Colors.white54, width: 1.5),
-  //                               onChanged: (bool? value) {
-  //                                 setState(() {
-  //                                   if (value == true) {
-  //                                     _selectedFiles.add(file.path);
-  //                                   } else {
-  //                                     _selectedFiles.remove(file.path);
-  //                                   }
-  //                                 });
-  //                               },
-  //                             ),
-  //                           ),
-  //                         ),
-  //                       )
-  //                           : Row(
-  //                         mainAxisAlignment: MainAxisAlignment.end,
-  //                         children: [
-  //                               () {
-  //                             final bool isSaved = _savedFilePaths.contains(file.path);
-  //                             return Tooltip(
-  //                               message: isSaved ? "Unsave document" : "Save document",
-  //                               child: InkWell(
-  //                                 borderRadius: BorderRadius.circular(20),
-  //                                 onTap: () => _toggleSaveFile(file.path),
-  //                                 child: Padding(
-  //                                   padding: const EdgeInsets.all(6.0),
-  //                                   child: Icon(
-  //                                     isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-  //                                     color: isSaved ? Colors.lightBlueAccent : Colors.white70,
-  //                                     size: 22,
-  //                                   ),
-  //                                 ),
-  //                               ),
-  //                             );
-  //                           }(),
-  //                           const SizedBox(width: 16),
-  //                           Tooltip(
-  //                             message: "Share",
-  //                             child: InkWell(
-  //                               onTap: () => _sharePdfFile(file),
-  //                               child: const Icon(Icons.share_outlined, color: Colors.white70, size: 22),
-  //                             ),
-  //                           ),
-  //                           const SizedBox(width: 16),
-  //                           Tooltip(
-  //                             message: "More options",
-  //                             child: InkWell(
-  //                               borderRadius: BorderRadius.circular(20),
-  //                               onTap: () => _showFileOptionsBottomSheet(context, file),
-  //                               child: const Padding(
-  //                                 padding: EdgeInsets.all(6.0),
-  //                                 child: Icon(Icons.more_vert_rounded, color: Colors.white70, size: 22),
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
-
   // 🚨 UI LOGIC: Files Tab Content (Poore phone ka PDF list)
   Widget _buildFilesTabContent() {
     if (_isLoadingDeviceFiles) {
@@ -985,22 +794,13 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedFiles.clear();
           });
         } else if (value == 'Settings') {
-          // TODO: Future me yahan Settings screen open karne ka code aayega
-          //showToast("Opening Settings...");
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const SettingsScreen(), // Bina kisi extra dialog ya function ke
+              builder: (context) => const SettingsScreen(),
             ),
           );
         }
-        // } else if (value == 'Help & Feedback') {
-        //   // TODO: Future me yahan Support email ya helper page open hoga
-        //   showToast("Opening Help & Support...");
-        // } else if (value == 'About') {
-        //   // TODO: Future me yahan App Info ya Privacy Policy dialog dikhayenge
-        //   showToast("PDF Scanner Pro v1.0.0");
-        // }
       },
 
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -1026,30 +826,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-
-        // // 3. Help & Feedback Option
-        // const PopupMenuItem<String>(
-        //   value: 'Help & Feedback',
-        //   child: Row(
-        //     children: [
-        //       Icon(Icons.help_outline_rounded, color: Colors.white, size: 20),
-        //       SizedBox(width: 12),
-        //       Text('Help & Feedback', style: TextStyle(color: Colors.white, fontSize: 15)),
-        //     ],
-        //   ),
-        // ),
-        //
-        // // 4. About Option
-        // const PopupMenuItem<String>(
-        //   value: 'About',
-        //   child: Row(
-        //     children: [
-        //       Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
-        //       SizedBox(width: 12),
-        //       Text('About', style: TextStyle(color: Colors.white, fontSize: 15)),
-        //     ],
-        //   ),
-        // ),
       ],
     );
   }
@@ -1382,163 +1158,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // void _showFileOptionsBottomSheet(BuildContext context, File file) {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     isScrollControlled: true,
-  //     backgroundColor: const Color(0xFF1E1E1E),
-  //     elevation: 10,
-  //     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-  //     builder: (BuildContext context) {
-  //       return SafeArea(
-  //         child: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             const SizedBox(height: 12),
-  //             Container(
-  //               width: 40,
-  //               height: 4,
-  //               decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
-  //             ),
-  //             const SizedBox(height: 16),
-  //             Padding(
-  //               padding: const EdgeInsets.symmetric(horizontal: 20),
-  //               child: Text(
-  //                 file.path.split('/').last,
-  //                 style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
-  //                 maxLines: 1,
-  //                 overflow: TextOverflow.ellipsis,
-  //               ),
-  //             ),
-  //             const Divider(color: Colors.white12, height: 24, thickness: 1),
-  //
-  //             Flexible(
-  //               child: SingleChildScrollView(
-  //                 child: Column(
-  //                   mainAxisSize: MainAxisSize.min,
-  //                   children: [
-  //                     ListTile(
-  //                       leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
-  //                       title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
-  //                       onTap: () {
-  //                         Navigator.pop(context);
-  //                         _sharePdfFile(file);
-  //                       },
-  //                     ),
-  //
-  //                     // 2. Open with
-  //                     ListTile(
-  //                       leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
-  //                       title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
-  //                       onTap: () {
-  //                         Navigator.pop(context);
-  //                         //TODO
-  //                         showToast("Open with clicked");
-  //                       },
-  //                     ),
-  //
-  //                     // 3. Copy Option
-  //                     ListTile(
-  //                       leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
-  //                       title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
-  //                       onTap: () {
-  //                         Navigator.pop(context);
-  //                         _copyPdfFile(file);
-  //                       },
-  //                     ),
-  //
-  //                     ListTile(
-  //                       leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
-  //                       title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
-  //                       onTap: () {
-  //                         Navigator.pop(context);
-  //                         showToast("Save pages as JPEG clicked");
-  //                         //_savePagesAsJpeg(file);
-  //                         _showSavePagesAsJpegConfirmDialog(context, file);
-  //                       },
-  //                     )
-  //                     ,
-  //                     ListTile(
-  //                       leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
-  //                       title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
-  //                       onTap: () {
-  //                         Navigator.pop(context);
-  //                         _renamePdfFile(context, file);
-  //                       },
-  //                     ),
-  //                     () {
-  //                       final bool isSaved = _savedFilePaths.contains(file.path);
-  //                       return ListTile(
-  //                         leading: Icon(
-  //                           isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-  //                           color: isSaved ? Colors.lightBlueAccent : Colors.white,
-  //                           size: 22,
-  //                         ),
-  //                         title: Text(
-  //                           isSaved ? 'Remove from saved' : 'Save document',
-  //                           style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
-  //                         ),
-  //                         onTap: () {
-  //                           Navigator.pop(context);
-  //                           _toggleSaveFile(file.path);
-  //                         },
-  //                       );
-  //                     }(),
-  //
-  //                     ListTile(
-  //                       leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
-  //                       title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
-  //                       onTap: () {
-  //                         Navigator.pop(context);
-  //                         _printPdfFile(file);
-  //                       },
-  //                     ),
-  //
-  //                     ListTile(
-  //                       leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
-  //                       title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
-  //                       onTap: () {
-  //                         Navigator.pop(context);
-  //                         _showPdfDetails(context, file);
-  //                       },
-  //                     ),
-  //
-  //                     const Divider(color: Colors.white12, height: 16),
-  //
-  //                     ListTile(
-  //                       leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
-  //                       title: const Text(
-  //                         'Delete',
-  //                         style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
-  //                       ),
-  //                       onTap: () async {
-  //                         Navigator.pop(context);
-  //                         bool shouldDelete = await showCustomConfirmDialog(
-  //                           context,
-  //                           title: "Delete Document",
-  //                           message:
-  //                               "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
-  //                           positiveBtnText: "Delete",
-  //                           negativeBtnText: "Cancel",
-  //                           positiveBtnColor: Colors.redAccent,
-  //                         );
-  //                         if (shouldDelete) {
-  //                           await _deletePdfFile(file);
-  //                         }
-  //                       },
-  //                     ),
-  //                     const SizedBox(height: 10),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
   // 🚨 FIX: Context shadowing issue solved. (Delete, Rename, aur Save as JPEG sab ab perfectly chalenge)
   void _showFileOptionsBottomSheet(BuildContext context, File file) {
     showModalBottomSheet(
@@ -1592,15 +1211,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           _sharePdfFile(file);
                         },
                       ),
-                      // ListTile(
-                      // leading: const Icon(Icons.open_in_new_rounded, color: Colors.white, size: 22),
-                      // title: const Text('Open with', style: TextStyle(color: Colors.white, fontSize: 16)),
-                      // onTap: () {
-                      // Navigator.pop(sheetContext);
-                      // //showToast("Open with clicked");
-                      // _openPdfWithOtherApp(file);
-                      // },
-                      // ),
                       ListTile(
                         leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
                         title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -1652,14 +1262,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           _printPdfFile(file);
                         },
                       ),
-                      // ListTile(
-                      // leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
-                      // title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
-                      // onTap: () {
-                      // Navigator.pop(sheetContext);
-                      // _showPdfDetails(context, file);
-                      // },
-                      // ),
                       const Divider(color: Colors.white12, height: 16),
                       ListTile(
                         leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
@@ -2103,21 +1705,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// 🚨 BUSINESS LOGIC: PDF ko dusre apps me open karne ke liye (EKDUM PERFECT CODE)
-  // Future<void> _openPdfWithOtherApp(File file) async {
-  //   try {
-  //     // type define karne se OS sirf PDF Apps hi dhundhega
-  //     final result = await OpenFile.open(file.path, type: "application/pdf");
-  //
-  //     if (result.type != ResultType.done) {
-  //       showToast("No PDF viewer app found on your phone!");
-  //     }
-  //   } catch (e) {
-  //     print("Open With Error: $e");
-  //     showToast("Could not open the file.");
-  //   }
-  // }
-
   Future<void> _printPdfFile(File file) async {
     try {
       final String fileName = file.path.split('/').last;
@@ -2159,82 +1746,6 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast("Error: Permission denied by Android System.");
     }
   }
-
-  // 🚨 UI LOGIC: Dialog dikhane ke liye aur Path batane ke liye
-  // Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
-  //   // 1. SharedPreferences se save path nikaalo
-  //   final prefs = await SharedPreferences.getInstance();
-  //   String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
-  //   String imagesFolderPath = "$baseSavePath/Images"; // Sub-folder for Images
-  //
-  //   // 2. Tumhara custom dialog call karo
-  //   bool isConfirmed = await showCustomConfirmDialog(
-  //     context,
-  //     title: "Save as JPEG",
-  //     message: "Do you want to extract all pages of this PDF as images?\n\nSave Location:\n$imagesFolderPath",
-  //     positiveBtnText: "Confirm",
-  //     negativeBtnText: "Cancel",
-  //     positiveBtnColor: Colors.lightBlueAccent,
-  //   );
-  //
-  //   // 3. Agar user ne Confirm par click kiya hai, toh extract wala function call karo
-  //   if (isConfirmed) {
-  //     _savePagesAsJpeg(pdfFile, imagesFolderPath);
-  //   }
-  // }
-
-  // Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
-  //   // 1. SharedPreferences se save path nikaalo
-  //   final prefs = await SharedPreferences.getInstance();
-  //   String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
-  //   String imagesFolderPath = "$baseSavePath/Images"; // Sub-folder for Images
-  //
-  //   // 2. Tumhara custom dialog call karo
-  //   bool isConfirmed = await showCustomConfirmDialog(
-  //     context,
-  //     title: "Save as JPEG",
-  //     message: "Do you want to extract all pages of this PDF as images?\n\nSave Location:\n$imagesFolderPath",
-  //     positiveBtnText: "Confirm",
-  //     negativeBtnText: "Cancel",
-  //     positiveBtnColor: Colors.lightBlueAccent,
-  //   );
-  //
-  //   // 3. Agar user ne Confirm par click kiya hai, toh extract wala function call karo
-  //   if (isConfirmed) {
-  //
-  //     // 🚨 NAYA: Loading Dialog Show Karo
-  //     showDialog(
-  //       context: context,
-  //       barrierDismissible: false, // User screen par bahar click karke dismiss na kar paye
-  //       builder: (BuildContext context) {
-  //         return const AlertDialog(
-  //           backgroundColor: Color(0xFF2C2C2C),
-  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
-  //           content: Row(
-  //             children: [
-  //               CircularProgressIndicator(color: Colors.lightBlueAccent),
-  //               SizedBox(width: 20),
-  //               Expanded(
-  //                 child: Text(
-  //                   "Extracting pages... Please wait",
-  //                   style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         );
-  //       },
-  //     );
-  //
-  //     // 🚨 FIX: Yahan 'await' lagana zaroori hai, taaki jab tak save na ho, loading chalti rahe
-  //     await _savePagesAsJpeg(pdfFile, imagesFolderPath);
-  //
-  //     // 🚨 NAYA: Process complete hone ke baad Loading Dialog ko band (pop) kar do
-  //     if (context.mounted) {
-  //       Navigator.pop(context);
-  //     }
-  //   }
-  // }
 
   // 🚨 UI LOGIC: Custom dialog show karna aur extract start karna
   Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
@@ -2286,119 +1797,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
   }
-
-  // 🚨 CORRECT FUNCTION: PDF file se pages nikaal kar 'Images' folder me save karna
-  // Future<void> _savePagesAsJpeg(File pdfFile) async {
-  //   showToast("Extracting pages... Please wait.");
-  //   try {
-  //     // 1. User ki set ki hui storage location nikaalo
-  //     final prefs = await SharedPreferences.getInstance();
-  //     String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
-  //
-  //     // 🚨 NAYA LOGIC: 'Images' naam ka ek sub-folder banao
-  //     String imagesFolderPath = "$baseSavePath/Images";
-  //     final directory = Directory(imagesFolderPath);
-  //
-  //     // Agar folder pehle se nahi hai, toh naya create karo
-  //     if (!(await directory.exists())) {
-  //       await directory.create(recursive: true);
-  //     }
-  //
-  //     // 2. PDF Document ko open karo
-  //     final document = await PdfDocument.openFile(pdfFile.path);
-  //     int pageCount = document.pagesCount;
-  //
-  //     // Original file ka naam nikaalo (bina .pdf ke)
-  //     String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
-  //
-  //     // 3. Har page ko loop karke image me convert karo
-  //     for (int i = 1; i <= pageCount; i++) {
-  //       final page = await document.getPage(i);
-  //
-  //       // Page ko image me render karo
-  //       final pageImage = await page.render(
-  //         width: page.width * 2,
-  //         height: page.height * 2,
-  //         format: PdfPageImageFormat.jpeg,
-  //       );
-  //
-  //       if (pageImage != null) {
-  //         // 🚨 FIX: Ab image naye 'Images' folder ke andar save hogi
-  //         String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
-  //         File newFile = File(newImagePath);
-  //
-  //         // Image ko bytes me likh kar save kar do
-  //         await newFile.writeAsBytes(pageImage.bytes);
-  //       }
-  //       await page.close(); // Memory free karne ke liye
-  //     }
-  //
-  //     await document.close(); // Document close karo
-  //
-  //     // 4. Success Message me naya folder path dikhao
-  //     showToast("Saved $pageCount pages in: $imagesFolderPath");
-  //   } catch (e) {
-  //     print("Save JPEG Error: $e");
-  //     showToast("Failed to extract pages. Check storage permissions.");
-  //   }
-  // }
-
-  // 🚨 BUSINESS LOGIC: Sirf PDF ko JPEGs me convert aur save karne ka kaam
-  // 🚨 BUSINESS LOGIC: PDF ko JPEGs me convert karna aur Gallery me dikhana
-  // Future<void> _savePagesAsJpeg(File pdfFile, String imagesFolderPath) async {
-  //   showToast("Extracting pages... Please wait.");
-  //   try {
-  //     // 1. Folder create karo agar nahi hai toh
-  //     final directory = Directory(imagesFolderPath);
-  //     if (!(await directory.exists())) {
-  //       await directory.create(recursive: true);
-  //     }
-  //
-  //     // 2. PDF Document ko open karo
-  //     final document = await PdfDocument.openFile(pdfFile.path);
-  //     int pageCount = document.pagesCount;
-  //     String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
-  //
-  //     // 3. Har page ko loop karke convert karo
-  //     for (int i = 1; i <= pageCount; i++) {
-  //       final page = await document.getPage(i);
-  //
-  //       // Page ko high quality image me render karo
-  //       final pageImage = await page.render(
-  //         width: page.width * 2,
-  //         height: page.height * 2,
-  //         format: PdfPageImageFormat.jpeg,
-  //       );
-  //
-  //       // 🚨 SCOPE FIX: Saara kaam in brackets { } ke andar hi hoga
-  //       if (pageImage != null) {
-  //         String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
-  //         File newFile = File(newImagePath);
-  //
-  //         // Image ko folder me save kiya
-  //         await newFile.writeAsBytes(pageImage.bytes);
-  //
-  //         // Gallery ko force update kiya taaki photo turant dikhe
-  //         try {
-  //           await Gal.putImage(newImagePath);
-  //         } catch (e) {
-  //           print("Gallery Sync Error: $e");
-  //         }
-  //       }
-  //
-  //       await page.close(); // Memory free
-  //     }
-  //
-  //     await document.close(); // Document close
-  //
-  //     // 4. Final Success Toast
-  //     showToast("Success! Saved $pageCount pages in: $imagesFolderPath");
-  //
-  //   } catch (e) {
-  //     print("Save JPEG Error: $e");
-  //     showToast("Failed to extract pages. Check storage permissions.");
-  //   }
-  // }
 
   Future<void> _savePagesAsJpeg(File pdfFile, String imagesFolderPath) async {
     // showToast("Extracting pages... Please wait."); // (Is toast ko maine hata diya kyunki ab loading dialog dikh raha hai)
