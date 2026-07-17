@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
 import 'package:pdf/pdf.dart' hide PdfDocument;
+import 'package:pdf_scanner_pro/screens/pdf_compress_screen.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:pdf_scanner_pro/screens/settings_screen.dart';
 import 'package:pdfx/pdfx.dart';
@@ -1232,9 +1233,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       ListTile(
                         leading: const Icon(Icons.compress_rounded, color: Colors.white, size: 22),
                         title: const Text('Compress PDF', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        // onTap: () {
+                        //   Navigator.pop(sheetContext); // Bottom sheet band karo
+                        //   showToast("Compress PDF feature coming soon!"); // Toast dikhao
+                        // },
                         onTap: () {
-                          Navigator.pop(sheetContext); // Bottom sheet band karo
-                          showToast("Compress PDF feature coming soon!"); // Toast dikhao
+                          Navigator.pop(sheetContext);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => PdfCompressScreen(pdfFile: file)),
+                          );
                         },
                       ),
 
