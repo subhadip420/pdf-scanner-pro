@@ -256,7 +256,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
               )
                   : const Text("COMPRESS", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
 
             // 5. Card View
             Container(
@@ -322,7 +322,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
 
             // 6. Action Row (Download ZIP & Share)
             Row(
@@ -354,13 +354,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
 
             // 7. Download PDF Button
             ElevatedButton.icon(
               onPressed: _newSize == null ? null : () { /* Download logic */ },
               icon: const Icon(Icons.download_rounded, color: Colors.white),
-              label: const Text("DOWNLOAD COMPRESSED PDF", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              label: const Text("SAVE COMPRESSED PDF", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 disabledBackgroundColor: Colors.white12,
