@@ -324,7 +324,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
     // 2. Agar user ne photo le rakhi hai aur back dabata hai, toh use wapas Editor mein bhej do!
     if (capturedImagesList.isNotEmpty) {
-      _goToEditor();
+      //_goToEditor();
+      // Android Back swipe/button dabane par apna function call hoga
+      await _handleBackButton();
       return false; // App close hone se rok dega
     }
 
@@ -335,6 +337,42 @@ class _ScannerScreenState extends State<ScannerScreen> {
       (route) => false,
     );
     return false;
+  }
+
+  // 🚨 BUSINESS LOGIC: Back button aur system back gesture handle karne ke liye
+  Future<void> _handleBackButton() async {
+    if (capturedImagesList.isNotEmpty) {
+      // Agar photos hain, toh dialog dikhao
+      bool shouldDiscard = await showCustomConfirmDialog(
+        context,
+        title: "Discard this scan?",
+        message: "This will discard the scan you have captured. Are you sure?",
+        positiveBtnText: "Discard",
+        negativeBtnText: "Cancel",
+        positiveBtnColor: Colors.redAccent,
+      );
+
+      if (shouldDiscard) {
+        setState(() {
+          capturedImagesList.clear(); // List clear karo
+        });
+
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false, // History clear karke Home jao
+          );
+        }
+      }
+    } else {
+      // Agar photos nahi hain, toh direct Home jao
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+      );
+    }
   }
 
   // Selected flash mode ke hisaab se icon return karega
