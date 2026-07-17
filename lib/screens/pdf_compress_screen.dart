@@ -4,6 +4,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_compressor/pdf_compressor.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:share_plus/share_plus.dart';
 import 'custom_dialog.dart';
 import 'home_screen.dart';
 
@@ -468,7 +469,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                 const SizedBox(width: 15),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _newSize == null ? null : () { /* Share logic */ },
+                    //onPressed: _newSize == null ? null : () { /* Share logic */ },
+                    onPressed: _newSize == null ? null : () => _shareCompressedPdf(),
                     icon: const Icon(Icons.share_outlined, size: 20, color: Colors.blueAccent),
                     label: const Text("Share PDF", style: TextStyle(color: Colors.blueAccent)),
                     style: OutlinedButton.styleFrom(
@@ -503,6 +505,44 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       ),
     ),
     );
+  }
+
+  // 🚨 BUSINESS LOGIC: Compressed PDF ko direct share karne ka function
+  Future<void> _shareCompressedPdf() async {
+    if (_tempCompressedFilePath == null) return;
+
+    try {
+      // 1. Naya naam banao (Timestamp ke sath)
+      final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
+
+      // 2. Temp directory path nikalo jahan hum nayi renamed file banayenge
+      final Directory tempDir = await getTemporaryDirectory();
+      final String renamedTempPath = "${tempDir.path}/$newFileName";
+
+      // 3. Purani temp file ko naye naam ke sath copy kar do (taaki share karte time naam sahi jaye)
+      File originalTempFile = File(_tempCompressedFilePath!);
+      File renamedTempFile = await originalTempFile.copy(renamedTempPath);
+
+      // 4. Share UI open karo
+      // await Share.shareXFiles(
+      //   [XFile(renamedTempFile.path)],
+      //   text: 'Here is the compressed PDF: $newFileName', // Optional text jo WhatsApp/Email me message banega
+      // );
+
+      // 4. Share UI open karo (🚨 Naya aur Updated Syntax)
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(renamedTempFile.path)],
+          text: 'Here is the compressed PDF: $newFileName', // WhatsApp/Email ke liye optional text
+        ),
+      );
+
+    } catch (e) {
+      print("Share Error: $e");
+      showToast("Failed to share PDF!");
+    }
   }
 
   // 🚨 BUSINESS LOGIC: COMPRESSED FILE KO SAVE KARNA
