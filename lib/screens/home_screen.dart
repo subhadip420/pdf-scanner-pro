@@ -1228,6 +1228,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           _showSavePagesAsJpegConfirmDialog(context, file);
                         },
                       ),
+
+                      ListTile(
+                        leading: const Icon(Icons.compress_rounded, color: Colors.white, size: 22),
+                        title: const Text('Compress PDF', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext); // Bottom sheet band karo
+                          showToast("Compress PDF feature coming soon!"); // Toast dikhao
+                        },
+                      ),
+
                       ListTile(
                         leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
                         title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
