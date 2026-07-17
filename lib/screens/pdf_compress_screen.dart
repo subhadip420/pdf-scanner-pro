@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'custom_dialog.dart';
 import 'home_screen.dart';
 
 // 🚨 NAYI SCREEN: PDF Compress UI
@@ -66,7 +67,24 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     )..load();
   }
 
+// 🚨 BUSINESS LOGIC: Back button aur system gesture rokne ke liye
+  Future<void> _handleBackButton() async {
+    // Agar background me compression chal raha hai ya user dekh raha hai, toh dialog dikhao
+    bool shouldDiscard = await showCustomConfirmDialog(
+      context,
+      title: "Discard changes?",
+      message: "Are you sure you want to go back? The compressed file won't be saved.",
+      positiveBtnText: "Discard",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.redAccent,
+    );
 
+    if (shouldDiscard) {
+      if (mounted) {
+        Navigator.pop(context); // 🚨 User ne confirm kiya, tabhi pop (back) karenge
+      }
+    }
+  }
 
   // File size format karne ka helper function (KB / MB me)
   String _formatBytes(int bytes) {
@@ -132,7 +150,18 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    //return Scaffold(
+
+    // 🚨 FIX 1: PopScope lagaya taaki system back swipe/button block ho jaye
+    return PopScope(
+        canPop: false, // Direct back hone se rokega
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
+      if (didPop) return;
+
+      // System ka back gesture ya phone ka back button dabne par
+      await _handleBackButton();
+    },
+    child: Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
@@ -141,7 +170,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           message: "Back",
           child: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => _handleBackButton(),
           ),
         ),
         title: const Text("Compress PDF", style: TextStyle(color: Colors.white, fontSize: 20)),
@@ -374,6 +403,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
             ),
     ],
       ),
+    ),
     );
   }
 }
