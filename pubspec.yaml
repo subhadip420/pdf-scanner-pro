@@ -37,7 +37,7 @@ dependencies:
   sensors_plus: ^5.0.0
   pdf: ^3.10.8              # PDF create karne ke liye
   pdfx: ^2.5.0
-  path_provider: ^2.1.2     # Device me file save karne ke liye
+  path_provider: ^2.1.6     # Device me file save karne ke liye
   google_mobile_ads: ^4.0.0 # AdMob ke liye
   open_file: ^3.3.2  # File ko open karne ke liye
   permission_handler: ^11.3.0  # Storage permission mangne ke liye
@@ -64,6 +64,7 @@ dependencies:
   gal: ^2.3.2
   in_app_review: ^2.0.12
   file_picker: ^8.0.3
+  pdf_compressor: ^0.2.0
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf_compressor/pdf_compressor.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'custom_dialog.dart';
 import 'home_screen.dart';
 
@@ -22,7 +24,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
   late String _fileName;
   late String _originalSize;
-
+  String? _tempCompressedFilePath;
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
   // Test Ad Unit ID - Release karte time isko apne AdMob ID se replace karna!
@@ -65,6 +67,19 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         },
       ),
     )..load();
+  }
+
+  // 🚨 UI FIX: Toast message dikhane ke liye helper function
+  void showToast(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.grey.shade900,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
 // 🚨 BUSINESS LOGIC: Back button aur system gesture rokne ke liye
@@ -125,27 +140,84 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     );
   }
 
-  // Dummy Compress Function (Yahan tum future me real compression logic lagaoge)
+  // // Dummy Compress Function (Yahan tum future me real compression logic lagaoge)
+  // Future<void> _startCompression() async {
+  //   setState(() {
+  //     _isCompressing = true;
+  //     _newSize = null;
+  //   });
+  //
+  //   // 2 second ka wait simulate kar rahe hain
+  //   await Future.delayed(const Duration(seconds: 2));
+  //
+  //   // Calculate new size (Slider percentage ke hisaab se dummy size reduce kar rahe hain)
+  //   int originalBytes = widget.pdfFile.lengthSync();
+  //   double reductionFactor = _compressionLevel / 100.0;
+  //   int compressedBytes = (originalBytes * (1.0 - (reductionFactor * 0.7))).toInt(); // Formula for demo
+  //
+  //   setState(() {
+  //     _isCompressing = false;
+  //     _newSize = _formatBytes(compressedBytes);
+  //   });
+  //
+  //   // showToast("Compression Successful!");
+  // }
+
+  // 🚨 BUSINESS LOGIC: ASLI COMPRESSION FUNCTION
   Future<void> _startCompression() async {
+    if (!mounted) return;
+
     setState(() {
       _isCompressing = true;
       _newSize = null;
+      _tempCompressedFilePath = null; // Purana temp hata do
     });
 
-    // 2 second ka wait simulate kar rahe hain
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // 1. Temporary folder pata karo jahan compressed file rakhi jayegi
+      final Directory tempDir = await getTemporaryDirectory();
+      final String tempPath = "${tempDir.path}/temp_compress_${DateTime.now().millisecondsSinceEpoch}.pdf";
 
-    // Calculate new size (Slider percentage ke hisaab se dummy size reduce kar rahe hain)
-    int originalBytes = widget.pdfFile.lengthSync();
-    double reductionFactor = _compressionLevel / 100.0;
-    int compressedBytes = (originalBytes * (1.0 - (reductionFactor * 0.7))).toInt(); // Formula for demo
+      // 2. Slider (10% to 100%) ke hisaab se Compress Quality decide karo
+      CompressQuality quality;
+      if (_compressionLevel >= 80) {
+        quality = CompressQuality.LOW; // Size zyada kam nahi hoga, quality high rahegi
+      } else if (_compressionLevel >= 40) {
+        quality = CompressQuality.MEDIUM; // Balanced
+      } else {
+        quality = CompressQuality.HIGH; // Size sabse zyada kam hoga (quality drop ho sakti hai)
+      }
 
-    setState(() {
-      _isCompressing = false;
-      _newSize = _formatBytes(compressedBytes);
-    });
+      // 3. Asli Package ka use karke file compress karo
+      await PdfCompressor.compressPdfFile(
+        widget.pdfFile.path, // Original file path
+        tempPath,            // Naya temp file path
+        quality,             // Quality enum
+      );
 
-    // showToast("Compression Successful!");
+      // 4. File check karo aur UI update karo
+      File compressedFile = File(tempPath);
+      if (compressedFile.existsSync()) {
+        int newBytes = compressedFile.lengthSync();
+
+        if (mounted) {
+          setState(() {
+            _tempCompressedFilePath = tempPath; // Path save kar liya taaki download button kaam kare
+            _newSize = _formatBytes(newBytes);
+            _isCompressing = false;
+          });
+        }
+      }
+    } catch (e) {
+      print("Real Compression Error: $e");
+      if (mounted) {
+        setState(() {
+          _isCompressing = false;
+          _newSize = "Error!";
+        });
+      }
+      showToast("Failed to compress PDF. File might be protected or too complex.");
+    }
   }
 
   @override
@@ -387,7 +459,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
             // 7. Download PDF Button
             ElevatedButton.icon(
-              onPressed: _newSize == null ? null : () { /* Download logic */ },
+              //onPressed: _newSize == null ? null : () { /* Download logic */ },
+              onPressed: _newSize == null ? null : () => _saveCompressedPdf(),
               icon: const Icon(Icons.download_rounded, color: Colors.white),
               label: const Text("SAVE COMPRESSED PDF", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
@@ -406,4 +479,48 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     ),
     );
   }
-}
+
+  // 🚨 BUSINESS LOGIC: COMPRESSED FILE KO SAVE KARNA
+  Future<void> _saveCompressedPdf() async {
+    // Agar koi temp file nahi bani hai toh kuch mat karo
+    if (_tempCompressedFilePath == null) return;
+
+    try {
+      // 1. Original file ka folder pata karo
+      final String dirPath = widget.pdfFile.parent.path;
+
+      // 2. Naya naam banao (compressed_ + originalName)
+      //final String newFileName = "compressed_$_fileName";
+
+      // 2. Naya naam banao timestamp ke sath
+      // Pehle original naam se '.pdf' hata do
+      final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+
+      // Current time ka timestamp nikalo
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+
+      // Ab sabko jod do: compressed_ + naam + _ + timestamp + .pdf
+      final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
+
+      // 3. Pura save path banao
+      final String savePath = "$dirPath/$newFileName";
+
+      // 4. Temporary compressed file ko finally Save path par COPY kar do
+      File tempFile = File(_tempCompressedFilePath!);
+      await tempFile.copy(savePath);
+
+      // 5. Success Message dikhao
+      showToast("Saved as: $newFileName");
+
+      // 6. Screen close karke pichhe bhejo taaki user ko result dikh jaye
+      if (mounted) {
+        Navigator.pop(context);
+      }
+
+    } catch (e) {
+      print("Save Compressed PDF Error: $e");
+      showToast("Failed to save PDF!");
+    }
+  }
+
+}// end main
