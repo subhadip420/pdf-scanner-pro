@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:archive/archive.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
@@ -456,7 +457,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _newSize == null ? null : () { /* Zip logic */ },
+                    //onPressed: _newSize == null ? null : () { /* Zip logic */ },
+                    onPressed: _newSize == null ? null : () => _saveAsZip(),
                     icon: const Icon(Icons.folder_zip_outlined, size: 20, color: Colors.white),
                     label: const Text("Save as ZIP", style: TextStyle(color: Colors.white)),
                     style: OutlinedButton.styleFrom(
@@ -505,6 +507,88 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       ),
     ),
     );
+  }
+
+  // 🚨 BUSINESS LOGIC: ZIP FILE CREATE KARNE KA FUNCTION
+  // 🚨 BUSINESS LOGIC: ZIP FILE CREATE KARNA AUR AD DIKHANA
+  Future<void> _saveAsZip() async {
+    if (_tempCompressedFilePath == null) return;
+
+    // Asli Zip banane aur save karne ka code
+    // Asli Zip banane aur save karne ka code
+    Future<void> performZipSave() async {
+      try {
+        // 1. File ka naam set karo
+        final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+        final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+        final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
+
+        // 🚨 NAYA FIX: Custom Path aur ZIP Folder banaya
+        final Directory baseDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+        final Directory zipFolder = Directory('${baseDir.path}/ZIP Files');
+
+        // Agar "ZIP Files" folder nahi hai, toh usko create karo
+        if (!await zipFolder.exists()) {
+          await zipFolder.create(recursive: true);
+        }
+
+        // Final save path set karo
+        final String zipPath = "${zipFolder.path}/$zipFileName";
+
+        // 2. Data read karo aur Zip banao
+        File compressedFile = File(_tempCompressedFilePath!);
+        List<int> fileBytes = await compressedFile.readAsBytes();
+
+        final archive = Archive();
+        archive.addFile(ArchiveFile(
+          _fileName, // Zip ke andar original file ka naam
+          fileBytes.length,
+          fileBytes,
+        ));
+
+        final zipEncoder = ZipEncoder();
+        final zipData = zipEncoder.encode(archive);
+
+        // 3. File ko nayi location par save karo
+        if (zipData != null) {
+          File zipFile = File(zipPath);
+          await zipFile.writeAsBytes(zipData);
+
+          showToast("Saved in ZIP Files folder");
+
+          // Screen close karke pichhe jao
+          if (mounted) {
+            Navigator.pop(context);
+          }
+        }
+      } catch (e) {
+        print("Zip Error: $e");
+        showToast("Failed to create ZIP!");
+      }
+    }
+
+    // Check karo: Agar Ad ready hai toh pehle dikhao
+    if (_isInterstitialAdLoaded && _interstitialAd != null) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          _loadInterstitialAd(); // Agli baar ke liye nayi ad load
+          performZipSave(); // Ad close hote hi File Save
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _loadInterstitialAd();
+          performZipSave();
+        },
+      );
+
+      _interstitialAd!.show(); // 🚨 Screen par Ad pop-up karo
+      _isInterstitialAdLoaded = false;
+
+    } else {
+      // Agar ad load nahi hui, toh direct Zip save karo
+      performZipSave();
+    }
   }
 
   // 🚨 BUSINESS LOGIC: Compressed PDF ko direct share karne ka function

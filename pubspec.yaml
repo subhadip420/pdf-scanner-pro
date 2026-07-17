@@ -65,6 +65,7 @@ dependencies:
   in_app_review: ^2.0.12
   file_picker: ^8.0.3
   pdf_compressor: ^0.2.0
+  archive: ^4.0.9
 
 dev_dependencies:
   flutter_test:
