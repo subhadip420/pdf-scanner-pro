@@ -111,22 +111,40 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       ),
       // 1. Scrollable Body
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.fromLTRB(20,0,20,10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 2. Header Row (Text + Info Button)
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     const Text(
+            //       "Compression Level",
+            //       style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+            //     ),
+            //     IconButton(
+            //       icon: const Icon(Icons.info_outline, color: Colors.white54, size: 22),
+            //       onPressed: _showInfoDialog,
+            //       tooltip: "Info",
+            //     ),
+            //   ],
+            // ),
+
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start, // 🚨 FIX: Dono ko start me laya
               children: [
                 const Text(
                   "Compression Level",
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
+                const SizedBox(width: 4), // Text aur icon ke beech halka sa space
                 IconButton(
-                  icon: const Icon(Icons.info_outline, color: Colors.white54, size: 22),
+                  icon: const Icon(Icons.info_outline, color: Colors.white54, size: 20),
                   onPressed: _showInfoDialog,
                   tooltip: "Info",
+                  padding: EdgeInsets.zero, // 🚨 FIX: Icon ki extra default space hata di
+                  constraints: const BoxConstraints(), // 🚨 FIX: Button ko bilkul icon ke size ka kar diya
                 ),
               ],
             ),
@@ -164,7 +182,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 8),
 
             // 4. Compress Button
             ElevatedButton(
@@ -181,10 +199,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
               )
                   : const Text("COMPRESS", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1)),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
             // 5. Card View
             Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E1E1E),
@@ -208,7 +227,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text("Original Size: ", style: TextStyle(color: Colors.white54, fontSize: 14)),
-                      Text(_originalSize, style: const TextStyle(color: Colors.redAccent, fontSize: 14, fontWeight: FontWeight.bold)),
+                      Text(_originalSize, style: const TextStyle(color: Colors.white54, fontSize: 14, fontWeight: FontWeight.bold)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -246,7 +265,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
             // 6. Action Row (Download ZIP & Share)
             Row(
