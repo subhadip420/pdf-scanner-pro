@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
@@ -87,6 +88,9 @@ class _MergeScreenState extends State<MergeScreen> {
 
   final GlobalKey _canvasKey = GlobalKey();
   final GlobalKey _paperKey = GlobalKey();
+
+  // TODO 🚨 TEST ID (Play Console ke time real ID laga dena)
+  final String _adUnitId = 'ca-app-pub-3940256099942544/1033173712';
 
   @override
   void initState() {
@@ -1738,8 +1742,133 @@ class _MergeScreenState extends State<MergeScreen> {
     // isLayerMode = false;
   }
 
+  // Future<void> _showAdAndNavigate(File savedFile) async {
+  //   bool isAdLoaded = false;
+  //   InterstitialAd? interstitialAd;
+  //
+  //   // Ad load karna shuru karo
+  //   await InterstitialAd.load(
+  //     adUnitId: _adUnitId,
+  //     request: const AdRequest(),
+  //     adLoadCallback: InterstitialAdLoadCallback(
+  //       onAdLoaded: (ad) {
+  //         interstitialAd = ad;
+  //         isAdLoaded = true;
+  //       },
+  //       onAdFailedToLoad: (error) {
+  //         debugPrint('MergeScreen InterstitialAd failed to load: $error');
+  //         isAdLoaded = false;
+  //       },
+  //     ),
+  //   );
+  //
+  //   // Max 2 seconds wait karo
+  //   int waitTime = 0;
+  //   while (!isAdLoaded && waitTime < 2000) {
+  //     await Future.delayed(const Duration(milliseconds: 100));
+  //     waitTime += 100;
+  //   }
+  //
+  //   // 🚨 Ab hum loading dialog ko band kar rahe hain
+  //   if (mounted) {
+  //     Navigator.pop(context);
+  //   }
+  //
+  //   // Pichle page par result (savedFile) le jane ka helper function
+  //   void finishAndPop() {
+  //     if (mounted) {
+  //       Navigator.pop(context, savedFile);
+  //     }
+  //   }
+  //
+  //   // Agar ad load ho gaya, toh dikhao
+  //   if (isAdLoaded && interstitialAd != null) {
+  //     interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+  //       onAdDismissedFullScreenContent: (ad) {
+  //         ad.dispose();
+  //         finishAndPop(); // Ad cut karne ke baad pichle page par jao
+  //       },
+  //       onAdFailedToShowFullScreenContent: (ad, error) {
+  //         ad.dispose();
+  //         finishAndPop(); // Error aaye tab bhi pichle page par jao
+  //       },
+  //     );
+  //     interstitialAd!.show();
+  //   } else {
+  //     // Agar Ad load nahi hua (timeout), toh direct pichle page par jao
+  //     finishAndPop();
+  //   }
+  // }
+
+  Future<void> _showAdAndNavigate(File savedFile) async {
+    Completer<bool> adCompleter = Completer<bool>();
+    InterstitialAd? interstitialAd;
+
+    // 1. Ad load request bhejo (Yahan await mat lagao)
+    InterstitialAd.load(
+      adUnitId: _adUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          interstitialAd = ad;
+          if (!adCompleter.isCompleted) {
+            adCompleter.complete(true); // Ad mil gaya
+          }
+        },
+        onAdFailedToLoad: (error) {
+          debugPrint('MergeScreen Ad failed to load: $error');
+          if (!adCompleter.isCompleted) {
+            adCompleter.complete(false); // Ad fail ho gaya
+          }
+        },
+      ),
+    );
+
+    // 2. Ad aane ka wait karo (Max 3.5 seconds ka timeout)
+    bool isAdLoaded = false;
+    try {
+      // Ye ad load hote hi aage badh jayega, pura 3.5s wait nahi karega
+      isAdLoaded = await adCompleter.future.timeout(const Duration(milliseconds: 3500));
+    } catch (e) {
+      // Timeout ho gaya
+      debugPrint('Ad loading timeout in MergeScreen');
+      isAdLoaded = false;
+    }
+
+    // 3. Loading Dialog ko band karo
+    if (mounted) {
+      Navigator.pop(context);
+    }
+
+    // Pichle page par wapas jaane ka helper function
+    void finishAndPop() {
+      if (mounted) {
+        Navigator.pop(context, savedFile);
+      }
+    }
+
+    // 4. Agar ad mil gaya hai toh dikhao, warna direct jao
+    if (isAdLoaded && interstitialAd != null) {
+      interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          finishAndPop();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          debugPrint('Failed to show ad: $error');
+          ad.dispose();
+          finishAndPop();
+        },
+      );
+      interstitialAd!.show();
+    } else {
+      // Ad nahi aaya toh sidha navigate karo
+      finishAndPop();
+    }
+  }
+
   Future<void> _saveAndExport() async {
-    // 1. Loading Dialog dikhao
+    // 1. Loading Dialog dikhao (Is dialog ko Ad function close karega)
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1759,17 +1888,15 @@ class _MergeScreenState extends State<MergeScreen> {
 
     try {
       RenderRepaintBoundary boundary = _canvasKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      ui.Image fullImage = await boundary.toImage(pixelRatio: 3.0); // 3x Quality HD
+      ui.Image fullImage = await boundary.toImage(pixelRatio: 3.0);
 
       Rect cropRect;
 
       if (_selectedPageSize != "Auto Fit") {
-        // A. Agar Page hai, toh exact Safed Paper ko cut karo
         RenderBox paperBox = _paperKey.currentContext!.findRenderObject() as RenderBox;
         Offset topLeft = paperBox.localToGlobal(Offset.zero, ancestor: boundary);
         cropRect = Rect.fromLTWH(topLeft.dx, topLeft.dy, paperBox.size.width, paperBox.size.height);
       } else {
-        // B. Agar Auto Fit hai, toh mathematically images ki boundaries nikalo
         double minX = double.infinity, minY = double.infinity;
         double maxX = -double.infinity, maxY = -double.infinity;
 
@@ -1801,7 +1928,6 @@ class _MergeScreenState extends State<MergeScreen> {
           return;
         }
 
-        // 🚨 AUTO FIT FIX: Halka sa 5px ka padding margin diya taaki edge border se na takraye
         cropRect = Rect.fromLTRB(minX - 5, minY - 5, maxX + 5, maxY + 5);
       }
 
@@ -1818,12 +1944,8 @@ class _MergeScreenState extends State<MergeScreen> {
 
       ui.PictureRecorder recorder = ui.PictureRecorder();
       Canvas canvas = Canvas(recorder);
-
       Rect exactCanvasRect = Rect.fromLTWH(0, 0, pixelCropRect.width, pixelCropRect.height);
-
-      canvas.drawImageRect(
-        fullImage, pixelCropRect, exactCanvasRect, Paint(),
-      );
+      canvas.drawImageRect(fullImage, pixelCropRect, exactCanvasRect, Paint());
 
       ui.Image croppedImage = await recorder.endRecording().toImage(pixelCropRect.width.toInt(), pixelCropRect.height.toInt());
       ByteData? byteData = await croppedImage.toByteData(format: ui.ImageByteFormat.png);
@@ -1833,20 +1955,131 @@ class _MergeScreenState extends State<MergeScreen> {
       File savedFile = File('${tempDir.path}/merged_page_${DateTime.now().millisecondsSinceEpoch}.png');
       await savedFile.writeAsBytes(pngBytes);
 
-      if (context.mounted) {
-        Navigator.pop(context); // Dialog close
-        Navigator.pop(context, savedFile); // Pichle page me wapas
-      }
+      // 🚨 YAHAN SE ALAG KIYA HUA AD FUNCTION CALL HOGA
+      await _showAdAndNavigate(savedFile);
 
     } catch (e) {
       debugPrint("Export Error: $e");
+      // Error aane par hi loading dialog yahan se pop hoga
       if (context.mounted) Navigator.pop(context);
     } finally {
-      setState(() {
-        isGridVisible = wasGridVisible;
-      });
+      if (mounted) {
+        setState(() {
+          isGridVisible = wasGridVisible;
+        });
+      }
     }
   }
+
+  // Future<void> _saveAndExport() async {
+  //   // 1. Loading Dialog dikhao
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+  //   );
+  //
+  //   // 2. Sabhi tools aur selection hata do
+  //   bool wasGridVisible = isGridVisible;
+  //   setState(() {
+  //     _selectedImageIndex = null;
+  //     isGridVisible = false;
+  //     _closeAllSubTools();
+  //   });
+  //
+  //   // 3. UI ko refresh hone do
+  //   await Future.delayed(const Duration(milliseconds: 300));
+  //
+  //   try {
+  //     RenderRepaintBoundary boundary = _canvasKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+  //     ui.Image fullImage = await boundary.toImage(pixelRatio: 3.0); // 3x Quality HD
+  //
+  //     Rect cropRect;
+  //
+  //     if (_selectedPageSize != "Auto Fit") {
+  //       // A. Agar Page hai, toh exact Safed Paper ko cut karo
+  //       RenderBox paperBox = _paperKey.currentContext!.findRenderObject() as RenderBox;
+  //       Offset topLeft = paperBox.localToGlobal(Offset.zero, ancestor: boundary);
+  //       cropRect = Rect.fromLTWH(topLeft.dx, topLeft.dy, paperBox.size.width, paperBox.size.height);
+  //     } else {
+  //       // B. Agar Auto Fit hai, toh mathematically images ki boundaries nikalo
+  //       double minX = double.infinity, minY = double.infinity;
+  //       double maxX = -double.infinity, maxY = -double.infinity;
+  //
+  //       for (var img in _imageStates) {
+  //         if (img.isHidden) continue;
+  //
+  //         RenderBox? box = img.imageKey.currentContext?.findRenderObject() as RenderBox?;
+  //         if (box != null) {
+  //           Offset p1 = box.localToGlobal(Offset.zero, ancestor: boundary);
+  //           Offset p2 = box.localToGlobal(Offset(box.size.width, 0), ancestor: boundary);
+  //           Offset p3 = box.localToGlobal(Offset(0, box.size.height), ancestor: boundary);
+  //           Offset p4 = box.localToGlobal(Offset(box.size.width, box.size.height), ancestor: boundary);
+  //
+  //           double localMinX = [p1.dx, p2.dx, p3.dx, p4.dx].reduce(math.min);
+  //           double localMaxX = [p1.dx, p2.dx, p3.dx, p4.dx].reduce(math.max);
+  //           double localMinY = [p1.dy, p2.dy, p3.dy, p4.dy].reduce(math.min);
+  //           double localMaxY = [p1.dy, p2.dy, p3.dy, p4.dy].reduce(math.max);
+  //
+  //           if (localMinX < minX) minX = localMinX;
+  //           if (localMaxX > maxX) maxX = localMaxX;
+  //           if (localMinY < minY) minY = localMinY;
+  //           if (localMaxY > maxY) maxY = localMaxY;
+  //         }
+  //       }
+  //
+  //       if (minX == double.infinity) {
+  //         if (context.mounted) Navigator.pop(context);
+  //         setState(() { isGridVisible = wasGridVisible; });
+  //         return;
+  //       }
+  //
+  //       // 🚨 AUTO FIT FIX: Halka sa 5px ka padding margin diya taaki edge border se na takraye
+  //       cropRect = Rect.fromLTRB(minX - 5, minY - 5, maxX + 5, maxY + 5);
+  //     }
+  //
+  //     double pr = 3.0;
+  //     Rect pixelCropRect = Rect.fromLTRB(
+  //       cropRect.left * pr, cropRect.top * pr, cropRect.right * pr, cropRect.bottom * pr,
+  //     ).intersect(Rect.fromLTWH(0, 0, fullImage.width.toDouble(), fullImage.height.toDouble()));
+  //
+  //     if (pixelCropRect.width <= 0 || pixelCropRect.height <= 0) {
+  //       if (context.mounted) Navigator.pop(context);
+  //       setState(() { isGridVisible = wasGridVisible; });
+  //       return;
+  //     }
+  //
+  //     ui.PictureRecorder recorder = ui.PictureRecorder();
+  //     Canvas canvas = Canvas(recorder);
+  //
+  //     Rect exactCanvasRect = Rect.fromLTWH(0, 0, pixelCropRect.width, pixelCropRect.height);
+  //
+  //     canvas.drawImageRect(
+  //       fullImage, pixelCropRect, exactCanvasRect, Paint(),
+  //     );
+  //
+  //     ui.Image croppedImage = await recorder.endRecording().toImage(pixelCropRect.width.toInt(), pixelCropRect.height.toInt());
+  //     ByteData? byteData = await croppedImage.toByteData(format: ui.ImageByteFormat.png);
+  //     Uint8List pngBytes = byteData!.buffer.asUint8List();
+  //
+  //     Directory tempDir = await getTemporaryDirectory();
+  //     File savedFile = File('${tempDir.path}/merged_page_${DateTime.now().millisecondsSinceEpoch}.png');
+  //     await savedFile.writeAsBytes(pngBytes);
+  //
+  //     if (context.mounted) {
+  //       Navigator.pop(context); // Dialog close
+  //       Navigator.pop(context, savedFile); // Pichle page me wapas
+  //     }
+  //
+  //   } catch (e) {
+  //     debugPrint("Export Error: $e");
+  //     if (context.mounted) Navigator.pop(context);
+  //   } finally {
+  //     setState(() {
+  //       isGridVisible = wasGridVisible;
+  //     });
+  //   }
+  // }
 
   // Delete handle karne ka async function ---
   void _handleDeletePhoto(int index) async {
