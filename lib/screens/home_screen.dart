@@ -8,6 +8,7 @@ import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart' hide PdfDocument;
 import 'package:pdf_scanner_pro/screens/pdf_compress_screen.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
@@ -1580,12 +1581,92 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Placeholder function (Isko apne class ke andar kahin bhi rakh do)
-  void _openInEditor(File file) {
-    // Yahan tumhara editor open karne ka logic aayega
-    // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => PdfEditorScreen(file: file)));
+  // void _openInEditor(File file) {
+  //   // Yahan tumhara editor open karne ka logic aayega
+  //   // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => PdfEditorScreen(file: file)));
+  //
+  //   print("Opening editor for: ${file.path}");
+  //   showToast("Opening in Editor...");
+  // }
 
-    print("Opening editor for: ${file.path}");
-    showToast("Opening in Editor...");
+// Tumhari bottom sheet wali class ke andar ye function aayega
+  Future<void> _openInEditor(File file) async {
+    // 1. Loading Indicator dikhao
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.blueAccent),
+        );
+      },
+    );
+
+    try {
+      // 2. PDF load karo
+      final document = await PdfDocument.openFile(file.path);
+      final tempDir = await getTemporaryDirectory();
+
+      // 🚨 NAYA: List of Map banayenge tumhare DocumentEditorScreen ke liye
+      List<Map<String, dynamic>> formattedImages = [];
+
+      // 3. Har page ko convert karo
+      for (int i = 1; i <= document.pagesCount; i++) {
+        final page = await document.getPage(i);
+
+        final pageImage = await page.render(
+          width: page.width * 2, // High quality ke liye 2x kiya hai
+          height: page.height * 2,
+          format: PdfPageImageFormat.jpeg,
+        );
+
+        if (pageImage != null) {
+          final imagePath = '${tempDir.path}/page_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+          final imageFile = File(imagePath);
+          await imageFile.writeAsBytes(pageImage.bytes);
+
+          // 🚨 NAYA: Tumhare Map format me add kar rahe hain
+          // NOTE: Agar tumhare app me keys 'path' ke alawa kuch aur hain
+          // (jaise 'image_path' ya 'file'), toh unhe niche change kar lena.
+          formattedImages.add({
+            'path': imageFile.path,
+            'image': imageFile, // Zyadatar apps me file object bhi pass hota hai
+            'file': imageFile,
+            'cropped': imageFile,
+            'originalPath': imageFile.path, // Backup path ke liye
+          });
+        }
+        await page.close();
+      }
+
+      await document.close();
+
+      // 4. Loader band karo
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      // 5. Agar images aagayi, toh Editor Screen par Navigator.push karo
+      if (formattedImages.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DocumentEditorScreen(
+              imageFiles: formattedImages, // 👈 List of Map pass kiya
+              isFromGallery: true,        // 👈 False bheja kyunki gallery se nahi hai
+            ),
+          ),
+        );
+      } else {
+        // Custom toast call (Tumhare app ka apna toast function call kar lena)
+        print("Failed to extract images.");
+      }
+
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      print("Error parsing PDF to images: $e");
+    }
   }
 
   void _renamePdfFile(BuildContext context, File originalFile) {
