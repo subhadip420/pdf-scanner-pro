@@ -30,13 +30,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
 
-  // Test Ad Unit ID - Release karte time isko apne AdMob ID se replace karna!
+  // TODO Test Ad Unit ID - Release karte time isko apne AdMob ID se replace karna!
   final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdLoaded = false;
 
-  // Test ID - Release se pehle apni AdMob ID lagana
+  // TODO Test ID - Release se pehle apni AdMob ID lagana
   final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
 
   @override

@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Load Banner Ad
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test Banner ID
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // TODO Test Banner ID
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
@@ -2219,7 +2219,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
   void _loadNativeAd() {
     _nativeAd = NativeAd(
       adUnitId: 'ca-app-pub-3940256099942544/2247696110',
-      // Google's Test Native Ad ID
+      // TODO Google's Test Native Ad ID
       request: const AdRequest(),
       listener: NativeAdListener(
         onAdLoaded: (ad) {

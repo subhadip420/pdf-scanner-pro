@@ -629,7 +629,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     print("AdMob: Loading ad...");
 
     RewardedAd.load(
-      adUnitId: 'ca-app-pub-3940256099942544/5224354917',
+      adUnitId: 'ca-app-pub-3940256099942544/5224354917', //TODO Google's Test AD ID
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
