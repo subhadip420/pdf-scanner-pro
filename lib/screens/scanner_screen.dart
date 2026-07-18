@@ -123,6 +123,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
       for (var item in widget.initialImages!) {
         capturedImagesList.add(Map<String, dynamic>.from(item));
       }
+      capturedPhotosCount = capturedImagesList.length;
+      final lastItem = capturedImagesList.last;
+      if (lastItem['original'] != null) {
+        lastCapturedImage = XFile((lastItem['original'] as File).path);
+      }
     }
 
     _loadSettings();
@@ -315,63 +320,107 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _resetSleepTimer();
   }
 
+  // 🚨 NAYA HELPER: Check karne ke liye ki is baar NAYI photo click hui hai ya nahi
+  bool get _hasNewCaptures {
+    int initialCount = widget.initialImages?.length ?? 0;
+    return capturedImagesList.length > initialCount;
+  }
+
   // 🚨 FIX: Hardware Back Button ko Handle Karne ke liye naya function
+  // Future<bool> _onWillPop() async {
+  //   // 1. Agar Retake Mode hai toh normal back hone do
+  //   if (widget.isRetakeMode) {
+  //     return true;
+  //   }
+  //
+  //   // 2. Agar user ne photo le rakhi hai aur back dabata hai, toh use wapas Editor mein bhej do!
+  //   if (capturedImagesList.isNotEmpty) {
+  //     //_goToEditor();
+  //     // Android Back swipe/button dabane par apna function call hoga
+  //     await _handleBackButton();
+  //     return false; // App close hone se rok dega
+  //   }
+  //
+  //   // 3. Agar koi photo nahi hai, toh back dabane par seedha HomeScreen par le jao
+  //   Navigator.pushAndRemoveUntil(
+  //     context,
+  //     MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //     (route) => false,
+  //   );
+  //   return false;
+  // }
+  //
+  // // 🚨 BUSINESS LOGIC: Back button aur system back gesture handle karne ke liye
+  // Future<void> _handleBackButton() async {
+  //   if (capturedImagesList.isNotEmpty) {
+  //     // Agar photos hain, toh dialog dikhao
+  //     bool shouldDiscard = await showCustomConfirmDialog(
+  //       context,
+  //       title: "Discard this scan?",
+  //       message: "This will discard the scan you have captured. Are you sure?",
+  //       positiveBtnText: "Discard",
+  //       negativeBtnText: "Cancel",
+  //       positiveBtnColor: Colors.redAccent,
+  //     );
+  //
+  //     if (shouldDiscard) {
+  //       setState(() {
+  //         capturedImagesList.clear(); // List clear karo
+  //       });
+  //
+  //       if (context.mounted) {
+  //         Navigator.pushAndRemoveUntil(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //               (route) => false, // History clear karke Home jao
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     // Agar photos nahi hain, toh direct Home jao
+  //     Navigator.pushAndRemoveUntil(
+  //       context,
+  //       MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //           (route) => false,
+  //     );
+  //   }
+  // }
+
+  // 🚨 FIX: Hardware Back Button ko Handle Karne ke liye
   Future<bool> _onWillPop() async {
-    // 1. Agar Retake Mode hai toh normal back hone do
     if (widget.isRetakeMode) {
       return true;
     }
 
-    // 2. Agar user ne photo le rakhi hai aur back dabata hai, toh use wapas Editor mein bhej do!
-    if (capturedImagesList.isNotEmpty) {
-      //_goToEditor();
-      // Android Back swipe/button dabane par apna function call hoga
+    // Agar user ne "nayi" photo le rakhi hai, toh discard dialog dikhao
+    if (_hasNewCaptures) {
       await _handleBackButton();
-      return false; // App close hone se rok dega
+      return false;
     }
 
-    // 3. Agar koi photo nahi hai, toh back dabane par seedha HomeScreen par le jao
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (route) => false,
-    );
+    // Agar koi nayi photo nahi li (Seedha back kiya), toh chup chap pichle page par back ho jao!
+    Navigator.pop(context);
     return false;
   }
 
-  // 🚨 BUSINESS LOGIC: Back button aur system back gesture handle karne ke liye
+  // 🚨 BUSINESS LOGIC: Back gesture handle karne ke liye
   Future<void> _handleBackButton() async {
-    if (capturedImagesList.isNotEmpty) {
-      // Agar photos hain, toh dialog dikhao
+    if (_hasNewCaptures) {
       bool shouldDiscard = await showCustomConfirmDialog(
         context,
-        title: "Discard this scan?",
-        message: "This will discard the scan you have captured. Are you sure?",
+        title: "Discard new scans?",
+        message: "This will discard the newly captured scans. Are you sure?",
         positiveBtnText: "Discard",
         negativeBtnText: "Cancel",
         positiveBtnColor: Colors.redAccent,
       );
 
-      if (shouldDiscard) {
-        setState(() {
-          capturedImagesList.clear(); // List clear karo
-        });
-
-        if (context.mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false, // History clear karke Home jao
-          );
-        }
+      if (shouldDiscard && context.mounted) {
+        // Sirf Scanner ko band karke pichle page par bhej do (Home push nahi karna hai!)
+        Navigator.pop(context);
       }
     } else {
-      // Agar photos nahi hain, toh direct Home jao
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (route) => false,
-      );
+      Navigator.pop(context);
     }
   }
 
@@ -1478,6 +1527,84 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
 
                   /// Bottom Controls
+                  // Positioned(
+                  //   left: 0,
+                  //   right: 0,
+                  //   bottom: 60,
+                  //   child: SafeArea(
+                  //     child: Padding(
+                  //       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 20),
+                  //       child: Container(
+                  //         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  //         decoration: BoxDecoration(
+                  //           color: Colors.black.withOpacity(0.25),
+                  //           borderRadius: BorderRadius.circular(30),
+                  //         ),
+                  //         child: Row(
+                  //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  //           children: [
+                  //             /// Home
+                  //             if (!widget.isRetakeMode)
+                  //               IconButton(
+                  //                 onPressed: () async {
+                  //                   await _triggerVibration();
+                  //
+                  //                   // 🚨 NAYA LOGIC: Check karo ki list me ek bhi photo hai ya nahi
+                  //                   // Note: 'scannedImages' ko apne actual list variable ke naam se replace kar lena agar alag ho
+                  //                   if (capturedImagesList.isNotEmpty) {
+                  //
+                  //                     // Dialog show karo
+                  //                     bool shouldDiscard = await showCustomConfirmDialog(
+                  //                       context,
+                  //                       title: "Discard this scan?",
+                  //                       message: "This will discard the scan you have captured. Are you sure?",
+                  //                       positiveBtnText: "Discard",
+                  //                       negativeBtnText: "Cancel",
+                  //                       positiveBtnColor: Colors.redAccent,
+                  //                     );
+                  //
+                  //                     // Agar user ne 'Discard' dabaya hai
+                  //                     if (shouldDiscard) {
+                  //                       setState(() {
+                  //                         capturedImagesList.clear(); // List clear kar do
+                  //                       });
+                  //
+                  //                       if (context.mounted) {
+                  //                         Navigator.pushAndRemoveUntil(
+                  //                           context,
+                  //                           MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  //                               (route) => false, // Saari history clear
+                  //                         );
+                  //                       }
+                  //                     }
+                  //                     // Agar 'Cancel' dabaya hai, toh kuch nahi hoga. App wahi scanner par rahega.
+                  //
+                  //                   } else {
+                  //                     // Agar koi photo capture hi nahi hui hai, toh sidha Home screen par chale jao
+                  //                     Navigator.pushAndRemoveUntil(
+                  //                       context,
+                  //                       MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  //                           (route) => false,
+                  //                     );
+                  //                   }
+                  //                 },
+                  //                 icon: _buildRotatedIcon(Icons.home_rounded, color: Colors.white, size: 24),
+                  //               )
+                  //             else
+                  //               // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
+                  //               IconButton(
+                  //                 onPressed: () async {
+                  //                   // Retake cancel karke wapas editor me jao
+                  //                   await _triggerVibration();
+                  //                   Navigator.pop(context);
+                  //                 },
+                  //                 icon: _buildRotatedIcon(
+                  //                   Icons.close_rounded,
+                  //                   color: Colors.white,
+                  //                   size: 28, // Thoda bada size acha lagega
+                  //                 ),
+                  //               ),
+
                   Positioned(
                     left: 0,
                     right: 0,
@@ -1494,68 +1621,64 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              /// Home
+                              /// Home / Back Button
                               if (!widget.isRetakeMode)
-                                // IconButton(
-                                //   onPressed: () async {
-                                //     //showToast("Home");
-                                //     await _triggerVibration();
-                                //     // Yeh purani saari screens ko hata kar HomeScreen ko first page bana dega
-                                //     Navigator.pushAndRemoveUntil(
-                                //       context,
-                                //       MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                //       (route) => false, // false matlab saari purani history clear
-                                //     );
-                                //   },
-                                //   icon: _buildRotatedIcon(Icons.home_rounded, color: Colors.white, size: 24),
-                                // )
                                 IconButton(
                                   onPressed: () async {
                                     await _triggerVibration();
 
-                                    // 🚨 NAYA LOGIC: Check karo ki list me ek bhi photo hai ya nahi
-                                    // Note: 'scannedImages' ko apne actual list variable ke naam se replace kar lena agar alag ho
-                                    if (capturedImagesList.isNotEmpty) {
+                                    // 🚨 Check karo ki is session me NAYI photo click hui hai ya nahi
+                                    int initialCount = widget.initialImages?.length ?? 0;
+                                    bool hasNewCaptures = capturedImagesList.length > initialCount;
 
-                                      // Dialog show karo
+                                    // 🚨 Check karo ki hum Editor se aaye hain ya direct Scanner khola tha
+                                    bool isFromEditor = widget.initialImages != null;
+
+                                    if (hasNewCaptures) {
+                                      // Nayi photo li hai, toh Discard Dialog show karo
                                       bool shouldDiscard = await showCustomConfirmDialog(
                                         context,
-                                        title: "Discard this scan?",
-                                        message: "This will discard the scan you have captured. Are you sure?",
+                                        title: "Discard new scans?",
+                                        message: "This will discard the newly captured scans. Are you sure?",
                                         positiveBtnText: "Discard",
                                         negativeBtnText: "Cancel",
                                         positiveBtnColor: Colors.redAccent,
                                       );
 
                                       // Agar user ne 'Discard' dabaya hai
-                                      if (shouldDiscard) {
-                                        setState(() {
-                                          capturedImagesList.clear(); // List clear kar do
-                                        });
-
-                                        if (context.mounted) {
-                                          Navigator.pushAndRemoveUntil(
+                                      if (shouldDiscard && context.mounted) {
+                                        if (isFromEditor) {
+                                          Navigator.pop(context); // Editor par wapas jao
+                                        } else {
+                                          Navigator.pushAndRemoveUntil( // Home Screen par jao
                                             context,
                                             MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                                (route) => false, // Saari history clear
+                                                (route) => false,
                                           );
                                         }
                                       }
-                                      // Agar 'Cancel' dabaya hai, toh kuch nahi hoga. App wahi scanner par rahega.
-
                                     } else {
-                                      // Agar koi photo capture hi nahi hui hai, toh sidha Home screen par chale jao
-                                      Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                            (route) => false,
-                                      );
+                                      // Agar koi nayi photo nahi li hai (seedha back dabaya)
+                                      if (isFromEditor) {
+                                        Navigator.pop(context); // Editor par wapas jao
+                                      } else {
+                                        Navigator.pushAndRemoveUntil( // Home Screen par jao
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                              (route) => false,
+                                        );
+                                      }
                                     }
                                   },
-                                  icon: _buildRotatedIcon(Icons.home_rounded, color: Colors.white, size: 24),
+                                  // 🚨 SMART UI: Agar Editor se aaye hain toh Back icon dikhao, warna Home icon
+                                  icon: _buildRotatedIcon(
+                                      widget.initialImages != null ? Icons.close_rounded : Icons.home_rounded,
+                                      color: Colors.white,
+                                      size: 24
+                                  ),
                                 )
                               else
-                                // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
+                              // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
                                 IconButton(
                                   onPressed: () async {
                                     // Retake cancel karke wapas editor me jao
@@ -1568,7 +1691,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     size: 28, // Thoda bada size acha lagega
                                   ),
                                 ),
-
                               /// Gallery
                               /// Gallery Button
                               IconButton(
