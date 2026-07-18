@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -173,9 +174,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
   List<ShapeItem> _shapeItems = [];
   ShapeItem? _activeShapeItem;
 
+  // 🚨 Variables declare karo
+  InterstitialAd? _interstitialAd;
+  final String _adUnitId = 'ca-app-pub-3940256099942544/1033173712';
+
   @override
   void initState() {
     super.initState();
+    _loadInterstitialAd();
     _loadRecentColors();
 
     // 🚨 NAYA LOGIC: Agar pehle se kuch draw kiya hua hai toh load karo
@@ -191,6 +197,34 @@ class _MarkupScreenState extends State<MarkupScreen> {
   void dispose() {
     _textEditorController.dispose();
     super.dispose();
+  }
+
+  // 🚨 Interstitial Ad load karne ka function
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: _adUnitId, // Google Test Interstitial ID (Live me change kar lena)
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (ad) {
+              ad.dispose();
+              _interstitialAd = null;
+              _finalizeSave(); // 🚨 Ad close hote hi page save karke pop ho jayega
+            },
+            onAdFailedToShowFullScreenContent: (ad, error) {
+              ad.dispose();
+              _interstitialAd = null;
+              _finalizeSave(); // 🚨 Agar Ad fail hua toh bhi save karke pop ho jayega
+            },
+          );
+          _interstitialAd = ad;
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialAd = null;
+        },
+      ),
+    );
   }
 
   // --- 🚨 NAYE FILTER LOGIC (Live Preview ke liye) ---
@@ -315,21 +349,73 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   // Save the drawn canvas as Data (No Image Save)
-  void _saveMarkup() {
+  // void _saveMarkup() {
+  //   setState(() {
+  //     _activeTextItem = null;
+  //     _activeShapeItem = null;
+  //     _textItems.removeWhere((item) => item.text.trim().isEmpty);
+  //   });
+  //
+  //   // 🚨 NAYA: Sirf Arrays pass kar rahe hain, isliye lag ekdum 0 hoga
+  //   final exportData = MarkupExportData(
+  //     paths: List.from(_paths),
+  //     texts: List.from(_textItems),
+  //     shapes: List.from(_shapeItems),
+  //   );
+  //
+  //   Navigator.pop(context, exportData);
+  // }
+
+  // 1. 🚨 NAYA CLICK HANDLER (Ad dikhane ke liye)
+  Future<void> _handleSaveClick() async {
+    // Agar Ad pehle se ready hai, toh turant dikhao
+    if (_interstitialAd != null) {
+      _interstitialAd!.show();
+      return;
+    }
+
+    // Agar Ad ready nahi hai, toh Loading Dialog dikhao
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+    );
+
+    // Max 2 seconds wait karo ad ke liye
+    for (int i = 0; i < 20; i++) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (_interstitialAd != null) break;
+    }
+
+    // Wait khatam, Loading Dialog close karo
+    if (mounted) Navigator.pop(context);
+
+    // Check karo ad aaya ya nahi
+    if (_interstitialAd != null) {
+      _interstitialAd!.show(); // Ad aagaya toh dikhao (close hone par automatically pop hoga)
+    } else {
+      _finalizeSave(); // Ad nahi aaya toh bina roke direct save kardo
+    }
+  }
+
+// 2. 🚨 TUMHARA ORIGINAL SAVE LOGIC (Naam change karke _finalizeSave kar diya)
+  void _finalizeSave() {
     setState(() {
       _activeTextItem = null;
       _activeShapeItem = null;
       _textItems.removeWhere((item) => item.text.trim().isEmpty);
     });
 
-    // 🚨 NAYA: Sirf Arrays pass kar rahe hain, isliye lag ekdum 0 hoga
     final exportData = MarkupExportData(
       paths: List.from(_paths),
       texts: List.from(_textItems),
       shapes: List.from(_shapeItems),
     );
 
-    Navigator.pop(context, exportData);
+    // Ad close hone ke baad yeh safely Editor screen par data return kar dega
+    if (mounted) {
+      Navigator.pop(context, exportData);
+    }
   }
 
   // Color Picker Window (No Opacity, Auto-Select, Exact Screenshot Design)
@@ -474,7 +560,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ],
               IconButton(
                 icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 30),
-                onPressed: _saveMarkup,
+                //onPressed: _saveMarkup,
+                onPressed: _handleSaveClick,
               ),
               const SizedBox(width: 8),
             ],

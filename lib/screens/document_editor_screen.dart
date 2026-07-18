@@ -3876,7 +3876,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         // Naye drawing/text vectors ko save kar lo. (Photo me koi pixel change nahi hua hai)
         _pageMarkups[currentPage] = result;
       });
-      showToast("Markup applied to Page ${currentPage + 1}");
+      //showToast("Markup applied to Page ${currentPage + 1}");
     }
   }
 
