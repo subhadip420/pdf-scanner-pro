@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:io';
 import 'dart:math';
@@ -1271,6 +1272,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       ListTile(
                         dense: true,
+                        visualDensity: const VisualDensity(vertical: -3),
+                        leading: const Icon(Icons.text_snippet_outlined, color: Colors.white, size: 22),
+                        title: const Text('Convert to Word', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        onTap: () {
+                          Navigator.pop(sheetContext); // Bottom sheet band karo
+                          _showConvertToWordConfirmDialog(context, file); // Naya function call hoga
+                        },
+                      ),
+
+                      ListTile(
+                        dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
                         title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 15)),
@@ -1989,6 +2001,145 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast("Failed to extract pages. Check storage permissions.");
     }
   }
+
+  // 🚨 NAYA FUNCTION: Confirmation aur Loading Dialog ke liye
+  Future<void> _showConvertToWordConfirmDialog(BuildContext context, File pdfFile) async {
+    final prefs = await SharedPreferences.getInstance();
+    String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+
+    // 🚨 NAYA: Word Files naam ka specific folder
+    String wordFolderPath = "$baseSavePath/Word Files";
+
+    bool isConfirmed = await showCustomConfirmDialog(
+      context,
+      title: "Convert to Word",
+      message: "Do you want to convert this PDF into a Word document?\n\nSave Location:\n$wordFolderPath",
+      positiveBtnText: "Convert",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.blueAccent,
+    );
+
+    if (isConfirmed) {
+      // Loading Dialog Show Karo
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return const AlertDialog(
+            backgroundColor: Color(0xFF2C2C2C),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+            content: Row(
+              children: [
+                CircularProgressIndicator(color: Colors.blueAccent),
+                SizedBox(width: 20),
+                Expanded(
+                  child: Text(
+                    "Converting to Word... Please wait",
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+
+      // 🚨 Actual conversion function ka wait karo
+      await _convertPdfToWord(pdfFile, wordFolderPath);
+
+      // Jaise hi convert ho jaye, Loading dialog ko band (pop) kar do
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  // 🚨 NAYA FUNCTION: Asli folder creation aur conversion logic
+  Future<void> _convertPdfToWord(File pdfFile, String saveDirectory) async {
+    try {
+      // 1. Check karo ki 'Word Files' folder exist karta hai ya nahi, nahi toh naya banao
+      final dir = Directory(saveDirectory);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      // 2. File ka naya naam set karo (.pdf hata kar .doc lagao)
+      // Note: Hum .doc use kar rahe hain kyunki MS Word ise perfectly HTML format me read kar leta hai
+      String fileName = pdfFile.path.split('/').last.replaceAll('.pdf', '.doc');
+      String savePath = "${dir.path}/$fileName";
+
+      // 3. pdfx ke through PDF open karo
+      final document = await PdfDocument.openFile(pdfFile.path);
+      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+
+      // 4. Word File ka boilerplate structure (Jadu yahin hai!)
+      StringBuffer wordContent = StringBuffer();
+      wordContent.writeln('<html xmlns:w="urn:schemas-microsoft-com:office:word">');
+      wordContent.writeln('<head><meta charset="utf-8"><title>Scanner Pro Document</title></head><body>');
+
+      // 5. Har page ko loop karke Image me convert karo aur ML Kit se Text nikalo
+      for (int i = 1; i <= document.pagesCount; i++) {
+        final page = await document.getPage(i);
+
+        // Page ko achhe resolution par render karo (OCR ko clean image chahiye)
+        final pageImage = await page.render(
+          width: page.width * 2,
+          height: page.height * 2,
+          format: PdfPageImageFormat.jpeg,
+        );
+
+        if (pageImage != null) {
+          // Temp directory me image save karo ML Kit ke liye
+          final tempDir = await getTemporaryDirectory();
+          final tempFile = File('${tempDir.path}/temp_ocr_page_$i.jpg');
+          await tempFile.writeAsBytes(pageImage.bytes);
+
+          // ML Kit se OCR chalao
+          final inputImage = InputImage.fromFile(tempFile);
+          final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+
+          String pageText = recognizedText.text.trim();
+
+          // Extracted text ko Word content me add karo
+          if (pageText.isNotEmpty) {
+            // Line breaks ko HTML <br> me convert karna zaruri hai Word styling ke liye
+            String formattedText = pageText.replaceAll('\n', '<br>');
+            wordContent.writeln('<p style="font-family: Arial, sans-serif; font-size: 14pt;">$formattedText</p>');
+          } else {
+            wordContent.writeln('<p style="color: grey;"><i>[Image Only / No Text Found on Page $i]</i></p>');
+          }
+
+          // Page break add karo (Agla page Word me naye page se shuru ho)
+          if (i < document.pagesCount) {
+            wordContent.writeln('<br clear="all" style="page-break-before:always" />');
+          }
+
+          // Storage bachane ke liye temp file delete kardo
+          if (await tempFile.exists()) await tempFile.delete();
+        }
+
+        // Memory leak rokne ke liye page close karo
+        await page.close();
+      }
+
+      wordContent.writeln('</body></html>');
+
+      // 6. Resources free karo
+      textRecognizer.close();
+      await document.close();
+
+      // 7. Final File Save karo
+      File wordFile = File(savePath);
+      await wordFile.writeAsString(wordContent.toString());
+
+      showToast("Converted successfully! Saved in Word Files");
+
+    } catch (e) {
+      showToast("Error converting to Word: $e");
+      print("Convert Error: $e");
+    }
+  }
+
 } //end main class
 ///end main class///////////////////////////////////////////////////////////////////
 ///
