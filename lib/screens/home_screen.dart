@@ -1197,32 +1197,52 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.info_outline, color: Colors.white, size: 22),
-                        title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.info_outline, color: Colors.white, size: 20),
+                        title: const Text('Details', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
                           Navigator.pop(sheetContext);
                           _showPdfDetails(context, file);
                         },
                       ),
                       ListTile(
-                        leading: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
-                        title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
+                        title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
                           Navigator.pop(sheetContext); // 🚨 sheetContext use kiya
                           _sharePdfFile(file);
                         },
                       ),
                       ListTile(
-                        leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 22),
-                        title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.file_copy_outlined, color: Colors.white, size: 20),
+                        title: const Text('Copy', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
                           Navigator.pop(sheetContext);
                           _copyPdfFile(file);
                         },
                       ),
+
                       ListTile(
-                        leading: const Icon(Icons.image_outlined, color: Colors.white, size: 22),
-                        title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.edit_document, color: Colors.white, size: 20),
+                        title: const Text('Open in Editor', style: TextStyle(color: Colors.white, fontSize: 15)),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _openInEditor(file);
+                        },
+                      ),
+
+                      ListTile(
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.image_outlined, color: Colors.white, size: 20),
+                        title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
                           Navigator.pop(sheetContext); // Bottom sheet close ho jayegi
                           // 🚨 Main screen ka zinda 'context' pass kiya
@@ -1231,8 +1251,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       ListTile(
-                        leading: const Icon(Icons.compress_rounded, color: Colors.white, size: 22),
-                        title: const Text('Compress PDF', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.compress_rounded, color: Colors.white, size: 20),
+                        title: const Text('Compress PDF', style: TextStyle(color: Colors.white, fontSize: 15)),
                         // onTap: () {
                         //   Navigator.pop(sheetContext); // Bottom sheet band karo
                         //   showToast("Compress PDF feature coming soon!"); // Toast dikhao
@@ -1247,8 +1269,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
 
                       ListTile(
-                        leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 22),
-                        title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.edit_outlined, color: Colors.white, size: 20),
+                        title: const Text('Rename', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
                           Navigator.pop(sheetContext);
                           _renamePdfFile(context, file);
@@ -1257,14 +1281,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       () {
                         final bool isSaved = _savedFilePaths.contains(file.path);
                         return ListTile(
+                          dense: true,
+                          visualDensity: const VisualDensity(vertical: -1),
                           leading: Icon(
                             isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
                             color: isSaved ? Colors.lightBlueAccent : Colors.white,
-                            size: 22,
+                            size: 20,
                           ),
                           title: Text(
                             isSaved ? 'Remove from saved' : 'Save document',
-                            style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 16),
+                            style: TextStyle(color: isSaved ? Colors.lightBlueAccent : Colors.white, fontSize: 15),
                           ),
                           onTap: () {
                             Navigator.pop(sheetContext);
@@ -1273,8 +1299,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       }(),
                       ListTile(
-                        leading: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
-                        title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.print_outlined, color: Colors.white, size: 20),
+                        title: const Text('Print', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
                           Navigator.pop(sheetContext);
                           _printPdfFile(file);
@@ -1282,10 +1310,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const Divider(color: Colors.white12, height: 16),
                       ListTile(
-                        leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
                         title: const Text(
                           'Delete',
-                          style: TextStyle(color: Colors.redAccent, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.redAccent, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                         onTap: () async {
                           Navigator.pop(sheetContext);
@@ -1547,6 +1577,15 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Copy Error: $e");
       showToast("Error copying file");
     }
+  }
+
+  // Placeholder function (Isko apne class ke andar kahin bhi rakh do)
+  void _openInEditor(File file) {
+    // Yahan tumhara editor open karne ka logic aayega
+    // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => PdfEditorScreen(file: file)));
+
+    print("Opening editor for: ${file.path}");
+    showToast("Opening in Editor...");
   }
 
   void _renamePdfFile(BuildContext context, File originalFile) {
