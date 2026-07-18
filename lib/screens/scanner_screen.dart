@@ -261,7 +261,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
 
     // 3. Jab "Keep Scanning" daba ke wapas aao, toh camera naye sire se fresh start hoga
+    // if (mounted) {
+    //   await _initializeCamera();
+    // }
     if (mounted) {
+      setState(() {
+        capturedPhotosCount = capturedImagesList.length; // Counter update
+        if (capturedImagesList.isNotEmpty) {
+          lastCapturedImage = XFile((capturedImagesList.last['original'] as File).path); // Last photo thumbnail update
+        } else {
+          lastCapturedImage = null; // Agar sab delete kar diya toh thumbnail blank
+        }
+      });
       await _initializeCamera();
     }
   }

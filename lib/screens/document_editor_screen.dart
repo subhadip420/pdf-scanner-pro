@@ -2326,19 +2326,57 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     //   ),
                     // ),
 
+                    // Opacity(
+                    //   opacity: isAnyToolActive ? 0.4 : 1.0,
+                    //   child: TextButton(
+                    //     onPressed: isAnyToolActive
+                    //         ? null
+                    //         : () {
+                    //       _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
+                    //       showToast("Keep scanning");
+                    //
+                    //       // 🚨 NAYA LOGIC: Check karo ki hum kahan se aaye the
+                    //       if (widget.isFromGallery) {
+                    //         // Agar seedha Gallery ya PDF se aaye the, toh Home jaane se rokne ke liye
+                    //         // humein naya ScannerScreen push karna padta hai.
+                    //         Navigator.push(
+                    //           context,
+                    //           MaterialPageRoute(
+                    //             builder: (context) => ScannerScreen(initialImages: docFiles),
+                    //           ),
+                    //         );
+                    //       } else {
+                    //         // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao (Purana logic)
+                    //         Navigator.pop(context);
+                    //       }
+                    //     },
+                    //     child: Text(
+                    //       "Keep scanning",
+                    //       style: TextStyle(
+                    //         color: isAnyToolActive ? Colors.white70 : Colors.white,
+                    //         fontSize: 16,
+                    //         fontWeight: FontWeight.w600,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+
                     Opacity(
                       opacity: isAnyToolActive ? 0.4 : 1.0,
                       child: TextButton(
                         onPressed: isAnyToolActive
                             ? null
                             : () {
-                          _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
+                          _saveEditsToMemory();
                           showToast("Keep scanning");
 
-                          // 🚨 NAYA LOGIC: Check karo ki hum kahan se aaye the
+                          // 🚨 MASTER FIX: Jo bhi nayi changes (delete/reorder) hue hain,
+                          // unko original list mein sync kardo taaki Scanner ko pata chale!
+                          widget.imageFiles.clear();
+                          widget.imageFiles.addAll(docFiles);
+
+                          // Check karo ki hum kahan se aaye the
                           if (widget.isFromGallery) {
-                            // Agar seedha Gallery ya PDF se aaye the, toh Home jaane se rokne ke liye
-                            // humein naya ScannerScreen push karna padta hai.
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -2346,7 +2384,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               ),
                             );
                           } else {
-                            // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao (Purana logic)
+                            // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao
                             Navigator.pop(context);
                           }
                         },
