@@ -449,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 12),
                     _buildMenuPill("Create scan", Icons.add_a_photo_outlined, () {
                       setState(() => _isFabMenuOpen = false);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen(isOpenedFromEditor: false,)));
                     }),
                   ],
                 ),

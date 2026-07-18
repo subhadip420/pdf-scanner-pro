@@ -26,10 +26,10 @@ import 'package:flutter/foundation.dart'; // WriteBuffer ke liye
 class ScannerScreen extends StatefulWidget {
   final List<dynamic>? initialImages;
   final bool isRetakeMode;
-
+  final bool isOpenedFromEditor;
   const ScannerScreen({
     Key? key,
-    this.isRetakeMode = false, this.initialImages, // By default normal mode rahega
+    this.isRetakeMode = false, this.initialImages, required this.isOpenedFromEditor, // By default normal mode rahega
   }) : super(key: key);
 
   //const ScannerScreen({super.key});
@@ -1633,6 +1633,76 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               /// Home / Back Button
+                              // if (!widget.isRetakeMode)
+                              //   IconButton(
+                              //     onPressed: () async {
+                              //       await _triggerVibration();
+                              //
+                              //       // 🚨 Check karo ki is session me NAYI photo click hui hai ya nahi
+                              //       int initialCount = widget.initialImages?.length ?? 0;
+                              //       bool hasNewCaptures = capturedImagesList.length > initialCount;
+                              //
+                              //       // 🚨 Check karo ki hum Editor se aaye hain ya direct Scanner khola tha
+                              //       bool isFromEditor = widget.initialImages != null;
+                              //
+                              //       if (hasNewCaptures) {
+                              //         // Nayi photo li hai, toh Discard Dialog show karo
+                              //         bool shouldDiscard = await showCustomConfirmDialog(
+                              //           context,
+                              //           title: "Discard new scans?",
+                              //           message: "This will discard the newly captured scans. Are you sure?",
+                              //           positiveBtnText: "Discard",
+                              //           negativeBtnText: "Cancel",
+                              //           positiveBtnColor: Colors.redAccent,
+                              //         );
+                              //
+                              //         // Agar user ne 'Discard' dabaya hai
+                              //         if (shouldDiscard && context.mounted) {
+                              //           if (isFromEditor) {
+                              //             Navigator.pop(context); // Editor par wapas jao
+                              //           } else {
+                              //             Navigator.pushAndRemoveUntil( // Home Screen par jao
+                              //               context,
+                              //               MaterialPageRoute(builder: (context) => const HomeScreen()),
+                              //                   (route) => false,
+                              //             );
+                              //           }
+                              //         }
+                              //       } else {
+                              //         // Agar koi nayi photo nahi li hai (seedha back dabaya)
+                              //         if (isFromEditor) {
+                              //           Navigator.pop(context); // Editor par wapas jao
+                              //         } else {
+                              //           Navigator.pushAndRemoveUntil( // Home Screen par jao
+                              //             context,
+                              //             MaterialPageRoute(builder: (context) => const HomeScreen()),
+                              //                 (route) => false,
+                              //           );
+                              //         }
+                              //       }
+                              //     },
+                              //     // 🚨 SMART UI: Agar Editor se aaye hain toh Back icon dikhao, warna Home icon
+                              //     icon: _buildRotatedIcon(
+                              //         widget.initialImages != null ? Icons.arrow_back : Icons.home_rounded,
+                              //         color: Colors.white,
+                              //         size: 24
+                              //     ),
+                              //   )
+                              // else
+                              // // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
+                              //   IconButton(
+                              //     onPressed: () async {
+                              //       // Retake cancel karke wapas editor me jao
+                              //       await _triggerVibration();
+                              //       Navigator.pop(context);
+                              //     },
+                              //     icon: _buildRotatedIcon(
+                              //       Icons.close_rounded,
+                              //       color: Colors.white,
+                              //       size: 28, // Thoda bada size acha lagega
+                              //     ),
+                              //   ),
+
                               if (!widget.isRetakeMode)
                                 IconButton(
                                   onPressed: () async {
@@ -1642,8 +1712,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     int initialCount = widget.initialImages?.length ?? 0;
                                     bool hasNewCaptures = capturedImagesList.length > initialCount;
 
-                                    // 🚨 Check karo ki hum Editor se aaye hain ya direct Scanner khola tha
-                                    bool isFromEditor = widget.initialImages != null;
+                                    // 🚨 MASTER FIX: Yahan initialImages ki jagah explicit flag check kar rahe hain
+                                    bool isFromEditor = widget.isOpenedFromEditor;
 
                                     if (hasNewCaptures) {
                                       // Nayi photo li hai, toh Discard Dialog show karo
@@ -1681,15 +1751,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       }
                                     }
                                   },
-                                  // 🚨 SMART UI: Agar Editor se aaye hain toh Back icon dikhao, warna Home icon
+                                  // 🚨 SMART UI FIX: Agar Editor se aaye hain toh Back icon dikhao, warna Home icon
                                   icon: _buildRotatedIcon(
-                                      widget.initialImages != null ? Icons.close_rounded : Icons.home_rounded,
+                                      widget.isOpenedFromEditor ? Icons.close_rounded : Icons.home_rounded,
                                       color: Colors.white,
                                       size: 24
                                   ),
                                 )
                               else
-                              // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
+                                // 🚨 NAYA BLOCK: Retake mode me Cross dikhega
                                 IconButton(
                                   onPressed: () async {
                                     // Retake cancel karke wapas editor me jao
@@ -1702,6 +1772,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     size: 28, // Thoda bada size acha lagega
                                   ),
                                 ),
+
                               /// Gallery
                               /// Gallery Button
                               IconButton(

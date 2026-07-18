@@ -1059,7 +1059,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // Yeh result variable mein us File ka wait karega jo wahan se pop hogi
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const ScannerScreen(isRetakeMode: true)),
+        MaterialPageRoute(builder: (context) => const ScannerScreen(isRetakeMode: true, isOpenedFromEditor: false,)),
       );
 
       // 2. Agar user ne photo click ki (ya gallery se li) aur 'result' me naya File wapas aaya
@@ -2361,6 +2361,44 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     //   ),
                     // ),
 
+                    // Opacity(
+                    //   opacity: isAnyToolActive ? 0.4 : 1.0,
+                    //   child: TextButton(
+                    //     onPressed: isAnyToolActive
+                    //         ? null
+                    //         : () {
+                    //       _saveEditsToMemory();
+                    //       showToast("Keep scanning");
+                    //
+                    //       // 🚨 MASTER FIX: Jo bhi nayi changes (delete/reorder) hue hain,
+                    //       // unko original list mein sync kardo taaki Scanner ko pata chale!
+                    //       widget.imageFiles.clear();
+                    //       widget.imageFiles.addAll(docFiles);
+                    //
+                    //       // Check karo ki hum kahan se aaye the
+                    //       if (widget.isFromGallery) {
+                    //         Navigator.push(
+                    //           context,
+                    //           MaterialPageRoute(
+                    //             builder: (context) => ScannerScreen(initialImages: docFiles),
+                    //           ),
+                    //         );
+                    //       } else {
+                    //         // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao
+                    //         Navigator.pop(context);
+                    //       }
+                    //     },
+                    //     child: Text(
+                    //       "Keep scanning",
+                    //       style: TextStyle(
+                    //         color: isAnyToolActive ? Colors.white70 : Colors.white,
+                    //         fontSize: 16,
+                    //         fontWeight: FontWeight.w600,
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+
                     Opacity(
                       opacity: isAnyToolActive ? 0.4 : 1.0,
                       child: TextButton(
@@ -2368,23 +2406,24 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             ? null
                             : () {
                           _saveEditsToMemory();
-                          showToast("Keep scanning");
+                          showToast("Opening scanner...");
 
-                          // 🚨 MASTER FIX: Jo bhi nayi changes (delete/reorder) hue hain,
-                          // unko original list mein sync kardo taaki Scanner ko pata chale!
-                          widget.imageFiles.clear();
-                          widget.imageFiles.addAll(docFiles);
-
-                          // Check karo ki hum kahan se aaye the
                           if (widget.isFromGallery) {
+                            // 🚨 MASTER FIX 1: Agar Gallery ya Home se aaye the, toh current Editor
+                            // ko 'Replace' karke Scanner kholenge. (pushReplacement)
+                            // Isse naye scans delete nahi honge aur wapas aane par issue nahi aayega!
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ScannerScreen(initialImages: docFiles),
+                                // Jo current files (docFiles) yahan hain wahi Scanner ko bhej do
+                                builder: (context) => ScannerScreen(initialImages: docFiles, isOpenedFromEditor: true),
                               ),
                             );
                           } else {
-                            // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao
+                            // 🚨 MASTER FIX 2: Agar pehle se Scanner khula tha, toh original
+                            // list ko update karo aur simply pop(back) ho jao.
+                            widget.imageFiles.clear();
+                            widget.imageFiles.addAll(docFiles);
                             Navigator.pop(context);
                           }
                         },

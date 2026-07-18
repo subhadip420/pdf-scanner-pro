@@ -24,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => const ScannerScreen(),
+            builder: (_) => const ScannerScreen(isOpenedFromEditor: false,),
           ),
         );
       },
