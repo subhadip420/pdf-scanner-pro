@@ -15,7 +15,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   bool _isShutterSoundOn = false;
   bool _isMirrorSelfieOn = true;
   bool _isHapticFeedbackOn = true;
-
+  bool _saveToGallery = false;
   @override
   void initState() {
     super.initState();
@@ -131,6 +131,28 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                     if (val) {
                       HapticFeedback.lightImpact();
                     }
+                  },
+                ),
+
+                // ==========================================
+                // 🚨 NAYA: Save to Gallery (Camera Settings Layout)
+                // ==========================================
+                _buildSwitchTile(
+                  title: "Save original to Gallery",
+                  subtitle: "Automatically save raw scanned photos to phone gallery",
+                  value: _saveToGallery, // Make sure tumne upar variables me `bool _saveToGallery = false;` define kiya ho
+                  onChanged: (val) {
+                    setState(() => _saveToGallery = val);
+
+                    // Yahan tumhara setting save karne ka custom function use kiya hai
+                    _saveSetting('pref_save_to_gallery', val);
+
+                    // Toast dikhane ke liye
+                    // Fluttertoast.showToast(
+                    //   msg: val ? "Raw photos will save to gallery" : "Photos will stay in app only",
+                    //   toastLength: Toast.LENGTH_SHORT,
+                    //   gravity: ToastGravity.BOTTOM,
+                    // );
                   },
                 ),
               ],
