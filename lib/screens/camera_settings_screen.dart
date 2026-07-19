@@ -12,10 +12,12 @@ class CameraSettingsScreen extends StatefulWidget {
 class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   // Default Values
   bool _isGridOn = false;
-  bool _isShutterSoundOn = false;
-  bool _isMirrorSelfieOn = true;
+  //bool _isShutterSoundOn = false;
+  //bool _isMirrorSelfieOn = true;
   bool _isHapticFeedbackOn = true;
   bool _saveToGallery = false;
+  bool _isAutoDetectAlwaysOn = true;
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +32,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
       // Jo key set ki hai wahi exact name yahan use kiya hai
       _isGridOn = prefs.getBool('show_grid') ?? false;
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
+      _isAutoDetectAlwaysOn = prefs.getBool('pref_auto_detect_always_on') ?? true;
       //_isShutterSoundOn = prefs.getBool('shutter_sound') ?? false;
       //_isMirrorSelfieOn = prefs.getBool('mirror_selfie') ?? true;
     });
@@ -158,6 +161,23 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                     // );
                   },
                 ),
+
+                _buildDivider(), // 🚨 NAYA Divider
+
+                // ==========================================
+                // 🚨 NAYA: Auto-detect Always On Toggle
+                // ==========================================
+                _buildSwitchTile(
+                  title: "Auto-detect Always On",
+                  subtitle: "Start camera with AI auto-capture enabled",
+                  value: _isAutoDetectAlwaysOn,
+                  onChanged: (val) {
+                    setState(() => _isAutoDetectAlwaysOn = val);
+                    _saveSetting('pref_auto_detect_always_on', val);
+                    _triggerHaptic();
+                  },
+                ),
+
               ],
             ),
           ),
