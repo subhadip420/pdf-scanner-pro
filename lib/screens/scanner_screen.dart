@@ -176,13 +176,34 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   // 🚨 NAYA: SharedPreferences se Grid setting load karne ka function
+  // Future<void> _loadSettings() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   if (mounted) {
+  //     setState(() {
+  //       // Dhyaan rahe: Apne settings page me jo key use ki hai wahi yahan likhna (e.g., 'show_grid')
+  //       isGridOn = prefs.getBool('show_grid') ?? false;
+  //     });
+  //   }
+  // }
+
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     if (mounted) {
       setState(() {
-        // Dhyaan rahe: Apne settings page me jo key use ki hai wahi yahan likhna (e.g., 'show_grid')
+        // Tumhara purana grid wala code
         isGridOn = prefs.getBool('show_grid') ?? false;
+
+        // 🚨 NAYA: Settings page se auto-detect ka master status load kiya
+        isAutoDetectOn = prefs.getBool('pref_auto_detect_always_on') ?? true;
       });
+
+      // 🚨 NAYA: Agar setting ON hai aur camera ready hai, toh ML stream chalu karo
+      if (isAutoDetectOn && controller != null && controller.value.isInitialized) {
+        // Ye check karna zaroori hai ki stream already toh nahi chal rahi
+        if (!controller.value.isStreamingImages) {
+          _startMLAutoDetect();
+        }
+      }
     }
   }
 
