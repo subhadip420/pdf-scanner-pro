@@ -1006,6 +1006,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
       Rect? boxToCrop = _detectedDocumentBox;
       final XFile photo = await controller.takePicture();
 
+      // ==========================================
+      // 🚨 NAYA: AUTO-CAPTURE KI PHOTO GALLERY ME SAVE KARNE KA LOGIC
+      // ==========================================
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        bool shouldSaveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
+
+        if (shouldSaveToGallery) {
+          await Gal.putImage(photo.path);
+        }
+      } catch (e) {
+        debugPrint("Auto Gallery Save Error: $e");
+      }
+      // ==========================================
+
       // Replace file capture part with this:
       Map<String, dynamic>? cropData = await _autoCropImage(photo.path, boxToCrop);
       File finalFile = cropData != null ? cropData['file'] : File(photo.path);
