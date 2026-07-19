@@ -29,8 +29,9 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
       _isHapticFeedbackOn = prefs.getBool('haptic_feedback') ?? true;
       // Jo key set ki hai wahi exact name yahan use kiya hai
       _isGridOn = prefs.getBool('show_grid') ?? false;
-      _isShutterSoundOn = prefs.getBool('shutter_sound') ?? false;
-      _isMirrorSelfieOn = prefs.getBool('mirror_selfie') ?? true;
+      _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
+      //_isShutterSoundOn = prefs.getBool('shutter_sound') ?? false;
+      //_isMirrorSelfieOn = prefs.getBool('mirror_selfie') ?? true;
     });
   }
 
@@ -133,6 +134,8 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                     }
                   },
                 ),
+
+                _buildDivider(),
 
                 // ==========================================
                 // 🚨 NAYA: Save to Gallery (Camera Settings Layout)
