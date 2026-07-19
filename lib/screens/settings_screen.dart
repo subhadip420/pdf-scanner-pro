@@ -59,6 +59,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // // Cache Clear Karne ka Logic
+  // void _clearAppCache() {
+  //   // Yahan future me tum temporary directory delete karne ka code daal sakte ho
+  //   _showSettingToast("Cache cleared successfully! Storage freed.");
+  // }
+
+  // // Storage Location Change karne ka Logic (Placeholder)
+  // void _changeStorageLocation() {
+  //   _showSettingToast("Folder picker will open in next update!");
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,27 +102,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _defaultPageSize,
                   dropdownColor: const Color(0xFF2C2C2C),
                   icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                  underline: const SizedBox(),
-                  // Line hatane ke liye
-                  items:
-                      <String>[
-                        'Auto Fit',
-                        'Letter (P)',
-                        'Letter (L)',
-                        'Legal (P)',
-                        'Legal (L)',
-                        'A4 (P)',
-                        'A4 (L)',
-                        'A3 (P)',
-                        'A3 (L)',
-                        'A5 (P)',
-                        'A5 (L)',
-                      ].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value, style: const TextStyle(color: Colors.white)),
-                        );
-                      }).toList(),
+                  underline: const SizedBox(), // Line hatane ke liye
+                  items: <String>[
+                    'Auto Fit',
+                    'Letter (P)',
+                    'Letter (L)',
+                    'Legal (P)',
+                    'Legal (L)',
+                    'A4 (P)',
+                    'A4 (L)',
+                    'A3 (P)',
+                    'A3 (L)',
+                    'A5 (P)',
+                    'A5 (L)'
+                  ].map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: const TextStyle(color: Colors.white)),
+                    );
+                  }).toList(),
                   onChanged: (newValue) {
                     if (newValue != null) {
                       setState(() {
@@ -127,6 +136,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
+
+
+            // 2. Save to Gallery Toggle
+            // Card(
+            //   color: const Color(0xFF1A1A1A),
+            //   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            //   child: SwitchListTile(
+            //     secondary: const Icon(Icons.add_to_photos_rounded, color: Colors.lightBlueAccent),
+            //     title: const Text("Save to Gallery", style: TextStyle(color: Colors.white, fontSize: 15)),
+            //     subtitle: const Text("Automatically save scanned photos to phone gallery", style: TextStyle(color: Colors.white54, fontSize: 12)),
+            //     value: _saveToGallery,
+            //     activeTrackColor: Colors.lightBlueAccent.withOpacity(0.3),
+            //     inactiveThumbColor: Colors.white54,
+            //     inactiveTrackColor: Colors.white12,
+            //     onChanged: (bool value) async { // 🚨 NAYA: async banaya
+            //       setState(() {
+            //         _saveToGallery = value;
+            //       });
+            //
+            //       // 🚨 NAYA: Disk me save karo taaki hamesha yaad rahe
+            //       final prefs = await SharedPreferences.getInstance();
+            //       await prefs.setBool('pref_save_to_gallery', value);
+            //
+            //       _showSettingToast(value ? "Enabled: Photos will save to gallery" : "Disabled: Photos will stay in app only");
+            //     },
+            //   ),
+            // ),
 
             // ---------------- CATEGORY 2: STORAGE & DATA ----------------
             _buildSectionHeader("Storage & Data"),
@@ -189,7 +226,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "Terms & Conditions",
               subtitle: "Read our usage policy and legal terms",
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TermsAndConditionsScreen(),
+                  ),
+                );
               },
             ),
 
@@ -210,14 +252,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // 🚨 NAYA FUNCTION: Cache Clear karne ka Asli Logic
+  // Future<void> _clearAppCache() async {
+  //   // 1. User ko wait karne ka message dikhao (Kyunki delete me thoda time lag sakta hai)
+  //   _showSettingToast("Clearing cache... Please wait.");
+  //
+  //   try {
+  //     // 2. App ki Temporary (Cache) Directory ka path nikalo
+  //     final Directory tempDir = await getTemporaryDirectory();
+  //
+  //     // 3. Check karo ki folder exist karta hai ya nahi
+  //     if (tempDir.existsSync()) {
+  //
+  //       // 4. Folder ke andar ki saari files aur sub-folders ki list banao
+  //       final List<FileSystemEntity> tempFiles = tempDir.listSync();
+  //       int deletedFilesCount = 0;
+  //
+  //       for (FileSystemEntity file in tempFiles) {
+  //         try {
+  //           // Har file/folder ko delete karo (recursive: true se andar ke folder bhi delete honge)
+  //           file.deleteSync(recursive: true);
+  //           deletedFilesCount++;
+  //         } catch (e) {
+  //           // Kuch files locked ho sakti hain, unhe chup-chaap ignore karo
+  //           print("Skipped locked cache file: $e");
+  //         }
+  //       }
+  //
+  //       // 5. Success Message
+  //       _showSettingToast("Success! Freed up space from $deletedFilesCount temp files.");
+  //     } else {
+  //       _showSettingToast("Cache is already clean!");
+  //     }
+  //   } catch (e) {
+  //     print("Clear Cache Error: $e");
+  //     _showSettingToast("Failed to clear cache properly.");
+  //   }
+  // }
+
   // 🚨 NAYA FUNCTION: Custom Dialog ke sath Cache Clear Logic
   Future<void> _clearAppCache() async {
     // 1. Pehle Custom Dialog open karo aur user ka jawaab (true/false) lo
     bool confirmClear = await showCustomConfirmDialog(
       context,
       title: "Clear Cache",
-      message:
-          "Are you sure you want to clear temporary app files? This will free up storage and will not delete your saved PDFs.",
+      message: "Are you sure you want to clear temporary app files? This will free up storage and will not delete your saved PDFs.",
       positiveBtnText: "Clear Cache",
       negativeBtnText: "Cancel",
       positiveBtnColor: Colors.redAccent, // 🚨 Destructive action hai isliye Red color diya
@@ -262,12 +341,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(left: 20, top: 20, bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.lightBlueAccent,
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-        ),
+        style: const TextStyle(color: Colors.lightBlueAccent, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2),
       ),
     );
   }
@@ -286,12 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: ListTile(
         leading: Icon(icon, color: Colors.lightBlueAccent),
         title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
         onTap: () {
           HapticFeedback.lightImpact(); // Click hone par subtle tactile feel
@@ -321,6 +390,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showSettingToast("Unable to open rating dialog.");
     }
   }
+
+  // 🚨 CORRECT FUNCTION FOR share_plus ^13.2.0
+  // void _shareApp() {
+  //   const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
+  //   //TODO: change to original link
+  //   const String shareMessage =
+  //       "Hey! Check out PDF Scanner Pro by SP Tech Studios. "
+  //       "It's a fast, secure, and 100% offline PDF creator & document scanner. "
+  //       "Download it here: $playStoreLink";
+  //
+  //   // 🚨 MAGIC FIX: '.instance' ka use karna hai!
+  //   SharePlus.instance.share(
+  //     ShareParams(
+  //       text: shareMessage,
+  //       subject: "Download PDF Scanner Pro",
+  //     ),
+  //   );
+  // }
 
   // 🚨 CORRECT FUNCTION FOR share_plus ^12.0.2
   void _shareApp() {
@@ -398,7 +485,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         //SizedBox(width: 10),
                         Text(
                           "support.sptechstudios@gmail.com",
-                          style: TextStyle(color: Colors.lightBlueAccent, fontSize: 13, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.lightBlueAccent,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -430,13 +521,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min, // Content ke hisaab se height lega
             children: [
+              // 1. App Icon with glowing effect
+              // Container(
+              //   padding: const EdgeInsets.all(16),
+              //   decoration: BoxDecoration(
+              //     color: Colors.lightBlueAccent.withOpacity(0.1),
+              //     shape: BoxShape.circle,
+              //   ),
+              //   child: const Icon(Icons.picture_as_pdf_rounded, size: 50, color: Colors.lightBlueAccent),
+              // ),
+              // const SizedBox(height: 16),
+
               // 2. App Name & Version
               const Text(
                 "PDF Scanner Pro",
                 style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
-              const Text("Version 1.0.0", style: TextStyle(color: Colors.white54, fontSize: 13)),
+              const Text(
+                "Version 1.0.0",
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              ),
               const SizedBox(height: 20),
 
               const Divider(color: Colors.white12, thickness: 1),
@@ -510,4 +615,5 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showSettingToast("Failed to pick folder.");
     }
   }
-} // end main
+
+}// end main
