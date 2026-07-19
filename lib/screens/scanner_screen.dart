@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gal/gal.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -22,6 +23,7 @@ import 'home_screen.dart'; // For StreamSubscription
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:flutter/foundation.dart'; // WriteBuffer ke liye
+
 
 class ScannerScreen extends StatefulWidget {
   final List<dynamic>? initialImages;
@@ -595,6 +597,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
       await _triggerVibration(isLight: false);
       // Capture the picture
       final XFile photo = await controller.takePicture();
+
+      // ==========================================
+      // 🚨 NAYA: TURANT GALLERY ME SAVE KARNE KA LOGIC
+      // ==========================================
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        bool shouldSaveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
+
+        if (shouldSaveToGallery) {
+          // Uint8List wale line ki ab zaroorat nahi, seedha photo.path pass karo
+          await Gal.putImage(photo.path);
+        }
+      } catch (e) {
+        debugPrint("Gallery Save Error: $e");
+      }
+      // ==========================================
 
       // Replace file capture part with this:
       Map<String, dynamic>? cropData = await _cropTo43(photo.path);
