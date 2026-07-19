@@ -12,6 +12,7 @@ class CameraSettingsScreen extends StatefulWidget {
 class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   // Default Values
   bool _isGridOn = false;
+
   //bool _isShutterSoundOn = false;
   //bool _isMirrorSelfieOn = true;
   bool _isHapticFeedbackOn = true;
@@ -79,9 +80,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
           Card(
             color: const Color(0xFF1A1A1A),
             elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
                 // 🚨 FIX: Sabhi options se 'icon' hata diya gaya hai
@@ -97,32 +96,6 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                   },
                 ),
                 _buildDivider(),
-
-                // _buildSwitchTile(
-                //   title: "Shutter sound",
-                //   subtitle: "Play a sound when taking a photo",
-                //   value: _isShutterSoundOn,
-                //   //onChanged: (val) => setState(() => _isShutterSoundOn = val),
-                //   onChanged: (val) {
-                //     setState(() => _isShutterSoundOn = val);
-                //     _saveSetting('shutter_sound', val); // Memory me save
-                //     _triggerHaptic();
-                //   },
-                // ),
-                // _buildDivider(),
-                //
-                // _buildSwitchTile(
-                //   title: "Mirror selfie",
-                //   subtitle: "Save front camera photos as they appear",
-                //   value: _isMirrorSelfieOn,
-                //   //onChanged: (val) => setState(() => _isMirrorSelfieOn = val),
-                //   onChanged: (val) {
-                //     setState(() => _isMirrorSelfieOn = val);
-                //     _saveSetting('mirror_selfie', val); // Memory me save
-                //     _triggerHaptic();
-                //   },
-                // ),
-                // _buildDivider(),
 
                 _buildSwitchTile(
                   title: "Haptic feedback",
@@ -146,24 +119,17 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                 _buildSwitchTile(
                   title: "Save original to Gallery",
                   subtitle: "Automatically save raw scanned photos to phone gallery",
-                  value: _saveToGallery, // Make sure tumne upar variables me `bool _saveToGallery = false;` define kiya ho
+                  value: _saveToGallery,
+                  // Make sure tumne upar variables me `bool _saveToGallery = false;` define kiya ho
                   onChanged: (val) {
                     setState(() => _saveToGallery = val);
 
                     // Yahan tumhara setting save karne ka custom function use kiya hai
                     _saveSetting('pref_save_to_gallery', val);
-
-                    // Toast dikhane ke liye
-                    // Fluttertoast.showToast(
-                    //   msg: val ? "Raw photos will save to gallery" : "Photos will stay in app only",
-                    //   toastLength: Toast.LENGTH_SHORT,
-                    //   gravity: ToastGravity.BOTTOM,
-                    // );
                   },
                 ),
 
                 _buildDivider(), // 🚨 NAYA Divider
-
                 // ==========================================
                 // 🚨 NAYA: Auto-detect Always On Toggle
                 // ==========================================
@@ -177,7 +143,6 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                     _triggerHaptic();
                   },
                 ),
-
               ],
             ),
           ),
@@ -207,10 +172,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
         title,
         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
       ),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(color: Colors.white54, fontSize: 13),
-      ),
+      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 13)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     );
   }
@@ -225,4 +187,4 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
       endIndent: 16,
     );
   }
-}//end main class
+} //end main class
