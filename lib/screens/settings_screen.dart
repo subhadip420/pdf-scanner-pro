@@ -139,31 +139,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
 
             // 2. Save to Gallery Toggle
-            Card(
-              color: const Color(0xFF1A1A1A),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: SwitchListTile(
-                secondary: const Icon(Icons.add_to_photos_rounded, color: Colors.lightBlueAccent),
-                title: const Text("Save to Gallery", style: TextStyle(color: Colors.white, fontSize: 15)),
-                subtitle: const Text("Automatically save scanned photos to phone gallery", style: TextStyle(color: Colors.white54, fontSize: 12)),
-                value: _saveToGallery,
-                activeTrackColor: Colors.lightBlueAccent.withOpacity(0.3),
-                inactiveThumbColor: Colors.white54,
-                inactiveTrackColor: Colors.white12,
-                onChanged: (bool value) async { // 🚨 NAYA: async banaya
-                  setState(() {
-                    _saveToGallery = value;
-                  });
-
-                  // 🚨 NAYA: Disk me save karo taaki hamesha yaad rahe
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setBool('pref_save_to_gallery', value);
-
-                  _showSettingToast(value ? "Enabled: Photos will save to gallery" : "Disabled: Photos will stay in app only");
-                },
-              ),
-            ),
+            // Card(
+            //   color: const Color(0xFF1A1A1A),
+            //   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            //   child: SwitchListTile(
+            //     secondary: const Icon(Icons.add_to_photos_rounded, color: Colors.lightBlueAccent),
+            //     title: const Text("Save to Gallery", style: TextStyle(color: Colors.white, fontSize: 15)),
+            //     subtitle: const Text("Automatically save scanned photos to phone gallery", style: TextStyle(color: Colors.white54, fontSize: 12)),
+            //     value: _saveToGallery,
+            //     activeTrackColor: Colors.lightBlueAccent.withOpacity(0.3),
+            //     inactiveThumbColor: Colors.white54,
+            //     inactiveTrackColor: Colors.white12,
+            //     onChanged: (bool value) async { // 🚨 NAYA: async banaya
+            //       setState(() {
+            //         _saveToGallery = value;
+            //       });
+            //
+            //       // 🚨 NAYA: Disk me save karo taaki hamesha yaad rahe
+            //       final prefs = await SharedPreferences.getInstance();
+            //       await prefs.setBool('pref_save_to_gallery', value);
+            //
+            //       _showSettingToast(value ? "Enabled: Photos will save to gallery" : "Disabled: Photos will stay in app only");
+            //     },
+            //   ),
+            // ),
 
             // ---------------- CATEGORY 2: STORAGE & DATA ----------------
             _buildSectionHeader("Storage & Data"),
@@ -411,6 +411,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   // 🚨 CORRECT FUNCTION FOR share_plus ^12.0.2
   void _shareApp() {
+    //TODO: change to original link
     const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
 
     const String shareMessage =
