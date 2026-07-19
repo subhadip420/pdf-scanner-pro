@@ -349,24 +349,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     return discard;
   }
 
-  // Save the drawn canvas as Data (No Image Save)
-  // void _saveMarkup() {
-  //   setState(() {
-  //     _activeTextItem = null;
-  //     _activeShapeItem = null;
-  //     _textItems.removeWhere((item) => item.text.trim().isEmpty);
-  //   });
-  //
-  //   // 🚨 NAYA: Sirf Arrays pass kar rahe hain, isliye lag ekdum 0 hoga
-  //   final exportData = MarkupExportData(
-  //     paths: List.from(_paths),
-  //     texts: List.from(_textItems),
-  //     shapes: List.from(_shapeItems),
-  //   );
-  //
-  //   Navigator.pop(context, exportData);
-  // }
-
   // 1. 🚨 NAYA CLICK HANDLER (Ad dikhane ke liye)
   Future<void> _handleSaveClick() async {
     // Agar Ad pehle se ready hai, toh turant dikhao
