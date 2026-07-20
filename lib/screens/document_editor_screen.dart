@@ -637,7 +637,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     print("AdMob: Loading ad...");
 
     RewardedAd.load(
-      adUnitId: 'ca-app-pub-3940256099942544/5224354917', //TODO Google's Test AD ID
+      /// TODO Google's Test AD ID
+      //adUnitId: 'ca-app-pub-3940256099942544/5224354917', // test ad id
+      adUnitId: 'ca-app-pub-5454466291921987/2609884833', // real ad id
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
@@ -668,7 +670,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Google Test Banner ID (Production me change karlena)
+      //TODO Google's Test AD ID
+      //adUnitId: 'ca-app-pub-3940256099942544/6300978111', // test ad id
+      adUnitId: 'ca-app-pub-5454466291921987/6221826783', // real ad id
       size: AdSize.banner, // Default 320x50 size, jo AppBar me perfectly fit aayega
       request: const AdRequest(),
       listener: BannerAdListener(
