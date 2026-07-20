@@ -476,90 +476,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // Future<void> _toggleCropMode() async {
-  //   if (isCroppingMode) {
-  //     await _saveNewCrop();
-  //   } else {
-  //     // 🚨 1. STATE CHANGE: Sabse pehle Loading (Processing) ON karo
-  //     setState(() {
-  //       isProcessing = true;
-  //       _showFilterMenu = false; // 🚨 FIX: Filter menu band hoga
-  //       _showAdjustMenu = false; // 🚨 FIX: Adjust menu band hoga
-  //     });
-  //
-  //     // 🚨 2. WAIT: Flutter ko screen par loading spinner draw karne ka time do
-  //     await Future.delayed(const Duration(milliseconds: 150));
-  //
-  //     // 3. HEAVY WORK: Ab photo read aur decode hogi (Ab screen freez nahi lagegi, loading dikhegi)
-  //     File origFile = docFiles[currentPage]['original']!;
-  //     File cropFile = docFiles[currentPage]['cropped']!;
-  //
-  //     final origBytes = await origFile.readAsBytes();
-  //     final cropBytes = await cropFile.readAsBytes();
-  //
-  //     final decodedOrig = img.decodeImage(origBytes);
-  //     final decodedCrop = img.decodeImage(cropBytes);
-  //
-  //     if (decodedOrig != null && decodedCrop != null) {
-  //       // 🚨 4. FINAL STATE UPDATE: Jab decoding ho jaye tab crop mode kholo aur loading hatao
-  //       setState(() {
-  //         _origWidth = decodedOrig.width.toDouble();
-  //         _origHeight = decodedOrig.height.toDouble();
-  //
-  //         double percentW = decodedCrop.width / decodedOrig.width;
-  //         double percentH = decodedCrop.height / decodedOrig.height;
-  //         double autoTop = (1.0 - percentH) / 2;
-  //         double autoBottom = (1.0 - percentH) / 2;
-  //         double autoLeft = (1.0 - percentW) / 2;
-  //         double autoRight = (1.0 - percentW) / 2;
-  //
-  //         if (percentW >= 0.99 && percentH >= 0.99) {
-  //           autoTop = 0.05;
-  //           autoBottom = 0.05;
-  //           autoLeft = 0.05;
-  //           autoRight = 0.05;
-  //         }
-  //
-  //         // 🚨 FINAL FIX: Agar Scanner ne exact coordinates bheje hain, toh Center (auto) ki jagah wo use karo!
-  //         if (docFiles[currentPage]['crop_ratios'] != null) {
-  //           final ratios = docFiles[currentPage]['crop_ratios'];
-  //           autoTop = (ratios['top'] as num).toDouble();
-  //           autoBottom = (ratios['bottom'] as num).toDouble();
-  //           autoLeft = (ratios['left'] as num).toDouble();
-  //           autoRight = (ratios['right'] as num).toDouble();
-  //         }
-  //
-  //         _autoCropPositions[currentPage] ??= {
-  //           'top': autoTop,
-  //           'bottom': autoBottom,
-  //           'left': autoLeft,
-  //           'right': autoRight,
-  //         };
-  //
-  //         if (_savedCropPositions[currentPage] != null) {
-  //           cropTopRatio = _savedCropPositions[currentPage]!['top']!;
-  //           cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
-  //           cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
-  //           cropRightRatio = _savedCropPositions[currentPage]!['right']!;
-  //         } else {
-  //           cropTopRatio = autoTop;
-  //           cropBottomRatio = autoBottom;
-  //           cropLeftRatio = autoLeft;
-  //           cropRightRatio = autoRight;
-  //         }
-  //
-  //         // Toolbar aur Modes update karo
-  //         isCroppingMode = true;
-  //         isThumbnailVisible = false;
-  //         isProcessing = false; // Loading Spinner Off
-  //       });
-  //     } else {
-  //       // Agar by-chance decode fail ho jaye toh loading band karni zaroori hai
-  //       setState(() => isProcessing = false);
-  //     }
-  //   }
-  // }
-
   Future<void> _toggleCropMode() async {
     if (isCroppingMode) {
       await _saveNewCrop();
@@ -603,7 +519,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             double autoRight = (1.0 - percentW) / 2;
 
             if (percentW >= 0.99 && percentH >= 0.99) {
-              autoTop = 0.05; autoBottom = 0.05; autoLeft = 0.05; autoRight = 0.05;
+              autoTop = 0.05;
+              autoBottom = 0.05;
+              autoLeft = 0.05;
+              autoRight = 0.05;
             }
 
             if (docFiles[currentPage]['crop_ratios'] != null) {
@@ -615,7 +534,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             }
 
             _autoCropPositions[currentPage] ??= {
-              'top': autoTop, 'bottom': autoBottom, 'left': autoLeft, 'right': autoRight,
+              'top': autoTop,
+              'bottom': autoBottom,
+              'left': autoLeft,
+              'right': autoRight,
             };
 
             if (_savedCropPositions[currentPage] != null) {
@@ -992,21 +914,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
 
       // --- STEP 4: ADD TO PDF ---
-    //   final image = pw.MemoryImage(imageBytes);
-    //
-    //   // 🚨 FIX: User ka select kiya hua format uthao
-    //   PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
-    //   pdf.addPage(
-    //     pw.Page(
-    //       margin: pw.EdgeInsets.zero,
-    //       // 🚨 FIX: Agar auto fit hai (null), toh image ka size use karega, warna user ka A4/Letter
-    //       pageFormat: selectedFormat ?? PdfPageFormat(image.width!.toDouble(), image.height!.toDouble()),
-    //       build: (context) {
-    //         return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-    //       },
-    //     ),
-    //   );
-    // }
+      //   final image = pw.MemoryImage(imageBytes);
+      //
+      //   // 🚨 FIX: User ka select kiya hua format uthao
+      //   PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
+      //   pdf.addPage(
+      //     pw.Page(
+      //       margin: pw.EdgeInsets.zero,
+      //       // 🚨 FIX: Agar auto fit hai (null), toh image ka size use karega, warna user ka A4/Letter
+      //       pageFormat: selectedFormat ?? PdfPageFormat(image.width!.toDouble(), image.height!.toDouble()),
+      //       build: (context) {
+      //         return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+      //       },
+      //     ),
+      //   );
+      // }
 
       // --- STEP 4: ADD TO PDF ---
       final image = pw.MemoryImage(imageBytes);
@@ -1145,7 +1067,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // Yeh result variable mein us File ka wait karega jo wahan se pop hogi
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const ScannerScreen(isRetakeMode: true, isOpenedFromEditor: false,)),
+        MaterialPageRoute(builder: (context) => const ScannerScreen(isRetakeMode: true, isOpenedFromEditor: false)),
       );
 
       // 2. Agar user ne photo click ki (ya gallery se li) aur 'result' me naya File wapas aaya
@@ -1332,7 +1254,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     //     });
                                     //   }
                                     // },
-
                                     onTap: () {
                                       // Agar koi menu khula hai toh band karo
                                       if (_showFilterMenu) setState(() => _showFilterMenu = false);
@@ -1365,7 +1286,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         // 🚨 MAGIC FIX: Direct matrix values set kiye hain.
                                         // Yeh Zindagi me kabhi 'deprecated' ya error nahi denge!
                                         _transformationController.value = Matrix4.identity()
-                                          ..setTranslationRaw(-position.dx * 1.5, -position.dy * 1.5, 0.0) // X aur Y ko translate kiya
+                                          ..setTranslationRaw(
+                                            -position.dx * 1.5,
+                                            -position.dy * 1.5,
+                                            0.0,
+                                          ) // X aur Y ko translate kiya
                                           ..setEntry(0, 0, 2.5) // X-Axis par 2.5x Zoom
                                           ..setEntry(1, 1, 2.5) // Y-Axis par 2.5x Zoom
                                           ..setEntry(2, 2, 1.0); // Z-Axis (Normal)
@@ -1741,9 +1666,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             ),
                                             child: Icon(
                                               Icons.arrow_forward_ios_rounded,
-                                              color: currentPage < docFiles.length - 1
-                                                  ? Colors.white
-                                                  : Colors.white30,
+                                              color: currentPage < docFiles.length - 1 ? Colors.white : Colors.white30,
                                               size: 18,
                                             ),
                                           ),
@@ -1774,7 +1697,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             //       bool isChecked = selectedPagesList[index];
                             //       return GestureDetector(
                             //         onTap: () {
-
                             child: Container(
                               height: 90,
                               color: const Color(0xFF1E1E1E),
@@ -2353,166 +2275,35 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Keep Scanning Text Button
-                    // Opacity(
-                    //   // 🚨 FIX 1: Tool on hone par button thoda fade ho jayega
-                    //   opacity: isAnyToolActive ? 0.4 : 1.0,
-                    //   child: TextButton(
-                    //     // 🚨 FIX 2: isAnyToolActive true hone par button tap disable (null) ho jayega
-                    //     onPressed: isAnyToolActive
-                    //         ? null
-                    //         : () {
-                    //             _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
-                    //             showToast("Keep scanning");
-                    //             Navigator.pop(context); // Wapas camera par le jayega
-                    //           },
-                    //     child: Text(
-                    //       "Keep scanning",
-                    //       style: TextStyle(
-                    //         color: isAnyToolActive ? Colors.white70 : Colors.white,
-                    //         fontSize: 16,
-                    //         fontWeight: FontWeight.w600,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-
-                    // Opacity(
-                    //   opacity: isAnyToolActive ? 0.4 : 1.0,
-                    //   child: TextButton(
-                    //     onPressed: isAnyToolActive
-                    //         ? null
-                    //         : () {
-                    //       _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
-                    //       showToast("Keep scanning");
-                    //
-                    //       // 🚨 NAYA LOGIC: Check karo ki hum kahan se aaye the
-                    //       if (widget.isFromGallery) {
-                    //         // Agar seedha Gallery se aaye the, toh Navigator.pop kaam nahi karega.
-                    //         // Humein zabardasti naya Scanner kholna hoga aur saari photos use deni hongi.
-                    //         Navigator.pushReplacement(
-                    //           context,
-                    //           MaterialPageRoute(
-                    //             builder: (context) => ScannerScreen(initialImages: widget.imageFiles),
-                    //           ),
-                    //         );
-                    //       } else {
-                    //         // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao (Purana logic)
-                    //         Navigator.pop(context);
-                    //       }
-                    //     },
-                    //     child: Text(
-                    //       "Keep scanning",
-                    //       style: TextStyle(
-                    //         color: isAnyToolActive ? Colors.white70 : Colors.white,
-                    //         fontSize: 16,
-                    //         fontWeight: FontWeight.w600,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-
-                    // Opacity(
-                    //   opacity: isAnyToolActive ? 0.4 : 1.0,
-                    //   child: TextButton(
-                    //     onPressed: isAnyToolActive
-                    //         ? null
-                    //         : () {
-                    //       _saveEditsToMemory(); // 🚨 YAHAN SAVE HOGA
-                    //       showToast("Keep scanning");
-                    //
-                    //       // 🚨 NAYA LOGIC: Check karo ki hum kahan se aaye the
-                    //       if (widget.isFromGallery) {
-                    //         // Agar seedha Gallery ya PDF se aaye the, toh Home jaane se rokne ke liye
-                    //         // humein naya ScannerScreen push karna padta hai.
-                    //         Navigator.push(
-                    //           context,
-                    //           MaterialPageRoute(
-                    //             builder: (context) => ScannerScreen(initialImages: docFiles),
-                    //           ),
-                    //         );
-                    //       } else {
-                    //         // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao (Purana logic)
-                    //         Navigator.pop(context);
-                    //       }
-                    //     },
-                    //     child: Text(
-                    //       "Keep scanning",
-                    //       style: TextStyle(
-                    //         color: isAnyToolActive ? Colors.white70 : Colors.white,
-                    //         fontSize: 16,
-                    //         fontWeight: FontWeight.w600,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-
-                    // Opacity(
-                    //   opacity: isAnyToolActive ? 0.4 : 1.0,
-                    //   child: TextButton(
-                    //     onPressed: isAnyToolActive
-                    //         ? null
-                    //         : () {
-                    //       _saveEditsToMemory();
-                    //       showToast("Keep scanning");
-                    //
-                    //       // 🚨 MASTER FIX: Jo bhi nayi changes (delete/reorder) hue hain,
-                    //       // unko original list mein sync kardo taaki Scanner ko pata chale!
-                    //       widget.imageFiles.clear();
-                    //       widget.imageFiles.addAll(docFiles);
-                    //
-                    //       // Check karo ki hum kahan se aaye the
-                    //       if (widget.isFromGallery) {
-                    //         Navigator.push(
-                    //           context,
-                    //           MaterialPageRoute(
-                    //             builder: (context) => ScannerScreen(initialImages: docFiles),
-                    //           ),
-                    //         );
-                    //       } else {
-                    //         // Agar pehle se Scanner khula tha, toh bas chup-chap Pop ho jao
-                    //         Navigator.pop(context);
-                    //       }
-                    //     },
-                    //     child: Text(
-                    //       "Keep scanning",
-                    //       style: TextStyle(
-                    //         color: isAnyToolActive ? Colors.white70 : Colors.white,
-                    //         fontSize: 16,
-                    //         fontWeight: FontWeight.w600,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-
                     Opacity(
                       opacity: isAnyToolActive ? 0.4 : 1.0,
                       child: TextButton(
                         onPressed: isAnyToolActive
                             ? null
                             : () {
-                          _saveEditsToMemory();
-                          showToast("Opening scanner...");
+                                _saveEditsToMemory();
+                                showToast("Opening scanner...");
 
-                          if (widget.isFromGallery) {
-                            // 🚨 MASTER FIX 1: Agar Gallery ya Home se aaye the, toh current Editor
-                            // ko 'Replace' karke Scanner kholenge. (pushReplacement)
-                            // Isse naye scans delete nahi honge aur wapas aane par issue nahi aayega!
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                // Jo current files (docFiles) yahan hain wahi Scanner ko bhej do
-                                builder: (context) => ScannerScreen(initialImages: docFiles, isOpenedFromEditor: true),
-                              ),
-                            );
-                          } else {
-                            // 🚨 MASTER FIX 2: Agar pehle se Scanner khula tha, toh original
-                            // list ko update karo aur simply pop(back) ho jao.
-                            widget.imageFiles.clear();
-                            widget.imageFiles.addAll(docFiles);
-                            Navigator.pop(context);
-                          }
-                        },
+                                if (widget.isFromGallery) {
+                                  // 🚨 MASTER FIX 1: Agar Gallery ya Home se aaye the, toh current Editor
+                                  // ko 'Replace' karke Scanner kholenge. (pushReplacement)
+                                  // Isse naye scans delete nahi honge aur wapas aane par issue nahi aayega!
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      // Jo current files (docFiles) yahan hain wahi Scanner ko bhej do
+                                      builder: (context) =>
+                                          ScannerScreen(initialImages: docFiles, isOpenedFromEditor: true),
+                                    ),
+                                  );
+                                } else {
+                                  // 🚨 MASTER FIX 2: Agar pehle se Scanner khula tha, toh original
+                                  // list ko update karo aur simply pop(back) ho jao.
+                                  widget.imageFiles.clear();
+                                  widget.imageFiles.addAll(docFiles);
+                                  Navigator.pop(context);
+                                }
+                              },
                         child: Text(
                           "Keep scanning",
                           style: TextStyle(
@@ -3458,7 +3249,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min, // Taaki UI kharab na ho
                 children: [
-
                   // 🚨 NAYA: Merge Button (Only active if selectedCount >= 2)
                   AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
@@ -3469,43 +3259,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       ignoring: selectedCount < 2,
                       child: _buildToolItem(
                         label: "Merge",
-                        icon: Symbols.stack_group_rounded, // Tum chaho toh Icons.view_comfy_rounded bhi use kar sakte ho
+                        icon: Symbols.stack_group_rounded,
+                        // Tum chaho toh Icons.view_comfy_rounded bhi use kar sakte ho
                         tooltipMessage: "Merge selected photos into one page",
-                        // onTap: () async {
-                        //   // 1. Loading UI dikhao taaki app hang na lage
-                        //   showDialog(
-                        //     context: context,
-                        //     barrierDismissible: false,
-                        //     builder: (_) => const Center(
-                        //       child: CircularProgressIndicator(color: Colors.blueAccent),
-                        //     ),
-                        //   );
-                        //
-                        //   // 2. Apne naye function ko call karke Baked (Final) files mango
-                        //   List<File> filesToMerge = await _prepareImagesForMerge();
-                        //
-                        //   // 3. Loading band karo
-                        //   if (mounted) Navigator.pop(context);
-                        //
-                        //   // 4. Merge Screen open karo naye baked data ke sath
-                        //   if (filesToMerge.isNotEmpty && mounted) {
-                        //     Navigator.push(
-                        //       context,
-                        //       MaterialPageRoute(
-                        //         builder: (context) => MergeScreen(selectedImages: filesToMerge),
-                        //       ),
-                        //     );
-                        //   }
-                        // },
-
                         onTap: () async {
                           // 1. Loading UI dikhao taaki app hang na lage
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder: (_) => const Center(
-                              child: CircularProgressIndicator(color: Colors.blueAccent),
-                            ),
+                            builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
                           );
 
                           // 2. Apne naye function ko call karke Baked (Final) files mango
@@ -3516,13 +3278,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                           // 4. Merge Screen open karo aur result ka WAIT karo
                           if (filesToMerge.isNotEmpty && mounted) {
-
                             // 🚨 FIX 1: Yahan 'await' lagaya aur aane wali merged file ko receive kiya
                             final mergedFile = await Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => MergeScreen(selectedImages: filesToMerge),
-                              ),
+                              MaterialPageRoute(builder: (context) => MergeScreen(selectedImages: filesToMerge)),
                             );
 
                             // 🚨 FIX 2: Jab user save karke wapas aaye toh us file ko list me add karo
@@ -3542,11 +3301,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 });
 
                                 // B. 🚨 MAGIC FIX: Saari parallel lists ko regenerate karo taaki RangeError crash na aaye
-                                _savedCropPositions = List.generate(docFiles.length, (i) => docFiles[i]['cropPosition']);
-                                _autoCropPositions = List.generate(docFiles.length, (i) => docFiles[i]['autoCropPosition']);
-                                _imageQuarterTurns = List.generate(docFiles.length, (i) => docFiles[i]['rotation'] ?? 0);
-                                _pageFilters = List.generate(docFiles.length, (i) => docFiles[i]['filter'] ?? _defaultFilter);
-                                _pageBrightness = List.generate(docFiles.length, (i) => docFiles[i]['brightness'] ?? 0.0);
+                                _savedCropPositions = List.generate(
+                                  docFiles.length,
+                                  (i) => docFiles[i]['cropPosition'],
+                                );
+                                _autoCropPositions = List.generate(
+                                  docFiles.length,
+                                  (i) => docFiles[i]['autoCropPosition'],
+                                );
+                                _imageQuarterTurns = List.generate(
+                                  docFiles.length,
+                                  (i) => docFiles[i]['rotation'] ?? 0,
+                                );
+                                _pageFilters = List.generate(
+                                  docFiles.length,
+                                  (i) => docFiles[i]['filter'] ?? _defaultFilter,
+                                );
+                                _pageBrightness = List.generate(
+                                  docFiles.length,
+                                  (i) => docFiles[i]['brightness'] ?? 0.0,
+                                );
                                 _pageContrast = List.generate(docFiles.length, (i) => docFiles[i]['contrast'] ?? 0.0);
                                 _pageMarkups = List.generate(docFiles.length, (i) => docFiles[i]['markups']);
 
@@ -3569,7 +3343,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             }
                           }
                         },
-
                       ),
                     ),
                   ),
@@ -3723,8 +3496,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             canvas.rotate(item.rotation);
 
             double fontSize = item.fontSize * scaleRatio;
-            Color textColor = item.appearance == 0 ? item.color : (item.appearance == 1 || item.appearance == 2) ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white) : Colors.white;
-            Color bgColor = item.appearance == 1 ? item.color : item.appearance == 2 ? item.color.withOpacity(0.5) : Colors.transparent;
+            Color textColor = item.appearance == 0
+                ? item.color
+                : (item.appearance == 1 || item.appearance == 2)
+                ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                : Colors.white;
+            Color bgColor = item.appearance == 1
+                ? item.color
+                : item.appearance == 2
+                ? item.color.withOpacity(0.5)
+                : Colors.transparent;
 
             TextDecoration decoration = TextDecoration.none;
             if (item.isUnderline && item.isStrikethrough) {
@@ -3743,7 +3524,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
               decoration: decoration,
               decorationColor: textColor,
-              shadows: item.appearance == 0 ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))] : null,
+              shadows: item.appearance == 0
+                  ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+                  : null,
             );
 
             TextPainter tp = TextPainter(
@@ -3759,7 +3542,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               height: tp.height + (16 * scaleRatio),
             );
             if (bgColor != Colors.transparent) {
-              canvas.drawRRect(RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)), Paint()..color = bgColor);
+              canvas.drawRRect(
+                RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
+                Paint()..color = bgColor,
+              );
             }
 
             if (item.appearance == 3) {
