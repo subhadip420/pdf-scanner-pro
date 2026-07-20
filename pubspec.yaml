@@ -84,6 +84,7 @@ dev_dependencies:
 
   fluttertoast: ^8.2.12
   scroll_snap_list: ^0.9.1
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -128,3 +129,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_logo5.png"
+
+  # 👇 Android 8+ Adaptive Icons Setup
+  adaptive_icon_background: "#F44336" # Background color (Hex code), yahan white diya hai
+  adaptive_icon_foreground: "assets/icon/app_logo5.png"

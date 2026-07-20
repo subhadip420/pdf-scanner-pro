@@ -476,86 +476,172 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
+  // Future<void> _toggleCropMode() async {
+  //   if (isCroppingMode) {
+  //     await _saveNewCrop();
+  //   } else {
+  //     // 🚨 1. STATE CHANGE: Sabse pehle Loading (Processing) ON karo
+  //     setState(() {
+  //       isProcessing = true;
+  //       _showFilterMenu = false; // 🚨 FIX: Filter menu band hoga
+  //       _showAdjustMenu = false; // 🚨 FIX: Adjust menu band hoga
+  //     });
+  //
+  //     // 🚨 2. WAIT: Flutter ko screen par loading spinner draw karne ka time do
+  //     await Future.delayed(const Duration(milliseconds: 150));
+  //
+  //     // 3. HEAVY WORK: Ab photo read aur decode hogi (Ab screen freez nahi lagegi, loading dikhegi)
+  //     File origFile = docFiles[currentPage]['original']!;
+  //     File cropFile = docFiles[currentPage]['cropped']!;
+  //
+  //     final origBytes = await origFile.readAsBytes();
+  //     final cropBytes = await cropFile.readAsBytes();
+  //
+  //     final decodedOrig = img.decodeImage(origBytes);
+  //     final decodedCrop = img.decodeImage(cropBytes);
+  //
+  //     if (decodedOrig != null && decodedCrop != null) {
+  //       // 🚨 4. FINAL STATE UPDATE: Jab decoding ho jaye tab crop mode kholo aur loading hatao
+  //       setState(() {
+  //         _origWidth = decodedOrig.width.toDouble();
+  //         _origHeight = decodedOrig.height.toDouble();
+  //
+  //         double percentW = decodedCrop.width / decodedOrig.width;
+  //         double percentH = decodedCrop.height / decodedOrig.height;
+  //         double autoTop = (1.0 - percentH) / 2;
+  //         double autoBottom = (1.0 - percentH) / 2;
+  //         double autoLeft = (1.0 - percentW) / 2;
+  //         double autoRight = (1.0 - percentW) / 2;
+  //
+  //         if (percentW >= 0.99 && percentH >= 0.99) {
+  //           autoTop = 0.05;
+  //           autoBottom = 0.05;
+  //           autoLeft = 0.05;
+  //           autoRight = 0.05;
+  //         }
+  //
+  //         // 🚨 FINAL FIX: Agar Scanner ne exact coordinates bheje hain, toh Center (auto) ki jagah wo use karo!
+  //         if (docFiles[currentPage]['crop_ratios'] != null) {
+  //           final ratios = docFiles[currentPage]['crop_ratios'];
+  //           autoTop = (ratios['top'] as num).toDouble();
+  //           autoBottom = (ratios['bottom'] as num).toDouble();
+  //           autoLeft = (ratios['left'] as num).toDouble();
+  //           autoRight = (ratios['right'] as num).toDouble();
+  //         }
+  //
+  //         _autoCropPositions[currentPage] ??= {
+  //           'top': autoTop,
+  //           'bottom': autoBottom,
+  //           'left': autoLeft,
+  //           'right': autoRight,
+  //         };
+  //
+  //         if (_savedCropPositions[currentPage] != null) {
+  //           cropTopRatio = _savedCropPositions[currentPage]!['top']!;
+  //           cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
+  //           cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
+  //           cropRightRatio = _savedCropPositions[currentPage]!['right']!;
+  //         } else {
+  //           cropTopRatio = autoTop;
+  //           cropBottomRatio = autoBottom;
+  //           cropLeftRatio = autoLeft;
+  //           cropRightRatio = autoRight;
+  //         }
+  //
+  //         // Toolbar aur Modes update karo
+  //         isCroppingMode = true;
+  //         isThumbnailVisible = false;
+  //         isProcessing = false; // Loading Spinner Off
+  //       });
+  //     } else {
+  //       // Agar by-chance decode fail ho jaye toh loading band karni zaroori hai
+  //       setState(() => isProcessing = false);
+  //     }
+  //   }
+  // }
+
   Future<void> _toggleCropMode() async {
     if (isCroppingMode) {
       await _saveNewCrop();
     } else {
-      // 🚨 1. STATE CHANGE: Sabse pehle Loading (Processing) ON karo
+      // 1. Check karo ki file exist karti hai ya nahi
+      final originalFile = docFiles[currentPage]['original'] as File?;
+      final croppedFile = docFiles[currentPage]['cropped'] as File?;
+
+      if (originalFile == null || croppedFile == null) {
+        showToast("Error: Image data not found");
+        return;
+      }
+
       setState(() {
         isProcessing = true;
-        _showFilterMenu = false; // 🚨 FIX: Filter menu band hoga
-        _showAdjustMenu = false; // 🚨 FIX: Adjust menu band hoga
+        _showFilterMenu = false;
+        _showAdjustMenu = false;
       });
 
-      // 🚨 2. WAIT: Flutter ko screen par loading spinner draw karne ka time do
       await Future.delayed(const Duration(milliseconds: 150));
 
-      // 3. HEAVY WORK: Ab photo read aur decode hogi (Ab screen freez nahi lagegi, loading dikhegi)
-      File origFile = docFiles[currentPage]['original']!;
-      File cropFile = docFiles[currentPage]['cropped']!;
+      try {
+        final origBytes = await originalFile.readAsBytes();
+        final cropBytes = await croppedFile.readAsBytes();
 
-      final origBytes = await origFile.readAsBytes();
-      final cropBytes = await cropFile.readAsBytes();
+        // 🚨 Decode karne se pehle check karo
+        final decodedOrig = img.decodeImage(origBytes);
+        final decodedCrop = img.decodeImage(cropBytes);
 
-      final decodedOrig = img.decodeImage(origBytes);
-      final decodedCrop = img.decodeImage(cropBytes);
+        if (decodedOrig != null && decodedCrop != null) {
+          setState(() {
+            _origWidth = decodedOrig.width.toDouble();
+            _origHeight = decodedOrig.height.toDouble();
 
-      if (decodedOrig != null && decodedCrop != null) {
-        // 🚨 4. FINAL STATE UPDATE: Jab decoding ho jaye tab crop mode kholo aur loading hatao
-        setState(() {
-          _origWidth = decodedOrig.width.toDouble();
-          _origHeight = decodedOrig.height.toDouble();
+            // ... (baaki crop ratio calculation waise hi rahega)
+            double percentW = decodedCrop.width / decodedOrig.width;
+            double percentH = decodedCrop.height / decodedOrig.height;
+            double autoTop = (1.0 - percentH) / 2;
+            double autoBottom = (1.0 - percentH) / 2;
+            double autoLeft = (1.0 - percentW) / 2;
+            double autoRight = (1.0 - percentW) / 2;
 
-          double percentW = decodedCrop.width / decodedOrig.width;
-          double percentH = decodedCrop.height / decodedOrig.height;
-          double autoTop = (1.0 - percentH) / 2;
-          double autoBottom = (1.0 - percentH) / 2;
-          double autoLeft = (1.0 - percentW) / 2;
-          double autoRight = (1.0 - percentW) / 2;
+            if (percentW >= 0.99 && percentH >= 0.99) {
+              autoTop = 0.05; autoBottom = 0.05; autoLeft = 0.05; autoRight = 0.05;
+            }
 
-          if (percentW >= 0.99 && percentH >= 0.99) {
-            autoTop = 0.05;
-            autoBottom = 0.05;
-            autoLeft = 0.05;
-            autoRight = 0.05;
-          }
+            if (docFiles[currentPage]['crop_ratios'] != null) {
+              final ratios = docFiles[currentPage]['crop_ratios'];
+              autoTop = (ratios['top'] as num).toDouble();
+              autoBottom = (ratios['bottom'] as num).toDouble();
+              autoLeft = (ratios['left'] as num).toDouble();
+              autoRight = (ratios['right'] as num).toDouble();
+            }
 
-          // 🚨 FINAL FIX: Agar Scanner ne exact coordinates bheje hain, toh Center (auto) ki jagah wo use karo!
-          if (docFiles[currentPage]['crop_ratios'] != null) {
-            final ratios = docFiles[currentPage]['crop_ratios'];
-            autoTop = (ratios['top'] as num).toDouble();
-            autoBottom = (ratios['bottom'] as num).toDouble();
-            autoLeft = (ratios['left'] as num).toDouble();
-            autoRight = (ratios['right'] as num).toDouble();
-          }
+            _autoCropPositions[currentPage] ??= {
+              'top': autoTop, 'bottom': autoBottom, 'left': autoLeft, 'right': autoRight,
+            };
 
-          _autoCropPositions[currentPage] ??= {
-            'top': autoTop,
-            'bottom': autoBottom,
-            'left': autoLeft,
-            'right': autoRight,
-          };
+            if (_savedCropPositions[currentPage] != null) {
+              cropTopRatio = _savedCropPositions[currentPage]!['top']!;
+              cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
+              cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
+              cropRightRatio = _savedCropPositions[currentPage]!['right']!;
+            } else {
+              cropTopRatio = autoTop;
+              cropBottomRatio = autoBottom;
+              cropLeftRatio = autoLeft;
+              cropRightRatio = autoRight;
+            }
 
-          if (_savedCropPositions[currentPage] != null) {
-            cropTopRatio = _savedCropPositions[currentPage]!['top']!;
-            cropBottomRatio = _savedCropPositions[currentPage]!['bottom']!;
-            cropLeftRatio = _savedCropPositions[currentPage]!['left']!;
-            cropRightRatio = _savedCropPositions[currentPage]!['right']!;
-          } else {
-            cropTopRatio = autoTop;
-            cropBottomRatio = autoBottom;
-            cropLeftRatio = autoLeft;
-            cropRightRatio = autoRight;
-          }
-
-          // Toolbar aur Modes update karo
-          isCroppingMode = true;
-          isThumbnailVisible = false;
-          isProcessing = false; // Loading Spinner Off
-        });
-      } else {
-        // Agar by-chance decode fail ho jaye toh loading band karni zaroori hai
+            isCroppingMode = true;
+            isThumbnailVisible = false;
+            isProcessing = false;
+          });
+        } else {
+          // Agar decode null return kare
+          setState(() => isProcessing = false);
+          showToast("Could not process image");
+        }
+      } catch (e) {
         setState(() => isProcessing = false);
+        showToast("Error: $e");
       }
     }
   }

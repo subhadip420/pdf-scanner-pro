@@ -1641,10 +1641,11 @@ class _HomeScreenState extends State<HomeScreen> {
           // NOTE: Agar tumhare app me keys 'path' ke alawa kuch aur hain
           // (jaise 'image_path' ya 'file'), toh unhe niche change kar lena.
           formattedImages.add({
+            'original': imageFile,  // 🚨 YEH MISSING THA
+            'cropped': imageFile,
             'path': imageFile.path,
             'image': imageFile, // Zyadatar apps me file object bhi pass hota hai
             'file': imageFile,
-            'cropped': imageFile,
             'originalPath': imageFile.path, // Backup path ke liye
           });
         }
