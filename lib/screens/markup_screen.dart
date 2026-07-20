@@ -177,7 +177,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
   // 🚨 Variables declare karo
   InterstitialAd? _interstitialAd;
   /// TODO Google's Test
-  final String _adUnitId = 'ca-app-pub-3940256099942544/1033173712';
+  //final String _adUnitId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
+  final String _adUnitId = 'ca-app-pub-5454466291921987/6535973397'; // real ad id
 
   @override
   void initState() {
