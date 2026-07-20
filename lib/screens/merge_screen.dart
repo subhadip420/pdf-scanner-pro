@@ -90,7 +90,8 @@ class _MergeScreenState extends State<MergeScreen> {
   final GlobalKey _paperKey = GlobalKey();
 
   // TODO 🚨 TEST ID (Play Console ke time real ID laga dena)
-  final String _adUnitId = 'ca-app-pub-3940256099942544/1033173712';
+  //final String _adUnitId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
+  final String _adUnitId = 'ca-app-pub-5454466291921987/4086883969'; // real ad id
 
   @override
   void initState() {
@@ -2056,7 +2057,8 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
   bool _isLoaded = false;
 
   // TODO 🚨 Sirf Android Test Ad ID
-  final String adUnitId = 'ca-app-pub-3940256099942544/6300978111';
+  //final String adUnitId = 'ca-app-pub-3940256099942544/6300978111'; // test ad id
+  final String adUnitId = 'ca-app-pub-5454466291921987/7032345570'; // real ad id
 
   @override
   void initState() {
