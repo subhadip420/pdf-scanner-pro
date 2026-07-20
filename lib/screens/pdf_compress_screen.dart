@@ -30,14 +30,16 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
 
-  // TODO Test Ad Unit ID - Release karte time isko apne AdMob ID se replace karna!
-  final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+  // TODO Test Ad Unit ID
+  //final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111'; // test ad id
+  final String _bannerAdUnitId = 'ca-app-pub-5454466291921987/1268883000'; // real ad id
 
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdLoaded = false;
 
-  // TODO Test ID - Release se pehle apni AdMob ID lagana
-  final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712';
+  // TODO Test ID
+  //final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
+  final String _interstitialAdUnitId = 'ca-app-pub-5454466291921987/9394785031'; // real ad id
 
   @override
   void initState() {
