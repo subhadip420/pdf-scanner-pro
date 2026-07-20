@@ -62,7 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // Load Banner Ad
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // TODO Test Banner ID
+      // TODO Test Banner ID
+      //adUnitId: 'ca-app-pub-3940256099942544/6300978111', // test id
+      adUnitId: 'ca-app-pub-5454466291921987/4849035367', // real id
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
@@ -361,7 +363,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                       icon: const Icon(Icons.bookmark_rounded, color: Colors.white),
                       onPressed: () {
-                        // TODO: Future me yahan Saved Files ki screen open karne ka logic aayega
                         //showToast("Saved documents clicked");
                         Navigator.push(
                           context,
@@ -2219,8 +2220,9 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
   void _loadNativeAd() {
     _nativeAd = NativeAd(
-      adUnitId: 'ca-app-pub-3940256099942544/2247696110',
       // TODO Google's Test Native Ad ID
+      //adUnitId: 'ca-app-pub-3940256099942544/2247696110', // test id
+      adUnitId: 'ca-app-pub-5454466291921987/9147373025', // real id
       request: const AdRequest(),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
