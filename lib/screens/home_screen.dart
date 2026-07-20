@@ -450,7 +450,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 12),
                     _buildMenuPill("Create scan", Icons.add_a_photo_outlined, () {
                       setState(() => _isFabMenuOpen = false);
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const ScannerScreen(isOpenedFromEditor: false,)));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ScannerScreen(isOpenedFromEditor: false)),
+                      );
                     }),
                   ],
                 ),
@@ -798,12 +801,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedFiles.clear();
           });
         } else if (value == 'Settings') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const SettingsScreen(),
-            ),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
         }
       },
 
@@ -1593,25 +1591,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Placeholder function (Isko apne class ke andar kahin bhi rakh do)
-  // void _openInEditor(File file) {
-  //   // Yahan tumhara editor open karne ka logic aayega
-  //   // Example: Navigator.push(context, MaterialPageRoute(builder: (context) => PdfEditorScreen(file: file)));
-  //
-  //   print("Opening editor for: ${file.path}");
-  //   showToast("Opening in Editor...");
-  // }
-
-// Tumhari bottom sheet wali class ke andar ye function aayega
+  // Tumhari bottom sheet wali class ke andar ye function aayega
   Future<void> _openInEditor(File file) async {
     // 1. Loading Indicator dikhao
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(color: Colors.blueAccent),
-        );
+        return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
       },
     );
 
@@ -1642,7 +1629,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // NOTE: Agar tumhare app me keys 'path' ke alawa kuch aur hain
           // (jaise 'image_path' ya 'file'), toh unhe niche change kar lena.
           formattedImages.add({
-            'original': imageFile,  // 🚨 YEH MISSING THA
+            'original': imageFile, // 🚨 YEH MISSING THA
             'cropped': imageFile,
             'path': imageFile.path,
             'image': imageFile, // Zyadatar apps me file object bhi pass hota hai
@@ -1666,7 +1653,7 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (context) => DocumentEditorScreen(
               imageFiles: formattedImages, // 👈 List of Map pass kiya
-              isFromGallery: true,        // 👈 False bheja kyunki gallery se nahi hai
+              isFromGallery: true, // 👈 False bheja kyunki gallery se nahi hai
             ),
           ),
         );
@@ -1674,7 +1661,6 @@ class _HomeScreenState extends State<HomeScreen> {
         // Custom toast call (Tumhare app ka apna toast function call kar lena)
         print("Failed to extract images.");
       }
-
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
@@ -2135,13 +2121,11 @@ class _HomeScreenState extends State<HomeScreen> {
       await wordFile.writeAsString(wordContent.toString());
 
       showToast("Converted successfully! Saved in Word Files");
-
     } catch (e) {
       showToast("Error converting to Word: $e");
       print("Convert Error: $e");
     }
   }
-
 } //end main class
 ///end main class///////////////////////////////////////////////////////////////////
 ///
