@@ -1242,22 +1242,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   }
                                   return GestureDetector(
                                     behavior: HitTestBehavior.translucent,
-
-                                    // onTap: () {
-                                    //   if (_showFilterMenu) setState(() => _showFilterMenu = false);
-                                    //   if (_showAdjustMenu)
-                                    //     setState(() => _showAdjustMenu = false); // 🚨 Menu tap se close
-                                    //
-                                    //   if (isResizeMode) {
-                                    //     setState(() {
-                                    //       isResizeMode = false;
-                                    //       isThumbnailVisible = true;
-                                    //
-                                    //       if (_showAdjustMenu) _showFilterMenu = false;
-                                    //       if (_showFilterMenu) _showAdjustMenu = false;
-                                    //     });
-                                    //   }
-                                    // },
                                     onTap: () {
                                       // Agar koi menu khula hai toh band karo
                                       if (_showFilterMenu) setState(() => _showFilterMenu = false);
@@ -1689,18 +1673,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           curve: Curves.easeInOut,
                           height: isThumbnailVisible ? 90.0 : 0.0,
                           child: ClipRect(
-                            // child: Container(
-                            //   height: 90,
-                            //   color: const Color(0xFF1E1E1E),
-                            //   child: ListView.builder(
-                            //     scrollDirection: Axis.horizontal,
-                            //     itemCount: docFiles.length,
-                            //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            //     itemBuilder: (context, index) {
-                            //       bool isSelected = currentPage == index;
-                            //       bool isChecked = selectedPagesList[index];
-                            //       return GestureDetector(
-                            //         onTap: () {
                             child: Container(
                               height: 90,
                               color: const Color(0xFF1E1E1E),
