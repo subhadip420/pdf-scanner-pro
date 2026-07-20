@@ -155,11 +155,11 @@ class _ReorderScreenState extends State<ReorderScreen> {
       // 🚨 NAYA: Bottom bar me Banner Ad lagaya (Agar ready ho)
       bottomNavigationBar: _isBannerAdLoaded && _bannerAd != null
           ? Container(
-        color: const Color(0xFF151515), // AppBar se match karta hua dark color
-        width: _bannerAd!.size.width.toDouble(),
-        height: _bannerAd!.size.height.toDouble(),
-        child: AdWidget(ad: _bannerAd!),
-      )
+              color: const Color(0xFF151515), // AppBar se match karta hua dark color
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            )
           : const SizedBox.shrink(), // Agar Ad load nahi hua, toh jagah nahi gherega
 
       body: Padding(
