@@ -35,7 +35,9 @@ class _ReorderScreenState extends State<ReorderScreen> {
   // --- BANNER AD FUNCTION ---
   void _loadBannerAd() {
     _bannerAd = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // TODO Test ID
+      // TODO Test ID
+      //adUnitId: 'ca-app-pub-3940256099942544/6300978111', // test ad id
+      adUnitId: 'ca-app-pub-5454466291921987/9971967163', // real ad id
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
