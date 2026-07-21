@@ -17,3 +17,12 @@
 -keep class io.flutter.view.**  { *; }
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
+
+# CameraX & Pigeon Plugins (App crash fix)
+-keep class androidx.camera.** { *; }
+-keep class dev.flutter.pigeon.** { *; }
+
+# CameraX Native Plugin & Guava dependencies (এই লাইনগুলো তুমি ভুলে গেছিলে!)
+-keep class io.flutter.plugins.camera.** { *; }
+-keep class io.flutter.plugins.camerax.** { *; }
+-keep class com.google.common.util.concurrent.ListenableFuture { *; }
