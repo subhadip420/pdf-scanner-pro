@@ -70,6 +70,12 @@ dependencies:
   pdf_compressor: ^0.2.0
   archive: ^4.0.9
 
+  camera:
+  cunning_document_scanner:
+  fluttertoast: ^8.2.12
+  scroll_snap_list: ^0.9.1
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -81,12 +87,10 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
-  camera:
-  cunning_document_scanner:
-  image_picker:
 
-  fluttertoast: ^8.2.12
-  scroll_snap_list: ^0.9.1
+
+
+
   flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the

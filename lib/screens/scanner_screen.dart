@@ -45,12 +45,14 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen> {
   //late CameraController controller;
   // 🚨 MASTER FIX: 'late' variable ko by-default value de di taaki UI kabhi crash na ho!
-  late CameraController controller = CameraController(
-    cameras[currentCameraIndex],
-    ResolutionPreset.high,
-    enableAudio: false,
-    imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
-  );
+  // late CameraController controller = CameraController(
+  //   cameras[currentCameraIndex],
+  //   ResolutionPreset.high,
+  //   enableAudio: false,
+  //   imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+  // );
+
+  late CameraController controller;
 
   XFile? lastCapturedImage;
   String selectedMode = "Document";
@@ -189,12 +191,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
       });
 
       // 🚨 NAYA: Agar setting ON hai aur camera ready hai, toh ML stream chalu karo
-      if (isAutoDetectOn && controller != null && controller.value.isInitialized) {
-        // Ye check karna zaroori hai ki stream already toh nahi chal rahi
-        if (!controller.value.isStreamingImages) {
-          _startMLAutoDetect();
-        }
-      }
+      // if (isAutoDetectOn && controller != null && controller.value.isInitialized) {
+      //   // Ye check karna zaroori hai ki stream already toh nahi chal rahi
+      //   if (!controller.value.isStreamingImages) {
+      //     _startMLAutoDetect();
+      //   }
+      // }
     }
   }
 
@@ -215,39 +217,86 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
+  // // 🚨 FIX 2: Camera chalu karne ka Master Helper
+  // Future<void> _initializeCamera() async {
+  //   if (!mounted) return;
+  //   //setState(() => _isCameraReady = false);.
+  //
+  //   // 🚨 NAYA: Agar so raha tha, toh reset karo taaki screen dikhe
+  //   setState(() {
+  //     _isCameraReady = false;
+  //     _isCameraSleeping = false;
+  //   });
+  //
+  //   if (mounted) {
+  //     setState(() => _isCameraReady = true);
+  //     if (isAutoDetectOn) _startMLAutoDetect();
+  //     _resetSleepTimer(); // 🚨 NAYA: Camera chalu hote hi 1 min ka timer shuru
+  //   }
+  //
+  //   controller = CameraController(
+  //     cameras[currentCameraIndex],
+  //     ResolutionPreset.high,
+  //     enableAudio: false,
+  //     imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+  //   );
+  //
+  //   try {
+  //     await controller.initialize();
+  //     await _applyFlashMode(selectedFlashMode);
+  //     if (mounted) {
+  //       setState(() => _isCameraReady = true);
+  //       if (isAutoDetectOn) _startMLAutoDetect();
+  //     }
+  //   } catch (e) {
+  //     print("Camera init error: $e");
+  //   }
+  // }
+
+  // 🚨 FIX 2: Camera chalu karne ka Master Helper
   // 🚨 FIX 2: Camera chalu karne ka Master Helper
   Future<void> _initializeCamera() async {
     if (!mounted) return;
-    //setState(() => _isCameraReady = false);.
 
-    // 🚨 NAYA: Agar so raha tha, toh reset karo taaki screen dikhe
+    // Reset status
     setState(() {
       _isCameraReady = false;
       _isCameraSleeping = false;
     });
 
-    if (mounted) {
-      setState(() => _isCameraReady = true);
-      if (isAutoDetectOn) _startMLAutoDetect();
-      _resetSleepTimer(); // 🚨 NAYA: Camera chalu hote hi 1 min ka timer shuru
-    }
-
-    controller = CameraController(
-      cameras[currentCameraIndex],
-      ResolutionPreset.high,
-      enableAudio: false,
-      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
-    );
-
     try {
+      // 🚨 MASTER FIX: Flutter engine aur Native channels ko connect hone ke liye thoda time do (300ms)
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Pehle camera hardware ki list fetch karo
+      if (cameras.isEmpty) {
+        cameras = await availableCameras();
+      }
+
+      // Agar kisi wajah se camera nahi mila
+      if (cameras.isEmpty) {
+        debugPrint("Koi camera hardware nahi mila!");
+        return;
+      }
+
+      // Ab controller ko initialize karo
+      controller = CameraController(
+        cameras[currentCameraIndex],
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+      );
+
       await controller.initialize();
       await _applyFlashMode(selectedFlashMode);
+
       if (mounted) {
         setState(() => _isCameraReady = true);
         if (isAutoDetectOn) _startMLAutoDetect();
+        _resetSleepTimer();
       }
     } catch (e) {
-      print("Camera init error: $e");
+      debugPrint("Camera init error: $e");
     }
   }
 
@@ -1233,7 +1282,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     // 🚨 FIX 4: Jab tak memory release/reload na ho jaye, safe loading screen dikhao
-    if (!_isCameraReady || !controller.value.isInitialized) {
+    //if (!_isCameraReady || !controller.value.isInitialized) {
+    if (!_isCameraReady) {
       return const Scaffold(
         backgroundColor: Color(0xFF2C2C2C),
         body: Center(child: CircularProgressIndicator(color: Colors.blueAccent)),

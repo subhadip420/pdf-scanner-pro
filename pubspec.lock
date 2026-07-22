@@ -50,7 +50,7 @@ packages:
     source: hosted
     version: "2.1.2"
   camera:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: camera
       sha256: "034c38cb8014d29698dcae6d20276688a1bf74e6487dfeb274d70ea05d5f7777"
@@ -170,7 +170,7 @@ packages:
     source: hosted
     version: "1.0.2"
   cunning_document_scanner:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: cunning_document_scanner
       sha256: bf590e8c8c8a4903ba7873c4f22b67e976604853f11065f594cb19b408bd25ef
@@ -329,7 +329,7 @@ packages:
     source: sdk
     version: "0.0.0"
   fluttertoast:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: fluttertoast
       sha256: "90778fe0497fe3a09166e8cf2e0867310ff434b794526589e77ec03cf08ba8e8"
@@ -969,7 +969,7 @@ packages:
     source: hosted
     version: "0.6.0"
   scroll_snap_list:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: scroll_snap_list
       sha256: "8009ad9030f680b93f3107b29b1ea31284d867aa4972868d2970c6d61fe9e59f"
