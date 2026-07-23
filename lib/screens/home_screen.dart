@@ -87,18 +87,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // 🚨 BUSINESS LOGIC: App folder aur Phone ki saari files ko mila kar ek unique list banana
   List<File> get _getAllKnownFiles {
     final Set<String> uniquePaths = {};
     final List<File> combinedList = [];
 
-    // Pehle app folder ki files add karo
     for (var f in _pdfFiles) {
       if (uniquePaths.add(f.path)) {
         combinedList.add(f);
       }
     }
-    // Fir phone ki baaki saari files add karo
     for (var f in _allDevicePdfFiles) {
       if (uniquePaths.add(f.path)) {
         combinedList.add(f);
@@ -155,7 +152,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // 🚨 BUSINESS LOGIC: Poore phone ki PDFs background me scan karna
   Future<void> _loadAllDevicePdfFiles() async {
     setState(() => _isLoadingDeviceFiles = true);
     try {
@@ -163,13 +159,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await Permission.manageExternalStorage.request();
       }
 
-      // 🚨 MAGIC: compute() function heavy loading ko background me bhej deta hai
       List<String> paths = await compute(searchAllPdfsInBackground, '/storage/emulated/0');
 
-      // Paths ko File objects me convert karo
       List<File> allPdfs = paths.map((path) => File(path)).toList();
 
-      // Nayi files upar dikhane ke liye Date wise sort kar do
       allPdfs.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
 
       if (mounted) {
@@ -363,18 +356,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                       icon: const Icon(Icons.bookmark_rounded, color: Colors.white),
                       onPressed: () {
-                        //showToast("Saved documents clicked");
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SavedPdfScreen(
-                              //allFiles: _pdfFiles,
-                              allFiles: _getAllKnownFiles,
-                              savedPaths: _savedFilePaths,
-                            ),
+                            builder: (context) =>
+                                SavedPdfScreen(allFiles: _getAllKnownFiles, savedPaths: _savedFilePaths),
                           ),
                         ).then((_) {
-                          // Wapas aane par list ko refresh kar dega taaki UI update ho jaye
                           setState(() {});
                         });
                       },
@@ -386,7 +374,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                       icon: const Icon(Icons.search, color: Colors.white),
                       onPressed: () {
-                        //showSearch(context: context, delegate: PdfSearchDelegate(_pdfFiles));
                         showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles));
                       },
                     ),
@@ -410,13 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: IndexedStack(
                     index: _currentIndex,
-                    children: [
-                      _buildHomeTabContent(),
-                      // const Center(
-                      //   child: Text("Files View", style: TextStyle(color: Colors.white70)),
-                      // ),
-                      _buildFilesTabContent(),
-                    ],
+                    children: [_buildHomeTabContent(), _buildFilesTabContent()],
                   ),
                 ),
               ],
@@ -462,11 +443,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
 
         floatingActionButton: _isSelectionMode
-            ? null // 🚨 MAGIC: Null dene se button smoothly gayab ho jayega!
+            ? null
             : FloatingActionButton(
                 onPressed: () {
                   setState(() {
-                    _isFabMenuOpen = !_isFabMenuOpen; // Toggle Open/Close
+                    _isFabMenuOpen = !_isFabMenuOpen;
                   });
                 },
                 backgroundColor: Colors.lightBlueAccent,
@@ -483,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ? FloatingActionButtonLocation.centerFloat
             : FloatingActionButtonLocation.centerDocked,
 
-        /// 4. BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
+        /// BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
         bottomNavigationBar: SizedBox(
           height: 70,
           child: AnimatedSwitcher(
@@ -518,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
-                                // HOME OPTION
+                                /// HOME OPTION
                                 Tooltip(
                                   message: "Home",
                                   child: GestureDetector(
@@ -552,7 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                                 const SizedBox(width: 40),
 
-                                // FILES OPTION
+                                /// FILES OPTION
                                 Tooltip(
                                   message: "Files",
                                   child: GestureDetector(
@@ -593,10 +574,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 🚨 UI LOGIC: Files Tab Content (Poore phone ka PDF list)
+  // Files Tab Content (Poore phone ka PDF list)
   Widget _buildFilesTabContent() {
     if (_isLoadingDeviceFiles) {
-      // 🚨 FIX: Naya variable
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -610,7 +590,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_allDevicePdfFiles.isEmpty) {
-      // 🚨 FIX: Nayi list
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -624,18 +603,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadAllDevicePdfFiles, // 🚨 FIX: Jab khinch ke refresh karenge toh poora phone firse scan hoga
+      onRefresh: _loadAllDevicePdfFiles,
       color: Colors.blueAccent,
       backgroundColor: const Color(0xFF1E1E1E),
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 100, top: 10),
-        itemCount: _allDevicePdfFiles.length, // 🚨 FIX: Nayi list
+        itemCount: _allDevicePdfFiles.length,
         itemBuilder: (context, index) {
-          final file = _allDevicePdfFiles[index]; // 🚨 FIX: Nayi list se data aayega
+          final file = _allDevicePdfFiles[index];
           final fileStat = file.statSync();
 
-          // Premium UI Card (Same as Home Screen)
           return GestureDetector(
             onTap: () {
               if (_isSelectionMode) {
@@ -816,8 +794,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        //const PopupMenuDivider(height: 1), // Divider
-        // 2. Settings Option
         const PopupMenuItem<String>(
           value: 'Settings',
           child: Row(
@@ -1160,7 +1136,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // 🚨 FIX: Context shadowing issue solved. (Delete, Rename, aur Save as JPEG sab ab perfectly chalenge)
   void _showFileOptionsBottomSheet(BuildContext context, File file) {
     showModalBottomSheet(
       context: context,
@@ -1168,7 +1143,6 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFF1E1E1E),
       elevation: 10,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      // 🚨 NAYA: Yahan 'context' ka naam badal kar 'sheetContext' kar diya
       builder: (BuildContext sheetContext) {
         return SafeArea(
           child: Column(
@@ -1256,10 +1230,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: const Icon(Icons.compress_rounded, color: Colors.white, size: 20),
                         title: const Text('Compress PDF', style: TextStyle(color: Colors.white, fontSize: 15)),
-                        // onTap: () {
-                        //   Navigator.pop(sheetContext); // Bottom sheet band karo
-                        //   showToast("Compress PDF feature coming soon!"); // Toast dikhao
-                        // },
                         onTap: () {
                           Navigator.pop(sheetContext);
                           Navigator.push(
@@ -1625,40 +1595,30 @@ class _HomeScreenState extends State<HomeScreen> {
           final imageFile = File(imagePath);
           await imageFile.writeAsBytes(pageImage.bytes);
 
-          // 🚨 NAYA: Tumhare Map format me add kar rahe hain
-          // NOTE: Agar tumhare app me keys 'path' ke alawa kuch aur hain
-          // (jaise 'image_path' ya 'file'), toh unhe niche change kar lena.
           formattedImages.add({
-            'original': imageFile, // 🚨 YEH MISSING THA
+            'original': imageFile,
             'cropped': imageFile,
             'path': imageFile.path,
-            'image': imageFile, // Zyadatar apps me file object bhi pass hota hai
+            'image': imageFile,
             'file': imageFile,
-            'originalPath': imageFile.path, // Backup path ke liye
+            'originalPath': imageFile.path,
           });
         }
         await page.close();
       }
-
       await document.close();
 
-      // 4. Loader band karo
       if (!mounted) return;
       Navigator.pop(context);
 
-      // 5. Agar images aagayi, toh Editor Screen par Navigator.push karo
       if (formattedImages.isNotEmpty) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DocumentEditorScreen(
-              imageFiles: formattedImages, // 👈 List of Map pass kiya
-              isFromGallery: true, // 👈 False bheja kyunki gallery se nahi hai
-            ),
+            builder: (context) => DocumentEditorScreen(imageFiles: formattedImages, isFromGallery: true),
           ),
         );
       } else {
-        // Custom toast call (Tumhare app ka apna toast function call kar lena)
         print("Failed to extract images.");
       }
     } catch (e) {
@@ -1729,8 +1689,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 try {
                   await originalFile.rename(newPath);
-
-                  // 🚨 FIX: Agar purani file saved list me thi, toh naya path update karo
                   if (_savedFilePaths.contains(originalPath)) {
                     final SharedPreferences prefs = await SharedPreferences.getInstance();
                     setState(() {
@@ -1762,7 +1720,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showPdfDetails(BuildContext context, File file) {
     final stat = file.statSync();
     final String fileName = file.path.split('/').last;
-    final String fileSize = _getFileSize(stat.size); // Tumhara hi banaya hua function!
+    final String fileSize = _getFileSize(stat.size);
     final String modifiedDate = DateFormat('dd MMM yyyy, hh:mm a').format(stat.modified);
     final String filePath = file.path;
 
@@ -1771,7 +1729,6 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: const Color(0xFF2C2C2C),
-          // Premium Dark Grey
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text(
             'File Details',
@@ -1827,12 +1784,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       showToast("Preparing ${_selectedFiles.length} files...");
       List<XFile> filesToShare = _selectedFiles.map((path) => XFile(path)).toList();
-      await SharePlus.instance.share(
-        ShareParams(
-          files: filesToShare, // 🚨 MAGIC: Yahan ab ek file ki jagah poori list pass ho gayi!
-          text: 'Documents shared from PDF Scanner Pro',
-        ),
-      );
+      await SharePlus.instance.share(ShareParams(files: filesToShare, text: 'Documents shared from PDF Scanner Pro'));
       setState(() {
         _isSelectionMode = false;
         _selectedFiles.clear();
@@ -1885,7 +1837,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // 🚨 UI LOGIC: Custom dialog show karna aur extract start karna
   Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
     final prefs = await SharedPreferences.getInstance();
     String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
@@ -1901,12 +1852,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (isConfirmed) {
-      // Loading Dialog Show Karo
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
-          // 🚨 NAYA: Iska context alag rakha
           return const AlertDialog(
             backgroundColor: Color(0xFF2C2C2C),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
@@ -1926,10 +1875,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
 
-      // Extract function ka wait karo
       await _savePagesAsJpeg(pdfFile, imagesFolderPath);
-
-      // Jaise hi extract ho jaye, Loading dialog ko band (pop) kar do
       if (context.mounted) {
         Navigator.pop(context);
       }
@@ -1937,39 +1883,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _savePagesAsJpeg(File pdfFile, String imagesFolderPath) async {
-    // showToast("Extracting pages... Please wait."); // (Is toast ko maine hata diya kyunki ab loading dialog dikh raha hai)
     try {
-      // 1. Folder create karo agar nahi hai toh
       final directory = Directory(imagesFolderPath);
       if (!(await directory.exists())) {
         await directory.create(recursive: true);
       }
-
-      // 2. PDF Document ko open karo
       final document = await PdfDocument.openFile(pdfFile.path);
       int pageCount = document.pagesCount;
       String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
 
-      // 3. Har page ko loop karke convert karo
       for (int i = 1; i <= pageCount; i++) {
         final page = await document.getPage(i);
-
-        // Page ko high quality image me render karo
         final pageImage = await page.render(
           width: page.width * 2,
           height: page.height * 2,
           format: PdfPageImageFormat.jpeg,
         );
 
-        // 🚨 SCOPE FIX: Saara kaam in brackets { } ke andar hi hoga
         if (pageImage != null) {
           String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
           File newFile = File(newImagePath);
 
-          // Image ko folder me save kiya
           await newFile.writeAsBytes(pageImage.bytes);
-
-          // Gallery ko force update kiya taaki photo turant dikhe
           try {
             await Gal.putImage(newImagePath);
           } catch (e) {
@@ -1977,12 +1912,11 @@ class _HomeScreenState extends State<HomeScreen> {
           }
         }
 
-        await page.close(); // Memory free
+        await page.close();
       }
 
-      await document.close(); // Document close
+      await document.close();
 
-      // 4. Final Success Toast
       showToast("Success! Saved $pageCount pages in: $imagesFolderPath");
     } catch (e) {
       print("Save JPEG Error: $e");
@@ -1990,12 +1924,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // 🚨 NAYA FUNCTION: Confirmation aur Loading Dialog ke liye
   Future<void> _showConvertToWordConfirmDialog(BuildContext context, File pdfFile) async {
     final prefs = await SharedPreferences.getInstance();
     String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
 
-    // 🚨 NAYA: Word Files naam ka specific folder
     String wordFolderPath = "$baseSavePath/Word Files";
 
     bool isConfirmed = await showCustomConfirmDialog(
@@ -2008,7 +1940,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (isConfirmed) {
-      // Loading Dialog Show Karo
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -2032,31 +1963,24 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
 
-      // 🚨 Actual conversion function ka wait karo
       await _convertPdfToWord(pdfFile, wordFolderPath);
 
-      // Jaise hi convert ho jaye, Loading dialog ko band (pop) kar do
       if (context.mounted) {
         Navigator.pop(context);
       }
     }
   }
 
-  // 🚨 NAYA FUNCTION: Asli folder creation aur conversion logic
   Future<void> _convertPdfToWord(File pdfFile, String saveDirectory) async {
     try {
-      // 1. Check karo ki 'Word Files' folder exist karta hai ya nahi, nahi toh naya banao
       final dir = Directory(saveDirectory);
       if (!await dir.exists()) {
         await dir.create(recursive: true);
       }
 
-      // 2. File ka naya naam set karo (.pdf hata kar .doc lagao)
-      // Note: Hum .doc use kar rahe hain kyunki MS Word ise perfectly HTML format me read kar leta hai
       String fileName = pdfFile.path.split('/').last.replaceAll('.pdf', '.doc');
       String savePath = "${dir.path}/$fileName";
 
-      // 3. pdfx ke through PDF open karo
       final document = await PdfDocument.openFile(pdfFile.path);
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
@@ -2065,11 +1989,9 @@ class _HomeScreenState extends State<HomeScreen> {
       wordContent.writeln('<html xmlns:w="urn:schemas-microsoft-com:office:word">');
       wordContent.writeln('<head><meta charset="utf-8"><title>Scanner Pro Document</title></head><body>');
 
-      // 5. Har page ko loop karke Image me convert karo aur ML Kit se Text nikalo
       for (int i = 1; i <= document.pagesCount; i++) {
         final page = await document.getPage(i);
 
-        // Page ko achhe resolution par render karo (OCR ko clean image chahiye)
         final pageImage = await page.render(
           width: page.width * 2,
           height: page.height * 2,
@@ -2077,46 +1999,36 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
         if (pageImage != null) {
-          // Temp directory me image save karo ML Kit ke liye
           final tempDir = await getTemporaryDirectory();
           final tempFile = File('${tempDir.path}/temp_ocr_page_$i.jpg');
           await tempFile.writeAsBytes(pageImage.bytes);
 
-          // ML Kit se OCR chalao
           final inputImage = InputImage.fromFile(tempFile);
           final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
           String pageText = recognizedText.text.trim();
 
-          // Extracted text ko Word content me add karo
           if (pageText.isNotEmpty) {
-            // Line breaks ko HTML <br> me convert karna zaruri hai Word styling ke liye
             String formattedText = pageText.replaceAll('\n', '<br>');
             wordContent.writeln('<p style="font-family: Arial, sans-serif; font-size: 14pt;">$formattedText</p>');
           } else {
             wordContent.writeln('<p style="color: grey;"><i>[Image Only / No Text Found on Page $i]</i></p>');
           }
 
-          // Page break add karo (Agla page Word me naye page se shuru ho)
           if (i < document.pagesCount) {
             wordContent.writeln('<br clear="all" style="page-break-before:always" />');
           }
 
-          // Storage bachane ke liye temp file delete kardo
           if (await tempFile.exists()) await tempFile.delete();
         }
-
-        // Memory leak rokne ke liye page close karo
         await page.close();
       }
 
       wordContent.writeln('</body></html>');
 
-      // 6. Resources free karo
       textRecognizer.close();
       await document.close();
 
-      // 7. Final File Save karo
       File wordFile = File(savePath);
       await wordFile.writeAsString(wordContent.toString());
 
@@ -2394,7 +2306,6 @@ class PdfSearchDelegate extends SearchDelegate {
   }
 }
 
-// 🚨 BUSINESS LOGIC & UI: Nayi Screen jo sirf Saved (Bookmarked) files dikhayegi
 class SavedPdfScreen extends StatefulWidget {
   final List<File> allFiles;
   final List<String> savedPaths;
@@ -2411,14 +2322,13 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
   @override
   void initState() {
     super.initState();
-    // 🚨 NAYA LOGIC: Saari files me se sirf wahi files filter karo jinka path saved list me hai
     _savedFilesList = widget.allFiles.where((file) => widget.savedPaths.contains(file.path)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212), // Dark theme search jaisa
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         elevation: 0,
@@ -2469,7 +2379,6 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
   }
 }
 
-// 🚨 NAYA: Top-Level Background Function (Phone ka chappa chappa chhan-ne ke liye)
 List<String> searchAllPdfsInBackground(String rootPath) {
   List<String> pdfPaths = [];
   try {
@@ -2489,7 +2398,6 @@ List<String> searchAllPdfsInBackground(String rootPath) {
             }
           } else if (entity is Directory) {
             String dirName = entity.path.split('/').last;
-            // Android System aur hidden folders ko skip karo (App crash bachane ke liye aur fast hone ke liye)
             if (!dirName.startsWith('.') && dirName != 'Android') {
               dirsToSearch.add(entity);
             }
