@@ -12,7 +12,6 @@ class CustomGalleryScreen extends StatefulWidget {
 }
 
 class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
-  // Naye variables dropdown ke liye
   List<AssetPathEntity> _albums = [];
   AssetPathEntity? _selectedAlbum;
 
@@ -26,27 +25,20 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     _fetchAlbums();
   }
 
-  // 1. Saare folders/albums fetch karne ka logic (With Naye Photos First Sorting)
   Future<void> _fetchAlbums() async {
-    // 🚨 FIX: Yahan filter laga diya taaki strictly Naye Photos Top par aayein
     final FilterOptionGroup filterOption = FilterOptionGroup(
-      orders: [
-        const OrderOption(
-          type: OrderOptionType.createDate,
-          asc: false, // asc: false ka matlab hai 'Newest First' (Naya pehle, Purana baad me)
-        ),
-      ],
+      orders: [const OrderOption(type: OrderOptionType.createDate, asc: false)],
     );
 
     final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(
       type: RequestType.image,
-      filterOption: filterOption, // Naya filter pass kar diya
+      filterOption: filterOption,
     );
 
     if (albums.isNotEmpty) {
       setState(() {
         _albums = albums;
-        _selectedAlbum = albums.first; // Default 'Recent' album select hoga
+        _selectedAlbum = albums.first;
       });
       _fetchAssetsFromAlbum(_selectedAlbum!);
     } else {
@@ -54,10 +46,8 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     }
   }
 
-  // 2. Selected album ke andar ki photos laane ka logic
   Future<void> _fetchAssetsFromAlbum(AssetPathEntity album) async {
     setState(() => _isLoading = true);
-    // 100 photos initially load kar rahe hain speed fast rakhne ke liye
     final List<AssetEntity> assets = await album.getAssetListPaged(page: 0, size: 100);
     setState(() {
       _assets = assets;
@@ -65,7 +55,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     });
   }
 
-  // Top right corner se Confirm (Tic) karne ka logic
   void _completeSelection() async {
     if (_selectedAssets.isEmpty) return;
 
@@ -82,32 +71,27 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     }
 
     if (mounted) {
-      Navigator.pop(context); // Loading hatao
-      Navigator.pop(context, files); // Files ko pichli screen par bhejo
+      Navigator.pop(context);
+      Navigator.pop(context, files);
     }
   }
 
-  // "Show all photos..." par click karke Android System Picker kholna
   Future<void> _openNativePicker() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
 
     if (images.isNotEmpty) {
       List<File> files = images.map((x) => File(x.path)).toList();
-      if (mounted) Navigator.pop(context, files); // Direct scanner me bhej do
+      if (mounted) Navigator.pop(context, files);
     }
   }
 
-  // 1. Naya Top 'Recent' Button ka design (Screenshot 1 jaisa)
   Widget _buildAlbumSelectorButton() {
     return GestureDetector(
-      onTap: _showAlbumListModal, // Click karne par list khulegi
+      onTap: _showAlbumListModal,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFF333333), // Dark grey pill background
-          borderRadius: BorderRadius.circular(24),
-        ),
+        decoration: BoxDecoration(color: const Color(0xFF333333), borderRadius: BorderRadius.circular(24)),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -118,10 +102,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                color: Color(0xFF999999), // Light grey circle
-                shape: BoxShape.circle,
-              ),
+              decoration: const BoxDecoration(color: Color(0xFF999999), shape: BoxShape.circle),
               child: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF151515), size: 18),
             ),
           ],
@@ -130,20 +111,15 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     );
   }
 
-  // 2. Click karne par Album List kholne ka design (With Thumbnails)
   void _showAlbumListModal() {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E),
-      // Dark theme
       isScrollControlled: true,
-      // Screen height control karne ke liye
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)), // Upar se round
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (BuildContext context) {
         return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.75, // Screen ka 75% height lega
+          height: MediaQuery.of(context).size.height * 0.75,
           child: Column(
             children: [
               const SizedBox(height: 10),
@@ -163,9 +139,8 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                     final album = _albums[index];
                     final isSelected = album == _selectedAlbum;
 
-                    // 🚨 NEW: Album ki pehli photo (cover) laane ke liye FutureBuilder
                     return FutureBuilder<List<AssetEntity>>(
-                      future: album.getAssetListPaged(page: 0, size: 1), // Sirf 1 photo fetch karenge cover ke liye
+                      future: album.getAssetListPaged(page: 0, size: 1),
                       builder: (context, assetSnapshot) {
                         final firstAsset = (assetSnapshot.hasData && assetSnapshot.data!.isNotEmpty)
                             ? assetSnapshot.data!.first
@@ -177,34 +152,31 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                             final count = countSnapshot.data ?? 0;
                             return ListTile(
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-
-                              // 🚨 NEW: Leading Thumbnail Image
                               leading: Container(
                                 width: 55,
                                 height: 55,
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade800,
-                                  borderRadius: BorderRadius.circular(4), // Halka sa rounded corner
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                                 clipBehavior: Clip.hardEdge,
                                 child: firstAsset != null
-                                    ? _AssetThumbnail(asset: firstAsset) // Apni flicker-free class use ki
-                                    : const Icon(Icons.photo_album, color: Colors.white54), // Agar folder khali ho
+                                    ? _AssetThumbnail(asset: firstAsset)
+                                    : const Icon(Icons.photo_album, color: Colors.white54),
                               ),
 
                               title: Text(
                                 "${album.name == "Recent" ? "Recent" : album.name} ($count)",
                                 style: const TextStyle(color: Colors.white, fontSize: 16),
                               ),
-                              // Agar select hai toh Green Tick dikhao
                               trailing: isSelected ? const Icon(Icons.check, color: Colors.greenAccent) : null,
                               onTap: () {
-                                Navigator.pop(context); // List close karo
+                                Navigator.pop(context);
                                 if (!isSelected) {
                                   setState(() {
-                                    _selectedAlbum = album; // Naya album set karo
+                                    _selectedAlbum = album;
                                   });
-                                  _fetchAssetsFromAlbum(album); // Nayi photos load karo
+                                  _fetchAssetsFromAlbum(album);
                                 }
                               },
                             );
@@ -235,9 +207,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
         ),
 
         centerTitle: true,
-        // Button ko exactly center me laane ke liye
-
-        // 🚨 Naya Custom Button Call 🚨
         title: _albums.isEmpty ? const SizedBox() : _buildAlbumSelectorButton(),
 
         actions: [
@@ -264,7 +233,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                 final selectedIndex = _selectedAssets.indexOf(asset) + 1;
 
                 return GestureDetector(
-                  // Photo par KAHI BHI tap karne se select/deselect hoga
                   onTap: () {
                     setState(() {
                       if (isSelected) {
@@ -277,7 +245,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // 🚨 FIX: Purana FutureBuilder hata kar naya stable widget lagaya
                       _AssetThumbnail(asset: asset),
 
                       // SELECTED PHOTO PAR BLUE BORDER aur halka blackish overlay
@@ -311,7 +278,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
               },
             ),
 
-      // BOTTOM BAR: "Show all photos..." ka option
+      /// BOTTOM BAR: "Show all photos..." ka option
       bottomNavigationBar: Container(
         color: const Color(0xFF1E1E1E),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -336,7 +303,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
   }
 }
 
-// Ekdum solid aur stable thumbnail widget jo flicker nahi karega
 class _AssetThumbnail extends StatefulWidget {
   final AssetEntity asset;
 
@@ -352,14 +318,12 @@ class _AssetThumbnailState extends State<_AssetThumbnail> {
   @override
   void initState() {
     super.initState();
-    // Image data sirf ek baar load hoga jab widget pehli baar banega
     _future = widget.asset.thumbnailDataWithSize(const ThumbnailSize.square(250));
   }
 
   @override
   void didUpdateWidget(covariant _AssetThumbnail oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Agar scroll karne par naya asset aata hai, tabhi data wapas load hoga
     if (oldWidget.asset.id != widget.asset.id) {
       _future = widget.asset.thumbnailDataWithSize(const ThumbnailSize.square(250));
     }
