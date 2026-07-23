@@ -28,11 +28,11 @@ class _ReorderScreenState extends State<ReorderScreen> {
 
   @override
   void dispose() {
-    _bannerAd?.dispose(); // 🚨 Zaroori: Screen close hone par ad ko memory se hatao
+    _bannerAd?.dispose();
     super.dispose();
   }
 
-  // --- BANNER AD FUNCTION ---
+  /// --- BANNER AD FUNCTION ---
   void _loadBannerAd() {
     _bannerAd = BannerAd(
       // TODO Test ID
@@ -54,7 +54,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
     )..load();
   }
 
-  // --- REORDER SCREEN COLOR FILTER LOGIC ---
+  /// --- REORDER SCREEN COLOR FILTER LOGIC ---
   ColorFilter? _getColorFilter(String filterName) {
     switch (filterName) {
       case "Grayscale":
@@ -152,15 +152,14 @@ class _ReorderScreenState extends State<ReorderScreen> {
         ],
       ),
 
-      // 🚨 NAYA: Bottom bar me Banner Ad lagaya (Agar ready ho)
       bottomNavigationBar: _isBannerAdLoaded && _bannerAd != null
           ? Container(
-              color: const Color(0xFF151515), // AppBar se match karta hua dark color
+              color: const Color(0xFF151515),
               width: _bannerAd!.size.width.toDouble(),
               height: _bannerAd!.size.height.toDouble(),
               child: AdWidget(ad: _bannerAd!),
             )
-          : const SizedBox.shrink(), // Agar Ad load nahi hua, toh jagah nahi gherega
+          : const SizedBox.shrink(),
 
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
@@ -234,7 +233,6 @@ class _ReorderScreenState extends State<ReorderScreen> {
     double brightness = item['brightness'] ?? 0.0;
     double contrast = item['contrast'] ?? 0.0;
 
-    // 🚨 NEW: Map se markups vector data nikal rahe hain
     final markupData = item['markups'];
 
     return Column(
@@ -257,24 +255,20 @@ class _ReorderScreenState extends State<ReorderScreen> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // --- Layer 1: Base Image with Filters ---
+                      /// --- Base Image with Filters ---
                       ColorFiltered(
                         colorFilter: _getAdjustColorFilter(brightness, contrast),
                         child: ColorFiltered(
                           colorFilter:
                               _getColorFilter(filterName) ??
                               const ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                          child: Image.file(
-                            imageFile,
-                            fit: BoxFit.contain,
-                            //width: double.infinity,
-                          ),
+                          child: Image.file(imageFile, fit: BoxFit.contain),
                         ),
                       ),
 
-                      // --- 🚨 NEW: Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes) ---
+                      /// ---Vector Markups (Drawings, Texts, Shapes) ---
                       if (markupData != null && markupData is MarkupExportData) ...[
-                        // A. DRAWING STROKES (Pen/Eraser lines)
+                        /// DRAWING STROKES (Pen/Eraser lines)
                         Positioned.fill(
                           child: CustomPaint(
                             painter: DrawingPainter(
@@ -288,7 +282,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
                           ),
                         ),
 
-                        // B. TEXTS & SHAPES OVERLAYS
+                        /// TEXTS & SHAPES OVERLAYS
                         Positioned.fill(
                           child: LayoutBuilder(
                             builder: (context, constraints) {
@@ -299,7 +293,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
                               return Stack(
                                 clipBehavior: Clip.none,
                                 children: [
-                                  // TEXTS LOOP
+                                  /// TEXTS LOOP
                                   ...markupData.texts.map((textItem) {
                                     double scaledFontSize = textItem.fontSize * scaleRatio;
                                     Color textColor = textItem.appearance == 0
@@ -394,7 +388,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
                                     );
                                   }),
 
-                                  // SHAPES LOOP
+                                  /// SHAPES LOOP
                                   ...markupData.shapes.map((shape) {
                                     return Positioned(
                                       left: shape.offset.dx * canvasW,
