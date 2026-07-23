@@ -2681,7 +2681,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         children: [
           _buildToolItem(
             label: "Retake",
-            icon: Symbols.reset_image_rounded,
+            //icon: Symbols.reset_image_rounded,
+            icon: Icons.restart_alt_rounded,
             tooltipMessage: "Retake current photo",
             onTap: _retakeImage,
           ),
@@ -2703,7 +2704,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
           _buildToolItem(
             label: "Filter",
-            icon: Symbols.masked_transitions_rounded,
+            //icon: Symbols.masked_transitions_rounded,
+            icon: Icons.animation_rounded,
             tooltipMessage: "Apply color filters",
             isSelected: _showFilterMenu,
             onTap: () {
@@ -2970,7 +2972,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       ignoring: selectedCount < 2,
                       child: _buildToolItem(
                         label: "Merge",
-                        icon: Symbols.stack_group_rounded,
+                        //icon: Symbols.stack_group_rounded,
+                        icon: Icons.layers_rounded,
                         tooltipMessage: "Merge selected photos into one page",
                         onTap: () async {
                           showDialog(
@@ -3057,7 +3060,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   ),
                   _buildToolItem(
                     label: "Filter",
-                    icon: Symbols.masked_transitions_rounded,
+                    //icon: Symbols.masked_transitions_rounded,
+                    icon: Icons.animation_rounded,
                     tooltipMessage: "Apply filter to selected pages",
                     isSelected: _showFilterMenu,
                     onTap: () {
