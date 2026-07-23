@@ -494,8 +494,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: const Color(0xFF1E1E1E),
                           shape: const CircularNotchedRectangle(),
                           notchMargin: 8.0,
+                          padding: EdgeInsets.zero,
                           child: SizedBox(
-                            height: 60,
+                            height: 70,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -510,6 +511,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: SizedBox(
                                       width: 80,
                                       child: Column(
+                                        mainAxisSize: MainAxisSize.min,
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           Icon(
