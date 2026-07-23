@@ -63,26 +63,24 @@ class EditorSnapshot {
 }
 
 class _MergeScreenState extends State<MergeScreen> {
-  //Thumbnail selection (Last photo default select hogi)
   int? _selectedImageIndex;
   late List<MergedImageState> _imageStates;
 
-  // Har image ki positions (X, Y) track karne ke liye
   late List<Offset> _imagePositions;
 
   bool isPageSizeMode = false;
-  String _selectedPageSize = "A4 (P)"; // Default page size
+  String _selectedPageSize = "A4 (P)";
   bool isPositionMode = false;
   bool isRotateMode = false;
   bool isSizeMode = false;
   bool isOpacityMode = false;
 
   // State Variables
-  bool isGridVisible = false; // Grid dikhane ke liye variable
+  bool isGridVisible = false;
   bool isLayerMode = false;
   int? _initialLayerIndex;
 
-  // --- 🚨 UNDO / REDO VARIABLES ---
+  // ---  UNDO / REDO VARIABLES ---
   List<EditorSnapshot> _undoHistory = [];
   List<EditorSnapshot> _redoHistory = [];
 
@@ -99,22 +97,18 @@ class _MergeScreenState extends State<MergeScreen> {
     // Default selected index: Last photo
     _selectedImageIndex = widget.selectedImages.length - 1;
 
-    // Har image ko default center-ish position pe rakhne ke liye initialize karo
     _imagePositions = List.generate(
       widget.selectedImages.length,
-      (index) => Offset(20.0 * index, 20.0 * index), // Thoda offset diya taaki ek ke upar ek chhip na jaye
+      (index) => Offset(20.0 * index, 20.0 * index),
     );
 
-    //Naye format me initialize karo
     _imageStates = List.generate(
       widget.selectedImages.length,
       (index) => MergedImageState(file: widget.selectedImages[index], position: Offset(20.0 * index, 20.0 * index)),
     );
   }
 
-  // --- Exit Confirmation Handle Karne Ke Liye ---
   Future<bool> _onWillPop() async {
-    // Tumhara custom dialog popup hoga
     bool confirm = await showCustomConfirmDialog(
       context,
       title: "Exit Editor?",
@@ -123,28 +117,24 @@ class _MergeScreenState extends State<MergeScreen> {
       positiveBtnColor: Colors.redAccent,
     );
 
-    return confirm; // Agar true aaya, toh screen band ho jayegi
+    return confirm;
   }
 
-  // ---  1. STATE SAVE FUNCTION (Action hone se theek pehle call hoga) ---
   void _saveStateToHistory() {
     _undoHistory.add(
       EditorSnapshot(
-        // .map().clone() karna zaroori hai taaki original list modify na ho
         imageStates: _imageStates.map((e) => e.clone()).toList(),
         pageSize: _selectedPageSize,
         selectedIndex: _selectedImageIndex,
       ),
     );
-    // Naya action hone par aage ki Redo history bekaar ho jati hai, so clear it
     _redoHistory.clear();
   }
 
-  // ---  2. UNDO FUNCTION ---
+  /// ---   UNDO FUNCTION ---
   void _undo() {
-    if (_undoHistory.isEmpty) return; // Agar history khali hai toh kuch mat karo
+    if (_undoHistory.isEmpty) return;
     setState(() {
-      // Current state ko pehle Redo me daal do
       _redoHistory.add(
         EditorSnapshot(
           imageStates: _imageStates.map((e) => e.clone()).toList(),
@@ -153,7 +143,6 @@ class _MergeScreenState extends State<MergeScreen> {
         ),
       );
 
-      // Undo list se last state nikalo aur Canvas par apply kardo
       EditorSnapshot prevState = _undoHistory.removeLast();
       _imageStates = prevState.imageStates.map((e) => e.clone()).toList();
       _selectedPageSize = prevState.pageSize;
@@ -162,7 +151,7 @@ class _MergeScreenState extends State<MergeScreen> {
     HapticFeedback.mediumImpact();
   }
 
-  // --- 🚨 3. REDO FUNCTION ---
+  /// --- REDO FUNCTION ---
   void _redo() {
     if (_redoHistory.isEmpty) return;
     setState(() {
@@ -175,7 +164,6 @@ class _MergeScreenState extends State<MergeScreen> {
         ),
       );
 
-      // Redo list se next state nikalo aur Canvas par apply kardo
       EditorSnapshot nextState = _redoHistory.removeLast();
       _imageStates = nextState.imageStates.map((e) => e.clone()).toList();
       _selectedPageSize = nextState.pageSize;
@@ -189,23 +177,17 @@ class _MergeScreenState extends State<MergeScreen> {
     // return Scaffold(
     return PopScope(
       canPop: false,
-
-      // 🚨 FIX: Yahan 'Object? result' add kiya gaya hai deprecation warning hatane ke liye
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) {
           return;
         }
-
-        // Apni custom exit dialog call karo
         bool shouldExit = await _onWillPop();
-
-        // Agar user ne 'Exit' (true) press kiya hai, tab screen ko manually band karo
         if (shouldExit && context.mounted) {
           Navigator.pop(context);
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF2C2C2C), // Dark theme
+        backgroundColor: const Color(0xFF2C2C2C),
         appBar: AppBar(
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
@@ -215,12 +197,10 @@ class _MergeScreenState extends State<MergeScreen> {
             onPressed: () async {
               bool shouldExit = await _onWillPop();
               if (shouldExit && context.mounted) {
-                Navigator.pop(context); // Agar user ne 'Exit' dabaya, tabhi pop hoga
+                Navigator.pop(context);
               }
             },
           ),
-
-          //centerTitle false kar diya taaki title left me aa jaye
           title: const Text(
             "Merge Pages",
             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
@@ -228,15 +208,12 @@ class _MergeScreenState extends State<MergeScreen> {
           centerTitle: false,
 
           actions: [
-            // UPDATED: Undo Button
             IconButton(
-              // Agar history hai tabhi white dikhega, warna grey (white24)
               icon: Icon(Icons.undo_rounded, color: _undoHistory.isNotEmpty ? Colors.white : Colors.white24, size: 24),
               tooltip: "Undo",
               onPressed: _undoHistory.isNotEmpty ? _undo : null,
             ),
 
-            // UPDATED: Redo Button
             IconButton(
               icon: Icon(Icons.redo_rounded, color: _redoHistory.isNotEmpty ? Colors.white : Colors.white24, size: 24),
               tooltip: "Redo",
@@ -247,7 +224,6 @@ class _MergeScreenState extends State<MergeScreen> {
               icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
               tooltip: "Save",
               onPressed: () {
-                //Navigator.pop(context);
                 _saveAndExport();
               },
             ),
@@ -262,8 +238,8 @@ class _MergeScreenState extends State<MergeScreen> {
                 child: GestureDetector(
                   onTap: () {
                     setState(() {
-                      _closeAllSubTools(); // Sabhi sub-tools ek sath band
-                      _selectedImageIndex = null; // Image deselect kardo
+                      _closeAllSubTools();
+                      _selectedImageIndex = null;
                     });
                   },
                   child: InteractiveViewer(
@@ -273,12 +249,10 @@ class _MergeScreenState extends State<MergeScreen> {
 
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        // 1. Calculate Available Space (40px padding = 80px dono taraf se)
                         double availableW = constraints.maxWidth - 80;
                         double availableH = constraints.maxHeight - 80;
                         double ratio = _getPageAspectRatio();
 
-                        // 2. Mathematically exact Paper Size nikalo (AspectRatio jaisa kaam)
                         double paperW = availableW;
                         double paperH = paperW / ratio;
                         if (paperH > availableH) {
@@ -286,7 +260,6 @@ class _MergeScreenState extends State<MergeScreen> {
                           paperW = paperH * ratio;
                         }
 
-                        // 3. Center me rakhne ke liye Offset nikalna (Taaki purani positioning kharab na ho)
                         double offsetX = (constraints.maxWidth - paperW) / 2;
                         double offsetY = (constraints.maxHeight - paperH) / 2;
 
@@ -295,12 +268,11 @@ class _MergeScreenState extends State<MergeScreen> {
                           height: constraints.maxHeight,
                           color: Colors.transparent,
                           child: RepaintBoundary(
-                            // 🚨 NAYA WRAP
                             key: _canvasKey,
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                // --- LAYER 1: WHITE PAPER (Apni jagah par fixed) ---
+                                /// --- LAYER 1: WHITE PAPER (Apni jagah par fixed) ---
                                 if (_selectedPageSize != "Auto Fit")
                                   Positioned(
                                     left: offsetX,
@@ -322,7 +294,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                     ),
                                   ),
 
-                                // --- LAYER 2: PHOTO STACK WITH CONTROLS ---
+                                /// --- LAYER 2: PHOTO STACK WITH CONTROLS ---
                                 ...List.generate(_imageStates.length, (index) {
                                   bool isSelected = _selectedImageIndex == index;
                                   var imgState = _imageStates[index];
@@ -333,7 +305,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                   double baseWidth = 150.0;
                                   bool isAutoFit = _selectedPageSize == "Auto Fit";
 
-                                  // 🟩 1. AGAR SELECTED NAHI HAI YA LOCKED HAI (Normal render, No border)
+                                  // AGAR SELECTED NAHI HAI YA LOCKED HAI (Normal render, No border)
                                   if (!isSelected || imgState.isLocked) {
                                     return Positioned(
                                       left: offsetX + imgState.position.dx,
@@ -378,12 +350,12 @@ class _MergeScreenState extends State<MergeScreen> {
                                     );
                                   }
 
-                                  // 🚨 2. AGAR SELECTED HAI (Dual-Border Magic Trick)
+                                  // AGAR SELECTED HAI (Dual-Border Magic Trick)
                                   return Positioned.fill(
                                     child: Stack(
                                       clipBehavior: Clip.none,
                                       children: [
-                                        // 🔴 LAYER A: UNCLIPPED (Main Image + Red Border)
+                                        /// LAYER A: UNCLIPPED (Main Image + Red Border)
                                         Positioned(
                                           left: offsetX + imgState.position.dx,
                                           bottom: offsetY + imgState.position.dy,
@@ -423,7 +395,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                           ),
                                         ),
 
-                                        // 🔵 LAYER B: CLIPPED TO PAGE (Blue Border)
+                                        /// CLIPPED TO PAGE (Blue Border)
                                         if (!isAutoFit)
                                           Positioned(
                                             left: offsetX,
@@ -431,7 +403,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                             width: paperW,
                                             height: paperH,
                                             child: IgnorePointer(
-                                              ignoring: true, // Taps ko block nahi karega
+                                              ignoring: true,
                                               child: ClipRect(
                                                 child: Stack(
                                                   clipBehavior: Clip.none,
@@ -460,7 +432,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                             ),
                                           ),
 
-                                        // 🟡 LAYER C: CORNER ICONS
+                                        /// CORNER ICONS
                                         Positioned(
                                           left: offsetX + imgState.position.dx,
                                           bottom: offsetY + imgState.position.dy,
@@ -469,8 +441,6 @@ class _MergeScreenState extends State<MergeScreen> {
                                             child: Stack(
                                               clipBehavior: Clip.none,
                                               children: [
-                                                // 🚨 FINAL FIX: Invisible image ko IgnorePointer me wrap kiya!
-                                                // Isse tumhara drag touch sidha main image par lagega.
                                                 IgnorePointer(
                                                   child: SizedBox(
                                                     width: baseWidth * imgState.scale,
@@ -481,8 +451,8 @@ class _MergeScreenState extends State<MergeScreen> {
                                                   ),
                                                 ),
 
-                                                // --- CORNER CONTROLS ---
-                                                // 1. TOP-LEFT: HIDE ICON
+                                                /// --- CORNER CONTROLS ---
+                                                /// TOP-LEFT: HIDE ICON
                                                 Positioned(
                                                   top: -12,
                                                   left: -12,
@@ -509,7 +479,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                                   ),
                                                 ),
 
-                                                // 2. SCALE ICON
+                                                /// SCALE ICON
                                                 Positioned(
                                                   top: -12,
                                                   right: -12,
@@ -539,7 +509,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                                   ),
                                                 ),
 
-                                                // 3. ROTATE ICON
+                                                /// ROTATE ICON
                                                 Positioned(
                                                   bottom: -12,
                                                   right: -12,
@@ -573,7 +543,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                   );
                                 }),
 
-                                // --- LAYER 3: GRID LINES (Sabse upar, taaki paper par dikhe) ---
+                                /// GRID LINES (Sabse upar, taaki paper par dikhe) ---
                                 if (isGridVisible)
                                   Positioned(
                                     left: offsetX,
@@ -596,7 +566,7 @@ class _MergeScreenState extends State<MergeScreen> {
               ),
             ),
             // ==========================================
-            // 2. THUMBNAILS LIST
+            /// THUMBNAILS LIST
             // ==========================================
             GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -609,7 +579,6 @@ class _MergeScreenState extends State<MergeScreen> {
                 height: 90,
                 color: const Color(0xFF1E1E1E),
 
-                //  ListView.builder ki jagah ReorderableListView.builder lagaya
                 child: ReorderableListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: _imageStates.length,
@@ -617,20 +586,17 @@ class _MergeScreenState extends State<MergeScreen> {
 
                   onReorderStart: (int index) {
                     _saveStateToHistory();
-                    HapticFeedback.mediumImpact(); // "Uthane" ka solid feel
+                    HapticFeedback.mediumImpact();
                   },
 
-                  // Hold and Drag karke re-arrange karne ka logic
                   onReorder: (int oldIndex, int newIndex) {
                     setState(() {
                       if (oldIndex < newIndex) {
                         newIndex -= 1;
                       }
-                      // Photo layer change karo
                       final MergedImageState item = _imageStates.removeAt(oldIndex);
                       _imageStates.insert(newIndex, item);
 
-                      // Selected photo ka border gayab na ho, isliye uski position bhi update ki
                       if (_selectedImageIndex == oldIndex) {
                         _selectedImageIndex = newIndex;
                       } else if (_selectedImageIndex != null) {
@@ -641,10 +607,9 @@ class _MergeScreenState extends State<MergeScreen> {
                         }
                       }
                     });
-                    HapticFeedback.lightImpact(); // Drag karne par vibration
+                    HapticFeedback.lightImpact();
                   },
 
-                  // Hawa me drag hote waqt premium UI (transparent background)
                   proxyDecorator: (Widget child, int index, Animation<double> animation) {
                     return Material(
                       color: Colors.transparent,
@@ -659,7 +624,6 @@ class _MergeScreenState extends State<MergeScreen> {
                     bool isHidden = _imageStates[index].isHidden; // Check if hidden
 
                     return GestureDetector(
-                      // Reorderable items ko pehchanne ke liye Key zaroori hoti hai
                       key: ObjectKey(_imageStates[index]),
 
                       onTap: () {
@@ -679,24 +643,22 @@ class _MergeScreenState extends State<MergeScreen> {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              // Base Image (Hidden hone par 30% opacity)
                               Opacity(
                                 opacity: isHidden ? 0.3 : 1.0,
                                 child: Image.file(_imageStates[index].file, fit: BoxFit.cover),
                               ),
                               if (isHidden)
                                 Container(
-                                  color: Colors.black45, // Thoda dark shade photo ke upar
+                                  color: Colors.black45,
                                   child: const Icon(Icons.visibility_off_rounded, color: Colors.white, size: 24),
                                 ),
 
-                              // Lock Icon (Agar photo locked hai)
                               if (_imageStates[index].isLocked)
                                 Positioned(
                                   bottom: 4,
                                   right: 4,
                                   child: Container(
-                                    padding: const EdgeInsets.all(2), // Circle ka size adjust karne ke liye
+                                    padding: const EdgeInsets.all(2),
                                     decoration: const BoxDecoration(
                                       color: Colors.white, // White background
                                       shape: BoxShape.circle,
@@ -704,7 +666,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                     child: const Icon(
                                       Icons.lock_rounded,
                                       color: Colors.redAccent,
-                                      size: 14, // Icon thoda chhota kiya taaki circle me fit aaye
+                                      size: 14,
                                     ),
                                   ),
                                 ),
@@ -724,7 +686,7 @@ class _MergeScreenState extends State<MergeScreen> {
               child: ClipRect(
                 child: Stack(
                   children: [
-                    // --- A. MAIN TOOLBAR (Animated Slide Down) ---
+                    /// --- MAIN TOOLBAR (Animated Slide Down) ---
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -740,7 +702,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       child: _buildNormalTools(),
                     ),
 
-                    // --- B. TOP LAYER: RESIZE SUB-TOOLS (Animated Slide Up) ---
+                    /// --- TOP LAYER: RESIZE SUB-TOOLS (Animated Slide Up) ---
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -748,7 +710,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       child: _buildPageSizeSubTools(),
                     ),
 
-                    // --- C. POSITION SUB-TOOLS (Animated Slide Up) ---
+                    /// ---  POSITION SUB-TOOLS (Animated Slide Up) ---
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -756,7 +718,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       child: _buildPositionSubTools(),
                     ),
 
-                    // --- D. ROTATE SUB-TOOLS (Animated Slide Up) ---
+                    /// --- ROTATE SUB-TOOLS (Animated Slide Up) ---
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -764,7 +726,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       child: _buildRotateSubTools(),
                     ),
 
-                    // --- E. SIZE SUB-TOOLS (Animated Slide Up) ---
+                    /// --- SIZE SUB-TOOLS (Animated Slide Up) ---
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -772,7 +734,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       child: _buildSizeSubTools(),
                     ),
 
-                    // --- F. OPACITY SUB-TOOLS (Animated Slide Up) ---
+                    /// --- OPACITY SUB-TOOLS (Animated Slide Up) ---
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -780,7 +742,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       child: _buildOpacitySubTools(),
                     ),
 
-                    // --- G. LAYER SUB-TOOLS (Animated Slide Up) ---
+                    /// --- LAYER SUB-TOOLS (Animated Slide Up) ---
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -793,7 +755,7 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
 
             // ==========================================
-            // 4. BOTTOM BANNER AD PLACEHOLDER
+            /// BOTTOM BANNER AD PLACEHOLDER
             // ==========================================
             const CustomBannerAd(),
           ], // Column Children Ends
@@ -802,7 +764,7 @@ class _MergeScreenState extends State<MergeScreen> {
     ); // Scaffold Ends
   }
 
-  // --- TOOLBAR ITEM BUILDER (Editor jaisa) ---
+  /// --- TOOLBAR ITEM BUILDER (Editor jaisa) ---
   Widget _buildToolItem({
     required String label,
     required IconData icon,
@@ -813,8 +775,8 @@ class _MergeScreenState extends State<MergeScreen> {
   }) {
     return Tooltip(
       message: tooltipMessage ?? label,
-      waitDuration: const Duration(milliseconds: 500), // 0.5 sec hold karne par tooltip aayega
-      preferBelow: false, // Tooltip button ke upar dikhega taaki ungli se chhupe na
+      waitDuration: const Duration(milliseconds: 500),
+      preferBelow: false,
       child: GestureDetector(
         onTap: isDisabled ? null : onTap,
         child: Padding(
@@ -831,7 +793,6 @@ class _MergeScreenState extends State<MergeScreen> {
               children: [
                 Icon(
                   icon,
-                  // Disabled hone par icon dhundhla (grey) ho jayega
                   color: isDisabled ? Colors.white24 : Colors.white,
                   size: 22,
                 ),
@@ -839,7 +800,6 @@ class _MergeScreenState extends State<MergeScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    // Disabled hone par text bhi dhundhla (grey) ho jayega
                     color: isDisabled ? Colors.white24 : Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -853,7 +813,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- MAIN NORMAL TOOLS ---
+  /// --- MAIN NORMAL TOOLS ---
   Widget _buildNormalTools() {
     return Container(
       height: 75,
@@ -861,7 +821,6 @@ class _MergeScreenState extends State<MergeScreen> {
       color: const Color(0xFF151515),
       child: Row(
         children: [
-          // 1. Lock/Unlock
           Padding(
             padding: const EdgeInsets.only(left: 4.0, right: 2.0),
             child: _buildToolItem(
@@ -883,7 +842,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
           Container(width: 1, height: 40, color: Colors.white24),
 
-          // 2. Scrollable List (Main Tools)
+          ///  Scrollable List (Main Tools)
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,
@@ -933,7 +892,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       _imageStates[_selectedImageIndex!].isHidden,
                   onTap: () {
                     setState(() {
-                      isRotateMode = true; // 🚨 ROTATE ANIMATION TRIGGER KAREGA
+                      isRotateMode = true; /// ROTATE ANIMATION TRIGGER KAREGA
                       if (_selectedImageIndex != null) {}
                     });
                   },
@@ -960,7 +919,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       _imageStates[_selectedImageIndex!].isHidden,
                   onTap: () {
                     setState(() {
-                      isOpacityMode = true; // 🚨 OPACITY ANIMATION TRIGGER KAREGA
+                      isOpacityMode = true; /// OPACITY ANIMATION TRIGGER KAREGA
                     });
                   },
                 ),
@@ -1010,7 +969,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- RESIZE SUB TOOLS (Fixed Close Button) ---
+  /// --- RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildPageSizeSubTools() {
     bool isChanged = _selectedPageSize != "A4 (P)";
 
@@ -1019,7 +978,7 @@ class _MergeScreenState extends State<MergeScreen> {
       height: 75,
       width: double.infinity,
 
-      // Row ka use kiya taaki Close button fixed rahe
+      /// Row ka use kiya taaki Close button fixed rahe
       child: Row(
         children: [
           Padding(
@@ -1030,7 +989,6 @@ class _MergeScreenState extends State<MergeScreen> {
               icon: isChanged ? Icons.check_rounded : Icons.close_rounded,
               tooltipMessage: isChanged ? "Apply changes" : "Close resize options",
 
-              // isSelected true hote hi icon aur text automatically BLUE ho jayega!
               isSelected: isChanged,
 
               onTap: () {
@@ -1044,7 +1002,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
           Container(height: 30, width: 1, color: Colors.white10, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
-          // --- SCROLLABLE OPTIONS (Expanded taaki baki jagah le sake) ---
+          /// --- SCROLLABLE OPTIONS (Expanded taaki baki jagah le sake) ---
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,
@@ -1173,7 +1131,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // ---  UPDATED BLOCK: LAYER SUB-TOOLS (Dynamic X / Tick) ---
+  /// ---  UPDATED BLOCK: LAYER SUB-TOOLS (Dynamic X / Tick) ---
   Widget _buildLayerSubTools() {
     bool isTop = false;
     bool isBottom = false;
@@ -1209,16 +1167,15 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          // Divider
           Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 0)),
 
-          // 2. LAYER OPTIONS (SCROLLABLE LIST)
+          /// LAYER OPTIONS (SCROLLABLE LIST)
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 0),
               children: [
-                // A. Ekdam Upar (Bring to Front)
+
                 _buildToolItem(
                   label: "To Front",
                   icon: Icons.vertical_align_top_rounded,
@@ -1236,7 +1193,6 @@ class _MergeScreenState extends State<MergeScreen> {
                   },
                 ),
 
-                // B. 1 Layer Upar (Bring Forward)
                 _buildToolItem(
                   label: "Up",
                   icon: Icons.arrow_upward_rounded,
@@ -1254,7 +1210,6 @@ class _MergeScreenState extends State<MergeScreen> {
                   },
                 ),
 
-                // C. 1 Layer Niche (Send Backward)
                 _buildToolItem(
                   label: "Down",
                   icon: Icons.arrow_downward_rounded,
@@ -1272,7 +1227,6 @@ class _MergeScreenState extends State<MergeScreen> {
                   },
                 ),
 
-                // D. Ekdam Niche (Send to Back)
                 _buildToolItem(
                   label: "To Back",
                   icon: Icons.vertical_align_bottom_rounded,
@@ -1297,7 +1251,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- POSITION SUB-TOOLS ---
+  /// --- POSITION SUB-TOOLS ---
   Widget _buildPositionSubTools() {
     return SizedBox(
       height: 75,
@@ -1336,7 +1290,6 @@ class _MergeScreenState extends State<MergeScreen> {
                     if (_selectedImageIndex != null) {
                       _saveStateToHistory();
                       setState(() {
-                        // bottom offset +5 karne se image upar jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(0, 5);
                       });
                     }
@@ -1350,7 +1303,6 @@ class _MergeScreenState extends State<MergeScreen> {
                     if (_selectedImageIndex != null) {
                       _saveStateToHistory();
                       setState(() {
-                        // bottom offset -5 karne se image niche jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(0, -5);
                       });
                     }
@@ -1364,7 +1316,6 @@ class _MergeScreenState extends State<MergeScreen> {
                     if (_selectedImageIndex != null) {
                       _saveStateToHistory();
                       setState(() {
-                        // left offset -5 karne se image left jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(-5, 0);
                       });
                     }
@@ -1378,7 +1329,6 @@ class _MergeScreenState extends State<MergeScreen> {
                     if (_selectedImageIndex != null) {
                       _saveStateToHistory();
                       setState(() {
-                        //  left offset +5 karne se image right jayegi
                         _imageStates[_selectedImageIndex!].position += const Offset(5, 0);
                       });
                     }
@@ -1392,9 +1342,8 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- ROTATE SUB-TOOLS ---
+  /// --- ROTATE SUB-TOOLS ---
   Widget _buildRotateSubTools() {
-    // Slider ke liye current rotation ko 0 se 360 degree (0 se 2*Pi Radians) me normalize karna zaroori hai
     double currentRotation = 0.0;
     if (_selectedImageIndex != null) {
       currentRotation = _imageStates[_selectedImageIndex!].rotation % (2 * 3.14159265);
@@ -1406,7 +1355,6 @@ class _MergeScreenState extends State<MergeScreen> {
       width: double.infinity,
       child: Row(
         children: [
-          //Tick Button (Done)
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: _buildToolItem(
@@ -1462,12 +1410,11 @@ class _MergeScreenState extends State<MergeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    // Current angle ko wapas degree me convert karke dikhane ke liye
                     "Angle: ${(currentRotation * (180 / 3.14159265)).toStringAsFixed(0)}°",
                     style: const TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                   SizedBox(
-                    height: 24, // Slider ki height kam ki taaki fit ho jaye
+                    height: 24,
                     child: Slider(
                       value: currentRotation,
                       min: 0.0,
@@ -1480,7 +1427,6 @@ class _MergeScreenState extends State<MergeScreen> {
                           ? null
                           : (value) {
                               setState(() {
-                                // Direct slider ki value lagao
                                 _imageStates[_selectedImageIndex!].rotation = value;
                               });
                             },
@@ -1495,7 +1441,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- MULTI-DOT PREMIUM SIZE SUB-TOOLS ---
+  /// --- MULTI-DOT PREMIUM SIZE SUB-TOOLS ---
   Widget _buildSizeSubTools() {
     double currentScale = 1.0;
     if (_selectedImageIndex != null) {
@@ -1503,8 +1449,6 @@ class _MergeScreenState extends State<MergeScreen> {
     }
 
     bool isChanged = currentScale != 1.0;
-
-    //Jin values par dot aur magnet (snap) chahiye unki list
     final List<double> snapValues = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
 
     return Container(
@@ -1530,7 +1474,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
           Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
-          // Slider with Multiple Dots and Snapping
+          /// Slider with Multiple Dots and Snapping
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(right: 16.0, left: 8.0),
@@ -1548,14 +1492,13 @@ class _MergeScreenState extends State<MergeScreen> {
                         const double overlayRadius = 16.0;
                         double trackWidth = constraints.maxWidth - (overlayRadius * 2);
 
-                        // Slider ki nayi range: 0.0 se 5.0 tak
                         double minVal = 0.0;
                         double maxVal = 5.0;
 
                         return Stack(
                           alignment: Alignment.centerLeft,
                           children: [
-                            // --- BACKGROUND SLIDER ---
+                            /// --- BACKGROUND SLIDER ---
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
                                 trackHeight: 4.0,
@@ -1575,9 +1518,8 @@ class _MergeScreenState extends State<MergeScreen> {
                                         double newVal = value;
                                         bool snapped = false;
 
-                                        // MULTI-SNAP LOGIC
+                                        /// MULTI-SNAP LOGIC
                                         for (double snap in snapValues) {
-                                          // Scale badi range hai, isliye gap 0.15 rakha hai
                                           if ((newVal - snap).abs() < 0.15) {
                                             newVal = snap;
                                             snapped = true;
@@ -1585,7 +1527,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                           }
                                         }
 
-                                        //VIBRATION LOGIC
+                                        ///VIBRATION LOGIC
                                         if (snapped && _imageStates[_selectedImageIndex!].scale != newVal) {
                                           HapticFeedback.lightImpact();
                                         }
@@ -1597,7 +1539,7 @@ class _MergeScreenState extends State<MergeScreen> {
                               ),
                             ),
 
-                            // ---MULTIPLE DOT MARKERS (Loop se) ---
+                            /// ---MULTIPLE DOT MARKERS (Loop se) ---
                             ...snapValues.map((val) {
                               double percentage = (val - minVal) / (maxVal - minVal);
                               double dotPosition = overlayRadius + (trackWidth * percentage);
@@ -1630,7 +1572,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // --- MULTI-DOT PREMIUM OPACITY SUB-TOOLS ---
+  /// --- MULTI-DOT PREMIUM OPACITY SUB-TOOLS ---
   Widget _buildOpacitySubTools() {
     double currentOpacity = 1.0;
     if (_selectedImageIndex != null) {
@@ -1639,7 +1581,6 @@ class _MergeScreenState extends State<MergeScreen> {
 
     bool isChanged = currentOpacity != 1.0;
 
-    //Jin values par dot aur magnet (snap) chahiye unki list
     final List<double> snapValues = [0.0, 0.25, 0.50, 0.75, 1.0];
 
     return Container(
@@ -1647,7 +1588,7 @@ class _MergeScreenState extends State<MergeScreen> {
       width: double.infinity,
       child: Row(
         children: [
-          //Dynamic Tick/Close Button
+          ///Dynamic Tick/Close Button
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: _buildToolItem(
@@ -1665,7 +1606,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
           Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
-          // Slider with Multiple Dots and Snapping
+          /// Slider with Multiple Dots and Snapping
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(right: 16.0, left: 8.0),
@@ -1689,7 +1630,7 @@ class _MergeScreenState extends State<MergeScreen> {
                         return Stack(
                           alignment: Alignment.centerLeft,
                           children: [
-                            // --- BACKGROUND SLIDER ---
+                            /// --- BACKGROUND SLIDER ---
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
                                 trackHeight: 4.0,
@@ -1709,9 +1650,8 @@ class _MergeScreenState extends State<MergeScreen> {
                                         double newVal = value;
                                         bool snapped = false;
 
-                                        // MULTI-SNAP LOGIC: Har dot ke paas magnet effect
+                                        /// MULTI-SNAP LOGIC: Har dot ke paas magnet effect
                                         for (double snap in snapValues) {
-                                          // Agar slider snap value ke +/- 4% range me hai
                                           if ((newVal - snap).abs() < 0.04) {
                                             newVal = snap;
                                             snapped = true;
@@ -1719,7 +1659,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                           }
                                         }
 
-                                        // VIBRATION LOGIC: Agar naye dot par snap hua
+                                        /// VIBRATION LOGIC: Agar naye dot par snap hua
                                         if (snapped && _imageStates[_selectedImageIndex!].opacity != newVal) {
                                           HapticFeedback.lightImpact();
                                         }
@@ -1731,14 +1671,11 @@ class _MergeScreenState extends State<MergeScreen> {
                               ),
                             ),
 
-                            // --- MULTIPLE DOT MARKERS (Loop se banaye gaye) ---
+                            /// --- MULTIPLE DOT MARKERS (Loop se banaye gaye) ---
                             ...snapValues.map((val) {
                               double percentage = (val - minVal) / (maxVal - minVal);
                               double dotPosition = overlayRadius + (trackWidth * percentage);
-
-                              // Jab thumb kisi bhi dot ke paas ho, sirf us dot ko hide kar do
                               bool showDot = (currentOpacity - val).abs() > 0.04;
-
                               if (!showDot) return const SizedBox.shrink();
 
                               return Positioned(
@@ -1766,7 +1703,7 @@ class _MergeScreenState extends State<MergeScreen> {
     );
   }
 
-  // Universal Sub-tool closer function
+  /// Universal Sub-tool closer function
   void _closeAllSubTools() {
     isPageSizeMode = false;
     isSizeMode = false;
@@ -1775,15 +1712,12 @@ class _MergeScreenState extends State<MergeScreen> {
     isOpacityMode = false;
     isLayerMode = false;
     _initialLayerIndex = null;
-    // isCollageMode = false;
-    // isLayerMode = false;
   }
 
   Future<void> _showAdAndNavigate(File savedFile) async {
     Completer<bool> adCompleter = Completer<bool>();
     InterstitialAd? interstitialAd;
 
-    // 1. Ad load request bhejo (Yahan await mat lagao)
     InterstitialAd.load(
       adUnitId: _adUnitId,
       request: const AdRequest(),
@@ -1791,42 +1725,35 @@ class _MergeScreenState extends State<MergeScreen> {
         onAdLoaded: (ad) {
           interstitialAd = ad;
           if (!adCompleter.isCompleted) {
-            adCompleter.complete(true); // Ad mil gaya
+            adCompleter.complete(true);
           }
         },
         onAdFailedToLoad: (error) {
           debugPrint('MergeScreen Ad failed to load: $error');
           if (!adCompleter.isCompleted) {
-            adCompleter.complete(false); // Ad fail ho gaya
+            adCompleter.complete(false);
           }
         },
       ),
     );
 
-    // 2. Ad aane ka wait karo (Max 3.5 seconds ka timeout)
     bool isAdLoaded = false;
     try {
-      // Ye ad load hote hi aage badh jayega, pura 3.5s wait nahi karega
       isAdLoaded = await adCompleter.future.timeout(const Duration(milliseconds: 3500));
     } catch (e) {
-      // Timeout ho gaya
       debugPrint('Ad loading timeout in MergeScreen');
       isAdLoaded = false;
     }
-
-    // 3. Loading Dialog ko band karo
     if (mounted) {
       Navigator.pop(context);
     }
 
-    // Pichle page par wapas jaane ka helper function
     void finishAndPop() {
       if (mounted) {
         Navigator.pop(context, savedFile);
       }
     }
 
-    // 4. Agar ad mil gaya hai toh dikhao, warna direct jao
     if (isAdLoaded && interstitialAd != null) {
       interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
@@ -1841,20 +1768,17 @@ class _MergeScreenState extends State<MergeScreen> {
       );
       interstitialAd!.show();
     } else {
-      // Ad nahi aaya toh sidha navigate karo
       finishAndPop();
     }
   }
 
   Future<void> _saveAndExport() async {
-    // 1. Loading Dialog dikhao (Is dialog ko Ad function close karega)
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
     );
 
-    // 2. Sabhi tools aur selection hata do
     bool wasGridVisible = isGridVisible;
     setState(() {
       _selectedImageIndex = null;
@@ -1862,7 +1786,6 @@ class _MergeScreenState extends State<MergeScreen> {
       _closeAllSubTools();
     });
 
-    // 3. UI ko refresh hone do
     await Future.delayed(const Duration(milliseconds: 300));
 
     try {
@@ -1944,11 +1867,9 @@ class _MergeScreenState extends State<MergeScreen> {
       File savedFile = File('${tempDir.path}/merged_page_${DateTime.now().millisecondsSinceEpoch}.png');
       await savedFile.writeAsBytes(pngBytes);
 
-      // 🚨 YAHAN SE ALAG KIYA HUA AD FUNCTION CALL HOGA
       await _showAdAndNavigate(savedFile);
     } catch (e) {
       debugPrint("Export Error: $e");
-      // Error aane par hi loading dialog yahan se pop hoga
       if (context.mounted) Navigator.pop(context);
     } finally {
       if (mounted) {
@@ -1959,25 +1880,22 @@ class _MergeScreenState extends State<MergeScreen> {
     }
   }
 
-  // Delete handle karne ka async function ---
   void _handleDeletePhoto(int index) async {
-    // Tumhara custom dialog call kiya
     bool confirm = await showCustomConfirmDialog(
       context,
       title: "Delete Photo?",
       message: "Are you sure you want to remove this photo from the canvas? This action cannot be undone.",
       positiveBtnText: "Delete",
-      positiveBtnColor: Colors.redAccent, // Delete ke liye red color
+      positiveBtnColor: Colors.redAccent,
     );
 
-    // Agar user ne 'Delete' (true) press kiya hai, tabhi state update hogi
     if (confirm) {
       _saveStateToHistory();
       setState(() {
         _imageStates.removeAt(index);
         _selectedImageIndex = null;
       });
-      HapticFeedback.mediumImpact(); // Delete hone par vibration
+      HapticFeedback.mediumImpact();
     }
   }
 
@@ -2024,10 +1942,10 @@ class GraphPaperPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors
-          .black12 // Ekdum halki premium lines
-      ..strokeWidth = 1.0; // Patli lines
+          .black12
+      ..strokeWidth = 1.0;
 
-    const double step = 25.0; // Graph paper ke dabbo ka size (25px)
+    const double step = 25.0;
 
     // 1. Vertical Lines (Khadi lines)
     for (double x = 0; x < size.width; x += step) {
@@ -2044,7 +1962,7 @@ class GraphPaperPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-// --- 🚨 NAYA: ADMOB BANNER AD WIDGET ---
+/// ---  NAYA: ADMOB BANNER AD WIDGET ---
 class CustomBannerAd extends StatefulWidget {
   const CustomBannerAd({Key? key}) : super(key: key);
 
@@ -2056,7 +1974,7 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
 
-  // TODO 🚨 Sirf Android Test Ad ID
+  // TODO  Sirf Android Test Ad ID
   //final String adUnitId = 'ca-app-pub-3940256099942544/6300978111'; // test ad id
   final String adUnitId = 'ca-app-pub-5454466291921987/7032345570'; // real ad id
 
@@ -2080,7 +1998,7 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
         },
         onAdFailedToLoad: (ad, err) {
           debugPrint('Ad failed to load: $err');
-          ad.dispose(); // Fail hone par memory free karna zaroori hai
+          ad.dispose();
         },
       ),
     )..load();
@@ -2088,7 +2006,7 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
 
   @override
   void dispose() {
-    _bannerAd?.dispose(); // Screen band hone par Ad ko hatao taaki app hang na ho
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -2099,18 +2017,14 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
         top: false,
         child: Container(
           color: Colors.black,
-          // Dark theme se match karta background
           width: double.infinity,
-          // Poori width lega
           height: _bannerAd!.size.height.toDouble(),
-          // Ad ki perfect height
           alignment: Alignment.center,
           child: AdWidget(ad: _bannerAd!),
         ),
       );
     }
 
-    // Jab tak Ad load ho raha hai, tab tak khali space dikhao
     return SafeArea(top: false, child: Container(height: 50, color: Colors.black));
   }
 }
