@@ -2100,7 +2100,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
               if (!widget.isRetakeMode)
                 IconButton(
                   onPressed: _goToSettings,
-                  icon: _buildRotatedIcon(Symbols.segment_sharp, color: Colors.white, size: 26),
+                  //icon: _buildRotatedIcon(Symbols.segment_sharp, color: Colors.white, size: 26),
+                  icon: _buildRotatedIcon(Icons.segment, color: Colors.white, size: 26),
                 ),
             ],
           ),
