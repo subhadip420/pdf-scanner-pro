@@ -279,8 +279,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         subtitle: Text(
           subtitle,
           style: const TextStyle(color: Colors.white54, fontSize: 12),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+          // maxLines: 1,
+          // overflow: TextOverflow.ellipsis,
         ),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
         onTap: () {
