@@ -75,6 +75,7 @@ dependencies:
   cunning_document_scanner:
   fluttertoast: ^8.2.12
   scroll_snap_list: ^0.9.1
+  flutter_screenutil: ^5.9.3
 
 
 dev_dependencies:
