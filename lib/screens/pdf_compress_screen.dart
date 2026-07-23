@@ -9,7 +9,6 @@ import 'package:share_plus/share_plus.dart';
 import 'custom_dialog.dart';
 import 'home_screen.dart';
 
-// 🚨 NAYI SCREEN: PDF Compress UI
 class PdfCompressScreen extends StatefulWidget {
   final File pdfFile;
 
@@ -60,7 +59,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     super.dispose();
   }
 
-  // 🚨 BUSINESS LOGIC: Banner Ad Load karna
   void _loadBannerAd() {
     _bannerAd = BannerAd(
       adUnitId: _bannerAdUnitId,
@@ -82,7 +80,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     )..load();
   }
 
-  // 🚨 BUSINESS LOGIC: Full Screen Ad Load karna
   void _loadInterstitialAd() {
     InterstitialAd.load(
       adUnitId: _interstitialAdUnitId,
@@ -100,7 +97,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     );
   }
 
-  // 🚨 UI FIX: Toast message dikhane ke liye helper function
   void showToast(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -114,7 +110,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   }
 
   Future<void> _handleBackButton() async {
-    // Agar background me compression chal raha hai ya user dekh raha hai, toh dialog dikhao
     bool shouldDiscard = await showCustomConfirmDialog(
       context,
       title: "Discard changes?",
@@ -126,12 +121,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
     if (shouldDiscard) {
       if (mounted) {
-        Navigator.pop(context); // 🚨 User ne confirm kiya, tabhi pop (back) karenge
+        Navigator.pop(context);
       }
     }
   }
 
-  // File size format karne ka helper function (KB / MB me)
   String _formatBytes(int bytes) {
     if (bytes <= 0) return "0 B";
     if (bytes < 1024 * 1024) {
@@ -140,7 +134,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     return "${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB";
   }
 
-  // Info Button dabane par jo Dialog aayega
   void _showInfoDialog() {
     showDialog(
       context: context,
@@ -176,32 +169,24 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     setState(() {
       _isCompressing = true;
       _newSize = null;
-      _tempCompressedFilePath = null; // Purana temp hata do
+      _tempCompressedFilePath = null;
     });
 
     try {
-      // 1. Temporary folder pata karo jahan compressed file rakhi jayegi
       final Directory tempDir = await getTemporaryDirectory();
       final String tempPath = "${tempDir.path}/temp_compress_${DateTime.now().millisecondsSinceEpoch}.pdf";
 
-      // 2. Slider (10% to 100%) ke hisaab se Compress Quality decide karo
       CompressQuality quality;
       if (_compressionLevel >= 80) {
-        quality = CompressQuality.LOW; // Size zyada kam nahi hoga, quality high rahegi
+        quality = CompressQuality.LOW;
       } else if (_compressionLevel >= 40) {
-        quality = CompressQuality.MEDIUM; // Balanced
+        quality = CompressQuality.MEDIUM;
       } else {
-        quality = CompressQuality.HIGH; // Size sabse zyada kam hoga (quality drop ho sakti hai)
+        quality = CompressQuality.HIGH;
       }
 
-      // 3. Asli Package ka use karke file compress karo
-      await PdfCompressor.compressPdfFile(
-        widget.pdfFile.path, // Original file path
-        tempPath, // Naya temp file path
-        quality, // Quality enum
-      );
+      await PdfCompressor.compressPdfFile(widget.pdfFile.path, tempPath, quality);
 
-      // 4. File check karo aur UI update karo
       File compressedFile = File(tempPath);
       if (compressedFile.existsSync()) {
         int newBytes = compressedFile.lengthSync();
@@ -228,15 +213,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //return Scaffold(
-
-    // 🚨 FIX 1: PopScope lagaya taaki system back swipe/button block ho jaye
     return PopScope(
       canPop: false, // Direct back hone se rokega
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) return;
 
-        // System ka back gesture ya phone ka back button dabne par
         await _handleBackButton();
       },
       child: Scaffold(
@@ -258,15 +239,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         //body: SingleChildScrollView(
         body: Column(
           children: [
-            // 🚨 NAYA: Banner Ad Container
+            // Banner Ad Container
             if (_isBannerAdLoaded && _bannerAd != null)
               Container(
                 width: double.infinity,
                 color: const Color(0xFF121212),
-                // Appbar se match karta hua background
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(vertical: 5),
-                // Thodi breathing space
                 child: SizedBox(
                   width: _bannerAd!.size.width.toDouble(),
                   height: _bannerAd!.size.height.toDouble(),
@@ -274,7 +253,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                 ),
               ),
 
-            // 1. Tumhara Scrollable Body (Expanded me daala taaki bachi hui jagah le le)
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
@@ -282,7 +260,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.start, // 🚨 FIX: Dono ko start me laya
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         const Text(
                           "Compression Level",
@@ -294,13 +272,12 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           onPressed: _showInfoDialog,
                           tooltip: "Info",
                           padding: EdgeInsets.zero,
-                          // 🚨 FIX: Icon ki extra default space hata di
-                          constraints: const BoxConstraints(), // 🚨 FIX: Button ko bilkul icon ke size ka kar diya
+                          constraints: const BoxConstraints(),
                         ),
                       ],
                     ),
 
-                    // 3. Slider Area
+                    /// Slider Area
                     Row(
                       children: [
                         Expanded(
@@ -321,7 +298,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                               onChanged: (value) {
                                 setState(() {
                                   _compressionLevel = value;
-                                  _newSize = null; // Slider hilane par purana naya size hata do
+                                  _newSize = null;
                                 });
                               },
                             ),
@@ -335,7 +312,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // 4. Compress Button
+                    /// Compress Button
                     ElevatedButton(
                       onPressed: _isCompressing ? null : _startCompression,
                       style: ElevatedButton.styleFrom(
@@ -361,7 +338,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // 5. Card View
+                    /// Card View
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 20),
                       padding: const EdgeInsets.all(16),
@@ -372,7 +349,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                       ),
                       child: Column(
                         children: [
-                          // File Name
+                          /// File Name
                           Text(
                             _fileName,
                             style: const TextStyle(color: Colors.white70, fontSize: 13),
@@ -382,7 +359,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           ),
                           const SizedBox(height: 8),
 
-                          // Original Size
+                          /// Original Size
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -399,7 +376,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // PDF Preview (using your existing PdfThumbnailView)
+                          /// PDF Preview (using your existing PdfThumbnailView)
                           Container(
                             height: 180,
                             width: 130,
@@ -409,12 +386,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                               border: Border.all(color: Colors.white24),
                             ),
                             clipBehavior: Clip.hardEdge,
-                            // 🚨 Tumhara purana class call ho raha hai yahan
                             child: PdfThumbnailView(key: ValueKey(widget.pdfFile.path), filePath: widget.pdfFile.path),
                           ),
                           const SizedBox(height: 16),
 
-                          // New Size
+                          /// New Size
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -434,12 +410,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                     ),
                     const SizedBox(height: 15),
 
-                    // 6. Action Row (Download ZIP & Share)
+                    /// Action Row (Download ZIP & Share)
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            //onPressed: _newSize == null ? null : () { /* Zip logic */ },
                             onPressed: _newSize == null ? null : () => _saveAsZip(),
                             icon: const Icon(Icons.folder_zip_outlined, size: 20, color: Colors.white),
                             label: const Text("Save as ZIP", style: TextStyle(color: Colors.white)),
@@ -453,7 +428,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         const SizedBox(width: 15),
                         Expanded(
                           child: OutlinedButton.icon(
-                            //onPressed: _newSize == null ? null : () { /* Share logic */ },
                             onPressed: _newSize == null ? null : () => _shareCompressedPdf(),
                             icon: const Icon(Icons.share_outlined, size: 20, color: Colors.blueAccent),
                             label: const Text("Share PDF", style: TextStyle(color: Colors.blueAccent)),
@@ -468,9 +442,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    // 7. Download PDF Button
+                    /// Download PDF Button
                     ElevatedButton.icon(
-                      //onPressed: _newSize == null ? null : () { /* Download logic */ },
                       onPressed: _newSize == null ? null : () => _saveCompressedPdf(),
                       icon: const Icon(Icons.download_rounded, color: Colors.white),
                       label: const Text(
@@ -496,45 +469,30 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
   Future<void> _saveAsZip() async {
     if (_tempCompressedFilePath == null) return;
-
-    // Asli Zip banane aur save karne ka code
-    // Asli Zip banane aur save karne ka code
     Future<void> performZipSave() async {
       try {
-        // 1. File ka naam set karo
         final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
         final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
         final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
 
-        // 🚨 NAYA FIX: Custom Path aur ZIP Folder banaya
         final Directory baseDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
         final Directory zipFolder = Directory('${baseDir.path}/ZIP Files');
 
-        // Agar "ZIP Files" folder nahi hai, toh usko create karo
         if (!await zipFolder.exists()) {
           await zipFolder.create(recursive: true);
         }
 
-        // Final save path set karo
         final String zipPath = "${zipFolder.path}/$zipFileName";
 
-        // 2. Data read karo aur Zip banao
         File compressedFile = File(_tempCompressedFilePath!);
         List<int> fileBytes = await compressedFile.readAsBytes();
 
         final archive = Archive();
-        archive.addFile(
-          ArchiveFile(
-            _fileName, // Zip ke andar original file ka naam
-            fileBytes.length,
-            fileBytes,
-          ),
-        );
+        archive.addFile(ArchiveFile(_fileName, fileBytes.length, fileBytes));
 
         final zipEncoder = ZipEncoder();
         final zipData = zipEncoder.encode(archive);
 
-        // 3. File ko nayi location par save karo
         if (zipData != null) {
           File zipFile = File(zipPath);
           await zipFile.writeAsBytes(zipData);
@@ -552,13 +510,12 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       }
     }
 
-    // Check karo: Agar Ad ready hai toh pehle dikhao
     if (_isInterstitialAdLoaded && _interstitialAd != null) {
       _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
           ad.dispose();
-          _loadInterstitialAd(); // Agli baar ke liye nayi ad load
-          performZipSave(); // Ad close hote hi File Save
+          _loadInterstitialAd();
+          performZipSave();
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
@@ -567,10 +524,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         },
       );
 
-      _interstitialAd!.show(); // 🚨 Screen par Ad pop-up karo
+      _interstitialAd!.show();
       _isInterstitialAdLoaded = false;
     } else {
-      // Agar ad load nahi hui, toh direct Zip save karo
       performZipSave();
     }
   }
@@ -579,25 +535,18 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     if (_tempCompressedFilePath == null) return;
 
     try {
-      // 1. Naya naam banao (Timestamp ke sath)
       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
 
-      // 2. Temp directory path nikalo jahan hum nayi renamed file banayenge
       final Directory tempDir = await getTemporaryDirectory();
       final String renamedTempPath = "${tempDir.path}/$newFileName";
 
-      // 3. Purani temp file ko naye naam ke sath copy kar do (taaki share karte time naam sahi jaye)
       File originalTempFile = File(_tempCompressedFilePath!);
       File renamedTempFile = await originalTempFile.copy(renamedTempPath);
 
-      // 4. Share UI open karo (🚨 Naya aur Updated Syntax)
       await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(renamedTempFile.path)],
-          text: 'Here is the compressed PDF: $newFileName', // WhatsApp/Email ke liye optional text
-        ),
+        ShareParams(files: [XFile(renamedTempFile.path)], text: 'Here is the compressed PDF: $newFileName'),
       );
     } catch (e) {
       print("Share Error: $e");
@@ -605,11 +554,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     }
   }
 
-  // 🚨 BUSINESS LOGIC: Ad dikhana aur fir Save karna
   Future<void> _saveCompressedPdf() async {
     if (_tempCompressedFilePath == null) return;
 
-    // Asli Save karne ka code (Isko ek local function bana diya)
     Future<void> performSave() async {
       try {
         final String dirPath = widget.pdfFile.parent.path;
@@ -633,28 +580,24 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       }
     }
 
-    // Check karo: Agar Ad ready hai toh pehle dikhao
     if (_isInterstitialAdLoaded && _interstitialAd != null) {
       _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
-          // Jab user 'X' daba kar Ad close kare
-          ad.dispose();
-          _loadInterstitialAd(); // Agli baar ke liye nayi ad load pe laga do
-          performSave(); // 🚨 Ad close hote hi automatically File Save aur screen band!
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          // Agar galti se ad show hone me fail ho jaye
           ad.dispose();
           _loadInterstitialAd();
-          performSave(); // User ko wait mat karao, direct save kar do
+          performSave();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _loadInterstitialAd();
+          performSave();
         },
       );
 
-      _interstitialAd!.show(); // 🚨 Screen par Ad pop-up karo
-      _isInterstitialAdLoaded = false; // Purani ad use ho gayi, flag reset
+      _interstitialAd!.show();
+      _isInterstitialAdLoaded = false;
     } else {
-      // Agar internet slow hone ki wajah se Ad load hi nahi hui thi
-      performSave(); // Direct save kar do
+      performSave();
     }
   }
 } // end main
