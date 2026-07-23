@@ -40,9 +40,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late String documentName;
   late PageController _pageController;
   int currentPage = 0;
-  bool isThumbnailVisible = true; // By default thumbnails dikhenge
-  RewardedAd? _rewardedAd; // Ad store karne ke liye
-  BannerAd? _bannerAd; // 🚨 NAYA: Banner Ad ke liye
+  bool isThumbnailVisible = true;
+  RewardedAd? _rewardedAd;
+  BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
 
   // --- CROP TOOL VARIABLES ---
@@ -57,36 +57,27 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   double _origHeight = 1.0;
 
   late List<Map<String, double>?> _savedCropPositions;
-
-  // FIX 1: Har image ka original AI (Auto) crop save rakhne ke liye
   late List<Map<String, double>?> _autoCropPositions;
-
-  // Icon ki animation track karne ke liye (0.25 matlab 90 degree)
   double _iconRotationTurns = 0.0;
-
-  // Har image kitni baar rotate hui hai (0, 1, 2, ya 3) uski list
   late List<int> _imageQuarterTurns;
 
-  // PageView ka current index (Agar tumhare paas pehle se 'currentIndex' ya 'currentPage' name ka variable hai, toh use hi use karna)
   int _currentPageIndex = 0;
 
   // Filter Menu State Variables
   bool _showFilterMenu = false;
   bool _applyToAllPages = false;
-  late List<String> _pageFilters; // 🚨 Har page ka alag filter track karega
-  // 🚨 FIX: Filter ke saare options ki list define kardo
+  late List<String> _pageFilters;
+
   final List<String> _filterOptions = ["Original color", "Auto-color", "Light text", "Grayscale", "Whiteboard"];
-  String _defaultFilter = "Original color"; // Default value
+  String _defaultFilter = "Original color";
 
-  bool _showAdjustMenu = false; // 🚨 Naya Adjust menu track karne ke liye
-  late List<double> _pageBrightness; // 🚨 Har page ki brightness
-  late List<double> _pageContrast; // 🚨 Har page ka contrast
-  String _activeAdjustTab = "Brightness"; // "Brightness" ya "Contrast" track karega
+  bool _showAdjustMenu = false;
+  late List<double> _pageBrightness;
+  late List<double> _pageContrast;
+  String _activeAdjustTab = "Brightness";
 
-  // 🚨 NAYA VARIABLE: Vector (Drawing/Shapes/Text) data store karne ke liye
   late List<dynamic> _pageMarkups;
 
-  // 🚨 NEW: Selection tracking variables
   bool isSelectionMode = false;
   late List<bool> selectedPagesList;
   bool isResizeMode = false;
@@ -95,14 +86,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   bool isProcessing = false;
 
   // --- OCR Variables ---
-  bool _isDetectingText = false; // Loading state ke liye
-  String? _extractedText; // Detect kiya hua text save karne ke liye
-  bool _showCopyBanner = false; // Banner hide/show karne ke liye
+  bool _isDetectingText = false;
+  String? _extractedText;
+  bool _showCopyBanner = false;
 
-  // 🚨 NAYA VARIABLE: True Dynamic List
   late List<Map<String, dynamic>> docFiles;
 
-  // 🚨 NAYA: Double tap aur Zoom control karne ke liye
   final TransformationController _transformationController = TransformationController();
   TapDownDetails? _doubleTapDetails;
 
@@ -112,7 +101,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _loadDefaultFilter();
     _loadSavedPageSize();
     documentName = _generateDefaultName();
-    // Open the latest captured photo first
 
     docFiles = widget.imageFiles.map((e) => Map<String, dynamic>.from(e)).toList();
 
@@ -120,16 +108,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageController = PageController(initialPage: currentPage);
 
     _savedCropPositions = List.generate(docFiles.length, (index) => null);
-    _autoCropPositions = List.generate(docFiles.length, (index) => null); // Auto memory init
+    _autoCropPositions = List.generate(docFiles.length, (index) => null);
 
-    _loadRewardedAd(); // Screen open hote hi ad background me load hona shuru ho jayega
+    _loadRewardedAd();
     _loadBannerAd();
     _imageQuarterTurns = List.filled(docFiles.length, 0);
-    _pageFilters = List.filled(docFiles.length, "Original color"); // 🚨 Default filter set kiya
+    _pageFilters = List.filled(docFiles.length, "Original color");
     _pageBrightness = List.filled(docFiles.length, 0.0); // Default 0
     _pageContrast = List.filled(docFiles.length, 0.0); // Default 0
 
-    // 🚨 NAYA: Empty markups list init
     _pageMarkups = List.filled(docFiles.length, null);
 
     selectedPagesList = List.filled(docFiles.length, false);
@@ -143,18 +130,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     super.dispose();
   }
 
-  // 🚨 NAYA FUNCTION: Settings se saved defaults uthana
   Future<void> _loadSavedPageSize() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      // 'pref_page_size' wahi exact key hai jo humne Settings screen me use ki thi
-      // Agar kuch save nahi hai, toh 'Auto Fit' aayega
       _defaultPageSize = prefs.getString('pref_page_size') ?? 'Auto Fit';
       _selectedPageSize = _defaultPageSize;
     });
   }
 
-  // SharedPreferences se default filter nikalne ka function
   Future<void> _loadDefaultFilter() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String savedFilter = prefs.getString('default_filter') ?? "Original color";
@@ -162,13 +145,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     setState(() {
       _defaultFilter = savedFilter;
 
-      // 🚨 MAIN FIX: Jab saved filter memory se mil jaye, toh usko list me apply karo
       for (int i = 0; i < docFiles.length; i++) {
-        // Agar photo Scanner se aayi hai aur usme filter set nahi hai (ya default par hai)
         if (docFiles[i]['filter'] == null || docFiles[i]['filter'] == "Original color") {
           docFiles[i]['filter'] = savedFilter; // Map me save karo
 
-          // Agar _pageFilters list pehle initialize ho chuki hai, toh use bhi update karo
           if (_pageFilters.isNotEmpty) {
             _pageFilters[i] = savedFilter;
           }
@@ -177,7 +157,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
   }
 
-  // 1. Screen Preview ke liye Aspect Ratio (Width / Height)
   double? _getPreviewAspectRatio(String size) {
     switch (size) {
       case "Letter (P)":
@@ -201,11 +180,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       case "A5 (L)":
         return 210 / 148;
       default:
-        return null; // Auto Fit ke liye null return hoga
+        return null;
     }
   }
 
-  // 2. Final PDF banate waqt usko original format dena
   PdfPageFormat? _getPdfPageFormat(String size) {
     switch (size) {
       case "Letter (P)":
@@ -233,7 +211,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // 🚨 NEW: Discard Scan Logic (For PopScope)
   Future<void> _promptDiscard() async {
     bool discard = await showCustomConfirmDialog(
       context,
@@ -244,7 +221,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       positiveBtnColor: Colors.redAccent,
     );
 
-    // Agar user Discard confirm kare, tabhi Home par jao
     if (discard) {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
@@ -256,7 +232,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // 🚨 NEW: State reload helper (Init aur Reorder dono me kaam aayega)
   void _loadEditsFromMemory() {
     setState(() {
       _savedCropPositions = List.generate(docFiles.length, (i) => docFiles[i]['cropPosition']);
@@ -267,14 +242,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       _pageContrast = List.generate(docFiles.length, (i) => docFiles[i]['contrast'] ?? 0.0);
       _pageMarkups = List.generate(docFiles.length, (i) => docFiles[i]['markups']);
 
-      // Safety check: Agar current page bounds se bahar ho jaye toh 0 pe set kar do
       if (currentPage >= docFiles.length) {
         currentPage = 0;
       }
     });
   }
 
-  // 🚨 FIX 2: Back jaane se pehle saari settings ko map me save karne ka function
   void _saveEditsToMemory() {
     for (int i = 0; i < docFiles.length; i++) {
       docFiles[i]['rotation'] = _imageQuarterTurns[i];
@@ -287,7 +260,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // --- FILTER LOGIC ---
   ColorFilter? _getColorFilter(String filterName) {
     switch (filterName) {
       case "Grayscale":
@@ -346,19 +318,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // --- 🚨 ADJUST LOGIC (Brightness & Contrast) ---
   ColorFilter _getAdjustColorFilter(double brightness, double contrast) {
-    // Brightness range: -100 to 100 -> maps to -255 to 255
     double b = brightness * 2.55;
-
-    // Contrast range: -100 to 100 -> maps to 0.0 to 2.0 (e.g., -100=0.0, 0=1.0, 100=2.0)
     double c = 1.0 + (contrast / 100.0);
     double t = (1.0 - c) * 127.5; // Offset for contrast centering
 
     return ColorFilter.matrix([c, 0, 0, 0, t + b, 0, c, 0, 0, t + b, 0, 0, c, 0, t + b, 0, 0, 0, 1, 0]);
   }
 
-  // --- 🚨 NAYE HELPER FUNCTIONS (Exact UI Math Sync) ---
   void _applyColorMatrix(img.Image image, List<double> m) {
     for (final p in image) {
       final num r = p.r;
@@ -380,12 +347,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     double activeBright,
     double activeContrast,
   ) {
-    // 1. Apply Rotation
     if (turns != 0) {
       decodedImage = img.copyRotate(decodedImage, angle: turns * 90);
     }
 
-    // 2. Apply Filters (EXACT Matrix matching UI)
     if (activeFilter != "Original color") {
       List<double>? filterMatrix;
       switch (activeFilter) {
@@ -428,7 +393,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
     }
 
-    // 3. Apply Adjustments (EXACT Matrix matching UI)
     if (activeBright != 0.0 || activeContrast != 0.0) {
       double b = activeBright * 2.55;
       double c = 1.0 + (activeContrast / 100.0);
@@ -441,28 +405,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return decodedImage;
   }
 
-  // --- EXTRACT TEXT FUNCTION (OCR) ---
+  /// --- EXTRACT TEXT FUNCTION (OCR) ---
   Future<void> _extractTextFromCurrentImage() async {
     setState(() {
       _isDetectingText = true;
-      _showCopyBanner = false; // Purana banner hide karo
+      _showCopyBanner = false;
     });
 
     try {
-      // Current image file lo
       File currentFile = docFiles[currentPage]['cropped'] as File;
 
       final inputImage = InputImage.fromFile(currentFile);
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
-      // ML Kit process
       final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
       String text = recognizedText.text.trim();
 
       if (text.isNotEmpty) {
         setState(() {
           _extractedText = text;
-          _showCopyBanner = true; // Text milne par banner dikhao
+          _showCopyBanner = true;
           _isDetectingText = false;
         });
       } else {
@@ -480,7 +442,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     if (isCroppingMode) {
       await _saveNewCrop();
     } else {
-      // 1. Check karo ki file exist karti hai ya nahi
       final originalFile = docFiles[currentPage]['original'] as File?;
       final croppedFile = docFiles[currentPage]['cropped'] as File?;
 
@@ -501,7 +462,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         final origBytes = await originalFile.readAsBytes();
         final cropBytes = await croppedFile.readAsBytes();
 
-        // 🚨 Decode karne se pehle check karo
         final decodedOrig = img.decodeImage(origBytes);
         final decodedCrop = img.decodeImage(cropBytes);
 
@@ -510,7 +470,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             _origWidth = decodedOrig.width.toDouble();
             _origHeight = decodedOrig.height.toDouble();
 
-            // ... (baaki crop ratio calculation waise hi rahega)
             double percentW = decodedCrop.width / decodedOrig.width;
             double percentH = decodedCrop.height / decodedOrig.height;
             double autoTop = (1.0 - percentH) / 2;
@@ -557,7 +516,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isProcessing = false;
           });
         } else {
-          // Agar decode null return kare
           setState(() => isProcessing = false);
           showToast("Could not process image");
         }
@@ -568,7 +526,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // FIX 3: Wapas Auto-Crop wali AI position par reset karna
   void _resetToAutoCrop() {
     setState(() {
       if (_autoCropPositions[currentPage] != null) {
@@ -580,59 +537,41 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
   }
 
-  // 🚨 NEW: Reorder logic
   Future<void> _openReorderScreen() async {
     if (docFiles.length <= 1) {
       showToast("Only one page available");
       return;
     }
 
-    // 🚨 FIX: Agar Filter ya Adjust menu open hai, toh pehle usko close karo
     if (_showFilterMenu || _showAdjustMenu) {
       setState(() {
         _showFilterMenu = false;
         _showAdjustMenu = false;
       });
-      // Menu ko smooth slide hone ke liye thoda time do
       await Future.delayed(const Duration(milliseconds: 200));
     }
-
-    // Wahan jaane se pehle current changes memory me save karo
     _saveEditsToMemory();
 
-    // Reorder screen kholo aur nai list ka wait karo
     final reorderedList = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ReorderScreen(
-          // List ki copy bhej rahe hain taaki original safe rahe
-          imageFiles: List.from(docFiles),
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => ReorderScreen(imageFiles: List.from(docFiles))),
     );
 
-    // Jab user OK (Checkmark) dabayega toh nai list yahan aayegi
     if (reorderedList != null && reorderedList is List<Map<String, dynamic>>) {
       docFiles.clear();
       docFiles.addAll(reorderedList);
-
-      // Naye order ke hisab se memory wapas load karo
       _loadEditsFromMemory();
-
-      // PageView ko naye order ki first image pe bhej do
       _pageController.jumpToPage(0);
       showToast("Pages reordered successfully");
     }
   }
 
-  // Generate default file name based on current date
   String _generateDefaultName() {
     final now = DateTime.now();
     final months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return "PDF Scanner Pro ${months[now.month - 1]} ${now.day}, ${now.year}";
   }
 
-  // 1. Ad load karne ka function (With Memory Management)
   void _loadRewardedAd() {
     print("AdMob: Loading ad...");
 
@@ -644,13 +583,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
           print("AdMob: Ad loaded successfully!");
-
-          // Memory leak rokne aur agla ad ready rakhne ke liye callback
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (RewardedAd ad) {
               ad.dispose();
               _rewardedAd = null;
-              _loadRewardedAd(); // User ke ad close karte hi naya ad background me load kardo
+              _loadRewardedAd();
             },
             onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
               ad.dispose();
@@ -673,7 +610,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       //TODO Google's Test AD ID
       //adUnitId: 'ca-app-pub-3940256099942544/6300978111', // test ad id
       adUnitId: 'ca-app-pub-5454466291921987/6221826783', // real ad id
-      size: AdSize.banner, // Default 320x50 size, jo AppBar me perfectly fit aayega
+      size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
@@ -689,59 +626,46 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     )..load();
   }
 
-  // 2. Smart Save Click Handler (With 2 Sec Wait Logic)
   Future<void> _handleSaveClick() async {
-    // Agar ad pehle se ready hai, toh direct show kardo
     if (_rewardedAd != null) {
       _showRewardAd();
       return;
     }
-
-    // Agar ad ready nahi hai, toh Loading Dialog dikhao
     showDialog(
       context: context,
-      barrierDismissible: false, // User screen touch karke band na kar paye
+      barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
     );
 
-    // Max 2 seconds wait karna (100ms x 20 bar check karega)
     for (int i = 0; i < 20; i++) {
       await Future.delayed(const Duration(milliseconds: 100));
-      if (_rewardedAd != null) break; // Agar wait karte time ad load ho gaya, toh loop break
+      if (_rewardedAd != null) break;
     }
 
-    // Wait khatam, Loading Dialog close karo
     if (mounted) Navigator.pop(context);
 
-    // Check karo ad aaya ya nahi
     if (_rewardedAd != null) {
-      _showRewardAd(); // Ad aagaya to dikhao
+      _showRewardAd();
     } else {
-      // 2 sec baad bhi no ad? Direct save kardo bina user ko block kiye
       showToast("Saving PDF...");
       _generateAndSavePdf();
     }
   }
 
-  // 3. Ad dikhane aur PDF save karne ka helper function
   void _showRewardAd() {
     _rewardedAd!.show(
       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        // User ne ad dekh liya, ab PDF save kardo
         _generateAndSavePdf();
       },
     );
   }
 
-  // 3. Main PDF generate karne ka function (With Real Image Rotation & Markups)
   Future<void> _generateAndSavePdf() async {
     showToast("Generating PDF...");
 
     final pdf = pw.Document();
     for (int i = 0; i < docFiles.length; i++) {
       var map = docFiles[i];
-      //final File file = map['cropped']!;
-      // PDF function me yaha update karna:
       final File file = map['cropped'] as File;
 
       var imageBytes = await file.readAsBytes();
@@ -750,18 +674,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       String activeFilter = _pageFilters[i];
       double activeBright = _pageBrightness[i];
       double activeContrast = _pageContrast[i];
-
-      // --- STEP 1: APPLY FILTERS ONLY (Bina Rotate Kiye) ---
       if (activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
         img.Image? decodedImage = img.decodeImage(imageBytes);
         if (decodedImage != null) {
-          // 🚨 FIX: Yahan 'turns' ko 0 pass kar rahe hain taaki abhi photo na ghume
           decodedImage = _processImageSync(decodedImage, 0, activeFilter, activeBright, activeContrast);
           imageBytes = img.encodeJpg(decodedImage, quality: 100);
         }
       }
 
-      // --- STEP 2: STAMP VECTOR DRAWINGS (Bina Ghumi hui photo par) ---
       if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
         MarkupExportData exportData = _pageMarkups[i];
 
@@ -776,7 +696,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
         canvas.drawImage(uiImg, Offset.zero, Paint());
 
-        // A. Draw Strokes (Pen/Eraser)
         DrawingPainter painter = DrawingPainter(
           paths: exportData.paths,
           currentPoints: [],
@@ -787,14 +706,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         );
         painter.paint(canvas, size);
 
-        // B. Draw Shapes (Icons)
         for (var shape in exportData.shapes) {
           canvas.save();
           canvas.translate(shape.offset.dx * size.width, shape.offset.dy * size.height);
           canvas.rotate(shape.rotation);
           canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
 
-          // Icon ko TextPainter ke through Canvas par draw karne ka hack
           TextPainter tp = TextPainter(
             text: TextSpan(
               text: String.fromCharCode(shape.icon.codePoint),
@@ -812,7 +729,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           canvas.restore();
         }
 
-        // C. Draw Texts
         for (var item in exportData.texts) {
           canvas.save();
           canvas.translate(item.offset.dx * size.width, item.offset.dy * size.height);
@@ -859,7 +775,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           );
           tp.layout();
 
-          // Background box (Agar solid/transparent ho)
           Rect bgRect = Rect.fromCenter(
             center: Offset.zero,
             width: tp.width + (32 * scaleRatio),
@@ -872,7 +787,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             );
           }
 
-          // Stroke text effect
           if (item.appearance == 3) {
             TextPainter strokeTp = TextPainter(
               text: TextSpan(
@@ -907,53 +821,28 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         }
       }
 
-      // --- STEP 3: APPLY ROTATION LAST MEIN (Drawing lagne ke baad) ---
       if (turns != 0) {
         img.Image? decodedStampedImage = img.decodeImage(imageBytes);
         if (decodedStampedImage != null) {
-          // 🚨 FIX: Ab photo aur drawing ek sath perfectly ghum jayenge (UI jaisa exact match)
           decodedStampedImage = img.copyRotate(decodedStampedImage, angle: turns * 90);
           imageBytes = img.encodeJpg(decodedStampedImage, quality: 90);
         }
       }
 
-      // --- STEP 4: ADD TO PDF ---
-      //   final image = pw.MemoryImage(imageBytes);
-      //
-      //   // 🚨 FIX: User ka select kiya hua format uthao
-      //   PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
-      //   pdf.addPage(
-      //     pw.Page(
-      //       margin: pw.EdgeInsets.zero,
-      //       // 🚨 FIX: Agar auto fit hai (null), toh image ka size use karega, warna user ka A4/Letter
-      //       pageFormat: selectedFormat ?? PdfPageFormat(image.width!.toDouble(), image.height!.toDouble()),
-      //       build: (context) {
-      //         return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-      //       },
-      //     ),
-      //   );
-      // }
-
-      // --- STEP 4: ADD TO PDF ---
       final image = pw.MemoryImage(imageBytes);
 
       PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
 
-      // 🚨 MAGIC FIX: "Auto Fit" me badi camera images ko normal page size me shrink karna
       PdfPageFormat finalPageFormat;
 
       if (selectedFormat != null) {
-        // Agar user ne explicitly A4, Letter etc select kiya hai
         finalPageFormat = selectedFormat;
       } else {
-        // Agar "Auto Fit" hai, toh pixels naapo
         double imgWidth = image.width!.toDouble();
         double imgHeight = image.height!.toDouble();
 
-        // Standard A4 paper ki lambaai lagbhag 842 points hoti hai
         double maxDimension = 842.0;
 
-        // Agar phone ke camera se aayi giant photo hai (>842), toh math se scale down karo
         if (imgWidth > maxDimension || imgHeight > maxDimension) {
           double scale = math.min(maxDimension / imgWidth, maxDimension / imgHeight);
           imgWidth *= scale;
@@ -966,16 +855,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       pdf.addPage(
         pw.Page(
           margin: pw.EdgeInsets.zero,
-          pageFormat: finalPageFormat, // Naya calculation yahan pass hoga
+          pageFormat: finalPageFormat,
           build: (context) {
             return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
           },
         ),
       );
-    } // <-- For loop yahan khatam hota hai
+    }
 
     try {
-      // 1. Storage Permission Manage Karo
       if (await Permission.manageExternalStorage.isDenied) {
         await Permission.manageExternalStorage.request();
       }
@@ -985,15 +873,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         return;
       }
 
-      // 2. Public Documents folder ka path set karein
       final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
 
-      // 3. Agar folder nahi hai, toh naya banao
       if (!await publicDir.exists()) {
         await publicDir.create(recursive: true);
       }
 
-      // 4. Unique File Name Generator
       String baseFilePath = "${publicDir.path}/$documentName";
       String finalFilePath = "$baseFilePath.pdf";
       File file = File(finalFilePath);
@@ -1005,12 +890,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         counter++;
       }
 
-      // Safely save karein naye unique naam ke sath
       await file.writeAsBytes(await pdf.save());
-
       showToast("Saved in Documents/PDF Scanner Pro");
 
-      // 5. Seedhe Home Screen par redirect aur baaki sab close
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -1024,7 +906,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // Show toast notification
   void showToast(String msg) {
     Fluttertoast.showToast(
       msg: msg,
@@ -1035,7 +916,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // Go to previous page
   void _previousPage() {
     if (currentPage > 0) {
       _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -1044,7 +924,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // Go to next page
   void _nextPage() {
     if (currentPage < docFiles.length - 1) {
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
@@ -1055,44 +934,32 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   void _rotateImage() {
     setState(() {
-      // 1. Icon ko smoothly 90 degree ghumane ke liye (0.25 turns)
       _iconRotationTurns += 0.25;
-
-      // 2. Jo page abhi screen par hai, uska rotation 1 step badha do
-      // % 4 isliye lagaya taaki 4 baar ghumne par wapas 0 (normal) ho jaye
-      //_imageQuarterTurns[_currentPageIndex] = (_imageQuarterTurns[_currentPageIndex] + 1) % 4;
       _imageQuarterTurns[currentPage] = (_imageQuarterTurns[currentPage] + 1) % 4;
     });
   }
 
   Future<void> _retakeImage() async {
     try {
-      // 1. ScannerScreen ko 'Retake' mode me open karo
-      // Yeh result variable mein us File ka wait karega jo wahan se pop hogi
       final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ScannerScreen(isRetakeMode: true, isOpenedFromEditor: false)),
       );
 
-      // 2. Agar user ne photo click ki (ya gallery se li) aur 'result' me naya File wapas aaya
       if (result != null && result is File) {
         setState(() {
-          // Current page par purani photo ki jagah nayi photo set kardo
           docFiles[currentPage] = {'original': result, 'cropped': result};
 
-          // 🚨 ZAROORI: Is naye page ke liye purani settings (crop/rotate) RESET kardo
           _imageQuarterTurns[currentPage] = 0;
           _savedCropPositions[currentPage] = null;
           _autoCropPositions[currentPage] = null;
-          _pageFilters[currentPage] = "Original color"; // 🚨 Retake par filter wapas original hoga
-          _pageBrightness[currentPage] = 0.0; // 🚨 Retake par brightness reset
-          _pageContrast[currentPage] = 0.0; // 🚨 Retake par contrast reset
+          _pageFilters[currentPage] = "Original color";
+          _pageBrightness[currentPage] = 0.0;
+          _pageContrast[currentPage] = 0.0;
         });
 
         showToast("Page ${currentPage + 1} replaced successfully!");
       }
-      // 3. Agar result null hai (user ne back button daba diya bina photo liye),
-      // toh purani photo waisi ki waisi hi rahegi (koi change nahi hoga).
     } catch (e) {
       showToast("Error replacing photo: $e");
       print("Retake Error: $e");
@@ -1101,18 +968,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 🚨 NAYI LINE: Master condition check karne ke liye ki koi tool open hai ya nahi
     bool isAnyToolActive = isCroppingMode || _showFilterMenu || _showAdjustMenu || isResizeMode || isSelectionMode;
-    //return Scaffold(
-
     return PopScope(
-      canPop: false, // False ka matlab hai ki back button direct pop nahi karega
+      canPop: false,
       onPopInvoked: (bool didPop) async {
-        // Agar system ne naturally pop kar diya hai toh kuch mat karo
         if (didPop) {
           return;
         }
-        // Warna humara discard dialog dikhao
+
         await _promptDiscard();
       },
       child: Scaffold(
@@ -1123,9 +986,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           backgroundColor: const Color(0xFF1E1E1E),
           elevation: 0,
           automaticallyImplyLeading: false,
-          // Default back button ko rokne ke liye
 
-          /// 🚨 LEFT ICON (HOME): Crop, Selection, ya Resize mode active hone par HIDE ho jayega
+          ///  LEFT ICON (HOME): Crop, Selection, ya Resize mode active hone par HIDE ho jayega
           leading: (isCroppingMode || isSelectionMode || isResizeMode)
               ? null
               : Tooltip(
@@ -1138,7 +1000,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   ),
                 ),
 
-          /// 🚨 MIDDLE (TITLE / BANNER AD): Teeno modes me Ad dikhayega, warna Rename Title
+          ///  MIDDLE (TITLE / BANNER AD): Teeno modes me Ad dikhayega, warna Rename Title
           title: (isCroppingMode || isSelectionMode || isResizeMode)
               ? (_isBannerAdLoaded && _bannerAd != null
                     // 1. Agar Ad ready hai toh Banner Ad dikhao
@@ -1147,7 +1009,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         height: _bannerAd!.size.height.toDouble(),
                         child: AdWidget(ad: _bannerAd!),
                       )
-                    // 2. Fallback: Agar Ad load nahi hua, toh mode ke hisaab se Title dikhao
                     : Text(
                         isCroppingMode
                             ? "Adjust Borders"
@@ -1156,7 +1017,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             : "Resize Layout",
                         style: const TextStyle(color: Colors.white, fontSize: 16),
                       ))
-              // Normal Mode: Jab koi tool active na ho (Dotted Underline Title)
               : Tooltip(
                   message: "Rename document",
                   child: GestureDetector(
@@ -1184,7 +1044,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 ),
           centerTitle: true,
 
-          /// 🚨 RIGHT ICON (EXTRACT TEXT): Teeno modes me HIDE ho jayega
+          /// RIGHT ICON (EXTRACT TEXT): Teeno modes me HIDE ho jayega
           actions: (isCroppingMode || isSelectionMode || isResizeMode)
               ? []
               : [
@@ -1207,13 +1067,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
         body: Column(
           children: [
-            /// 🚨 FIX 1: MAIN PREVIEW AUR THUMBNAILS KO EK CLIP-RECT STACK ME RAKHA
             /// Taaki Filter Menu peechhe se nikle aur uske clicks properly detect hon!
             Expanded(
               child: ClipRect(
                 child: Stack(
                   children: [
-                    // --- LAYER 1: Preview & Thumbnails ---
+                    /// --- LAYER 1: Preview & Thumbnails ---
                     Column(
                       children: [
                         // MAIN PREVIEW AREA
@@ -1230,7 +1089,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   setState(() {
                                     currentPage = index;
                                   });
-                                  // 🚨 NAYA FIX: Page swipe karte hi zoom wapas normal (Reset) ho jayega
                                   _transformationController.value = Matrix4.identity();
                                 },
                                 itemCount: docFiles.length,
@@ -1243,7 +1101,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   return GestureDetector(
                                     behavior: HitTestBehavior.translucent,
                                     onTap: () {
-                                      // Agar koi menu khula hai toh band karo
                                       if (_showFilterMenu) setState(() => _showFilterMenu = false);
                                       if (_showAdjustMenu) setState(() => _showAdjustMenu = false);
 
@@ -1256,13 +1113,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         });
                                       }
                                     },
-
-                                    // 1. Pata lagana ki user ne kahan double tap kiya hai
                                     onDoubleTapDown: (details) {
                                       _doubleTapDetails = details;
                                     },
 
-                                    // 2. Double tap karte hi Zoom In ya Zoom Out karna
                                     onDoubleTap: () {
                                       if (isCroppingMode || isSelectionMode || isResizeMode) return;
 
@@ -1271,8 +1125,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       if (currentScale <= 1.05) {
                                         final position = _doubleTapDetails?.localPosition ?? Offset.zero;
 
-                                        // 🚨 MAGIC FIX: Direct matrix values set kiye hain.
-                                        // Yeh Zindagi me kabhi 'deprecated' ya error nahi denge!
                                         _transformationController.value = Matrix4.identity()
                                           ..setTranslationRaw(
                                             -position.dx * 1.5,
@@ -1296,7 +1148,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         child: Padding(
                                           padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 80),
 
-                                          //child: RotatedBox(
                                           child: LayoutBuilder(
                                             builder: (context, constraints) {
                                               Widget pagePreviewContent = RepaintBoundary(
@@ -1305,7 +1156,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                   child: Stack(
                                                     alignment: Alignment.center,
                                                     children: [
-                                                      // Layer 1: Base Image with Filters
                                                       ColorFiltered(
                                                         colorFilter: _getAdjustColorFilter(
                                                           _pageBrightness[index],
@@ -1321,19 +1171,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                           child: Image.file(
                                                             docFiles[index]['cropped'] as File,
                                                             fit: BoxFit.contain,
-                                                            // 🚨 FIX 3: Swipe karte time purani image gayab nahi hogi (no flicker)
                                                             gaplessPlayback: true,
 
-                                                            // 🚨 FIX 4: Swipe/Zoom rendering ko fast karne ke liye
                                                             filterQuality: FilterQuality.low,
                                                           ),
                                                         ),
                                                       ),
 
-                                                      // Layer 2 & 3: Vector Markups (Drawings, Texts, Shapes)
                                                       if (_pageMarkups[index] != null &&
                                                           _pageMarkups[index] is MarkupExportData) ...[
-                                                        // --- DRAWING STROKES ---
+                                                        /// --- DRAWING STROKES ---
                                                         Positioned.fill(
                                                           child: CustomPaint(
                                                             painter: DrawingPainter(
@@ -1347,7 +1194,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                           ),
                                                         ),
 
-                                                        // --- TEXTS & SHAPES ---
+                                                        /// --- TEXTS & SHAPES ---
                                                         Positioned.fill(
                                                           child: LayoutBuilder(
                                                             builder: (context, constraints) {
@@ -1359,7 +1206,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                               return Stack(
                                                                 clipBehavior: Clip.none,
                                                                 children: [
-                                                                  // TEXTS LOOP
+                                                                  /// TEXTS LOOP
                                                                   ...data.texts.map((item) {
                                                                     double scaledFontSize = item.fontSize * scaleRatio;
                                                                     Color textColor = item.appearance == 0
@@ -1464,7 +1311,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                     );
                                                                   }),
 
-                                                                  // SHAPES LOOP
+                                                                  /// SHAPES LOOP
                                                                   ...data.shapes.map((shape) {
                                                                     return Positioned(
                                                                       left: shape.offset.dx * canvasW,
@@ -1510,7 +1357,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 ),
                                               );
 
-                                              // 🚨 NAYA: LayoutBuilder ka return logic yahan aayega
                                               double? targetRatio = _getPreviewAspectRatio(_selectedPageSize);
 
                                               if (targetRatio != null) {
@@ -1525,8 +1371,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                   ),
                                                 );
                                               }
-
-                                              // Agar "Auto Fit" hai toh default return kardo
                                               return pagePreviewContent;
                                             },
                                           ),
@@ -1573,11 +1417,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                               onTap: () {
                                                 setState(() {
                                                   isSelectionMode = !isSelectionMode;
-                                                  // Agar selection mode band kiya, toh saare checkboxes clear kar do
                                                   if (!isSelectionMode) {
                                                     selectedPagesList.fillRange(0, selectedPagesList.length, false);
                                                   }
-
                                                   isResizeMode = false;
                                                   isThumbnailVisible = true;
                                                 });
@@ -1667,7 +1509,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           ),
                         ),
 
-                        // --- THUMBNAILS LIST ---
+                        /// --- THUMBNAILS LIST ---
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
@@ -1676,52 +1518,35 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             child: Container(
                               height: 90,
                               color: const Color(0xFF1E1E1E),
-
-                              // 🚨 MAGIC START: ListView.builder ki jagah ReorderableListView.builder
                               child: ReorderableListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: docFiles.length,
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-
-                                // 🚨 NAYA: Hold (Long Press) karte hi kya hoga?
                                 onReorderStart: (int index) {
                                   _saveEditsToMemory(); // Memory me save kardo
                                   HapticFeedback.mediumImpact(); // Solid vibration feel
-
-                                  // Agar Selection Mode OFF hai, toh hold karte hi ON kardo aur is item ko tick kardo
                                   if (!isSelectionMode) {
                                     setState(() {
                                       isSelectionMode = true;
-                                      //selectedPagesList[index] = true;
-
-                                      // Agar koi aur menu khula hai toh use band kardo
                                       _showFilterMenu = false;
                                       _showAdjustMenu = false;
                                       isResizeMode = false;
                                     });
                                   }
                                 },
-
-                                // 🚨 NAYA CORRECTION: Growable list error fix kiya
                                 onReorder: (int oldIndex, int newIndex) {
                                   setState(() {
                                     if (oldIndex < newIndex) {
-                                      newIndex -= 1; // Flutter ka default offset adjustment
+                                      newIndex -= 1;
                                     }
 
-                                    if (oldIndex == newIndex) return; // Agar apni jagah wapas chhoda toh kuch mat karo
-
-                                    // 1. Main DocFiles list ko reorder karo
+                                    if (oldIndex == newIndex) return;
                                     final Map<String, dynamic> item = docFiles.removeAt(oldIndex);
                                     docFiles.insert(newIndex, item);
-
-                                    // 🚨 MAGIC FIX: selectedPagesList ko force karke Growable banaya taaki removeAt crash na ho!
                                     List<bool> growableSelection = List<bool>.from(selectedPagesList);
                                     final bool selItem = growableSelection.removeAt(oldIndex);
                                     growableSelection.insert(newIndex, selItem);
-                                    selectedPagesList = growableSelection; // Wapas primary variable me copy kardo
-
-                                    // 3. Current Page track karo taaki bada wala preview galat jagah na jaye
+                                    selectedPagesList = growableSelection;
                                     if (currentPage == oldIndex) {
                                       currentPage = newIndex;
                                     } else if (currentPage > oldIndex && currentPage <= newIndex) {
@@ -1730,8 +1555,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       currentPage += 1;
                                     }
                                   });
-
-                                  // 4. Memory se baaki arrays (rotation, filters) regenerate kar lo
                                   _loadEditsFromMemory();
 
                                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1740,10 +1563,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     }
                                   });
 
-                                  HapticFeedback.lightImpact(); // Drop karne par light vibration
+                                  HapticFeedback.lightImpact();
                                 },
 
-                                // 🚨 NAYA: Hawa me drag hote waqt premium UI (shadow effect)
                                 proxyDecorator: (Widget child, int index, Animation<double> animation) {
                                   return Material(
                                     color: Colors.transparent,
@@ -1758,7 +1580,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   bool isChecked = selectedPagesList[index];
 
                                   return GestureDetector(
-                                    // 🚨 ZAROORI FIX: Reorderable list me har item ki Unique 'Key' honi zaruri hai
                                     key: ObjectKey(docFiles[index]),
 
                                     onTap: () {
@@ -1772,9 +1593,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       width: 60,
                                       margin: const EdgeInsets.only(right: 12),
                                       decoration: BoxDecoration(
-                                        // 🚨 CHANGE: Yahan se decoration image hata di hai taaki custom widgets use kar sakein
                                         border: Border.all(
-                                          //color: isSelected && !isSelectionMode ? Colors.blue : Colors.transparent,
                                           color: isSelected ? Colors.blue : Colors.transparent,
                                           width: 3,
                                         ),
@@ -1782,22 +1601,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       ),
 
                                       child: ClipRRect(
-                                        // ClipRRect lagaya taaki ghumne par image border ke bahar na nikle
                                         borderRadius: BorderRadius.circular(2),
                                         child: Stack(
                                           children: [
-                                            // 🚨 FIX: LIVE EDITED IMAGE + MARKUPS LAYER
                                             Positioned.fill(
                                               child: Builder(
                                                 builder: (context) {
-                                                  // 1. ORIGINAL THUMBNAIL CONTENT
                                                   Widget thumbnailContent = RotatedBox(
                                                     quarterTurns: _imageQuarterTurns[index],
                                                     child: Stack(
-                                                      // 🚨 FIX 1: 'fit: StackFit.expand' Hata diya taaki image stretch na ho
                                                       alignment: Alignment.center,
                                                       children: [
-                                                        // Layer 1: Base Image with Filters & Adjustments
                                                         ColorFiltered(
                                                           colorFilter: _getAdjustColorFilter(
                                                             _pageBrightness[index],
@@ -1812,16 +1626,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                 ),
                                                             child: Image.file(
                                                               docFiles[index]['cropped'] as File,
-                                                              fit: BoxFit.contain, // Image apni jagah par lock rahegi
+                                                              fit: BoxFit.contain,
                                                             ),
                                                           ),
                                                         ),
 
-                                                        // Layer 2: Markups (Drawing, Text, Shapes)
                                                         if (_pageMarkups[index] != null &&
                                                             _pageMarkups[index] is MarkupExportData) ...[
-                                                          // --- DRAWING STROKES ---
-                                                          // 🚨 FIX 2: Drawing ko Positioned.fill me dala taaki wo 0 size na ho jaye
+                                                          /// --- DRAWING STROKES ---
                                                           Positioned.fill(
                                                             child: CustomPaint(
                                                               painter: DrawingPainter(
@@ -1835,8 +1647,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                             ),
                                                           ),
 
-                                                          // --- TEXTS & SHAPES ---
-                                                          // 🚨 FIX 3: LayoutBuilder ko bhi Positioned.fill me dala
+                                                          /// --- TEXTS & SHAPES ---
                                                           Positioned.fill(
                                                             child: LayoutBuilder(
                                                               builder: (context, constraints) {
@@ -1848,7 +1659,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                 return Stack(
                                                                   clipBehavior: Clip.none,
                                                                   children: [
-                                                                    // TEXTS LOOP
+                                                                    /// TEXTS LOOP
                                                                     ...data.texts.map((item) {
                                                                       double scaledFontSize =
                                                                           item.fontSize * scaleRatio;
@@ -2005,7 +1816,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                     ),
                                                   );
 
-                                                  // 2. WHITE PAPER CANVAS LOGIC (Thumbnail me bhi apply hoga)
+                                                  ///  WHITE PAPER CANVAS LOGIC (Thumbnail me bhi apply hoga)
                                                   double? targetRatio = _getPreviewAspectRatio(_selectedPageSize);
 
                                                   if (targetRatio != null) {
@@ -2085,7 +1896,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       ],
                     ),
 
-                    // --- LAYER 2: FILTER MENU ---
+                    /// --- LAYER 2: FILTER MENU ---
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -2095,7 +1906,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       child: _buildFilterMenuWidget(),
                     ),
 
-                    // --- 🚨 LAYER 3: ADJUST MENU ---
+                    /// ---  LAYER 3: ADJUST MENU ---
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -2113,39 +1924,35 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         ),
                       ),
 
-                    // 🚨 NAYA: OCR Copy Banner
-                    // 🚨 NAYA: Minimal OCR Copy Banner (Tap outside to close)
+                    /// OCR Copy Banner
                     if (_showCopyBanner && _extractedText != null)
                       Positioned.fill(
                         child: GestureDetector(
                           behavior: HitTestBehavior.translucent,
-                          // 🚨 FIX 1: Screen par kahin bhi (bahar) click karne se banner close hoga
                           onTap: () => setState(() => _showCopyBanner = false),
                           child: Align(
-                            alignment: Alignment.topRight, // Center top par dikhega
+                            alignment: Alignment.topRight,
                             child: Padding(
-                              padding: const EdgeInsets.only(top: 16, right: 16), // AppBar ke thoda neeche
+                              padding: const EdgeInsets.only(top: 16, right: 16),
                               child: GestureDetector(
-                                // 🚨 FIX 2: Box ke andar click karne par close nahi hoga (click interceptor)
                                 onTap: () {},
                                 child: Material(
                                   color: Colors.transparent,
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF2C2C2C), // Dark theme
-                                      borderRadius: BorderRadius.circular(30), // Pill shape
+                                      color: const Color(0xFF2C2C2C),
+                                      borderRadius: BorderRadius.circular(30),
                                       border: Border.all(color: Colors.blueAccent.withOpacity(0.5), width: 1.5),
                                       boxShadow: const [
                                         BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 5)),
                                       ],
                                     ),
 
-                                    // 🚨 FIX 3: Sirf Copy button aur X icon (Row me)
                                     child: Row(
-                                      mainAxisSize: MainAxisSize.min, // Box utna hi bada hoga jitne buttons hain
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        // Copy Button
+                                        /// Copy Button
                                         ElevatedButton.icon(
                                           onPressed: () {
                                             Clipboard.setData(ClipboardData(text: _extractedText!));
@@ -2168,8 +1975,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                           ),
                                         ),
 
-                                        const SizedBox(width: 12), // Dono ke beech ka gap
-                                        // 'X' Close Icon
+                                        const SizedBox(width: 12),
+
+                                        /// 'X' Close Icon
                                         GestureDetector(
                                           onTap: () => setState(() => _showCopyBanner = false),
                                           child: Container(
@@ -2203,8 +2011,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 child: Stack(
                   children: [
                     // NORMAL TOOLS:
-                    // Jab crop chalega, toh yeh (0, 1.0) matlab 100% niche jayega
-                    // Jab crop band hoga, toh (0, 0) matlab wapas original position par aayega
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -2214,8 +2020,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     ),
 
                     // CROP OPTIONS:
-                    // Jab crop chalega, toh yeh (0, 0) matlab upar original position par aayega
-                    // Jab crop band hoga, toh (0, 1.0) matlab wapas niche chhip jayega
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -2231,7 +2035,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       child: _buildSelectedSubTools(),
                     ),
 
-                    // 4. 🚨 NEW: RESIZE OPTIONS:
+                    // NEW: RESIZE OPTIONS:
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -2245,7 +2049,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              color: Colors.black, // Ekdum dark background
+              color: Colors.black,
               child: SafeArea(
                 top: false,
                 child: Row(
@@ -2261,20 +2065,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 showToast("Opening scanner...");
 
                                 if (widget.isFromGallery) {
-                                  // 🚨 MASTER FIX 1: Agar Gallery ya Home se aaye the, toh current Editor
-                                  // ko 'Replace' karke Scanner kholenge. (pushReplacement)
-                                  // Isse naye scans delete nahi honge aur wapas aane par issue nahi aayega!
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      // Jo current files (docFiles) yahan hain wahi Scanner ko bhej do
                                       builder: (context) =>
                                           ScannerScreen(initialImages: docFiles, isOpenedFromEditor: true),
                                     ),
                                   );
                                 } else {
-                                  // 🚨 MASTER FIX 2: Agar pehle se Scanner khula tha, toh original
-                                  // list ko update karo aur simply pop(back) ho jao.
                                   widget.imageFiles.clear();
                                   widget.imageFiles.addAll(docFiles);
                                   Navigator.pop(context);
@@ -2293,16 +2091,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                     // Save PDF Button
                     Opacity(
-                      // 🚨 FIX 1: Tool on hone par button thoda fade ho jayega
                       opacity: isAnyToolActive ? 0.4 : 1.0,
                       child: ElevatedButton(
-                        // 🚨 FIX 2: isAnyToolActive true hone par tap disable (null) ho jayega
                         onPressed: isAnyToolActive ? null : _handleSaveClick,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueAccent,
-                          // Adobe scan jaisa blue
                           foregroundColor: Colors.white,
-                          // 🚨 FIX 3: Disabled state ke liye colors set kiye
                           disabledBackgroundColor: Colors.blueAccent.withOpacity(0.3),
                           disabledForegroundColor: Colors.white60,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -2312,7 +2106,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           children: [
                             Text("Save PDF", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                             SizedBox(width: 4),
-                            // Icon(Icons.keyboard_arrow_up_rounded, size: 20),
                           ],
                         ),
                       ),
@@ -2327,19 +2120,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- RENAME DIALOG ---
+  /// --- RENAME DIALOG ---
   Future<void> _showRenameDialog(BuildContext context) async {
     TextEditingController nameController = TextEditingController(text: documentName);
 
     await showDialog(
       context: context,
       builder: (context) {
-        // StatefulBuilder zaruri hai taaki dialog ke andar ka 'x' icon live update ho
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: const Color(0xFF2C2C2C),
-              // Discard dialog jaisa dark color
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               titlePadding: const EdgeInsets.only(top: 20, left: 24, right: 24, bottom: 12),
               title: const Text(
@@ -2360,17 +2151,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     autofocus: true,
                     cursorColor: Colors.blueAccent,
                     onChanged: (val) {
-                      setDialogState(() {}); // 'x' icon ko update karne ke liye
+                      setDialogState(() {});
                     },
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.black26,
-                      // Text box ka dark background
                       hintText: "Enter document name",
                       hintStyle: const TextStyle(color: Colors.white38),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
 
-                      // 🚨 'X' Clear Icon
+                      /// 'X' Clear Icon
                       suffixIcon: nameController.text.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.cancel, color: Colors.white54, size: 20),
@@ -2393,7 +2183,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ),
               actionsPadding: const EdgeInsets.only(right: 16, bottom: 16, top: 8),
               actions: [
-                // 🚨 FIX: Cancel Button ab Outlined aur Grey Border ke sath hai
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.grey),
@@ -2402,8 +2191,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   onPressed: () => Navigator.pop(context),
                   child: const Text("Cancel", style: TextStyle(color: Colors.white70, fontSize: 15)),
                 ),
-
-                // 🚨 FIX: Rename Button ab Outlined aur Blue Border/Text ke sath hai
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.blueAccent, width: 1.5), // Colored Border
@@ -2438,7 +2225,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- 🚨 NAYA BLOCK: FILTER MENU WIDGET UI ---
+  /// FILTER MENU WIDGET UI ---
   Widget _buildFilterMenuWidget() {
     String currentFilter = _pageFilters[currentPage];
 
@@ -2447,7 +2234,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       onHorizontalDragUpdate: (_) {},
       onVerticalDragUpdate: (_) {},
 
-      // 🚨 FIX 1: AnimatedContainer ki jagah normal Container lagaya aur height hata di
       child: Container(
         decoration: const BoxDecoration(
           color: Color(0xFF1E1E1E),
@@ -2455,7 +2241,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ),
         padding: const EdgeInsets.only(top: 16, bottom: 8),
 
-        // 🚨 FIX 2: Column ko 'min' size diya taaki ye content ke hisaab se shrink/grow ho
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -2531,13 +2316,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ),
             ),
 
-            // 🚨 FIX 3: Spacer hata kar yahan AnimatedSize lagaya.
-            // Ye bina crash kare smooth height transition dega!
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
               child: isSelectionMode
-                  ? const SizedBox(width: double.infinity) // Jab selection ON, toh ye height 0 kar lega
+                  ? const SizedBox(width: double.infinity)
                   : Padding(
                       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
                       child: Row(
@@ -2570,17 +2353,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           const Spacer(),
 
                           // Settings Icon
-                          // 🚨 FIX: Settings Icon ko Tooltip ke andar wrap kar diya
                           Tooltip(
-                            message: "Settings Filter", // Yahan apna tooltip text likho
+                            message: "Settings Filter",
                             child: IconButton(
                               icon: const Icon(Icons.settings, color: Colors.white, size: 24),
                               onPressed: () {
-                                // 🚨 FIX: Dialog function call hoga
                                 _showDefaultFilterDialog(context);
                               },
-                              padding: EdgeInsets.zero, // Icon ko compact rakhne ke liye
-                              constraints: const BoxConstraints(), // Default extra padding hatane ke liye
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
                             ),
                           ),
                         ],
@@ -2593,12 +2374,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- DEFAULT FILTER DIALOG ---
+  /// --- DEFAULT FILTER DIALOG ---
   Future<void> _showDefaultFilterDialog(BuildContext context) async {
     // Ye temporary variable user ki selection track karega dialog ke andar
     String tempSelectedFilter = _defaultFilter;
 
-    // Tumhare 5 filter options
+    // 5 filter options
     final List<String> filters = ["Original color", "Auto-color", "Grayscale", "Whiteboard", "Light text"];
 
     await showDialog(
@@ -2637,7 +2418,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     onChanged: (val) {
                       if (val != null) {
                         setDialogState(() {
-                          tempSelectedFilter = val; // Selection change karega
+                          tempSelectedFilter = val;
                         });
                       }
                     },
@@ -2664,7 +2445,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                   onPressed: () async {
-                    // 🚨 Data ko SharedPreferences me hamesha ke liye save kardo
                     SharedPreferences prefs = await SharedPreferences.getInstance();
                     await prefs.setString('default_filter', tempSelectedFilter);
 
@@ -2688,7 +2468,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- 🚨 NAYA BLOCK: ADJUST MENU WIDGET UI ---
+  /// --- ADJUST MENU WIDGET UI ---
   Widget _buildAdjustMenuWidget() {
     bool isBrightness = _activeAdjustTab == "Brightness";
     double currentValue = isBrightness ? _pageBrightness[currentPage] : _pageContrast[currentPage];
@@ -2699,17 +2479,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       onHorizontalDragUpdate: (_) {},
       onVerticalDragUpdate: (_) {},
       child: Container(
-        // 🚨 FIX 1: Fixed height (180) hata di taaki overflow na ho
         decoration: const BoxDecoration(
           color: Color(0xFF1E1E1E),
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         padding: const EdgeInsets.only(top: 16, bottom: 8),
-        // 🚨 FIX 2: Column ka size 'min' rakha taaki content ke hisaab se adjust ho jaye
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // --- TOP TABS (Brightness | Contrast) ---
+            /// --- TOP TABS (Brightness | Contrast) ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -2751,7 +2529,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
             const SizedBox(height: 16),
 
-            // --- VALUE TEXT ROW ---
+            /// --- VALUE TEXT ROW ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
@@ -2763,7 +2541,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ),
             ),
 
-            // --- MAIN SLIDER ---
+            /// --- MAIN SLIDER ---
             SliderTheme(
               data: SliderThemeData(
                 trackHeight: 2.5,
@@ -2778,7 +2556,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 max: 100,
                 onChanged: (val) {
                   setState(() {
-                    // 🚨 FIX 3: Bulk Adjust Logic for Selection Mode
+                    // Bulk Adjust Logic for Selection Mode
                     if (isSelectionMode) {
                       for (int i = 0; i < docFiles.length; i++) {
                         if (selectedPagesList[i] == true) {
@@ -2810,17 +2588,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               ),
             ),
 
-            // 🚨 FIX 4: Spacer hata kar SizedBox lagaya taaki ui collapse na ho
             const SizedBox(height: 12),
 
-            // --- BOTTOM TOGGLE & RESET ---
+            /// --- BOTTOM TOGGLE & RESET ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                // 🚨 FIX 5: Agar selection ON hai, toh Reset button ko end me right-align kardo
                 mainAxisAlignment: isSelectionMode ? MainAxisAlignment.end : MainAxisAlignment.spaceBetween,
                 children: [
-                  // 🚨 FIX 6: Selection Mode me Apply to all switch hide ho jayega
                   if (!isSelectionMode)
                     Row(
                       children: [
@@ -2853,12 +2628,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       ],
                     ),
 
-                  // 🚨 RESET BUTTON (Bulk logic updated)
+                  /// RESET BUTTON (Bulk logic updated)
                   TextButton(
                     onPressed: () {
                       setState(() {
                         if (isSelectionMode) {
-                          // Agar selection mode ON hai, toh sirf selected ko reset karo
                           for (int i = 0; i < docFiles.length; i++) {
                             if (selectedPagesList[i] == true) {
                               _pageBrightness[i] = 0.0;
@@ -2894,13 +2668,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- TOOLBAR WIDGETS ---
+  /// --- TOOLBAR WIDGETS ---
 
   Widget _buildNormalTools() {
-    // FIX: SizedBox lagana zaroori hai taaki sliding ke time height collapse na ho
     return SizedBox(
       key: const ValueKey("NormalTools"),
-      // Animation Engine ko pata chalega ki ye alag widget hai
       height: 75,
       width: double.infinity,
       child: ListView(
@@ -2911,7 +2683,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Retake",
             icon: Symbols.reset_image_rounded,
             tooltipMessage: "Retake current photo",
-            onTap: _retakeImage, // 👈 YEH NAYI LINE ADD KARNI HAI
+            onTap: _retakeImage,
           ),
           _buildToolItem(
             label: "Crop",
@@ -2926,8 +2698,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             icon: Icons.rotate_right_rounded,
             tooltipMessage: "Rotate 90 degrees",
             onTap: _rotateImage,
-            // Tumhara upar banaya function
-            isRotate: true, // 🚨 Isko true pass karna zaroori hai tabhi ghumega
+            isRotate: true,
           ),
 
           _buildToolItem(
@@ -2938,7 +2709,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             onTap: () {
               setState(() {
                 _showFilterMenu = !_showFilterMenu;
-                if (_showFilterMenu) _showAdjustMenu = false; // Filter khule toh Adjust band ho jaye
+                if (_showFilterMenu) _showAdjustMenu = false;
               });
             },
           ),
@@ -2948,11 +2719,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             icon: Icons.tune_rounded,
             tooltipMessage: "Adjust brightness and contrast",
             isSelected: _showAdjustMenu,
-            // Open hone par icon blue higlight hoga
             onTap: () {
               setState(() {
                 _showAdjustMenu = !_showAdjustMenu;
-                if (_showAdjustMenu) _showFilterMenu = false; // Adjust khule toh Filter band ho jaye
+                if (_showAdjustMenu) _showFilterMenu = false;
               });
             },
           ),
@@ -2961,7 +2731,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Markup",
             icon: Icons.border_color_rounded,
             tooltipMessage: "Draw or add text on image",
-            onTap: _openMarkupScreen, // 🚨 Naya function yahan cleanly call ho gaya
+            onTap: _openMarkupScreen,
           ),
 
           _buildToolItem(
@@ -2971,8 +2741,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isSelected: isResizeMode,
             onTap: () {
               setState(() {
-                isResizeMode = true; // 🚨 Click hone par mode ON ho jayega
-                _showFilterMenu = false; // Agar kuch aur khula hai toh band kardo
+                isResizeMode = true;
+                _showFilterMenu = false;
                 _showAdjustMenu = false;
                 isThumbnailVisible = false;
               });
@@ -2989,7 +2759,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Delete",
             icon: Icons.delete_outline_rounded,
             tooltipMessage: "Delete current page",
-            onTap: _promptDeletePage, // 🚨 FIX: Yahan function attach kiya
+            onTap: _promptDeletePage,
           ),
         ],
       ),
@@ -2997,7 +2767,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   Widget _buildCropSubTools() {
-    // FIX: Same size ka SizedBox taaki switcher me smooth transition ho
     return SizedBox(
       key: const ValueKey("CropSubTools"),
       height: 75,
@@ -3026,28 +2795,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- 🚨 NAYA BLOCK: RESIZE SUB TOOLS (Fixed Close Button) ---
+  // --- RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildResizeSubTools() {
-    // 🚨 FIX 1: Check karo ki custom size apply hua hai ya original 'Auto Fit' par hai
-    //bool hasCustomSize = _selectedPageSize != "Auto Fit";
     bool hasSizeChanged = _selectedPageSize != _defaultPageSize;
 
     return SizedBox(
       key: const ValueKey("ResizeSubTools"),
       height: 75,
       width: double.infinity,
-      // 🚨 FIX: Row ka use kiya taaki Close button fixed rahe
       child: Row(
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: _buildToolItem(
-              // 🚨 FIX 2: Condition ke hisaab se label, icon aur tooltip change hoga
               label: hasSizeChanged ? "Done" : "Close",
               icon: hasSizeChanged ? Icons.check_rounded : Icons.close_rounded,
               tooltipMessage: hasSizeChanged ? "Apply changes" : "Close resize options",
-
-              // 🚨 MAGIC: isSelected true hote hi icon aur text automatically BLUE ho jayega!
               isSelected: hasSizeChanged,
 
               onTap: () {
@@ -3059,27 +2822,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             ),
           ),
 
-          // Divider (Optional: Ek patli line Close aur options ke beech)
           Container(height: 30, width: 1, color: Colors.white10, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
-          // --- 2. SCROLLABLE OPTIONS (Expanded taaki baki jagah le sake) ---
+          /// --- SCROLLABLE OPTIONS (Expanded taaki baki jagah le sake) ---
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
               children: [
-                // 1. Auto Fit
+                // Auto Fit
                 _buildToolItem(
                   label: "Auto Fit",
                   icon: Icons.fit_screen_rounded,
                   tooltipMessage: "Auto fit to image size",
-                  //onTap: () => showToast("Auto fit applied"),
                   isSelected: _selectedPageSize == "Auto Fit",
-                  // 🚨 NAYA: Highlight hoga
                   onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
                 ),
 
-                // 2. US Letter
                 _buildToolItem(
                   label: "Letter (P)",
                   icon: Icons.crop_portrait_rounded,
@@ -3092,17 +2851,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "Letter (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Letter Landscape",
-                  //onTap: () => showToast("US Letter Landscape applied"),
                   isSelected: _selectedPageSize == "Letter (L)",
                   onTap: () => setState(() => _selectedPageSize = "Letter (L)"),
                 ),
 
-                // 3. US Legal
                 _buildToolItem(
                   label: "Legal (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "US Legal Portrait",
-                  //onTap: () => showToast("US Legal Portrait applied"),
                   isSelected: _selectedPageSize == "Legal (P)",
                   onTap: () => setState(() => _selectedPageSize = "Legal (P)"),
                 ),
@@ -3110,17 +2866,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "Legal (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Legal Landscape",
-                  //onTap: () => showToast("US Legal Landscape applied"),
                   isSelected: _selectedPageSize == "Legal (L)",
                   onTap: () => setState(() => _selectedPageSize = "Legal (L)"),
                 ),
 
-                // 4. A4 Size
                 _buildToolItem(
                   label: "A4 (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A4 Portrait",
-                  //onTap: () => showToast("A4 Portrait applied"),
                   isSelected: _selectedPageSize == "A4 (P)",
                   onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
                 ),
@@ -3128,17 +2881,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "A4 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A4 Landscape",
-                  //onTap: () => showToast("A4 Landscape applied"),
                   isSelected: _selectedPageSize == "A4 (L)",
                   onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
                 ),
 
-                // 5. A3 Size
                 _buildToolItem(
                   label: "A3 (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A3 Portrait",
-                  //onTap: () => showToast("A3 Portrait applied"),
                   isSelected: _selectedPageSize == "A3 (P)",
                   onTap: () => setState(() => _selectedPageSize = "A3 (P)"),
                 ),
@@ -3146,7 +2896,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "A3 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A3 Landscape",
-                  //onTap: () => showToast("A3 Landscape applied"),
                   isSelected: _selectedPageSize == "A3 (L)",
                   onTap: () => setState(() => _selectedPageSize = "A3 (L)"),
                 ),
@@ -3156,7 +2905,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "A5 (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A5 Portrait",
-                  //onTap: () => showToast("A5 Portrait applied"),
                   isSelected: _selectedPageSize == "A5 (P)",
                   onTap: () => setState(() => _selectedPageSize = "A5 (P)"),
                 ),
@@ -3164,7 +2912,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "A5 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A5 Landscape",
-                  //onTap: () => showToast("A5 Landscape applied"),
                   isSelected: _selectedPageSize == "A5 (L)",
                   onTap: () => setState(() => _selectedPageSize = "A5 (L)"),
                 ),
@@ -3176,15 +2923,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- 🚨 NAYA BLOCK: SELECTION MODE TOOLS ---
+  /// --- SELECTION MODE TOOLS ---
   Widget _buildSelectedSubTools() {
-    // Check karo ki list me ek bhi page selected hai ya nahi
     bool hasSelection = selectedPagesList.contains(true);
-
-    // 🚨 NAYA: Check karo ki kitne pages selected hain
     int selectedCount = selectedPagesList.where((e) => e == true).length;
-
-    // Check karo ki kya saare ke saare pages selected hain?
     bool allSelected = selectedPagesList.isNotEmpty && selectedPagesList.every((e) => e == true);
 
     return SizedBox(
@@ -3195,7 +2937,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
         children: [
-          // 🚨 FIX 1: 1st Option (Select All / Deselect All) - Ye hamesha ACTIVE rahega
           _buildToolItem(
             label: allSelected ? "Deselect" : "Select All", // Text dynamic
             icon: allSelected ? Icons.deselect_rounded : Icons.select_all_rounded, // Icon dynamic
@@ -3206,61 +2947,48 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 _showAdjustMenu = false;
 
                 if (allSelected) {
-                  // Agar sab selected hain, toh sabko false (untick) kar do
                   selectedPagesList.fillRange(0, selectedPagesList.length, false);
                 } else {
-                  // Agar sab selected nahi hain, toh sabko true (tick) kar do
                   selectedPagesList.fillRange(0, selectedPagesList.length, true);
                 }
               });
             },
           ),
 
-          // 🚨 FIX 2: Baaki ke tools ko ek Row me wrap karke sirf un par Fade/Disable lagaya
           AnimatedOpacity(
             duration: const Duration(milliseconds: 200),
             opacity: hasSelection ? 1.0 : 0.4,
             child: IgnorePointer(
               ignoring: !hasSelection,
               child: Row(
-                mainAxisSize: MainAxisSize.min, // Taaki UI kharab na ho
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 🚨 NAYA: Merge Button (Only active if selectedCount >= 2)
                   AnimatedOpacity(
                     duration: const Duration(milliseconds: 200),
-                    // Agar 2 se kam hain toh thoda fade rakhenge
                     opacity: selectedCount >= 2 ? 1.0 : 0.4,
                     child: IgnorePointer(
-                      // Agar 2 se kam hain toh click disable hoga
                       ignoring: selectedCount < 2,
                       child: _buildToolItem(
                         label: "Merge",
                         icon: Symbols.stack_group_rounded,
-                        // Tum chaho toh Icons.view_comfy_rounded bhi use kar sakte ho
                         tooltipMessage: "Merge selected photos into one page",
                         onTap: () async {
-                          // 1. Loading UI dikhao taaki app hang na lage
                           showDialog(
                             context: context,
                             barrierDismissible: false,
                             builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
                           );
 
-                          // 2. Apne naye function ko call karke Baked (Final) files mango
                           List<File> filesToMerge = await _prepareImagesForMerge();
 
-                          // 3. Loading band karo
                           if (mounted) Navigator.pop(context);
 
-                          // 4. Merge Screen open karo aur result ka WAIT karo
                           if (filesToMerge.isNotEmpty && mounted) {
-                            // 🚨 FIX 1: Yahan 'await' lagaya aur aane wali merged file ko receive kiya
                             final mergedFile = await Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => MergeScreen(selectedImages: filesToMerge)),
                             );
 
-                            // 🚨 FIX 2: Jab user save karke wapas aaye toh us file ko list me add karo
                             if (mergedFile != null && mergedFile is File) {
                               setState(() {
                                 // A. Photo ko original list me daalo
@@ -3276,7 +3004,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   'autoCropPosition': null,
                                 });
 
-                                // B. 🚨 MAGIC FIX: Saari parallel lists ko regenerate karo taaki RangeError crash na aaye
                                 _savedCropPositions = List.generate(
                                   docFiles.length,
                                   (i) => docFiles[i]['cropPosition'],
@@ -3300,15 +3027,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 _pageContrast = List.generate(docFiles.length, (i) => docFiles[i]['contrast'] ?? 0.0);
                                 _pageMarkups = List.generate(docFiles.length, (i) => docFiles[i]['markups']);
 
-                                // Selection list ko bhi nayi length do aur sabko false (untick) kardo
                                 selectedPagesList = List.generate(docFiles.length, (i) => false);
 
-                                // C. UI Adjustments
                                 isSelectionMode = false;
                                 currentPage = docFiles.length - 1; // Naye page par focus
                               });
 
-                              // PageView ko animate karke naye page par le jao
                               WidgetsBinding.instance.addPostFrameCallback((_) {
                                 if (_pageController.hasClients) {
                                   _pageController.jumpToPage(currentPage);
@@ -3329,7 +3053,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     tooltipMessage: "Rotate selected pages",
                     //onTap: () => showToast("Bulk rotate coming soon"),
                     isRotate: true,
-                    // 🚨 FIX: Ye true karna zaroori hai taaki rotate icon smoothly ghume
                     onTap: _bulkRotateImages,
                   ),
                   _buildToolItem(
@@ -3381,8 +3104,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         final File file = map['cropped'] as File;
         final Uint8List bytes = await file.readAsBytes();
 
-        // 🚀 SPEED HACK 1: Native Decoder se decode aur resize ek sath (Drastically reduces RAM and CPU usage)
-        // 1500px A4 print ke liye perfect quality deta hai aur process hone me microseconds leta hai.
         final ui.Codec codec = await ui.instantiateImageCodec(bytes, targetWidth: 1500);
         final ui.FrameInfo frameInfo = await codec.getNextFrame();
         final ui.Image uiImg = frameInfo.image;
@@ -3392,16 +3113,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         double targetWidth = isLandscape ? uiImg.height.toDouble() : uiImg.width.toDouble();
         double targetHeight = isLandscape ? uiImg.width.toDouble() : uiImg.height.toDouble();
 
-        // 🚀 SPEED HACK 2: CPU (package:image) ki jagah Native GPU Canvas ka use
         final ui.PictureRecorder recorder = ui.PictureRecorder();
         final Canvas canvas = Canvas(recorder);
 
-        // --- 1. ROTATION LOGIC (Instantly on GPU) ---
+        // --- ROTATION LOGIC (Instantly on GPU) ---
         canvas.translate(targetWidth / 2, targetHeight / 2);
         canvas.rotate(turns * 3.141592653589793 / 2); // 90 degree = pi/2
         canvas.translate(-uiImg.width / 2, -uiImg.height / 2);
 
-        // --- 2. FILTER & ADJUST LOGIC (Instantly on GPU via saveLayer) ---
+        // ---  FILTER & ADJUST LOGIC (Instantly on GPU via saveLayer) ---
         String activeFilter = _pageFilters[i];
         double activeBright = _pageBrightness[i];
         double activeContrast = _pageContrast[i];
@@ -3419,18 +3139,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           canvas.saveLayer(imageRect, Paint()..colorFilter = baseFilter);
         }
 
-        // Base image draw karna
         canvas.drawImage(uiImg, Offset.zero, Paint());
 
         if (baseFilter != null) canvas.restore();
         canvas.restore(); // Adjust layer restore
 
-        // --- 3. MARKUPS (Shapes, Text, Drawing) ---
+        // --- MARKUPS (Shapes, Text, Drawing) ---
         if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
           MarkupExportData exportData = _pageMarkups[i];
           double scaleRatio = uiImg.width / 400.0;
 
-          // A. Draw Strokes (Drawing)
+          //  Draw Strokes (Drawing)
           DrawingPainter painter = DrawingPainter(
             paths: exportData.paths,
             currentPoints: [],
@@ -3441,7 +3160,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           );
           painter.paint(canvas, Size(uiImg.width.toDouble(), uiImg.height.toDouble()));
 
-          // B. Draw Shapes
+          //  Draw Shapes
           for (var shape in exportData.shapes) {
             canvas.save();
             canvas.translate(shape.offset.dx * uiImg.width, shape.offset.dy * uiImg.height);
@@ -3465,7 +3184,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             canvas.restore();
           }
 
-          // C. Draw Texts
+          //  Draw Texts
           for (var item in exportData.texts) {
             canvas.save();
             canvas.translate(item.offset.dx * uiImg.width, item.offset.dy * uiImg.height);
@@ -3549,7 +3268,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
         }
 
-        // --- 4. EXPORT (Extremely Fast Native PNG Encoding) ---
+        // ---  EXPORT (Extremely Fast Native PNG Encoding) ---
         final ui.Picture picture = recorder.endRecording();
 
         // Picture se final scaled image generate kar li
@@ -3569,32 +3288,25 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return bakedFiles;
   }
 
-  // 🚨 NAYA: Bulk Rotate Logic
+  /// Bulk Rotate Logic
   void _bulkRotateImages() {
     setState(() {
-      // 1. Icon ko smoothly ghumane ke liye animation
       _iconRotationTurns += 0.25;
-
-      // 2. Loop chala kar sirf selected pages ko rotate karo
       for (int i = 0; i < docFiles.length; i++) {
         if (selectedPagesList[i] == true) {
-          // % 4 ensures ki 4 baar ghumne par wapas 0 (normal) ho jaye
           _imageQuarterTurns[i] = (_imageQuarterTurns[i] + 1) % 4;
         }
       }
     });
 
-    // Optional: User ko confirmation dikhane ke liye
     int selectedCount = selectedPagesList.where((e) => e == true).length;
     showToast("$selectedCount page(s) rotated");
   }
 
-  // 🚨 FIXED: Delete Page Logic with Memory Sync
+  // Delete Page Logic with Memory Sync
   Future<void> _promptDeletePage() async {
-    // 🚨 FIX: Delete karne se pehle sabhi pages ki current settings ko map me save karo
     _saveEditsToMemory();
 
-    // 1. Custom Dialog Dikhayenge
     bool confirmDelete = await showCustomConfirmDialog(
       context,
       title: "Delete page",
@@ -3604,10 +3316,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       positiveBtnColor: Colors.redAccent,
     );
 
-    // 2. Agar user ne 'Delete' confirm kiya
     if (confirmDelete) {
       if (docFiles.length == 1) {
-        // CASE A: Agar sirf 1 hi page tha aur usko delete kar diya
         showToast("Document deleted");
         if (mounted) {
           Navigator.pushAndRemoveUntil(
@@ -3617,21 +3327,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           );
         }
       } else {
-        // CASE B: Agar 1 se zyada pages hain
         setState(() {
-          // Main list se wo specific page hata do
           docFiles.removeAt(currentPage);
-          //selectedPagesList.removeAt(currentPage);
-          // Agar user aakhri page pe tha, toh current page ko 1 step peeche kar do
           if (currentPage >= docFiles.length) {
             currentPage = docFiles.length - 1;
           }
         });
-
-        // Nayi list ke hisaab se memory wapas load karo (Ab baaki pages ka data safe rahega)
         _loadEditsFromMemory();
-
-        // PageView UI ko naye index par set karne ke liye
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_pageController.hasClients) {
             _pageController.jumpToPage(currentPage);
@@ -3643,28 +3345,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // 🚨 NAYA: Bulk Delete Logic
+  /// Bulk Delete Logic
   Future<void> _promptBulkDelete() async {
     // 1. Check karo kitne pages selected hain
     int selectedCount = selectedPagesList.where((e) => e == true).length;
     if (selectedCount == 0) return;
-
-    // 🚨 FIX: Delete button dabate hi pehle khule hue menus band kar do
     setState(() {
       _showFilterMenu = false;
       _showAdjustMenu = false;
     });
 
-    // 2. Pehle memory save karo
     _saveEditsToMemory();
 
-    // 3. Dynamic text (1 page ke liye alag, multiple ke liye alag)
     String titleText = selectedCount == 1 ? "Delete page" : "Delete $selectedCount pages";
     String messageText = selectedCount == 1
         ? "Are you sure you want to delete this page from your scan?"
         : "Are you sure you want to delete these $selectedCount pages from your scan?";
 
-    // 4. Custom Dialog
     bool confirmDelete = await showCustomConfirmDialog(
       context,
       title: titleText,
@@ -3676,7 +3373,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     if (confirmDelete) {
       if (selectedCount == docFiles.length) {
-        // CASE A: Agar saare hi select karke delete kar diye
         showToast("Document deleted");
         if (mounted) {
           Navigator.pushAndRemoveUntil(
@@ -3686,29 +3382,23 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           );
         }
       } else {
-        // CASE B: Agar kuch pages bache hain
         setState(() {
-          // 🚨 MAGIC: Hamesha pichhe se (reverse) delete karna chahiye taaki index shift na ho
           for (int i = docFiles.length - 1; i >= 0; i--) {
             if (selectedPagesList[i] == true) {
               docFiles.removeAt(i);
             }
           }
 
-          // Agar current page out of bounds ho gaya, toh usko adjust karo
           if (currentPage >= docFiles.length) {
             currentPage = docFiles.length - 1;
           }
 
-          // Delete hone ke baad selection mode band kar do aur list clear kar do
           isSelectionMode = false;
           selectedPagesList = List.filled(docFiles.length, false);
         });
 
-        // Nayi list ke hisaab se memory wapas load karo
         _loadEditsFromMemory();
 
-        // PageView UI ko naye index par bhejo
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_pageController.hasClients) {
             _pageController.jumpToPage(currentPage);
@@ -3720,35 +3410,30 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // --- MARKUP LOGIC (VECTOR APPROACH) ---
+  /// --- MARKUP LOGIC (VECTOR APPROACH) ---
   Future<void> _openMarkupScreen() async {
-    // 🚨 FIX: Agar Filter ya Adjust menu open hai, toh pehle usko close karo
     if (_showFilterMenu || _showAdjustMenu) {
       setState(() {
         _showFilterMenu = false;
         _showAdjustMenu = false;
       });
-      // Menu ko smooth slide hone ke liye thoda time do
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
     File currentImage = docFiles[currentPage]['cropped']!;
 
-    // 1. Saari current settings variables me save karo
     int turns = _imageQuarterTurns[currentPage];
     String activeFilter = _pageFilters[currentPage];
     double activeBright = _pageBrightness[currentPage];
     double activeContrast = _pageContrast[currentPage];
     dynamic existingMarkups = _pageMarkups[currentPage];
 
-    // 2. INSTANT NAVIGATION: Bina kisi delay ke direct push karo aur parameters bhej do
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => MarkupScreen(
           imageFile: currentImage,
           rotationTurns: turns,
-          // 🚨 Naye parameters jo Markup me UI sync karenge
           filterName: activeFilter,
           brightness: activeBright,
           contrast: activeContrast,
@@ -3757,13 +3442,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       ),
     );
 
-    // 3. RESULT: Jab user Save karke wapas aayega, toh Image nahi, Vectors aayenge!
     if (result != null) {
       setState(() {
-        // Naye drawing/text vectors ko save kar lo. (Photo me koi pixel change nahi hua hai)
         _pageMarkups[currentPage] = result;
       });
-      //showToast("Markup applied to Page ${currentPage + 1}");
     }
   }
 
@@ -3773,7 +3455,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     required String tooltipMessage,
     VoidCallback? onTap,
     bool isSelected = false,
-    bool isRotate = false, // 🚨 NAYA PARAMETER: Animation on karne ke liye
+    bool isRotate = false,
   }) {
     return Tooltip(
       message: tooltipMessage,
@@ -3782,7 +3464,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Container(
-            // Agar selected hai toh Adobe Scan jaisa solid blue color aayega
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected ? Colors.blueAccent : Colors.transparent,
@@ -3792,11 +3473,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 🚨 FIX: Yahan par Icon ko check kiya ki usko ghumana hai ya nahi
                 isRotate
                     ? AnimatedRotation(
-                        turns: _iconRotationTurns, // Animation variable
-                        duration: const Duration(milliseconds: 300), // Smooth time
+                        turns: _iconRotationTurns,
+                        duration: const Duration(milliseconds: 300),
                         child: Icon(icon, color: Colors.white, size: 22),
                       )
                     : Icon(icon, color: Colors.white, size: 22),
@@ -3814,7 +3494,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- REAL-TIME MAIN PREVIEW CROP UI & MATH ---
+  /// --- REAL-TIME MAIN PREVIEW CROP UI & MATH ---
 
   void _updateCropBounds(double dt, double db, double dl, double dr) {
     setState(() {
@@ -3836,15 +3516,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   Future<void> _saveNewCrop() async {
-    // 🚨 1. STATE CHANGE: Sabse pehle Loading ON karo
     setState(() {
       isProcessing = true;
     });
 
-    // 🚨 2. WAIT: Flutter ko screen par loading spinner draw karne do
     await Future.delayed(const Duration(milliseconds: 150));
 
-    // 3. HEAVY WORK: Crop save logic chalega
     try {
       File originalFile = docFiles[currentPage]['original']!;
       final bytes = await originalFile.readAsBytes();
@@ -3870,10 +3547,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         final newFile = File(newPath);
         await newFile.writeAsBytes(img.encodeJpg(newlyCropped, quality: 100));
 
-        // 🚨 4. FINAL UPDATE: File update karo, menus adjust karo, aur loading band karo
         setState(() {
           docFiles[currentPage]['cropped'] = newFile;
-          // Crop position save hogi agle baar ke liye
           _savedCropPositions[currentPage] = {
             'top': cropTopRatio,
             'bottom': cropBottomRatio,
@@ -3883,7 +3558,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
           isCroppingMode = false;
           isThumbnailVisible = true;
-          isProcessing = false; // Loading Spinner Off
+          isProcessing = false;
         });
       } else {
         setState(() => isProcessing = false);
@@ -3894,7 +3569,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // Cancel logic bhi update kar diya taaki safety ke liye loading off rahe
   void _cancelCrop() {
     setState(() {
       isCroppingMode = false;
@@ -3955,18 +3629,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           ),
                         ),
 
-                        // Border (Thora mota kar diya: 2.5 -> 3.5)
                         Container(
                           decoration: BoxDecoration(border: Border.all(color: Colors.blueAccent, width: 3.5)),
                         ),
 
-                        // Edge lines (Ab line se bhi drag hoga)
                         _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
                         _buildEdgeHandle(Alignment.bottomCenter, (d) => _updateCropBounds(0, -d.delta.dy, 0, 0)),
                         _buildEdgeHandle(Alignment.centerLeft, (d) => _updateCropBounds(0, 0, d.delta.dx, 0)),
                         _buildEdgeHandle(Alignment.centerRight, (d) => _updateCropBounds(0, 0, 0, -d.delta.dx)),
 
-                        // Corner Circles
                         _buildDragCorner(Alignment.topLeft, (d) => _updateCropBounds(d.delta.dy, 0, d.delta.dx, 0)),
                         _buildDragCorner(Alignment.topRight, (d) => _updateCropBounds(d.delta.dy, 0, 0, -d.delta.dx)),
                         _buildDragCorner(Alignment.bottomLeft, (d) => _updateCropBounds(0, -d.delta.dy, d.delta.dx, 0)),
@@ -3992,21 +3663,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return Align(
       alignment: alignment,
       child: GestureDetector(
-        // 🚨 FIX: Translucent zaruri hai taaki invisible touch area kaam kare
         behavior: HitTestBehavior.translucent,
         onPanUpdate: onPan,
         child: Transform.translate(
-          // Offset set kiya taaki line ke dono taraf touch ho sake
           offset: Offset(alignment.x * 20, alignment.y * 20),
           child: Container(
-            // 🚨 FIX: double.infinity se ye touch area poori line par fail jayega!
             width: isVertical ? 40 : double.infinity,
             height: isVertical ? double.infinity : 40,
             color: Colors.transparent,
             // Touch area dikhega nahi par exist karega
             alignment: Alignment.center,
             child: Container(
-              // 🚨 FIX: Handle ko lamba (40) aur mota (8) kar diya
               width: isVertical ? 8 : 40,
               height: isVertical ? 40 : 8,
               decoration: BoxDecoration(color: Colors.blueAccent, borderRadius: BorderRadius.circular(4)),
@@ -4024,22 +3691,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         behavior: HitTestBehavior.translucent,
         onPanUpdate: onPan,
         child: Transform.translate(
-          // Offset thora aur center me kiya taaki corner perfectly touch ke neeche aaye
           offset: Offset(alignment.x * 20, alignment.y * 20),
           child: Container(
             width: 50,
-            // 🚨 Touch area 50x50 ka bada kar diya
             height: 50,
             color: Colors.transparent,
             alignment: Alignment.center,
             child: Container(
-              width: 26, // 🚨 Circle thoda bada kar diya
+              width: 26,
               height: 26,
               decoration: BoxDecoration(
-                // 🚨 FIX: Grey hatakar Blue + Transparent (.withOpacity) kar diya
                 color: Colors.blueAccent.withOpacity(0.3),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.blueAccent, width: 3.5), // Mota border
+                border: Border.all(color: Colors.blueAccent, width: 3.5),
               ),
             ),
           ),
@@ -4051,25 +3715,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
 /// end main class
 
-// --- CUSTOM DOTTED UNDERLINE PAINTER ---
+/// --- CUSTOM DOTTED UNDERLINE PAINTER ---
 class DottedLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    double dashWidth = 3.0; // Dot ki lambaai
-    double dashSpace = 3.0; // Do dots ke beech ka gap
+    double dashWidth = 3.0;
+    double dashSpace = 3.0;
     double startX = 0;
 
     final paint = Paint()
       ..color = Colors.white54
       ..strokeWidth = size.height
-      ..strokeCap = StrokeCap.round; // Round dots banayega
+      ..strokeCap = StrokeCap.round;
 
     while (startX < size.width) {
-      canvas.drawLine(
-        Offset(startX, 0),
-        Offset(startX + 1, 0), // Chhoti line draw karke dot banayega
-        paint,
-      );
+      canvas.drawLine(Offset(startX, 0), Offset(startX + 1, 0), paint);
       startX += dashWidth + dashSpace;
     }
   }
