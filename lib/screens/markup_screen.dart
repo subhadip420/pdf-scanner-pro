@@ -11,7 +11,6 @@ import 'dart:math' as math;
 
 import 'custom_dialog.dart';
 
-// 🚨 YAHAN ADD KARO (Lines 9-10 ke aas-paas)
 class MarkupExportData {
   final List<DrawnPath> paths;
   final List<TextOverlayItem> texts;
@@ -38,14 +37,13 @@ class DrawnPath {
   });
 }
 
-// 🚨 NAYA CLASS: Text overlays ko track karne ke liye
 class TextOverlayItem {
   String text;
   Offset offset;
   Color color;
   double fontSize;
   double rotation;
-  int appearance; // 0=Normal, 1=Solid Box, 2=Transparent Box, 3=Stroke
+  int appearance;
   bool isBold;
   bool isItalic;
   bool isUnderline;
@@ -68,10 +66,8 @@ class TextOverlayItem {
     this.font = 'Roboto',
   });
 
-  // Duplicate karne ka function
   TextOverlayItem clone() {
     return TextOverlayItem(
-      // 🚨 FIX: Duplicate offset ko ab percentage mein (5%) shift kiya hai
       text: text,
       offset: offset + const Offset(0.05, 0.05),
       color: color,
@@ -89,15 +85,14 @@ class TextOverlayItem {
 }
 
 class ShapeItem {
-  IconData icon; // Shape ka icon
+  IconData icon;
   Offset offset;
   Color color;
   double size;
 
-  //double strokeWidth;
   double rotation;
-  double scaleX = 1.0; // 🚨 Direct initialize kiya
-  double scaleY = 1.0; // 🚨 Direct initialize kiya
+  double scaleX = 1.0;
+  double scaleY = 1.0;
 
   ShapeItem({
     required this.icon,
@@ -106,22 +101,19 @@ class ShapeItem {
     this.size = 100.0,
     //this.strokeWidth = 2.0,
     this.rotation = 0.0,
-    this.scaleX = 1.0, // Default 1.0 (Normal size)
-    this.scaleY = 1.0, // Default 1.0 (Normal size)
+    this.scaleX = 1.0,
+    this.scaleY = 1.0,
   });
 }
 
 class MarkupScreen extends StatefulWidget {
   final File imageFile;
 
-  // 🚨 NAYE PARAMETERS ADD KIYE
   final int rotationTurns;
   final String filterName;
   final double brightness;
   final double contrast;
   final dynamic existingMarkups;
-
-  //const MarkupScreen({Key? key, required this.imageFile}) : super(key: key);
 
   const MarkupScreen({
     Key? key,
@@ -139,7 +131,7 @@ class MarkupScreen extends StatefulWidget {
 
 class _MarkupScreenState extends State<MarkupScreen> {
   final GlobalKey _globalKey = GlobalKey();
-  final GlobalKey _canvasKey = GlobalKey(); // 🚨 FIX 1: Drawing coordinate offsets ko ekdum sahi karne ke liye key
+  final GlobalKey _canvasKey = GlobalKey();
 
   List<DrawnPath> _paths = [];
   List<DrawnPath> _undonePaths = [];
@@ -149,24 +141,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
   double _strokeWidth = 12.0;
   double _opacity = 1.0;
 
-  String _activeTab = "Drawing"; // Drawing, Eraser, Text, Shapes
+  String _activeTab = "Drawing";
   String _selectedShape = "Triangle";
 
   bool _isEraserMode = false;
   int _pointerCount = 0; // Tracks number of fingers on screen
 
-  // final List<Color> _recentColors = [
-  //   Colors.blue, Colors.green, Colors.teal, Colors.amber, Colors.greenAccent
-  // ];
-  List<Color> _recentColors = []; // 🚨 Default empty list, ab memory se aayegi
-  bool _isPanelHidden = false; // 🚨 NAYA VARIABLE: Panel hide/show track karne ke liye
+  List<Color> _recentColors = [];
+  bool _isPanelHidden = false;
 
-  // 🚨 TEXT WIDGET VARIABLES
   List<TextOverlayItem> _textItems = [];
   TextOverlayItem? _activeTextItem;
 
-  // 🚨 NAYA VARIABLE: Jab screen par koi text select nahi hoga, toh UI is draft ki settings dikhayega
-  //TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(150, 150), color: Colors.white);
   TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(0.5, 0.5), color: Colors.white);
   final TextEditingController _textEditorController = TextEditingController();
   final List<String> _fonts = ['Roboto', 'Serif', 'Monospace', 'Cursive'];
@@ -174,8 +160,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
   List<ShapeItem> _shapeItems = [];
   ShapeItem? _activeShapeItem;
 
-  // 🚨 Variables declare karo
   InterstitialAd? _interstitialAd;
+
   /// TODO Google's Test
   //final String _adUnitId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
   final String _adUnitId = 'ca-app-pub-5454466291921987/6535973397'; // real ad id
@@ -186,7 +172,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     _loadInterstitialAd();
     _loadRecentColors();
 
-    // 🚨 NAYA LOGIC: Agar pehle se kuch draw kiya hua hai toh load karo
     if (widget.existingMarkups != null && widget.existingMarkups is MarkupExportData) {
       MarkupExportData data = widget.existingMarkups;
       _paths = List.from(data.paths);
@@ -201,10 +186,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
     super.dispose();
   }
 
-  // 🚨 Interstitial Ad load karne ka function
   void _loadInterstitialAd() {
     InterstitialAd.load(
-      adUnitId: _adUnitId, // Google Test Interstitial ID (Live me change kar lena)
+      adUnitId: _adUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
@@ -212,12 +196,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
               _interstitialAd = null;
-              _finalizeSave(); // 🚨 Ad close hote hi page save karke pop ho jayega
+              _finalizeSave();
             },
             onAdFailedToShowFullScreenContent: (ad, error) {
               ad.dispose();
               _interstitialAd = null;
-              _finalizeSave(); // 🚨 Agar Ad fail hua toh bhi save karke pop ho jayega
+              _finalizeSave();
             },
           );
           _interstitialAd = ad;
@@ -229,7 +213,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  // --- 🚨 NAYE FILTER LOGIC (Live Preview ke liye) ---
   ColorFilter? _getColorFilter(String filterName) {
     switch (filterName) {
       case "Grayscale":
@@ -296,14 +279,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   void _unfocusAll() {
-    FocusManager.instance.primaryFocus?.unfocus(); // Keyboard band hoga
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
-      _activeTextItem = null; // Text box ka border hat jayega
-      _activeShapeItem = null; // 🚨 Shape selection bhi hatao
+      _activeTextItem = null;
+      _activeShapeItem = null;
     });
   }
 
-  // --- 🚨 SHARED PREFERENCES LOGIC ---
+  /// ---  SHARED PREFERENCES LOGIC ---
   Future<void> _loadRecentColors() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? savedColors = prefs.getStringList('markup_recent_colors');
@@ -316,11 +299,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Future<void> _saveRecentColor(Color color) async {
-    // Agar color pehle se hai toh hatao, aur ekdum start (left) me add karo
     _recentColors.remove(color);
     _recentColors.insert(0, color);
 
-    // Sirf last 5 colors rakho
     if (_recentColors.length > 5) {
       _recentColors = _recentColors.sublist(0, 5);
     }
@@ -329,60 +310,50 @@ class _MarkupScreenState extends State<MarkupScreen> {
     List<String> colorsToSave = _recentColors.map((c) => c.value.toString()).toList();
     await prefs.setStringList('markup_recent_colors', colorsToSave);
 
-    setState(() {}); // UI Update
+    setState(() {});
   }
 
   Future<bool> _onWillPop() async {
     if (_paths.isEmpty && _textItems.isEmpty && _shapeItems.isEmpty) return true;
 
-    // 🚨 Custom Dialog Call 🚨
     bool discard = await showCustomConfirmDialog(
       context,
       title: "Discard changes",
       message: "Changes you have made with the Markup tool will be discarded.",
       positiveBtnText: "OK",
-      // Custom Text
       negativeBtnText: "Cancel",
-      // Custom Text
-      positiveBtnColor: Colors.redAccent, // Custom Color for destructive action
+      positiveBtnColor: Colors.redAccent,
     );
 
     return discard;
   }
 
-  // 1. 🚨 NAYA CLICK HANDLER (Ad dikhane ke liye)
   Future<void> _handleSaveClick() async {
-    // Agar Ad pehle se ready hai, toh turant dikhao
     if (_interstitialAd != null) {
       _interstitialAd!.show();
       return;
     }
 
-    // Agar Ad ready nahi hai, toh Loading Dialog dikhao
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
     );
 
-    // Max 2 seconds wait karo ad ke liye
     for (int i = 0; i < 20; i++) {
       await Future.delayed(const Duration(milliseconds: 100));
       if (_interstitialAd != null) break;
     }
 
-    // Wait khatam, Loading Dialog close karo
     if (mounted) Navigator.pop(context);
 
-    // Check karo ad aaya ya nahi
     if (_interstitialAd != null) {
-      _interstitialAd!.show(); // Ad aagaya toh dikhao (close hone par automatically pop hoga)
+      _interstitialAd!.show();
     } else {
-      _finalizeSave(); // Ad nahi aaya toh bina roke direct save kardo
+      _finalizeSave();
     }
   }
 
-// 2. 🚨 TUMHARA ORIGINAL SAVE LOGIC (Naam change karke _finalizeSave kar diya)
   void _finalizeSave() {
     setState(() {
       _activeTextItem = null;
@@ -396,13 +367,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
       shapes: List.from(_shapeItems),
     );
 
-    // Ad close hone ke baad yeh safely Editor screen par data return kar dega
     if (mounted) {
       Navigator.pop(context, exportData);
     }
   }
 
-  // Color Picker Window (No Opacity, Auto-Select, Exact Screenshot Design)
   Future<void> _openColorPicker() async {
     await showDialog(
       context: context,
@@ -414,13 +383,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 🚨 FIX: Alpha (Opacity) disabled. Exact screenshot look.
               ColorPicker(
                 pickerColor: _selectedColor,
-                // Alpha link hata diya
                 onColorChanged: (color) {
                   setState(() {
-                    _selectedColor = color; // Sirf color change hoga, Opacity apni jagah wahi rahegi
+                    _selectedColor = color;
                     if (_activeShapeItem != null) {
                       _activeShapeItem!.color = color;
                     }
@@ -428,22 +395,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 },
                 colorPickerWidth: 280,
                 pickerAreaHeightPercent: 0.8,
-                // Thoda square look dene ke liye
                 enableAlpha: false,
-                // 🚨 Opacity slider gayab
                 displayThumbColor: true,
                 paletteType: PaletteType.hsvWithHue,
                 pickerAreaBorderRadius: const BorderRadius.all(Radius.circular(6)),
                 hexInputBar: false,
-                labelTypes: const [], // Faltu labels hide kiye
+                labelTypes: const [],
               ),
               const SizedBox(height: 5),
 
-              // 🚨 FIX: Recent Colors Exact Screenshot Design (Square, light grey border)
               if (_recentColors.isNotEmpty)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  // Evenly spread karega
                   children: _recentColors
                       .map(
                         (c) => GestureDetector(
@@ -451,20 +414,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
                             setState(() {
                               _selectedColor = c;
                               if (_activeShapeItem != null) {
-                                _activeShapeItem!.color = c; // Shape ka color yahan update hua
+                                _activeShapeItem!.color = c;
                               }
                             });
-                            Navigator.pop(context); // Click karte hi close
+                            Navigator.pop(context);
                           },
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 5),
                             width: 38,
-                            height: 38, // Square design
+                            height: 38,
                             decoration: BoxDecoration(
                               color: c,
                               borderRadius: BorderRadius.circular(6),
-                              // Halka rounded corner
-                              border: Border.all(color: Colors.grey.shade400, width: 1.5), // Light grey exact border
+                              border: Border.all(color: Colors.grey.shade400, width: 1.5),
                             ),
                           ),
                         ),
@@ -484,7 +446,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
       ),
     );
 
-    // Jab bahar click karke popup band hoga, naya color save ho jayega
     _saveRecentColor(_selectedColor);
   }
 
@@ -492,7 +453,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: _onWillPop,
-      // 🚨 FIX: Poori screen wrap ki, taaki kahin bhi click ho to focus hat jaye
       child: GestureDetector(
         onTap: _unfocusAll,
         child: Scaffold(
@@ -552,7 +512,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
           ),
           body: Column(
             children: [
-              // --- 1. MAIN PREVIEW AREA (With Zoom & Draw) ---
+              /// --- MAIN PREVIEW AREA (With Zoom & Draw) ---
               Expanded(
                 child: Container(
                   color: const Color(0xFF2C2C2C),
@@ -568,14 +528,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
                         child: RepaintBoundary(
                           key: _globalKey,
-                          // 🚨 NAYA: RotatedBox aur ColorFiltered lagaya preview ke liye
                           child: RotatedBox(
                             quarterTurns: widget.rotationTurns,
                             child: Stack(
                               key: _canvasKey,
                               clipBehavior: Clip.none,
                               children: [
-                                // 1. BASE IMAGE (Filters applied)
+                                /// BASE IMAGE (Filters applied)
                                 ColorFiltered(
                                   colorFilter: _getAdjustColorFilter(widget.brightness, widget.contrast),
                                   child: ColorFiltered(
@@ -586,7 +545,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                   ),
                                 ),
 
-                                // 2. DRAWING LAYER
+                                /// DRAWING LAYER
                                 Positioned.fill(
                                   child: Listener(
                                     onPointerDown: (_) {
@@ -679,22 +638,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                   ),
                                 ),
 
-                                // 3. TEXT LAYER (Auto Scale & Attached to Center)
+                                /// TEXT LAYER (Auto Scale & Attached to Center)
                                 Positioned.fill(
                                   child: LayoutBuilder(
                                     builder: (context, constraints) {
-                                      // Yahan canvas/image ka exact width & height aayega
                                       double canvasW = constraints.maxWidth;
                                       double canvasH = constraints.maxHeight;
-
-                                      // 🚨 FEVICOL FIX 2: Text ki size Image ki size ke sath badi-choti hogi!
                                       double scaleRatio = canvasW / 400.0;
 
                                       return Stack(
                                         clipBehavior: Clip.none,
                                         children: _textItems.map((item) {
                                           bool isActive = _activeTextItem == item;
-                                          // Text size automatically image ke mutabik scale hogi
                                           double scaledFontSize = item.fontSize * scaleRatio;
 
                                           Color textColor = item.appearance == 0
@@ -721,10 +676,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                           }
 
                                           return Positioned(
-                                            // Offset image size ke percentage par multiply hua
                                             left: item.offset.dx * canvasW,
                                             top: item.offset.dy * canvasH,
-                                            // 🚨 FEVICOL FIX 3: FractionalTranslation hamesha 'Center' point ko pin karta hai!
                                             child: FractionalTranslation(
                                               translation: const Offset(-0.5, -0.5),
                                               child: Transform.rotate(
@@ -735,9 +688,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                       setState(() {
                                                         RenderBox renderBox =
                                                             _canvasKey.currentContext!.findRenderObject() as RenderBox;
-
-                                                        // 🚨 FIX: Sirf aur sirf TEXT ki rotation (item.rotation) ko handle karna hai!
-                                                        // math.cos aur math.sin text ki ghoomi hui direction ko seedha (un-rotate) kar denge.
                                                         double c = math.cos(item.rotation);
                                                         double s = math.sin(item.rotation);
 
@@ -930,22 +880,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                   ),
                                 ),
 
-                                // 🚨 4. SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
+                                /// SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
                                 Positioned.fill(
                                   child: LayoutBuilder(
                                     builder: (context, constraints) {
                                       double canvasW = constraints.maxWidth;
                                       double canvasH = constraints.maxHeight;
-
-                                      // 🚨 FIX: Text ke jaisa hi scale ratio calculate karo (400.0 tumhara base reference hai)
                                       double scaleRatio = canvasW / 400.0;
 
                                       return Stack(
                                         clipBehavior: Clip.none,
                                         children: _shapeItems.map((shape) {
                                           bool isActive = _activeShapeItem == shape;
-
-                                          // 🚨 FIX: Icon size ko scaleRatio se multiply karo
                                           double scaledIconSize = shape.size * scaleRatio;
 
                                           return Positioned(
@@ -973,7 +919,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                     }
                                                   },
                                                   onTap: () {
-                                                    // 🚨 FIX: Select sirf tab hoga jab "Shapes" tab active ho!
                                                     if (_activeTab == "Shapes") {
                                                       setState(() {
                                                         _activeShapeItem = shape;
@@ -995,18 +940,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                                   border: Border.all(color: Colors.white, width: 2),
                                                                 )
                                                               : null,
-                                                          // 🚨 NAYA TAREKA (Shrink, Stretch, Mirror ke liye)
                                                           child: SizedBox(
-                                                            // Canvas ke scale ratio ke saath height/width set kiya
                                                             width:
                                                                 (shape.size * shape.scaleX.abs()) * (canvasW / 400.0),
                                                             height:
                                                                 (shape.size * shape.scaleY.abs()) * (canvasW / 400.0),
                                                             child: FittedBox(
                                                               fit: BoxFit.fill,
-                                                              // Icon ko is box ke hisaab se stretch karega
                                                               child: Transform.scale(
-                                                                // Agar negative hui width/height toh flip (mirror) ho jayega
                                                                 scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
                                                                 scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
                                                                 child: Icon(shape.icon, color: shape.color),
@@ -1067,7 +1008,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                               ),
                                                             ),
                                                           ),
-                                                        // --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
+
+                                                        /// --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
                                                         if (isActive)
                                                           Positioned(
                                                             left: -12,
@@ -1078,13 +1020,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                                 setState(() {
                                                                   double sensitivity = 0.01;
 
-                                                                  // 🚨 THE ULTIMATE FIX: Canvas ki rotation aur Shape ki apni rotation, DONO ko combine karke reverse karo!
                                                                   double totalAngle =
                                                                       (widget.rotationTurns * (math.pi / 2)) +
                                                                       shape.rotation;
                                                                   double angle = -totalAngle;
 
-                                                                  // Ab math.cos aur math.sin perfectly exact touch coordinate nikalenge
                                                                   double dx =
                                                                       details.delta.dx * math.cos(angle) -
                                                                       details.delta.dy * math.sin(angle);
@@ -1141,7 +1081,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ),
 
-              // --- 2. SETTINGS PANEL (Animated Hide/Show) ---
+              /// --- SETTINGS PANEL (Animated Hide/Show) ---
               Container(
                 color: const Color(0xFF2C2C2C),
                 child: AnimatedSize(
@@ -1150,9 +1090,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   child: Container(
                     decoration: const BoxDecoration(
                       color: Color(0xFF1E1E1E), // Panel ka color
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(24), // Ab ye rounded corners ekdum clear dikhenge!
-                      ),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     // Agar hidden hai, toh padding hata do
                     padding: _isPanelHidden
@@ -1161,19 +1099,15 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // 🚨 DRAG/TAP HANDLE: Ise drag ya tap karne se panel khulega/band hoga
                         GestureDetector(
                           onTap: () => setState(() => _isPanelHidden = !_isPanelHidden),
                           onVerticalDragEnd: (details) {
                             if (details.primaryVelocity! > 0) {
-                              // Niche drag kiya (Hide)
                               setState(() => _isPanelHidden = true);
                             } else if (details.primaryVelocity! < 0) {
-                              // Upar drag kiya (Show)
                               setState(() => _isPanelHidden = false);
                             }
                           },
-                          // Invisible touch area bada karne ke liye
                           behavior: HitTestBehavior.opaque,
                           child: Container(
                             width: double.infinity,
@@ -1186,8 +1120,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                             ),
                           ),
                         ),
-
-                        // Agar hidden nahi hai, toh baaki panel dikhao
                         if (!_isPanelHidden) _buildSettingsPanel(),
                       ],
                     ),
@@ -1195,7 +1127,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ),
 
-              // --- 3. BOTTOM TABS ---
+              /// --- BOTTOM TABS ---
               Container(
                 height: 60,
                 color: Colors.black,
@@ -1219,14 +1151,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
   Widget _buildBottomTab(String title, IconData icon) {
     bool isSelected = _activeTab == title;
     return GestureDetector(
-      // 🚨 FIX 1: Opaque lagane se icon/text ke beech ki khaali jagah par bhi click kaam karega
       behavior: HitTestBehavior.opaque,
-      //onTap: () => setState(() => _activeTab = title),
       onTap: () {
-        _unfocusAll(); // 🚨 Jab bhi tab switch ho, saara focus clear karo
+        _unfocusAll();
         setState(() => _activeTab = title);
       },
-      // 🚨 FIX 2: Padding lagakar invisible touch area bada kar diya
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
@@ -1242,26 +1171,26 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  // --- 🚨 BASE PANEL MANAGER ---
+  /// --- BASE PANEL MANAGER ---
   Widget _buildSettingsPanel() {
     if (_activeTab == "Drawing") {
-      return _buildDrawingPanel(); // Drawing widget load hoga
+      return _buildDrawingPanel();
     } else if (_activeTab == "Text") {
-      return _buildTextPanel(); // Text widget load hoga (Blank)
+      return _buildTextPanel();
     } else if (_activeTab == "Shapes") {
-      return _buildShapesPanel(); // Shapes widget load hoga (Blank)
+      return _buildShapesPanel();
     }
     return const SizedBox.shrink();
   }
 
-  // --- 1. DRAWING WIDGET PANEL ---
+  /// --- DRAWING WIDGET PANEL ---
   Widget _buildDrawingPanel() {
     bool canEraseOrClear = _paths.isNotEmpty;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // --- TOP ROW: Color Picker & Tools ---
+        /// --- TOP ROW: Color Picker & Tools ---
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1358,7 +1287,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         ),
         const SizedBox(height: 10),
 
-        // --- SLIDERS ---
+        /// --- SLIDERS ---
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1406,16 +1335,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
     );
   }
 
-  // --- 2. TEXT WIDGET PANEL ---
+  /// --- TEXT WIDGET PANEL ---
   Widget _buildTextPanel() {
-    // 🚨 FIX: Agar koi text select hai toh use lo, warna humara naya '_draftTextItem' use karo
     TextOverlayItem activeItem = _activeTextItem ?? _draftTextItem;
-    bool hasActiveText = _activeTextItem != null; // Yeh check karne ke liye ki text asli mein select hai ya nahi
+    bool hasActiveText = _activeTextItem != null;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // --- 1ST ROW: Delete (Left) | Font (Middle) | Add Text (Right) ---
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1447,7 +1374,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   final newItem = activeItem.clone();
                   newItem.text = "";
                   newItem.offset = const Offset(0.5, 0.5);
-                  // 🚨 FIX: Agar canvas rotated hai, toh text ko ulta ghuma do taaki user ko seedha dikhe!
                   newItem.rotation = -widget.rotationTurns * (math.pi / 2);
 
                   _textItems.add(newItem);
@@ -1462,7 +1388,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         ),
         const SizedBox(height: 4),
 
-        // --- 2ND ROW: Size Slider ---
+        /// --- 2ND ROW: Size Slider ---
         Row(
           children: [
             const Text("T", style: TextStyle(color: Colors.white70, fontSize: 14)),
@@ -1490,7 +1416,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         ),
         const SizedBox(height: 4),
 
-        // --- 3RD ROW: Scrollable Tools (A, Bold, Underline, Italic, Strike, Duplicate) ---
+        /// --- 3RD ROW: Scrollable Tools (A, Bold, Underline, Italic, Strike, Duplicate) ---
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
@@ -1545,7 +1471,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               const SizedBox(width: 5),
 
               Tooltip(
-                message: "Bold Text", // 👈 Yahan Tooltip add kiya gaya hai
+                message: "Bold Text",
                 child: GestureDetector(
                   onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
                   child: Container(
@@ -1562,7 +1488,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
 
               Tooltip(
-                message: "Underline Text", // 👈 Yahan Tooltip add kiya gaya hai
+                message: "Underline Text",
                 child: GestureDetector(
                   onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
                   child: Container(
@@ -1582,7 +1508,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
 
               Tooltip(
-                message: "Italic", // 👈 Yahan Tooltip add kiya gaya hai
+                message: "Italic",
                 child: GestureDetector(
                   onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
                   child: Container(
@@ -1602,7 +1528,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
 
               Tooltip(
-                message: "Strikethrough", // 👈 Yahan Tooltip add kiya gaya hai
+                message: "Strikethrough",
                 child: GestureDetector(
                   onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
                   child: Container(
@@ -1623,13 +1549,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
               const SizedBox(width: 4),
 
-              // 🚨 NAYA: Rotate Button (Copy button se pehle)
               Tooltip(
-                message: "Rotate 90°", // 👈 Yahan Tooltip add kiya gaya hai
+                message: "Rotate 90°",
                 child: GestureDetector(
                   onTap: hasActiveText
                       ? () => setState(() {
-                          // Har click par text 90 degrees (π/2 radians) rotate hoga
                           _activeTextItem!.rotation += (math.pi / 2);
                         })
                       : null,
@@ -1637,17 +1561,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
                     height: 36,
-                    child: Icon(
-                      Icons.rotate_right_rounded, // Tum chaho toh Icons.rotate_90_degrees_cw bhi use kar sakte ho
-                      color: hasActiveText ? Colors.white : Colors.white38,
-                    ),
+                    child: Icon(Icons.rotate_right_rounded, color: hasActiveText ? Colors.white : Colors.white38),
                   ),
                 ),
               ),
-
-              // Duplicate (Agar text select nahi hai, toh disable rahega)
               Tooltip(
-                message: "Duplicate Text", // 👈 Yahan Tooltip add kiya gaya hai
+                message: "Duplicate Text",
                 child: GestureDetector(
                   onTap: hasActiveText
                       ? () => setState(() {
@@ -1667,7 +1586,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
 
               Tooltip(
-                message: "Delete Text", // 👈 Yahan Tooltip add kiya gaya hai
+                message: "Delete Text",
                 child: GestureDetector(
                   onTap: hasActiveText
                       ? () => setState(() {
@@ -1679,10 +1598,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
                     height: 36,
-                    child: Icon(
-                      Icons.delete_forever_rounded, // 🚨 Delete icon
-                      color: hasActiveText ? Colors.redAccent : Colors.white38,
-                    ),
+                    child: Icon(Icons.delete_forever_rounded, color: hasActiveText ? Colors.redAccent : Colors.white38),
                   ),
                 ),
               ),
@@ -1692,7 +1608,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
         const SizedBox(height: 12),
         Row(
           children: [
-            // 1. Scrollable Predefined Colors (Left side)
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -1739,10 +1654,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               ),
             ),
 
-            // 2. Vertical Divider (Premium Look ke liye)
             Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 1.5, height: 28, color: Colors.white24),
-
-            // 3. Fixed Custom Color Picker (Right side)
             GestureDetector(
               onTap: () async {
                 await _openColorPicker();
@@ -1780,15 +1692,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Widget _buildShapesPanel() {
-    // Shape ke liye temporary state variables (tum inhe class-level pe move kar sakte ho)
-    // Abhi ke liye hum generic variables use kar rahe hain
-
     final active = _activeShapeItem;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 1. Top Row: Color Picker (Left) | Copy & Delete (Right)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -1808,51 +1715,46 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ),
             Row(
               children: [
-                // --- COPY BUTTON ---
+                /// --- COPY BUTTON ---
                 IconButton(
                   icon: Icon(
                     Icons.content_copy_rounded,
-                    // 🚨 Shape select nahi hai toh icon dull dikhega
                     color: _activeShapeItem != null ? Colors.white : Colors.white38,
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
                           setState(() {
-                            // 🚨 Duplicate shape create karo
+                            /// Duplicate shape create karo
                             final copy = ShapeItem(
                               icon: _activeShapeItem!.icon,
                               color: _activeShapeItem!.color,
                               size: _activeShapeItem!.size,
                               rotation: _activeShapeItem!.rotation,
-                              // Original shape se thoda side mein add karo (offset)
                               offset: _activeShapeItem!.offset + const Offset(0.05, 0.05),
                               scaleX: _activeShapeItem!.scaleX,
-                              // 🚨 NAYA ADD KIYA
-                              scaleY: _activeShapeItem!.scaleY, // 🚨 NAYA ADD KIYA
+                              scaleY: _activeShapeItem!.scaleY,
                             );
                             _shapeItems.add(copy);
-                            _activeShapeItem = copy; // Naya copy select ho jayega
+                            _activeShapeItem = copy;
                           });
                         }
-                      : null, // Shape select nahi hai toh tap disable
+                      : null,
                 ),
 
-                // --- DELETE BUTTON ---
+                /// --- DELETE BUTTON ---
                 IconButton(
                   icon: Icon(
                     Icons.delete_forever_rounded,
-                    // 🚨 Shape select nahi hai toh icon dull dikhega
                     color: _activeShapeItem != null ? Colors.redAccent : Colors.white38,
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
                           setState(() {
-                            // 🚨 Selected shape delete karo
                             _shapeItems.remove(_activeShapeItem);
                             _activeShapeItem = null;
                           });
                         }
-                      : null, // Shape select nahi hai toh tap disable
+                      : null,
                 ),
               ],
             ),
@@ -1860,11 +1762,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
         ),
         const SizedBox(height: 0),
 
-        // 🚨 NAYA: Opacity Slider
+        /// Opacity Slider
         _buildSlider("Opacity", active?.color.opacity ?? 1.0, 0.1, 1.0, (val) {
           setState(() {
             if (active != null) {
-              // Current color ko nayi opacity ke sath update karega
               active.color = active.color.withOpacity(val);
             }
           });
@@ -1879,13 +1780,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
         }),
 
         const SizedBox(height: 0),
-        // 4. 4th Row: Scrollable Shapes
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
           child: Row(
             children: [
-              // --- Basic Geometry ---
+              /// --- Basic Geometry ---
               _buildShapeIcon(Icons.rectangle_outlined),
               _buildShapeIcon(Icons.crop_square_rounded),
               // Square
@@ -1905,7 +1805,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               _buildShapeIcon(Icons.sync_alt_rounded),
               // Double Arrow (Left-Right)
 
-              // --- Objects & Symbols ---
+              /// --- Objects & Symbols ---
               _buildShapeIcon(Icons.star_border_rounded),
               // Star
               _buildShapeIcon(Icons.favorite_border_rounded),
@@ -1915,7 +1815,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               _buildShapeIcon(Icons.cloud_queue_rounded),
               // Cloud
 
-              // --- Markup / Annotation ---
+              /// --- Markup / Annotation ---
               _buildShapeIcon(Icons.chat_bubble_outline_rounded),
               // Speech Bubble / Callout
               _buildShapeIcon(Icons.check_rounded),
@@ -1959,7 +1859,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
             icon: icon,
             color: _selectedColor,
             offset: const Offset(0.5, 0.5),
-            // 🚨 FIX: Agar canvas rotated hai, toh shape ko ulta ghuma do taaki user ko seedha dikhe!
             rotation: -widget.rotationTurns * (math.pi / 2),
           );
           _shapeItems.add(newShape);
@@ -2008,7 +1907,6 @@ class DrawingPainter extends CustomPainter {
       return Offset(normalized.dx * size.width, normalized.dy * size.height);
     }
 
-    // 🚨 FEVICOL FIX 4: Drawing Stroke ki motai (thickness) bhi image ke sath scale hogi
     double strokeScale = size.width / 400.0;
 
     for (var path in paths) {
