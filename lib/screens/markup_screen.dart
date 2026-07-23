@@ -1225,7 +1225,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        Symbols.stylus_note,
+                        //Symbols.stylus_note,
+                        Icons.draw_rounded,
                         color: !_isEraserMode ? Colors.blueAccent : Colors.white70,
                         size: 24,
                       ),
