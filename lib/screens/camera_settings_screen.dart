@@ -12,9 +12,6 @@ class CameraSettingsScreen extends StatefulWidget {
 class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   // Default Values
   bool _isGridOn = false;
-
-  //bool _isShutterSoundOn = false;
-  //bool _isMirrorSelfieOn = true;
   bool _isHapticFeedbackOn = true;
   bool _saveToGallery = false;
   bool _isAutoDetectAlwaysOn = true;
@@ -30,12 +27,9 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isHapticFeedbackOn = prefs.getBool('haptic_feedback') ?? true;
-      // Jo key set ki hai wahi exact name yahan use kiya hai
       _isGridOn = prefs.getBool('show_grid') ?? false;
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
       _isAutoDetectAlwaysOn = prefs.getBool('pref_auto_detect_always_on') ?? true;
-      //_isShutterSoundOn = prefs.getBool('shutter_sound') ?? false;
-      //_isMirrorSelfieOn = prefs.getBool('mirror_selfie') ?? true;
     });
   }
 
@@ -62,7 +56,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 26),
           onPressed: () {
-            _triggerHaptic(); // Back aane par bhi haptic feel
+            _triggerHaptic();
             Navigator.pop(context);
           },
         ),
@@ -83,15 +77,13 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Column(
               children: [
-                // 🚨 FIX: Sabhi options se 'icon' hata diya gaya hai
                 _buildSwitchTile(
                   title: "Grid",
                   subtitle: "Show grid lines to align documents",
                   value: _isGridOn,
-                  //onChanged: (val) => setState(() => _isGridOn = val),
                   onChanged: (val) {
                     setState(() => _isGridOn = val);
-                    _saveSetting('show_grid', val); // Memory me save
+                    _saveSetting('show_grid', val);
                     _triggerHaptic();
                   },
                 ),
@@ -114,24 +106,21 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                 _buildDivider(),
 
                 // ==========================================
-                // 🚨 NAYA: Save to Gallery (Camera Settings Layout)
+                //  Save to Gallery (Camera Settings Layout)
                 // ==========================================
                 _buildSwitchTile(
                   title: "Save original to Gallery",
                   subtitle: "Automatically save raw scanned photos to phone gallery",
                   value: _saveToGallery,
-                  // Make sure tumne upar variables me `bool _saveToGallery = false;` define kiya ho
                   onChanged: (val) {
                     setState(() => _saveToGallery = val);
-
-                    // Yahan tumhara setting save karne ka custom function use kiya hai
                     _saveSetting('pref_save_to_gallery', val);
                   },
                 ),
 
                 _buildDivider(), // 🚨 NAYA Divider
                 // ==========================================
-                // 🚨 NAYA: Auto-detect Always On Toggle
+                // Auto-detect Always On Toggle
                 // ==========================================
                 _buildSwitchTile(
                   title: "Auto-detect Always On",
@@ -153,7 +142,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
 
   // --- Helper Widgets ---
 
-  // 🚨 FIX: Function parameters se 'icon' hata diya
+  // Function parameters se 'icon' hata diya
   Widget _buildSwitchTile({
     required String title,
     required String subtitle,
@@ -167,7 +156,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
       activeTrackColor: Colors.blueAccent.withOpacity(0.4),
       inactiveThumbColor: Colors.grey.shade400,
       inactiveTrackColor: Colors.grey.shade700,
-      // 🚨 FIX: Yahan se 'secondary: Icon(...)' property poori tarah hata di
+      // Yahan se 'secondary: Icon(...)' property poori tarah hata di
       title: Text(
         title,
         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
@@ -178,13 +167,6 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   }
 
   Widget _buildDivider() {
-    return Divider(
-      color: Colors.white.withOpacity(0.1),
-      height: 1,
-      thickness: 1,
-      // 🚨 FIX: Indent ko 60 se 16 kar diya taaki divider line text ke ekdum neeche se shuru ho
-      indent: 16,
-      endIndent: 16,
-    );
+    return Divider(color: Colors.white.withOpacity(0.1), height: 1, thickness: 1, indent: 16, endIndent: 16);
   }
 } //end main class
