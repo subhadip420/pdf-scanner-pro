@@ -1129,7 +1129,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
               /// --- BOTTOM TABS ---
               Container(
-                height: 60,
+                height: 65,
                 color: Colors.black,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
