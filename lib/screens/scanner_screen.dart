@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gal/gal.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
@@ -1093,7 +1094,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 children: [
                   /// MASTER FIX: Camera Preview + Perfect Grid Alignment
                   Positioned(
-                    top: 115,
+                    top: 115.h,
                     left: 0,
                     right: 0,
                     child: AspectRatio(
@@ -1126,7 +1127,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     right: 0,
                     child: SafeArea(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                        padding:  EdgeInsets.symmetric(horizontal: 16.w, vertical: 9.h),
                         child: _buildTopBarContent(),
                       ),
                     ),
@@ -1135,7 +1136,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   /// Status Text (Looking for document / Hold steady / Looking for QR)
                   if (isAutoDetectOn && !_isCameraSleeping && autoScanStatus.isNotEmpty)
                     Positioned(
-                      top: MediaQuery.of(context).size.height * 0.45,
+                      //top: MediaQuery.of(context).size.height * 0.45,
+                      top: 0.45.sh,
                       left: 0,
                       right: 0,
                       child: Center(
@@ -1143,14 +1145,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           turns: _iconTurns,
                           duration: const Duration(milliseconds: 300),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding:  EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.4),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20.r),
                             ),
                             child: Text(
                               autoScanStatus,
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.normal),
+                              style:  TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.normal),
                             ),
                           ),
                         ),
@@ -1158,84 +1160,84 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     ),
 
                   /// Scan Modes
-                  Positioned(
-                    bottom: 155,
-                    left: 0,
-                    right: 0,
-                    child: SizedBox(
-                      height: 50,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          ScrollSnapList(
-                            itemBuilder: (_, index) {
-                              final bool isSelected = index == selectedIndex;
-
-                              return AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                alignment: Alignment.center,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    scanModes[index],
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.blue : Colors.white,
-                                      fontSize: isSelected ? 15 : 13,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-
-                            itemCount: scanModes.length,
-                            itemSize: MediaQuery.of(context).size.width * 0.22,
-                            initialIndex: 0,
-                            dynamicItemSize: true,
-                            onItemFocus: (index) async {
-                              await _triggerVibration();
-                              setState(() {
-                                selectedIndex = index;
-
-                                if (selectedIndex == 1) {
-                                  // =====================
-                                  /// QR SCANNER MODE
-                                  // =====================
-                                  _detectedDocumentBox = null;
-                                  _stableFrames = 0;
-                                  isHoldingSteady = false;
-                                  autoScanStatus = "Looking for QR code...";
-                                  if (!controller.value.isStreamingImages) {
-                                    _startMLAutoDetect();
-                                  }
-                                } else {
-                                  // =====================
-                                  /// DOCUMENT MODE
-                                  // =====================
-                                  _detectedQrCode = null;
-                                  _detectedQrBox = null;
-
-                                  if (isAutoDetectOn) {
-                                    autoScanStatus = "Looking for document...";
-                                    if (!controller.value.isStreamingImages) {
-                                      _startMLAutoDetect();
-                                    }
-                                  } else {
-                                    autoScanStatus = "";
-                                    if (controller.value.isStreamingImages) {
-                                      controller.stopImageStream();
-                                    }
-                                  }
-                                }
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // Positioned(
+                  //   bottom: 155,
+                  //   left: 0,
+                  //   right: 0,
+                  //   child: SizedBox(
+                  //     height: 50,
+                  //     child: Stack(
+                  //       alignment: Alignment.center,
+                  //       children: [
+                  //         ScrollSnapList(
+                  //           itemBuilder: (_, index) {
+                  //             final bool isSelected = index == selectedIndex;
+                  //
+                  //             return AnimatedContainer(
+                  //               duration: const Duration(milliseconds: 200),
+                  //               alignment: Alignment.center,
+                  //               child: Container(
+                  //                 padding: const EdgeInsets.symmetric(horizontal: 12),
+                  //                 alignment: Alignment.center,
+                  //                 child: Text(
+                  //                   scanModes[index],
+                  //                   textAlign: TextAlign.center,
+                  //                   style: TextStyle(
+                  //                     color: isSelected ? Colors.blue : Colors.white,
+                  //                     fontSize: isSelected ? 15 : 13,
+                  //                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  //                   ),
+                  //                 ),
+                  //               ),
+                  //             );
+                  //           },
+                  //
+                  //           itemCount: scanModes.length,
+                  //           itemSize: MediaQuery.of(context).size.width * 0.22,
+                  //           initialIndex: 0,
+                  //           dynamicItemSize: true,
+                  //           onItemFocus: (index) async {
+                  //             await _triggerVibration();
+                  //             setState(() {
+                  //               selectedIndex = index;
+                  //
+                  //               if (selectedIndex == 1) {
+                  //                 // =====================
+                  //                 /// QR SCANNER MODE
+                  //                 // =====================
+                  //                 _detectedDocumentBox = null;
+                  //                 _stableFrames = 0;
+                  //                 isHoldingSteady = false;
+                  //                 autoScanStatus = "Looking for QR code...";
+                  //                 if (!controller.value.isStreamingImages) {
+                  //                   _startMLAutoDetect();
+                  //                 }
+                  //               } else {
+                  //                 // =====================
+                  //                 /// DOCUMENT MODE
+                  //                 // =====================
+                  //                 _detectedQrCode = null;
+                  //                 _detectedQrBox = null;
+                  //
+                  //                 if (isAutoDetectOn) {
+                  //                   autoScanStatus = "Looking for document...";
+                  //                   if (!controller.value.isStreamingImages) {
+                  //                     _startMLAutoDetect();
+                  //                   }
+                  //                 } else {
+                  //                   autoScanStatus = "";
+                  //                   if (controller.value.isStreamingImages) {
+                  //                     controller.stopImageStream();
+                  //                   }
+                  //                 }
+                  //               }
+                  //             });
+                  //           },
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
 
                   /// NAYA: GOOGLE LENS JAISE QR RESULT POPUP
                   if (selectedIndex == 1 && _detectedQrCode != null)
@@ -1243,10 +1245,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       bottom: 220,
                       left: 20,
                       right: 20,
-                      child: AnimatedRotation(
-                        turns: _iconTurns,
-                        duration: const Duration(milliseconds: 300),
-                        child: Container(
+                      child: Container(
+                        // turns: _iconTurns,
+                        // duration: const Duration(milliseconds: 300),
+                        // child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -1323,252 +1325,594 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               ),
                             ],
                           ),
-                        ),
+                        // ),
                       ),
                     ),
+
+                  //////////////
+                  // Positioned(
+                  //   left: 0,
+                  //   right: 0,
+                  //   bottom: 60,
+                  //   child: SafeArea(
+                  //     child: Padding(
+                  //       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 20),
+                  //       child: Container(
+                  //         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  //         decoration: BoxDecoration(
+                  //           color: Colors.black.withOpacity(0.25),
+                  //           borderRadius: BorderRadius.circular(30),
+                  //         ),
+                  //         child: Row(
+                  //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  //           children: [
+                  //             if (!widget.isRetakeMode)
+                  //               IconButton(
+                  //                 onPressed: () async {
+                  //                   await _triggerVibration();
+                  //                   int initialCount = widget.initialImages?.length ?? 0;
+                  //                   bool hasNewCaptures = capturedImagesList.length > initialCount;
+                  //                   bool isFromEditor = widget.isOpenedFromEditor;
+                  //
+                  //                   if (hasNewCaptures) {
+                  //                     bool shouldDiscard = await showCustomConfirmDialog(
+                  //                       context,
+                  //                       title: "Discard new scans?",
+                  //                       message: "This will discard the newly captured scans. Are you sure?",
+                  //                       positiveBtnText: "Discard",
+                  //                       negativeBtnText: "Cancel",
+                  //                       positiveBtnColor: Colors.redAccent,
+                  //                     );
+                  //
+                  //                     if (shouldDiscard && context.mounted) {
+                  //                       if (isFromEditor) {
+                  //                         Navigator.pop(context);
+                  //                       } else {
+                  //                         Navigator.pushAndRemoveUntil(
+                  //                           context,
+                  //                           MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  //                           (route) => false,
+                  //                         );
+                  //                       }
+                  //                     }
+                  //                   } else {
+                  //                     if (isFromEditor) {
+                  //                       Navigator.pop(context);
+                  //                     } else {
+                  //                       Navigator.pushAndRemoveUntil(
+                  //                         context,
+                  //                         MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  //                         (route) => false,
+                  //                       );
+                  //                     }
+                  //                   }
+                  //                 },
+                  //                 icon: _buildRotatedIcon(
+                  //                   widget.isOpenedFromEditor ? Icons.close_rounded : Icons.home_rounded,
+                  //                   color: Colors.white,
+                  //                   size: 24,
+                  //                 ),
+                  //               )
+                  //             else
+                  //               IconButton(
+                  //                 onPressed: () async {
+                  //                   await _triggerVibration();
+                  //                   Navigator.pop(context);
+                  //                 },
+                  //                 icon: _buildRotatedIcon(Icons.close_rounded, color: Colors.white, size: 28),
+                  //               ),
+                  //
+                  //             /// Gallery Button
+                  //             IconButton(
+                  //               onPressed: selectedIndex == 1
+                  //                   ? null
+                  //                   : () async {
+                  //                       await _triggerVibration();
+                  //                       //_pickImagesFromGallery;
+                  //                       await _pickImagesFromGallery();
+                  //                     },
+                  //               icon: Opacity(
+                  //                 opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                  //                 child: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
+                  //               ),
+                  //             ),
+                  //
+                  //             /// Dynamic & Animated Capture Button
+                  //             GestureDetector(
+                  //               //onTap: _capturePhoto,
+                  //               onTap: selectedIndex == 1 ? null : _capturePhoto,
+                  //               child: Opacity(
+                  //                 opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                  //                 child: Stack(
+                  //                   alignment: Alignment.center,
+                  //                   children: [
+                  //                     Container(
+                  //                       width: 60,
+                  //                       height: 60,
+                  //                       decoration: BoxDecoration(
+                  //                         shape: BoxShape.circle,
+                  //                         border: Border.all(
+                  //                           color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
+                  //                           width: 4,
+                  //                         ),
+                  //                       ),
+                  //                     ),
+                  //
+                  //                     if (isCapturing && selectedTimer > 0)
+                  //                       SizedBox(
+                  //                         width: 56,
+                  //                         height: 56,
+                  //                         child: TweenAnimationBuilder<double>(
+                  //                           tween: Tween<double>(begin: 0.0, end: 1.0),
+                  //                           duration: Duration(seconds: selectedTimer),
+                  //                           builder: (context, value, child) {
+                  //                             return CircularProgressIndicator(
+                  //                               value: value, // Current progress
+                  //                               strokeWidth: 4,
+                  //                               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                  //                               backgroundColor: Colors.transparent,
+                  //                             );
+                  //                           },
+                  //                         ),
+                  //                       )
+                  //                     else if (isAutoDetectOn && _stableFrames > 0)
+                  //                       SizedBox(
+                  //                         width: 56,
+                  //                         height: 56,
+                  //                         child: CircularProgressIndicator(
+                  //                           value: (_stableFrames / 10.0).clamp(0.0, 1.0),
+                  //                           strokeWidth: 4,
+                  //                           valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                  //                           backgroundColor: Colors.transparent,
+                  //                         ),
+                  //                       ),
+                  //
+                  //                     if (isCapturing && currentCountdown > 0)
+                  //                       Text(
+                  //                         '$currentCountdown',
+                  //                         style: const TextStyle(
+                  //                           color: Colors.white,
+                  //                           fontSize: 24,
+                  //                           fontWeight: FontWeight.bold,
+                  //                         ),
+                  //                       )
+                  //                     else if (!isCapturing && selectedTimer > 0)
+                  //                       Text(
+                  //                         '$selectedTimer',
+                  //                         style: const TextStyle(
+                  //                           color: Colors.white,
+                  //                           fontSize: 24,
+                  //                           fontWeight: FontWeight.bold,
+                  //                         ),
+                  //                       )
+                  //                     else
+                  //                       Container(
+                  //                         width: 45,
+                  //                         height: 45,
+                  //                         decoration: BoxDecoration(
+                  //                           color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white,
+                  //                           shape: BoxShape.circle,
+                  //                         ),
+                  //                       ),
+                  //                   ],
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //
+                  //             /// Auto Detect Button
+                  //             IconButton(
+                  //               onPressed: selectedIndex == 1
+                  //                   ? null
+                  //                   : () async {
+                  //                       await _triggerVibration();
+                  //                       _toggleAutoDetect();
+                  //                     },
+                  //               icon: Opacity(
+                  //                 opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                  //                 child: _buildRotatedIcon(
+                  //                   Icons.document_scanner_outlined,
+                  //                   color: isAutoDetectOn ? Colors.blueAccent : Colors.white,
+                  //                   size: 24,
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //
+                  //             /// Last Photo with Counter Badge
+                  //             GestureDetector(
+                  //               onTap: selectedIndex == 1
+                  //                   ? null
+                  //                   : () async {
+                  //                       await _triggerVibration();
+                  //                       if (capturedPhotosCount > 0) {
+                  //                         _goToEditor();
+                  //                       }
+                  //                     },
+                  //               child: Opacity(
+                  //                 opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                  //                 child: Stack(
+                  //                   clipBehavior: Clip.none,
+                  //                   children: [
+                  //                     Container(
+                  //                       width: 42,
+                  //                       height: 42,
+                  //                       decoration: BoxDecoration(
+                  //                         color: Colors.white24,
+                  //                         borderRadius: BorderRadius.circular(8),
+                  //                       ),
+                  //                       child: lastCapturedImage == null
+                  //                           ? const SizedBox()
+                  //                           : ClipRRect(
+                  //                               borderRadius: BorderRadius.circular(8),
+                  //                               child: Image.file(File(lastCapturedImage!.path), fit: BoxFit.cover),
+                  //                             ),
+                  //                     ),
+                  //
+                  //                     if (capturedPhotosCount > 0)
+                  //                       Positioned(
+                  //                         top: -6,
+                  //                         right: -6,
+                  //                         child: Container(
+                  //                           padding: const EdgeInsets.all(5),
+                  //                           decoration: const BoxDecoration(
+                  //                             color: Colors.amber,
+                  //                             shape: BoxShape.circle,
+                  //                           ),
+                  //                           child: Text(
+                  //                             '$capturedPhotosCount',
+                  //                             style: const TextStyle(
+                  //                               color: Colors.black,
+                  //                               fontSize: 10,
+                  //                               fontWeight: FontWeight.bold,
+                  //                             ),
+                  //                           ),
+                  //                         ),
+                  //                       ),
+                  //                   ],
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+///////////////////////////////////////////////////////////
+
+                  // ==========================================
+                  /// 🔥 MASTER BOTTOM SECTION 🔥
+                  /// (QR Result, Scan Modes, & Controls combined)
+// ==========================================
+//                   Positioned(
+//                     left: 0,
+//                     right: 0,
+//                     //bottom: 0, // 0 dene se SafeArea khud adjust karega
+//                     child: SafeArea(
+//                       child: Padding(
+//                         padding: EdgeInsets.only(bottom: 35.h),
                   Positioned(
                     left: 0,
                     right: 0,
-                    bottom: 60,
+                    // Niche diya gaya formula camera preview ka exact bottom nikalega
+                    top: 70.h + (MediaQuery.of(context).size.width * (4 / 3)) + 10.h, // 10.h camera aur controls ke beech ka gap hai
                     child: SafeArea(
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 12, right: 12, bottom: 20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.25),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              if (!widget.isRetakeMode)
-                                IconButton(
-                                  onPressed: () async {
-                                    await _triggerVibration();
-                                    int initialCount = widget.initialImages?.length ?? 0;
-                                    bool hasNewCaptures = capturedImagesList.length > initialCount;
-                                    bool isFromEditor = widget.isOpenedFromEditor;
+                        padding: EdgeInsets.zero, // Kyunki ab hum top se control kar rahe hain
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
 
-                                    if (hasNewCaptures) {
-                                      bool shouldDiscard = await showCustomConfirmDialog(
-                                        context,
-                                        title: "Discard new scans?",
-                                        message: "This will discard the newly captured scans. Are you sure?",
-                                        positiveBtnText: "Discard",
-                                        negativeBtnText: "Cancel",
-                                        positiveBtnColor: Colors.redAccent,
-                                      );
+                            /// 1. QR RESULT POPUP
+                            // if (selectedIndex == 1 && _detectedQrCode != null)
+                            //   Padding(
+                            //     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                            //     child: AnimatedRotation(
+                            //       turns: _iconTurns,
+                            //       duration: const Duration(milliseconds: 300),
+                            //       child: Container(
+                            //         padding: EdgeInsets.all(16.w),
+                            //         decoration: BoxDecoration(
+                            //           color: Colors.white,
+                            //           borderRadius: BorderRadius.circular(16.r),
+                            //           boxShadow: [
+                            //             BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
+                            //           ],
+                            //         ),
+                            //         child: Column(
+                            //           mainAxisSize: MainAxisSize.min,
+                            //           crossAxisAlignment: CrossAxisAlignment.start,
+                            //           children: [
+                            //             Row(
+                            //               children: [
+                            //                 Icon(Icons.qr_code_scanner_rounded, color: Colors.blueAccent, size: 24.r),
+                            //                 SizedBox(width: 8.w),
+                            //                 Expanded(
+                            //                   child: Text(
+                            //                     "QR Code Detected",
+                            //                     style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16.sp),
+                            //                   ),
+                            //                 ),
+                            //                 IconButton(
+                            //                   padding: EdgeInsets.zero,
+                            //                   constraints: const BoxConstraints(),
+                            //                   icon: Icon(Icons.close_rounded, color: Colors.grey, size: 24.r),
+                            //                   onPressed: () async {
+                            //                     await _triggerVibration();
+                            //                     setState(() {
+                            //                       _detectedQrCode = null;
+                            //                     });
+                            //                   },
+                            //                 ),
+                            //               ],
+                            //             ),
+                            //             SizedBox(height: 8.h),
+                            //             Text(
+                            //               _detectedQrCode!,
+                            //               style: TextStyle(color: Colors.grey.shade800, fontSize: 14.sp),
+                            //               maxLines: 2,
+                            //               overflow: TextOverflow.ellipsis,
+                            //             ),
+                            //             SizedBox(height: 12.h),
+                            //             Row(
+                            //               mainAxisAlignment: MainAxisAlignment.end,
+                            //               children: [
+                            //                 TextButton.icon(
+                            //                   onPressed: () async {
+                            //                     await _triggerVibration();
+                            //                     Clipboard.setData(ClipboardData(text: _detectedQrCode!));
+                            //                     showToast("Copied to clipboard");
+                            //                   },
+                            //                   icon: Icon(Icons.copy_rounded, size: 18.r),
+                            //                   label: Text("Copy", style: TextStyle(fontSize: 14.sp)),
+                            //                 ),
+                            //                 SizedBox(width: 8.w),
+                            //                 if (_detectedQrCode!.startsWith("http"))
+                            //                   ElevatedButton.icon(
+                            //                     onPressed: () async {
+                            //                       await _triggerVibration();
+                            //                       final Uri url = Uri.parse(_detectedQrCode!);
+                            //                       if (await canLaunchUrl(url)) {
+                            //                         await launchUrl(url, mode: LaunchMode.externalApplication);
+                            //                       }
+                            //                     },
+                            //                     style: ElevatedButton.styleFrom(
+                            //                       backgroundColor: Colors.blueAccent,
+                            //                       foregroundColor: Colors.white,
+                            //                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                            //                     ),
+                            //                     icon: Icon(Icons.open_in_browser_rounded, size: 18.r),
+                            //                     label: Text("Open", style: TextStyle(fontSize: 14.sp)),
+                            //                   ),
+                            //               ],
+                            //             ),
+                            //           ],
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
 
-                                      if (shouldDiscard && context.mounted) {
-                                        if (isFromEditor) {
-                                          Navigator.pop(context);
-                                        } else {
-                                          Navigator.pushAndRemoveUntil(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                            (route) => false,
-                                          );
-                                        }
-                                      }
-                                    } else {
-                                      if (isFromEditor) {
-                                        Navigator.pop(context);
-                                      } else {
-                                        Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const HomeScreen()),
-                                          (route) => false,
-                                        );
-                                      }
-                                    }
-                                  },
-                                  icon: _buildRotatedIcon(
-                                    widget.isOpenedFromEditor ? Icons.close_rounded : Icons.home_rounded,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                )
-                              else
-                                IconButton(
-                                  onPressed: () async {
-                                    await _triggerVibration();
-                                    Navigator.pop(context);
-                                  },
-                                  icon: _buildRotatedIcon(Icons.close_rounded, color: Colors.white, size: 28),
-                                ),
-
-                              /// Gallery Button
-                              IconButton(
-                                onPressed: selectedIndex == 1
-                                    ? null
-                                    : () async {
-                                        await _triggerVibration();
-                                        //_pickImagesFromGallery;
-                                        await _pickImagesFromGallery();
-                                      },
-                                icon: Opacity(
-                                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
-                                  child: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24),
-                                ),
-                              ),
-
-                              /// Dynamic & Animated Capture Button
-                              GestureDetector(
-                                //onTap: _capturePhoto,
-                                onTap: selectedIndex == 1 ? null : _capturePhoto,
-                                child: Opacity(
-                                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Container(
-                                        width: 60,
-                                        height: 60,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white,
-                                            width: 4,
+                            /// 2. SCAN MODES
+                            SizedBox(
+                              height: 45.h,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  ScrollSnapList(
+                                    itemBuilder: (_, index) {
+                                      final bool isSelected = index == selectedIndex;
+                                      return AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        alignment: Alignment.center,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            scanModes[index],
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: isSelected ? Colors.blue : Colors.white,
+                                              fontSize: isSelected ? 15.sp : 13.sp,
+                                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                            ),
                                           ),
                                         ),
+                                      );
+                                    },
+                                    itemCount: scanModes.length,
+                                    itemSize: 85.w,
+                                    initialIndex: 0,
+                                    dynamicItemSize: true,
+                                    onItemFocus: (index) async {
+                                      await _triggerVibration();
+                                      setState(() {
+                                        selectedIndex = index;
+                                        if (selectedIndex == 1) {
+                                          _detectedDocumentBox = null;
+                                          _stableFrames = 0;
+                                          isHoldingSteady = false;
+                                          autoScanStatus = "Looking for QR code...";
+                                          if (!controller.value.isStreamingImages) _startMLAutoDetect();
+                                        } else {
+                                          _detectedQrCode = null;
+                                          _detectedQrBox = null;
+                                          if (isAutoDetectOn) {
+                                            autoScanStatus = "Looking for document...";
+                                            if (!controller.value.isStreamingImages) _startMLAutoDetect();
+                                          } else {
+                                            autoScanStatus = "";
+                                            if (controller.value.isStreamingImages) controller.stopImageStream();
+                                          }
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            SizedBox(height: 10.h),
+
+                            /// 3. CAPTURE CONTROLS BAR
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 12.w),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.25),
+                                  borderRadius: BorderRadius.circular(30.r),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    if (!widget.isRetakeMode)
+                                      IconButton(
+                                        onPressed: () async {
+                                          await _triggerVibration();
+                                          int initialCount = widget.initialImages?.length ?? 0;
+                                          bool hasNewCaptures = capturedImagesList.length > initialCount;
+                                          bool isFromEditor = widget.isOpenedFromEditor;
+
+                                          if (hasNewCaptures) {
+                                            bool shouldDiscard = await showCustomConfirmDialog(
+                                              context,
+                                              title: "Discard new scans?",
+                                              message: "This will discard the newly captured scans. Are you sure?",
+                                              positiveBtnText: "Discard",
+                                              negativeBtnText: "Cancel",
+                                              positiveBtnColor: Colors.redAccent,
+                                            );
+                                            if (shouldDiscard && context.mounted) {
+                                              if (isFromEditor) {
+                                                Navigator.pop(context);
+                                              } else {
+                                                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeScreen()), (route) => false);
+                                              }
+                                            }
+                                          } else {
+                                            if (isFromEditor) {
+                                              Navigator.pop(context);
+                                            } else {
+                                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeScreen()), (route) => false);
+                                            }
+                                          }
+                                        },
+                                        icon: _buildRotatedIcon(widget.isOpenedFromEditor ? Icons.close_rounded : Icons.home_rounded, color: Colors.white, size: 24.r),
+                                      )
+                                    else
+                                      IconButton(
+                                        onPressed: () async {
+                                          await _triggerVibration();
+                                          Navigator.pop(context);
+                                        },
+                                        icon: _buildRotatedIcon(Icons.close_rounded, color: Colors.white, size: 28.r),
                                       ),
 
-                                      if (isCapturing && selectedTimer > 0)
-                                        SizedBox(
-                                          width: 56,
-                                          height: 56,
-                                          child: TweenAnimationBuilder<double>(
-                                            tween: Tween<double>(begin: 0.0, end: 1.0),
-                                            duration: Duration(seconds: selectedTimer),
-                                            builder: (context, value, child) {
-                                              return CircularProgressIndicator(
-                                                value: value, // Current progress
-                                                strokeWidth: 4,
-                                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-                                                backgroundColor: Colors.transparent,
-                                              );
-                                            },
-                                          ),
-                                        )
-                                      else if (isAutoDetectOn && _stableFrames > 0)
-                                        SizedBox(
-                                          width: 56,
-                                          height: 56,
-                                          child: CircularProgressIndicator(
-                                            value: (_stableFrames / 10.0).clamp(0.0, 1.0),
-                                            strokeWidth: 4,
-                                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-                                            backgroundColor: Colors.transparent,
-                                          ),
-                                        ),
+                                    IconButton(
+                                      onPressed: selectedIndex == 1 ? null : () async {
+                                        await _triggerVibration();
+                                        await _pickImagesFromGallery();
+                                      },
+                                      icon: Opacity(
+                                        opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                                        child: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24.r),
+                                      ),
+                                    ),
 
-                                      if (isCapturing && currentCountdown > 0)
-                                        Text(
-                                          '$currentCountdown',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      else if (!isCapturing && selectedTimer > 0)
-                                        Text(
-                                          '$selectedTimer',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      else
-                                        Container(
-                                          width: 45,
-                                          height: 45,
-                                          decoration: BoxDecoration(
-                                            color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white,
-                                            shape: BoxShape.circle,
-                                          ),
+                                    GestureDetector(
+                                      onTap: selectedIndex == 1 ? null : _capturePhoto,
+                                      child: Opacity(
+                                        opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Container(
+                                              width: 60.r,
+                                              height: 60.r,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white, width: 4.w),
+                                              ),
+                                            ),
+                                            if (isCapturing && selectedTimer > 0)
+                                              SizedBox(
+                                                width: 56.r,
+                                                height: 56.r,
+                                                child: TweenAnimationBuilder<double>(
+                                                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                                                  duration: Duration(seconds: selectedTimer),
+                                                  builder: (context, value, child) {
+                                                    return CircularProgressIndicator(value: value, strokeWidth: 4.w, valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue), backgroundColor: Colors.transparent);
+                                                  },
+                                                ),
+                                              )
+                                            else if (isAutoDetectOn && _stableFrames > 0)
+                                              SizedBox(
+                                                width: 56.r,
+                                                height: 56.r,
+                                                child: CircularProgressIndicator(value: (_stableFrames / 10.0).clamp(0.0, 1.0), strokeWidth: 4.w, valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent), backgroundColor: Colors.transparent),
+                                              ),
+                                            if (isCapturing && currentCountdown > 0)
+                                              Text('$currentCountdown', style: TextStyle(color: Colors.white, fontSize: 24.sp, fontWeight: FontWeight.bold))
+                                            else if (!isCapturing && selectedTimer > 0)
+                                              Text('$selectedTimer', style: TextStyle(color: Colors.white, fontSize: 24.sp, fontWeight: FontWeight.bold))
+                                            else
+                                              Container(
+                                                width: 45.r,
+                                                height: 45.r,
+                                                decoration: BoxDecoration(color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white, shape: BoxShape.circle),
+                                              ),
+                                          ],
                                         ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                                      ),
+                                    ),
 
-                              /// Auto Detect Button
-                              IconButton(
-                                onPressed: selectedIndex == 1
-                                    ? null
-                                    : () async {
+                                    IconButton(
+                                      onPressed: selectedIndex == 1 ? null : () async {
                                         await _triggerVibration();
                                         _toggleAutoDetect();
                                       },
-                                icon: Opacity(
-                                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
-                                  child: _buildRotatedIcon(
-                                    Icons.document_scanner_outlined,
-                                    color: isAutoDetectOn ? Colors.blueAccent : Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-
-                              /// Last Photo with Counter Badge
-                              GestureDetector(
-                                onTap: selectedIndex == 1
-                                    ? null
-                                    : () async {
-                                        await _triggerVibration();
-                                        if (capturedPhotosCount > 0) {
-                                          _goToEditor();
-                                        }
-                                      },
-                                child: Opacity(
-                                  opacity: selectedIndex == 1 ? 0.4 : 1.0,
-                                  child: Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      Container(
-                                        width: 42,
-                                        height: 42,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white24,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: lastCapturedImage == null
-                                            ? const SizedBox()
-                                            : ClipRRect(
-                                                borderRadius: BorderRadius.circular(8),
-                                                child: Image.file(File(lastCapturedImage!.path), fit: BoxFit.cover),
-                                              ),
+                                      icon: Opacity(
+                                        opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                                        child: _buildRotatedIcon(Icons.document_scanner_outlined, color: isAutoDetectOn ? Colors.blueAccent : Colors.white, size: 24.r),
                                       ),
+                                    ),
 
-                                      if (capturedPhotosCount > 0)
-                                        Positioned(
-                                          top: -6,
-                                          right: -6,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(5),
-                                            decoration: const BoxDecoration(
-                                              color: Colors.amber,
-                                              shape: BoxShape.circle,
+                                    GestureDetector(
+                                      onTap: selectedIndex == 1 ? null : () async {
+                                        await _triggerVibration();
+                                        if (capturedPhotosCount > 0) _goToEditor();
+                                      },
+                                      child: Opacity(
+                                        opacity: selectedIndex == 1 ? 0.4 : 1.0,
+                                        child: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            Container(
+                                              width: 42.r,
+                                              height: 42.r,
+                                              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8.r)),
+                                              child: lastCapturedImage == null ? const SizedBox() : ClipRRect(borderRadius: BorderRadius.circular(8.r), child: Image.file(File(lastCapturedImage!.path), fit: BoxFit.cover)),
                                             ),
-                                            child: Text(
-                                              '$capturedPhotosCount',
-                                              style: const TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
+                                            if (capturedPhotosCount > 0)
+                                              Positioned(
+                                                top: -6.h,
+                                                right: -6.w,
+                                                child: Container(
+                                                  padding: EdgeInsets.all(5.r),
+                                                  decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
+                                                  child: Text('$capturedPhotosCount', style: TextStyle(color: Colors.black, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+                                                ),
                                               ),
-                                            ),
-                                          ),
+                                          ],
                                         ),
-                                    ],
-                                  ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
