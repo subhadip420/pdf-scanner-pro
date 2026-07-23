@@ -10,7 +10,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'custom_dialog.dart';
-// Agar path_provider use kar rahe ho cache ke liye toh import kar lena, abhi ke liye functional UI bana diya hai.
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key); // 🚨 FIX: Callback hata diya
@@ -20,7 +19,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // Settings ki State Variables
   String _defaultPageSize = 'Auto Fit';
   bool _saveToGallery = true;
   String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
@@ -28,10 +26,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSettings(); // Page open hote hi settings load karo
+    _loadSettings();
   }
 
-  // 🚨 FUNCTION: Settings Load Karna
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -41,14 +38,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  // 🚨 FUNCTION: Settings Save Karna
   Future<void> _saveSetting(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
     _showSettingToast("Setting updated to $value");
   }
 
-  // Dummy Toast Function (Agar tumhare app me already custom toast hai toh wahi chalega)
   void _showSettingToast(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -62,7 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF100F0F), // Dark Theme
+      backgroundColor: Color(0xFF100F0F),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1E1E),
         iconTheme: const IconThemeData(color: Colors.white),
@@ -118,7 +113,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _defaultPageSize = newValue;
                       });
 
-                      // 🚨 NAYA: Disk (SharedPreferences) mein save karne ka call
+                      // Disk (SharedPreferences) mein save karne ka call
                       _saveSetting('pref_page_size', newValue);
 
                       _showSettingToast("Default size set to $_defaultPageSize");
@@ -210,9 +205,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 🚨 NAYA FUNCTION: Custom Dialog ke sath Cache Clear Logic
+  // FUNCTION: Custom Dialog ke sath Cache Clear Logic
   Future<void> _clearAppCache() async {
-    // 1. Pehle Custom Dialog open karo aur user ka jawaab (true/false) lo
     bool confirmClear = await showCustomConfirmDialog(
       context,
       title: "Clear Cache",
@@ -220,13 +214,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           "Are you sure you want to clear temporary app files? This will free up storage and will not delete your saved PDFs.",
       positiveBtnText: "Clear Cache",
       negativeBtnText: "Cancel",
-      positiveBtnColor: Colors.redAccent, // 🚨 Destructive action hai isliye Red color diya
+      positiveBtnColor: Colors.redAccent,
     );
 
-    // 2. Agar user ne 'Cancel' dabaya ya bahar click kiya, toh function wahin ruk jayega
     if (!confirmClear) return;
 
-    // 3. Agar user ne 'Clear Cache' (true) dabaya, toh delete logic start karo
     _showSettingToast("Clearing cache... Please wait.");
 
     try {
@@ -256,7 +248,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // Section Headers ke liye Widget
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 20, top: 20, bottom: 8),
@@ -272,7 +263,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // Tiles ko reuse karne ke liye custom helper widget
   Widget _buildSettingTile({
     required IconData icon,
     required String title,
@@ -294,25 +284,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
         onTap: () {
-          HapticFeedback.lightImpact(); // Click hone par subtle tactile feel
+          HapticFeedback.lightImpact();
           onTap();
         },
       ),
     );
   }
 
-  // 🚨 NAYA FUNCTION: Native In-App Review
+  //  FUNCTION: Native In-App Review
   Future<void> _handleRateUs() async {
     final InAppReview inAppReview = InAppReview.instance;
 
     try {
-      // 1. Check karo ki device me Play Store services available hain ya nahi
       if (await inAppReview.isAvailable()) {
-        // 2. Native Play Store pop-up app ke andar hi dikhao
         await inAppReview.requestReview();
       } else {
-        // 3. Agar review popup available nahi hai, toh seedha Play Store app me open karo
-        // (Jab app publish ho jaye, toh apna package name daal dena, ex: 'com.sptech.pdfscanner')
         await inAppReview.openStoreListing(appStoreId: 'com.sptechstudios.pdfscannerpro');
         //TODO: change to original link
       }
@@ -322,7 +308,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 🚨 CORRECT FUNCTION FOR share_plus ^12.0.2
+  //  FUNCTION FOR share_plus ^12.0.2
   void _shareApp() {
     //TODO: change to original link
     const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
@@ -332,11 +318,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         "It's a fast, secure, and 100% offline PDF creator & document scanner. "
         "Download it here: $playStoreLink";
 
-    // 🚨 FIX: v12 ke hisaab se hum wapas classic Share.share use karenge
     Share.share(shareMessage, subject: "Download PDF Scanner Pro");
   }
 
-  // 🚨 NAYA GLOBAL FUNCTION: Customer Support Dialog
+  //  GLOBAL FUNCTION: Customer Support Dialog
   void showSupportDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -366,12 +351,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // 🚨 Clickable Email Box
+              // Clickable Email Box
               Center(
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
                   onTap: () async {
-                    // 1. Email open karne ka logic
+                    // Email open karne ka logic
                     const String supportEmail = "support.sptechstudios@gmail.com";
                     final Uri emailUri = Uri.parse("mailto:$supportEmail?subject=Support Request: PDF Scanner Pro");
 
@@ -380,8 +365,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     } catch (e) {
                       print("Email Error: $e");
                     }
-
-                    // 2. Click karne ke baad dialog automatically close kar do
                     if (context.mounted) Navigator.pop(context);
                   },
                   child: Container(
@@ -418,7 +401,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 🚨 NAYA GLOBAL FUNCTION: Premium About Dialog
+  // GLOBAL FUNCTION: Premium About Dialog
   void showAboutAppDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -428,9 +411,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           contentPadding: const EdgeInsets.all(24),
           content: Column(
-            mainAxisSize: MainAxisSize.min, // Content ke hisaab se height lega
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // 2. App Name & Version
+              // App Name & Version
               const Text(
                 "PDF Scanner Pro",
                 style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
@@ -442,7 +425,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(color: Colors.white12, thickness: 1),
               const SizedBox(height: 16),
 
-              // 3. Description
+              // Description
               const Text(
                 "A fast, secure, and professional tool to manage, merge, and organize all your PDF documents offline.",
                 textAlign: TextAlign.center,
@@ -464,7 +447,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // 5. Close Button
+              // Close Button
               SizedBox(
                 width: double.infinity,
                 height: 45,
@@ -486,20 +469,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 🚨 NAYA FUNCTION: Folder Picker & Storage Location Logic
-  // 🚨 CORRECT FUNCTION: Folder Picker (Bina dialogTitle ke)
+  // FUNCTION: Folder Picker (Bina dialogTitle ke)
   Future<void> _changeStorageLocation() async {
     try {
-      // 1. Native folder picker open karo (Error wala parameter hata diya)
       String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
 
-      // 2. Agar user ne koi folder select kiya (cancel nahi kiya)
       if (selectedDirectory != null) {
         setState(() {
           _storageLocation = selectedDirectory;
         });
 
-        // 3. Naya path disk (SharedPreferences) mein hamesha ke liye save kar lo
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pref_storage_location', selectedDirectory);
 
