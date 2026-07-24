@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -25,7 +26,9 @@ import 'document_editor_screen.dart'; // Apna editor
 import 'package:gal/gal.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as syncfusion;
 
 class HomeScreen extends StatefulWidget {
@@ -1066,6 +1069,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       }(),
                                       const SizedBox(width: 16),
                                       Tooltip(
+                                        message: "Download to Phone",
+                                        child: InkWell(
+                                          onTap: () => savePdfToDownloads(file, context),
+                                          child: const Icon(Icons.download_rounded, color: Colors.white70, size: 22),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Tooltip(
                                         message: "Share",
                                         child: InkWell(
                                           onTap: () => _sharePdfFile(file),
@@ -1244,6 +1255,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap: () {
                           Navigator.pop(sheetContext);
                           _copyPdfFile(file);
+                        },
+                      ),
+
+                      ListTile(
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -1),
+                        leading: const Icon(Icons.download_rounded, color: Colors.white, size: 20),
+                        title: const Text('Download to Phone', style: TextStyle(color: Colors.white, fontSize: 15)),
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          savePdfToDownloads(file, context);
                         },
                       ),
 
@@ -2333,6 +2355,102 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  // Future<void> savePdfToDownloads(File pdfFile, BuildContext context) async {
+  //   try {
+  //     // Android 10 ya usse niche wale phones ke liye permission mangte hain
+  //     // Android 11+ ise ignore kar dega kyunki wahan public folder me new file save karna allowed hai
+  //     await Permission.storage.request();
+  //
+  //     // 1. Android ka standard public Download folder path
+  //     const String downloadDirPath = '/storage/emulated/0/Download';
+  //     final Directory downloadDir = Directory(downloadDirPath);
+  //
+  //     // Agar by chance Download folder exist nahi karta, toh create kar lo
+  //     if (!await downloadDir.exists()) {
+  //       await downloadDir.create(recursive: true);
+  //     }
+  //
+  //     // 2. 🚀 UNIQUE FILE NAME (Bohot Zaroori Hai)
+  //     // Android 11+ me agar same naam ki file public folder me pehle se ho, toh wo error dega.
+  //     // Isliye hum file ke naam ke aage timestamp laga rahe hain taaki naam hamesha unique rahe.
+  //     final String originalFileName = pdfFile.path.split('/').last;
+  //     final String uniqueFileName = originalFileName.replaceFirst('.pdf', '_${DateTime.now().millisecondsSinceEpoch}.pdf');
+  //
+  //     final String savePath = "$downloadDirPath/$uniqueFileName";
+  //
+  //     // 3. File ko phone ke Download folder me save (copy) karna
+  //     await pdfFile.copy(savePath);
+  //
+  //     // 4. User ko Success dikhana
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Row(
+  //           children: const [
+  //             Icon(Icons.check_circle, color: Colors.white),
+  //             SizedBox(width: 10),
+  //             Text("PDF Saved in Downloads folder!"),
+  //           ],
+  //         ),
+  //         backgroundColor: Colors.green,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     print("Download Error: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text("Failed to save PDF. Permission Denied."),
+  //         backgroundColor: Colors.redAccent,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   }
+  // }
+
+  Future<void> savePdfToDownloads(File pdfFile, BuildContext context) async {
+    try {
+      // 1. File ka naam set karo
+      final String originalFileName = pdfFile.path.split('/').last;
+      final String uniqueFileName = originalFileName.replaceFirst('.pdf', '_${DateTime.now().millisecondsSinceEpoch}.pdf');
+
+      // 2. Native Save Dialog ki settings
+      final params = SaveFileDialogParams(
+        sourceFilePath: pdfFile.path, // Jo PDF app ke temporary folder mein hai
+        fileName: uniqueFileName,     // Default naam jo save screen par dikhega
+      );
+
+      // 3. Android ka native save dialog open hoga (Yeh bina kisi permission ke kaam karta hai)
+      final filePath = await FlutterFileDialog.saveFile(params: params);
+
+      // 4. Agar user ne 'Save' par click kiya (Cancel nahi kiya) toh filePath null nahi hoga
+      if (filePath != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 10),
+                Text("PDF Saved Successfully!"),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
+    } catch (e) {
+      print("Download Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
 } //end main class
