@@ -176,6 +176,45 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
   }
 
+  // Future<void> _initializeCamera() async {
+  //   if (!mounted) return;
+  //
+  //   // Reset status
+  //   setState(() {
+  //     _isCameraReady = false;
+  //     _isCameraSleeping = false;
+  //   });
+  //
+  //   try {
+  //     await Future.delayed(const Duration(milliseconds: 300));
+  //
+  //     if (cameras.isEmpty) {
+  //       cameras = await availableCameras();
+  //     }
+  //     if (cameras.isEmpty) {
+  //       debugPrint("Koi camera hardware nahi mila!");
+  //       return;
+  //     }
+  //     controller = CameraController(
+  //       cameras[currentCameraIndex],
+  //       ResolutionPreset.high,
+  //       enableAudio: false,
+  //       imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+  //     );
+  //
+  //     await controller.initialize();
+  //     await _applyFlashMode(selectedFlashMode);
+  //
+  //     if (mounted) {
+  //       setState(() => _isCameraReady = true);
+  //       if (isAutoDetectOn) _startMLAutoDetect();
+  //       _resetSleepTimer();
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Camera init error: $e");
+  //   }
+  // }
+
   Future<void> _initializeCamera() async {
     if (!mounted) return;
 
@@ -186,6 +225,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
 
     try {
+      // 🚨 FIX: Camera open karne se pehle permission ka wait karo!
+      PermissionStatus status = await Permission.camera.status;
+      if (!status.isGranted) {
+        status = await Permission.camera.request();
+      }
+
+      // Agar user ne deny kar diya toh yahan ruk jao
+      if (!status.isGranted) {
+        showToast("Camera permission is required to scan!");
+        return;
+      }
+
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (cameras.isEmpty) {
@@ -195,6 +246,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         debugPrint("Koi camera hardware nahi mila!");
         return;
       }
+
       controller = CameraController(
         cameras[currentCameraIndex],
         ResolutionPreset.high,
@@ -212,6 +264,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
     } catch (e) {
       debugPrint("Camera init error: $e");
+      if (mounted) {
+        showToast("Error starting camera. Please restart the app.");
+      }
     }
   }
 
