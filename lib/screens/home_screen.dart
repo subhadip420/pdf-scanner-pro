@@ -114,17 +114,60 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Future<void> _loadPdfFiles() async {
+  //   try {
+  //     if (await Permission.manageExternalStorage.isDenied) {
+  //       await Permission.manageExternalStorage.request();
+  //     }
+  //     final directory = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+  //     if (await directory.exists()) {
+  //       List<FileSystemEntity> entities = directory.listSync();
+  //
+  //       List<File> files = entities.whereType<File>().where((f) => f.path.toLowerCase().endsWith('.pdf')).toList();
+  //
+  //       files.sort((a, b) {
+  //         int result;
+  //         if (_sortBy == 'Name') {
+  //           result = a.path.split('/').last.toLowerCase().compareTo(b.path.split('/').last.toLowerCase());
+  //         } else if (_sortBy == 'Size') {
+  //           result = a.statSync().size.compareTo(b.statSync().size);
+  //         } else {
+  //           result = a.lastModifiedSync().compareTo(b.lastModifiedSync());
+  //         }
+  //         return _isAscending ? result : -result;
+  //       });
+  //
+  //       if (mounted) {
+  //         setState(() {
+  //           _pdfFiles = files;
+  //           _isLoadingFiles = false;
+  //         });
+  //       }
+  //     } else {
+  //       if (mounted) setState(() => _isLoadingFiles = false);
+  //     }
+  //   } catch (e) {
+  //     if (mounted) setState(() => _isLoadingFiles = false);
+  //     print("Error loading files: $e");
+  //   }
+  // }
+
   Future<void> _loadPdfFiles() async {
     try {
-      if (await Permission.manageExternalStorage.isDenied) {
-        await Permission.manageExternalStorage.request();
-      }
-      final directory = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+      // 🚨 Yahan Permission.manageExternalStorage ki zaroorat nahi hai
+      // App ke private folder (safe zone) ka path direct get karo
+      final directory = await getApplicationDocumentsDirectory();
+
       if (await directory.exists()) {
         List<FileSystemEntity> entities = directory.listSync();
 
-        List<File> files = entities.whereType<File>().where((f) => f.path.toLowerCase().endsWith('.pdf')).toList();
+        // Sirf PDF files filter karo
+        List<File> files = entities
+            .whereType<File>()
+            .where((f) => f.path.toLowerCase().endsWith('.pdf'))
+            .toList();
 
+        // Sorting logic (Name, Size, Date)
         files.sort((a, b) {
           int result;
           if (_sortBy == 'Name') {
