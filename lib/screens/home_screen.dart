@@ -1284,14 +1284,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
 
+                      // ListTile(
+                      //   dense: true,
+                      //   visualDensity: const VisualDensity(vertical: -3),
+                      //   leading: const Icon(Icons.text_snippet_outlined, color: Colors.white, size: 22),
+                      //   title: const Text('Convert to Word', style: TextStyle(color: Colors.white, fontSize: 16)),
+                      //   onTap: () {
+                      //     Navigator.pop(sheetContext); // Bottom sheet band karo
+                      //     _showConvertToWordConfirmDialog(context, file); // Naya function call hoga
+                      //   },
+                      // ),
+
                       ListTile(
-                        dense: true,
-                        visualDensity: const VisualDensity(vertical: -3),
-                        leading: const Icon(Icons.text_snippet_outlined, color: Colors.white, size: 22),
-                        title: const Text('Convert to Word', style: TextStyle(color: Colors.white, fontSize: 16)),
+                        leading: const Icon(Icons.text_snippet, color: Colors.white),
+                        title: const Text("Extract Text (OCR)", style: TextStyle(color: Colors.white)),
                         onTap: () {
-                          Navigator.pop(sheetContext); // Bottom sheet band karo
-                          _showConvertToWordConfirmDialog(context, file); // Naya function call hoga
+                          Navigator.pop(context); // Bottom sheet ko pehle band karo
+                          _processAndShowExtractedText(context, file); // Naya logic start
                         },
                       ),
 
@@ -2060,76 +2069,177 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _showConvertToWordConfirmDialog(BuildContext context, File pdfFile) async {
-    final prefs = await SharedPreferences.getInstance();
-    String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+  // Future<void> _showConvertToWordConfirmDialog(BuildContext context, File pdfFile) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
+  //
+  //   String wordFolderPath = "$baseSavePath/Word Files";
+  //
+  //   bool isConfirmed = await showCustomConfirmDialog(
+  //     context,
+  //     title: "Convert to Word",
+  //     message: "Do you want to convert this PDF into a Word document?\n\nSave Location:\n$wordFolderPath",
+  //     positiveBtnText: "Convert",
+  //     negativeBtnText: "Cancel",
+  //     positiveBtnColor: Colors.blueAccent,
+  //   );
+  //
+  //   if (isConfirmed) {
+  //     showDialog(
+  //       context: context,
+  //       barrierDismissible: false,
+  //       builder: (BuildContext dialogContext) {
+  //         return const AlertDialog(
+  //           backgroundColor: Color(0xFF2C2C2C),
+  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+  //           content: Row(
+  //             children: [
+  //               CircularProgressIndicator(color: Colors.blueAccent),
+  //               SizedBox(width: 20),
+  //               Expanded(
+  //                 child: Text(
+  //                   "Converting to Word... Please wait",
+  //                   style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         );
+  //       },
+  //     );
+  //
+  //     await _convertPdfToWord(pdfFile, wordFolderPath);
+  //
+  //     if (context.mounted) {
+  //       Navigator.pop(context);
+  //     }
+  //   }
+  // }
+  //
+  // Future<void> _convertPdfToWord(File pdfFile, String saveDirectory) async {
+  //   try {
+  //     final dir = Directory(saveDirectory);
+  //     if (!await dir.exists()) {
+  //       await dir.create(recursive: true);
+  //     }
+  //
+  //     String fileName = pdfFile.path.split('/').last.replaceAll('.pdf', '.doc');
+  //     String savePath = "${dir.path}/$fileName";
+  //
+  //     final document = await PdfDocument.openFile(pdfFile.path);
+  //     final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+  //
+  //     // 4. Word File ka boilerplate structure (Jadu yahin hai!)
+  //     StringBuffer wordContent = StringBuffer();
+  //     wordContent.writeln('<html xmlns:w="urn:schemas-microsoft-com:office:word">');
+  //     wordContent.writeln('<head><meta charset="utf-8"><title>Scanner Pro Document</title></head><body>');
+  //
+  //     for (int i = 1; i <= document.pagesCount; i++) {
+  //       final page = await document.getPage(i);
+  //
+  //       final pageImage = await page.render(
+  //         width: page.width * 2,
+  //         height: page.height * 2,
+  //         format: PdfPageImageFormat.jpeg,
+  //       );
+  //
+  //       if (pageImage != null) {
+  //         final tempDir = await getTemporaryDirectory();
+  //         final tempFile = File('${tempDir.path}/temp_ocr_page_$i.jpg');
+  //         await tempFile.writeAsBytes(pageImage.bytes);
+  //
+  //         final inputImage = InputImage.fromFile(tempFile);
+  //         final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+  //
+  //         String pageText = recognizedText.text.trim();
+  //
+  //         if (pageText.isNotEmpty) {
+  //           String formattedText = pageText.replaceAll('\n', '<br>');
+  //           wordContent.writeln('<p style="font-family: Arial, sans-serif; font-size: 14pt;">$formattedText</p>');
+  //         } else {
+  //           wordContent.writeln('<p style="color: grey;"><i>[Image Only / No Text Found on Page $i]</i></p>');
+  //         }
+  //
+  //         if (i < document.pagesCount) {
+  //           wordContent.writeln('<br clear="all" style="page-break-before:always" />');
+  //         }
+  //
+  //         if (await tempFile.exists()) await tempFile.delete();
+  //       }
+  //       await page.close();
+  //     }
+  //
+  //     wordContent.writeln('</body></html>');
+  //
+  //     textRecognizer.close();
+  //     await document.close();
+  //
+  //     File wordFile = File(savePath);
+  //     await wordFile.writeAsString(wordContent.toString());
+  //
+  //     showToast("Converted successfully! Saved in Word Files");
+  //   } catch (e) {
+  //     showToast("Error converting to Word: $e");
+  //     print("Convert Error: $e");
+  //   }
+  // }
 
-    String wordFolderPath = "$baseSavePath/Word Files";
 
-    bool isConfirmed = await showCustomConfirmDialog(
-      context,
-      title: "Convert to Word",
-      message: "Do you want to convert this PDF into a Word document?\n\nSave Location:\n$wordFolderPath",
-      positiveBtnText: "Convert",
-      negativeBtnText: "Cancel",
-      positiveBtnColor: Colors.blueAccent,
+// 1. Button pe click hone par yeh function call karna
+  Future<void> _processAndShowExtractedText(BuildContext context, File pdfFile) async {
+    // A) Pehle Loading Dialog dikhao
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User screen par click karke band na kar sake
+      builder: (BuildContext dialogContext) {
+        return const AlertDialog(
+          backgroundColor: Color(0xFF2C2C2C),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+          content: Row(
+            children: [
+              CircularProgressIndicator(color: Colors.blueAccent),
+              SizedBox(width: 20),
+              Expanded(
+                child: Text(
+                  "Extracting Text (OCR)... Please wait",
+                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
 
-    if (isConfirmed) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext dialogContext) {
-          return const AlertDialog(
-            backgroundColor: Color(0xFF2C2C2C),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
-            content: Row(
-              children: [
-                CircularProgressIndicator(color: Colors.blueAccent),
-                SizedBox(width: 20),
-                Expanded(
-                  child: Text(
-                    "Converting to Word... Please wait",
-                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
+    // B) Background mein text extract karo
+    String extractedText = await _extractTextFromPdf(pdfFile);
 
-      await _convertPdfToWord(pdfFile, wordFolderPath);
+    // C) Extraction complete hone par Loading Dialog band karo
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
 
-      if (context.mounted) {
-        Navigator.pop(context);
+    // D) Result Dialog show karo (Jisme Copy/Share hoga)
+    if (context.mounted) {
+      if (extractedText.trim().isEmpty) {
+        showToast("No text found in this PDF.");
+      } else {
+        _showExtractedTextDialog(context, extractedText);
       }
     }
   }
 
-  Future<void> _convertPdfToWord(File pdfFile, String saveDirectory) async {
+// 2. Background Engine: Jo PDF se actually text nikalega
+  Future<String> _extractTextFromPdf(File pdfFile) async {
+    StringBuffer allText = StringBuffer();
     try {
-      final dir = Directory(saveDirectory);
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
-
-      String fileName = pdfFile.path.split('/').last.replaceAll('.pdf', '.doc');
-      String savePath = "${dir.path}/$fileName";
-
       final document = await PdfDocument.openFile(pdfFile.path);
       final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
-      // 4. Word File ka boilerplate structure (Jadu yahin hai!)
-      StringBuffer wordContent = StringBuffer();
-      wordContent.writeln('<html xmlns:w="urn:schemas-microsoft-com:office:word">');
-      wordContent.writeln('<head><meta charset="utf-8"><title>Scanner Pro Document</title></head><body>');
-
       for (int i = 1; i <= document.pagesCount; i++) {
         final page = await document.getPage(i);
-
         final pageImage = await page.render(
-          width: page.width * 2,
+          width: page.width * 2, // High resolution for better OCR
           height: page.height * 2,
           format: PdfPageImageFormat.jpeg,
         );
@@ -2143,37 +2253,88 @@ class _HomeScreenState extends State<HomeScreen> {
           final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
           String pageText = recognizedText.text.trim();
-
           if (pageText.isNotEmpty) {
-            String formattedText = pageText.replaceAll('\n', '<br>');
-            wordContent.writeln('<p style="font-family: Arial, sans-serif; font-size: 14pt;">$formattedText</p>');
-          } else {
-            wordContent.writeln('<p style="color: grey;"><i>[Image Only / No Text Found on Page $i]</i></p>');
-          }
-
-          if (i < document.pagesCount) {
-            wordContent.writeln('<br clear="all" style="page-break-before:always" />');
+            allText.writeln("--- Page $i ---"); // Page divider for neat look
+            allText.writeln(pageText);
+            allText.writeln(); // Extra space
           }
 
           if (await tempFile.exists()) await tempFile.delete();
         }
         await page.close();
       }
-
-      wordContent.writeln('</body></html>');
-
       textRecognizer.close();
       await document.close();
-
-      File wordFile = File(savePath);
-      await wordFile.writeAsString(wordContent.toString());
-
-      showToast("Converted successfully! Saved in Word Files");
     } catch (e) {
-      showToast("Error converting to Word: $e");
-      print("Convert Error: $e");
+      print("OCR Error: $e");
     }
+    return allText.toString();
   }
+
+// 3. Final Result Dialog: Jisme title, text aur 2 buttons hain
+  void _showExtractedTextDialog(BuildContext context, String extractedText) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2C2C2C),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text(
+            "Extracted Text",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ConstrainedBox(
+              // Dialog screen se bahar na jaye isliye height limit ki hai
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
+              child: SingleChildScrollView(
+                // SelectableText use kiya taaki user thoda sa text bhi manually copy kar sake
+                child: SelectableText(
+                  extractedText,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ),
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: [
+            // COPY BUTTON
+            TextButton.icon(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: extractedText));
+                showToast("Text copied to clipboard!");
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.copy, color: Colors.blueAccent),
+              label: const Text("Copy", style: TextStyle(color: Colors.blueAccent)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.blueAccent, width: 1.2), // Border color aur thickness
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+            ),
+
+            // SHARE BUTTON
+            TextButton.icon(
+              onPressed: () {
+                Share.share(extractedText, subject: 'Extracted Text from Scanner Pro');
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.share, color: Colors.greenAccent),
+              label: const Text("Share", style: TextStyle(color: Colors.greenAccent)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.greenAccent, width: 1.2), // Border color aur thickness
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 } //end main class
 ///end main class///////////////////////////////////////////////////////////////////
 ///
