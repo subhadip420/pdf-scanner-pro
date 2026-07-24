@@ -20,6 +20,7 @@ import 'dart:typed_data';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:printing/printing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_storage/shared_storage.dart' as saf;
 import 'custom_dialog.dart';
 import 'custom_gallery_screen.dart'; // Apni gallery wali screen
 import 'document_editor_screen.dart'; // Apna editor
@@ -2409,23 +2410,106 @@ class _HomeScreenState extends State<HomeScreen> {
   //   }
   // }
 
+  // Future<void> savePdfToDownloads(File pdfFile, BuildContext context) async {
+  //   try {
+  //     // 1. File ka naam set karo
+  //     final String originalFileName = pdfFile.path.split('/').last;
+  //     final String uniqueFileName = originalFileName.replaceFirst('.pdf', '_${DateTime.now().millisecondsSinceEpoch}.pdf');
+  //
+  //     // 2. Native Save Dialog ki settings
+  //     final params = SaveFileDialogParams(
+  //       sourceFilePath: pdfFile.path, // Jo PDF app ke temporary folder mein hai
+  //       fileName: uniqueFileName,     // Default naam jo save screen par dikhega
+  //     );
+  //
+  //     // 3. Android ka native save dialog open hoga (Yeh bina kisi permission ke kaam karta hai)
+  //     final filePath = await FlutterFileDialog.saveFile(params: params);
+  //
+  //     // 4. Agar user ne 'Save' par click kiya (Cancel nahi kiya) toh filePath null nahi hoga
+  //     if (filePath != null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Row(
+  //             children: [
+  //               Icon(Icons.check_circle, color: Colors.white),
+  //               SizedBox(width: 10),
+  //               Text("PDF Saved Successfully!"),
+  //             ],
+  //           ),
+  //           backgroundColor: Colors.green,
+  //           behavior: SnackBarBehavior.floating,
+  //         ),
+  //       );
+  //     }
+  //
+  //   } catch (e) {
+  //     print("Download Error: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text("Error: $e"),
+  //         backgroundColor: Colors.redAccent,
+  //         behavior: SnackBarBehavior.floating,
+  //       ),
+  //     );
+  //   }
+  // }
+
   Future<void> savePdfToDownloads(File pdfFile, BuildContext context) async {
     try {
-      // 1. File ka naam set karo
-      final String originalFileName = pdfFile.path.split('/').last;
-      final String uniqueFileName = originalFileName.replaceFirst('.pdf', '_${DateTime.now().millisecondsSinceEpoch}.pdf');
+      SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      // 2. Native Save Dialog ki settings
-      final params = SaveFileDialogParams(
-        sourceFilePath: pdfFile.path, // Jo PDF app ke temporary folder mein hai
-        fileName: uniqueFileName,     // Default naam jo save screen par dikhega
-      );
+      // 1. Phone memory se purana saved folder path check karo
+      String? savedUriString = prefs.getString('pdf_save_folder');
+      Uri? folderUri;
+      saf.DocumentFile? savedPdf;
 
-      // 3. Android ka native save dialog open hoga (Yeh bina kisi permission ke kaam karta hai)
-      final filePath = await FlutterFileDialog.saveFile(params: params);
+      final String uniqueFileName = 'PDF_Scanner_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final Uint8List bytes = await pdfFile.readAsBytes();
 
-      // 4. Agar user ne 'Save' par click kiya (Cancel nahi kiya) toh filePath null nahi hoga
-      if (filePath != null) {
+      // 2. Agar path pehle se saved hai, toh bina pooche SILENT SAVE karne ki koshish karo
+      if (savedUriString != null) {
+        folderUri = Uri.parse(savedUriString);
+        try {
+          savedPdf = await saf.createFile(
+            folderUri,
+            mimeType: 'application/pdf',
+            displayName: uniqueFileName,
+            bytes: bytes,
+          );
+        } catch (e) {
+          // Agar user ne file manager se wo folder delete kar diya hai, toh path reset kar do
+          folderUri = null;
+        }
+      }
+
+      // 3. Agar pehli baar app use ho rahi hai (ya purana folder delete ho gaya)
+      if (folderUri == null) {
+        // User ko ek chota message dikhao
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Select a folder once. Next time PDFs will save automatically here!")),
+        );
+
+        // Native folder picker kholo (Sirf 1 baar khulega)
+        folderUri = await saf.openDocumentTree();
+
+        if (folderUri == null) {
+          return; // Agar user ne back daba diya toh cancel kar do
+        }
+
+        // JADOO YAHAN HAI: Folder ka path hamesha ke liye memory mein save kar lo!
+        await prefs.setString('pdf_save_folder', folderUri.toString());
+
+        // Naye select kiye hue folder mein PDF save karo
+        savedPdf = await saf.createFile(
+          folderUri,
+          mimeType: 'application/pdf',
+          displayName: uniqueFileName,
+          bytes: bytes,
+        );
+      }
+
+      // 4. Success Message (Yeh batane ke liye ki background mein save ho gaya)
+      if (savedPdf != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -2442,13 +2526,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
     } catch (e) {
-      print("Download Error: $e");
+      print("PDF Save Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.redAccent),
       );
     }
   }
