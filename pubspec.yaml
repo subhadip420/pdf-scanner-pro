@@ -76,6 +76,8 @@ dependencies:
   fluttertoast: ^8.2.12
   scroll_snap_list: ^0.9.1
   flutter_screenutil: ^5.9.3
+  flutter_file_dialog: ^3.0.3
+  shared_storage: ^0.8.1
 
 
 dev_dependencies:
