@@ -863,23 +863,68 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       );
     }
 
+    // try {
+    //   // if (await Permission.manageExternalStorage.isDenied) {
+    //   //   await Permission.manageExternalStorage.request();
+    //   // }
+    //   //
+    //   // if (!await Permission.manageExternalStorage.isGranted) {
+    //   //   showToast("Storage permission is required to save PDF");
+    //   //   return;
+    //   // }
+    //
+    //   // 🚨 YAHAN NAYA LOGIC AAYEGA 🚨
+    //   // bool hasPermission = await checkAndRequestStoragePermission();
+    //   // if (!hasPermission) {
+    //   //   showToast("Storage permission is required to save PDF");
+    //   //   return;
+    //   // }
+    //
+    //   // final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+    //   //
+    //   // if (!await publicDir.exists()) {
+    //   //   await publicDir.create(recursive: true);
+    //   // }
+    //
+    //   Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+    //
+    //   if (!await publicDir.exists()) {
+    //     await publicDir.create(recursive: true);
+    //   }
+    //
+    //   String baseFilePath = "${publicDir.path}/$documentName";
+    //   String finalFilePath = "$baseFilePath.pdf";
+    //   File file = File(finalFilePath);
+    //
+    //   int counter = 1;
+    //   while (await file.exists()) {
+    //     finalFilePath = "$baseFilePath ($counter).pdf";
+    //     file = File(finalFilePath);
+    //     counter++;
+    //   }
+    //
+    //   await file.writeAsBytes(await pdf.save());
+    //
+    //   showToast("Saved in Documents/PDF Scanner Pro");
+    //
+    //   if (mounted) {
+    //     Navigator.pushAndRemoveUntil(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => const HomeScreen()),
+    //       (Route<dynamic> route) => false,
+    //     );
+    //   }
+    // } catch (e) {
+    //   showToast("Error saving PDF: $e");
+    //   print("Save Error: $e");
+    // }
+
     try {
-      if (await Permission.manageExternalStorage.isDenied) {
-        await Permission.manageExternalStorage.request();
-      }
+      // 1. App ka apna private folder nikalo (OS yahan kabhi block nahi karega)
+      Directory appDir = await getApplicationDocumentsDirectory();
 
-      if (!await Permission.manageExternalStorage.isGranted) {
-        showToast("Storage permission is required to save PDF");
-        return;
-      }
-
-      final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
-
-      if (!await publicDir.exists()) {
-        await publicDir.create(recursive: true);
-      }
-
-      String baseFilePath = "${publicDir.path}/$documentName";
+      // 2. File ka path banao
+      String baseFilePath = "${appDir.path}/$documentName";
       String finalFilePath = "$baseFilePath.pdf";
       File file = File(finalFilePath);
 
@@ -890,14 +935,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         counter++;
       }
 
+      // 3. File Save karo
       await file.writeAsBytes(await pdf.save());
-      showToast("Saved in Documents/PDF Scanner Pro");
 
+      showToast("PDF Saved Successfully!");
+
+      // 4. Home Screen par jao
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (Route<dynamic> route) => false,
+              (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
@@ -905,6 +953,27 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       print("Save Error: $e");
     }
   }
+
+  // Future<bool> checkAndRequestStoragePermission() async {
+  //   if (!Platform.isAndroid) return true;
+  //
+  //   if (await Permission.storage.isGranted) {
+  //     return true;
+  //   }
+  //
+  //   final status = await Permission.storage.request();
+  //
+  //   if (status.isGranted) {
+  //     return true;
+  //   }
+  //
+  //   if (status.isPermanentlyDenied) {
+  //     showToast("Please allow Storage permission from Settings.");
+  //     await openAppSettings();
+  //   }
+  //
+  //   return false;
+  // }
 
   void showToast(String msg) {
     Fluttertoast.showToast(
