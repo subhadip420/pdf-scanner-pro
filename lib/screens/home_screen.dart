@@ -2290,40 +2290,96 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 // 1. Button pe click hone par yeh function call karna
+  // 1. ENTRY POINT: Jab user Extract Text par click karega
   Future<void> _processAndShowExtractedText(BuildContext context, File pdfFile) async {
-    // A) Pehle Loading Dialog dikhao
+    // Sirf Android Test Rewarded Ad ID
+    final String rewardedTestId = 'ca-app-pub-3940256099942544/5224354917';
+
+    // Step A: Ad Load hone tak Loading Dialog dikhao
     showDialog(
       context: context,
-      barrierDismissible: false, // User screen par click karke band na kar sake
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return const AlertDialog(
-          backgroundColor: Color(0xFF2C2C2C),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
-          content: Row(
-            children: [
-              CircularProgressIndicator(color: Colors.blueAccent),
-              SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  "Extracting Text (OCR)... Please wait",
-                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ],
-          ),
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.blueAccent),
         );
       },
     );
 
-    // B) Background mein text extract karo
+    // Step B: Ad Load karne ki koshish karo
+    RewardedAd.load(
+      adUnitId: rewardedTestId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (RewardedAd ad) {
+          // 1. Ad mil gaya -> Pehle Loading Dialog band karo
+          if (context.mounted) Navigator.pop(context);
+
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (RewardedAd ad) {
+              // User ne Ad close kar diya -> Ab OCR start karo
+              ad.dispose();
+              _executeOcrAndShowDialog(context, pdfFile);
+            },
+            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+              // Ad screen par show nahi ho paya -> Tab bhi direct OCR start karo
+              ad.dispose();
+              _executeOcrAndShowDialog(context, pdfFile);
+            },
+          );
+
+          // 2. Ad Screen par dikhao
+          ad.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+            // Reward logic yahan handle ho gaya
+          });
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          // Ad load nahi hua (Network issue etc.) -> Loading Dialog band karo aur direct OCR chalao
+          print('Rewarded ad failed to load: $error');
+          if (context.mounted) Navigator.pop(context);
+          _executeOcrAndShowDialog(context, pdfFile);
+        },
+      ),
+    );
+  }
+
+// 2. ACTUAL OCR EXECUTION: Yeh OCR ka Progress Dialog aur Result Dialog Sambhalega
+  Future<void> _executeOcrAndShowDialog(BuildContext context, File pdfFile) async {
+    // Step 1: OCR Loading Dialog dikhao
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return const AlertDialog(
+            backgroundColor: Color(0xFF2C2C2C),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+            content: Row(
+              children: [
+                CircularProgressIndicator(color: Colors.blueAccent),
+                SizedBox(width: 20),
+                Expanded(
+                  child: Text(
+                    "Extracting Text (OCR)... Please wait",
+                    style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
+
+    // Step 2: Background Engine se Text Extract karo
     String extractedText = await _extractTextFromPdf(pdfFile);
 
-    // C) Extraction complete hone par Loading Dialog band karo
+    // Step 3: Extraction complete hone par OCR Loading Dialog band karo
     if (context.mounted) {
       Navigator.pop(context);
     }
 
-    // D) Result Dialog show karo (Jisme Copy/Share hoga)
+    // Step 4: Final Result Dialog (Jo tumne banaya hai) Show karo
     if (context.mounted) {
       if (extractedText.trim().isEmpty) {
         showToast("No text found in this PDF.");
@@ -2376,6 +2432,69 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
 // 3. Final Result Dialog: Jisme title, text aur 2 buttons hain
+//   void _showExtractedTextDialog(BuildContext context, String extractedText) {
+//     showDialog(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return AlertDialog(
+//           backgroundColor: const Color(0xFF2C2C2C),
+//           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+//           title: const Text(
+//             "Extracted Text",
+//             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+//           ),
+//           content: SizedBox(
+//             width: double.maxFinite,
+//             child: ConstrainedBox(
+//               // Dialog screen se bahar na jaye isliye height limit ki hai
+//               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
+//               child: SingleChildScrollView(
+//                 // SelectableText use kiya taaki user thoda sa text bhi manually copy kar sake
+//                 child: SelectableText(
+//                   extractedText,
+//                   style: const TextStyle(color: Colors.white70, fontSize: 14),
+//                 ),
+//               ),
+//             ),
+//           ),
+//           actionsAlignment: MainAxisAlignment.spaceEvenly,
+//           actions: [
+//             // COPY BUTTON
+//             TextButton.icon(
+//               onPressed: () {
+//                 Clipboard.setData(ClipboardData(text: extractedText));
+//                 showToast("Text copied to clipboard!");
+//                 Navigator.pop(context);
+//               },
+//               icon: const Icon(Icons.copy, color: Colors.blueAccent),
+//               label: const Text("Copy", style: TextStyle(color: Colors.blueAccent)),
+//               style: OutlinedButton.styleFrom(
+//                 side: const BorderSide(color: Colors.blueAccent, width: 1.2), // Border color aur thickness
+//                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+//                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+//               ),
+//             ),
+//
+//             // SHARE BUTTON
+//             TextButton.icon(
+//               onPressed: () {
+//                 Share.share(extractedText, subject: 'Extracted Text from Scanner Pro');
+//                 Navigator.pop(context);
+//               },
+//               icon: const Icon(Icons.share, color: Colors.greenAccent),
+//               label: const Text("Share", style: TextStyle(color: Colors.greenAccent)),
+//               style: OutlinedButton.styleFrom(
+//                 side: const BorderSide(color: Colors.greenAccent, width: 1.2), // Border color aur thickness
+//                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+//                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+//               ),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+//   }
+
   void _showExtractedTextDialog(BuildContext context, String extractedText) {
     showDialog(
       context: context,
@@ -2383,9 +2502,23 @@ class _HomeScreenState extends State<HomeScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF2C2C2C),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text(
-            "Extracted Text",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          // TITLE KO UPDATE KIYA HAI - ROW USE KARKE
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Ek left, ek right
+            children: [
+              const Text(
+                "Extracted Text",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.white), // Close (X) Icon
+                onPressed: () {
+                  Navigator.pop(context); // Dialog close karne ka function
+                },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(), // Extra space kam karne ke liye
+              ),
+            ],
           ),
           content: SizedBox(
             width: double.maxFinite,
@@ -2408,12 +2541,12 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: extractedText));
                 showToast("Text copied to clipboard!");
-                Navigator.pop(context);
+                Navigator.pop(context); // Copy karne ke baad bhi dialog close hoga
               },
               icon: const Icon(Icons.copy, color: Colors.blueAccent),
               label: const Text("Copy", style: TextStyle(color: Colors.blueAccent)),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.blueAccent, width: 1.2), // Border color aur thickness
+                side: const BorderSide(color: Colors.blueAccent, width: 1.2),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
@@ -2423,12 +2556,12 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton.icon(
               onPressed: () {
                 Share.share(extractedText, subject: 'Extracted Text from Scanner Pro');
-                Navigator.pop(context);
+                Navigator.pop(context); // Share pe click karne ke baad dialog close hoga
               },
               icon: const Icon(Icons.share, color: Colors.greenAccent),
               label: const Text("Share", style: TextStyle(color: Colors.greenAccent)),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.greenAccent, width: 1.2), // Border color aur thickness
+                side: const BorderSide(color: Colors.greenAccent, width: 1.2),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
