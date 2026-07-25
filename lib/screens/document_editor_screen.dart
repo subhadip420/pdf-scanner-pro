@@ -95,6 +95,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   final TransformationController _transformationController = TransformationController();
   TapDownDetails? _doubleTapDetails;
 
+  InterstitialAd? _interstitialAd;
+  bool _isInterstitialAdLoaded = false;
+
+  // TODO Test ID
+//final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
+  //final String _interstitialAdUnitId = 'ca-app-pub-5454466291921987/9394785031'; // real ad id
+
   @override
   void initState() {
     super.initState();
@@ -110,7 +117,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _savedCropPositions = List.generate(docFiles.length, (index) => null);
     _autoCropPositions = List.generate(docFiles.length, (index) => null);
 
-    _loadRewardedAd();
+    //_loadRewardedAd();
+    _loadInterstitialAd();
     _loadBannerAd();
     _imageQuarterTurns = List.filled(docFiles.length, 0);
     _pageFilters = List.filled(docFiles.length, "Original color");
@@ -572,37 +580,112 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return "PDF Scanner Pro ${months[now.month - 1]} ${now.day}, ${now.year}";
   }
 
-  void _loadRewardedAd() {
-    print("AdMob: Loading ad...");
+  // void _loadRewardedAd() {
+  //   print("AdMob: Loading ad...");
+  //
+  //   RewardedAd.load(
+  //     /// TODO Google's Test AD ID
+  //     //adUnitId: 'ca-app-pub-3940256099942544/5224354917', // test ad id
+  //     adUnitId: 'ca-app-pub-5454466291921987/2609884833', // real ad id
+  //     request: const AdRequest(),
+  //     rewardedAdLoadCallback: RewardedAdLoadCallback(
+  //       onAdLoaded: (ad) {
+  //         print("AdMob: Ad loaded successfully!");
+  //         ad.fullScreenContentCallback = FullScreenContentCallback(
+  //           onAdDismissedFullScreenContent: (RewardedAd ad) {
+  //             ad.dispose();
+  //             _rewardedAd = null;
+  //             _loadRewardedAd();
+  //           },
+  //           onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+  //             ad.dispose();
+  //             _rewardedAd = null;
+  //           },
+  //         );
+  //
+  //         _rewardedAd = ad;
+  //       },
+  //       onAdFailedToLoad: (LoadAdError error) {
+  //         print("AdMob: Ad failed to load: ${error.message}");
+  //         _rewardedAd = null;
+  //       },
+  //     ),
+  //   );
+  // }
 
-    RewardedAd.load(
-      /// TODO Google's Test AD ID
-      //adUnitId: 'ca-app-pub-3940256099942544/5224354917', // test ad id
-      adUnitId: 'ca-app-pub-5454466291921987/2609884833', // real ad id
+  void _loadInterstitialAd() {
+    print("AdMob: Loading Interstitial Ad...");
+    InterstitialAd.load(
+      //adUnitId: _interstitialAdUnitId,
+      //adUnitId: 'ca-app-pub-3940256099942544/1033173712', // test ad id
+      adUnitId: 'ca-app-pub-5454466291921987/9394785031', // real ad id
       request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
+      adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
-          print("AdMob: Ad loaded successfully!");
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (RewardedAd ad) {
+          print("AdMob: Interstitial Ad loaded successfully!");
+          _interstitialAd = ad;
+          _isInterstitialAdLoaded = true;
+
+          // Callback set kar rahe hain taaki ad close hone ke baad PDF save ho
+          _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (InterstitialAd ad) {
               ad.dispose();
-              _rewardedAd = null;
-              _loadRewardedAd();
+              _interstitialAd = null;
+              _isInterstitialAdLoaded = false;
+              _loadInterstitialAd(); // Agli baar ke liye naya ad load karo
+
+              // Ad close hote hi PDF Save karo
+              showToast("Saving PDF...");
+              _generateAndSavePdf();
             },
-            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+            onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
               ad.dispose();
-              _rewardedAd = null;
+              _interstitialAd = null;
+              _isInterstitialAdLoaded = false;
+
+              // Agar ad fail bhi ho jaye, toh flow break na ho, file save ho jaye
+              showToast("Saving PDF...");
+              _generateAndSavePdf();
             },
           );
-
-          _rewardedAd = ad;
         },
         onAdFailedToLoad: (LoadAdError error) {
-          print("AdMob: Ad failed to load: ${error.message}");
-          _rewardedAd = null;
+          print('Interstitial ad failed to load: $error');
+          _interstitialAd = null;
+          _isInterstitialAdLoaded = false;
         },
       ),
     );
+  }
+
+  Future<void> _handleSaveClick() async {
+    if (_isInterstitialAdLoaded && _interstitialAd != null) {
+      _interstitialAd!.show();
+      return;
+    }
+
+    // Agar ad abhi tak load nahi hua, toh 2 second wait karo loader dikha kar
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+    );
+
+    for (int i = 0; i < 20; i++) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (_isInterstitialAdLoaded) break;
+    }
+
+    if (mounted) Navigator.pop(context);
+
+    // Wait karne ke baad check karo
+    if (_isInterstitialAdLoaded && _interstitialAd != null) {
+      _interstitialAd!.show();
+    } else {
+      // Agar net slow hai aur ad load nahi hua, toh user ko wait mat karwao, seedha save kar do
+      showToast("Saving PDF...");
+      _generateAndSavePdf();
+    }
   }
 
   void _loadBannerAd() {
@@ -626,39 +709,39 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     )..load();
   }
 
-  Future<void> _handleSaveClick() async {
-    if (_rewardedAd != null) {
-      _showRewardAd();
-      return;
-    }
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
-    );
+  // Future<void> _handleSaveClick() async {
+  //   if (_rewardedAd != null) {
+  //     _showRewardAd();
+  //     return;
+  //   }
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+  //   );
+  //
+  //   for (int i = 0; i < 20; i++) {
+  //     await Future.delayed(const Duration(milliseconds: 100));
+  //     if (_rewardedAd != null) break;
+  //   }
+  //
+  //   if (mounted) Navigator.pop(context);
+  //
+  //   if (_rewardedAd != null) {
+  //     _showRewardAd();
+  //   } else {
+  //     showToast("Saving PDF...");
+  //     _generateAndSavePdf();
+  //   }
+  // }
 
-    for (int i = 0; i < 20; i++) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (_rewardedAd != null) break;
-    }
-
-    if (mounted) Navigator.pop(context);
-
-    if (_rewardedAd != null) {
-      _showRewardAd();
-    } else {
-      showToast("Saving PDF...");
-      _generateAndSavePdf();
-    }
-  }
-
-  void _showRewardAd() {
-    _rewardedAd!.show(
-      onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        _generateAndSavePdf();
-      },
-    );
-  }
+  // void _showRewardAd() {
+  //   _rewardedAd!.show(
+  //     onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+  //       _generateAndSavePdf();
+  //     },
+  //   );
+  // }
 
   Future<void> _generateAndSavePdf() async {
     showToast("Generating PDF...");
