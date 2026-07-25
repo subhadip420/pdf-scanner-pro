@@ -36,9 +36,15 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdLoaded = false;
 
+  RewardedAd? _rewardedAd;
+
   // TODO Test ID
   //final String _interstitialAdUnitId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
-  final String _interstitialAdUnitId = 'ca-app-pub-5454466291921987/9394785031'; // real ad id
+  //final String _interstitialAdUnitId = 'ca-app-pub-5454466291921987/9394785031'; // real ad id
+
+  // TODO Google's Test AD ID
+// final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917'; // test ad id
+  final String _rewardedAdUnitId = 'ca-app-pub-5454466291921987/2609884833'; // real ad id
 
   @override
   void initState() {
@@ -46,7 +52,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     _fileName = widget.pdfFile.path.split('/').last;
     _originalSize = _formatBytes(widget.pdfFile.lengthSync());
     _loadBannerAd();
-    _loadInterstitialAd();
+    //_loadInterstitialAd();
+    _loadRewardedAd();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startCompression();
     });
@@ -80,18 +87,48 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     )..load();
   }
 
-  void _loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: _interstitialAdUnitId,
+  // void _loadInterstitialAd() {
+  //   InterstitialAd.load(
+  //     adUnitId: _interstitialAdUnitId,
+  //     request: const AdRequest(),
+  //     adLoadCallback: InterstitialAdLoadCallback(
+  //       onAdLoaded: (ad) {
+  //         _interstitialAd = ad;
+  //         _isInterstitialAdLoaded = true;
+  //       },
+  //       onAdFailedToLoad: (error) {
+  //         print('Interstitial ad failed to load: $error');
+  //         _isInterstitialAdLoaded = false;
+  //       },
+  //     ),
+  //   );
+  // }
+
+  // initState mein isko call kar lena
+  void _loadRewardedAd() {
+    print("AdMob: Loading Rewarded ad...");
+    RewardedAd.load(
+      adUnitId: _rewardedAdUnitId,
       request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          _interstitialAd = ad;
-          _isInterstitialAdLoaded = true;
+          print("AdMob: Rewarded Ad loaded successfully!");
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (RewardedAd ad) {
+              ad.dispose();
+              _rewardedAd = null;
+              _loadRewardedAd(); // Agli baar ke liye naya ad load karo
+            },
+            onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+              ad.dispose();
+              _rewardedAd = null;
+            },
+          );
+          _rewardedAd = ad;
         },
-        onAdFailedToLoad: (error) {
-          print('Interstitial ad failed to load: $error');
-          _isInterstitialAdLoaded = false;
+        onAdFailedToLoad: (LoadAdError error) {
+          print("AdMob: Rewarded Ad failed to load: ${error.message}");
+          _rewardedAd = null;
         },
       ),
     );
@@ -467,8 +504,73 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     );
   }
 
+  // Future<void> _saveAsZip() async {
+  //   if (_tempCompressedFilePath == null) return;
+  //   Future<void> performZipSave() async {
+  //     try {
+  //       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+  //       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+  //       final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
+  //
+  //       final Directory baseDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+  //       final Directory zipFolder = Directory('${baseDir.path}/ZIP Files');
+  //
+  //       if (!await zipFolder.exists()) {
+  //         await zipFolder.create(recursive: true);
+  //       }
+  //
+  //       final String zipPath = "${zipFolder.path}/$zipFileName";
+  //
+  //       File compressedFile = File(_tempCompressedFilePath!);
+  //       List<int> fileBytes = await compressedFile.readAsBytes();
+  //
+  //       final archive = Archive();
+  //       archive.addFile(ArchiveFile(_fileName, fileBytes.length, fileBytes));
+  //
+  //       final zipEncoder = ZipEncoder();
+  //       final zipData = zipEncoder.encode(archive);
+  //
+  //       if (zipData != null) {
+  //         File zipFile = File(zipPath);
+  //         await zipFile.writeAsBytes(zipData);
+  //
+  //         showToast("Saved in ZIP Files folder");
+  //
+  //         // Screen close karke pichhe jao
+  //         if (mounted) {
+  //           Navigator.pop(context);
+  //         }
+  //       }
+  //     } catch (e) {
+  //       print("Zip Error: $e");
+  //       showToast("Failed to create ZIP!");
+  //     }
+  //   }
+  //
+  //   if (_isInterstitialAdLoaded && _interstitialAd != null) {
+  //     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+  //       onAdDismissedFullScreenContent: (ad) {
+  //         ad.dispose();
+  //         _loadInterstitialAd();
+  //         performZipSave();
+  //       },
+  //       onAdFailedToShowFullScreenContent: (ad, error) {
+  //         ad.dispose();
+  //         _loadInterstitialAd();
+  //         performZipSave();
+  //       },
+  //     );
+  //
+  //     _interstitialAd!.show();
+  //     _isInterstitialAdLoaded = false;
+  //   } else {
+  //     performZipSave();
+  //   }
+  // }
+
   Future<void> _saveAsZip() async {
     if (_tempCompressedFilePath == null) return;
+
     Future<void> performZipSave() async {
       try {
         final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
@@ -499,7 +601,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
           showToast("Saved in ZIP Files folder");
 
-          // Screen close karke pichhe jao
           if (mounted) {
             Navigator.pop(context);
           }
@@ -510,22 +611,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       }
     }
 
-    if (_isInterstitialAdLoaded && _interstitialAd != null) {
-      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-          _loadInterstitialAd();
-          performZipSave();
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-          _loadInterstitialAd();
+    // YAHAN BHI REWARDED AD KA LOGIC LAGA DIYA
+    if (_rewardedAd != null) {
+      _rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
           performZipSave();
         },
       );
-
-      _interstitialAd!.show();
-      _isInterstitialAdLoaded = false;
     } else {
       performZipSave();
     }
@@ -554,33 +646,87 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     }
   }
 
+  // Future<void> _saveCompressedPdf() async {
+  //   if (_tempCompressedFilePath == null) return;
+  //
+  //   Future<void> performSave() async {
+  //     try {
+  //       // 🚨 Puraane parent.path ki jagah, apna safe Private Folder use karo
+  //       final directory = await getApplicationDocumentsDirectory();
+  //       final String dirPath = directory.path;
+  //
+  //       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+  //       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+  //
+  //       // Naya file name aur path
+  //       final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
+  //       final String savePath = "$dirPath/$newFileName";
+  //
+  //       // Temp folder se Private folder mein file copy karo
+  //       File tempFile = File(_tempCompressedFilePath!);
+  //       await tempFile.copy(savePath);
+  //
+  //       showToast("Saved as: $newFileName");
+  //
+  //       if (mounted) {
+  //         //Navigator.pop(context);
+  //         Navigator.pushAndRemoveUntil(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => const HomeScreen()), // Apna Home Screen ka actual naam yahan likhna
+  //               (Route<dynamic> route) => false,
+  //         );
+  //       }
+  //     } catch (e) {
+  //       print("Save Error: $e");
+  //       showToast("Failed to save PDF!");
+  //     }
+  //   }
+  //
+  //   // Tumhara Ad logic ekdum sahi hai, isme maine koi chhed-chhad nahi ki hai
+  //   if (_isInterstitialAdLoaded && _interstitialAd != null) {
+  //     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+  //       onAdDismissedFullScreenContent: (ad) {
+  //         ad.dispose();
+  //         _loadInterstitialAd();
+  //         performSave();
+  //       },
+  //       onAdFailedToShowFullScreenContent: (ad, error) {
+  //         ad.dispose();
+  //         _loadInterstitialAd();
+  //         performSave();
+  //       },
+  //     );
+  //
+  //     _interstitialAd!.show();
+  //     _isInterstitialAdLoaded = false;
+  //   } else {
+  //     performSave();
+  //   }
+  // }
+
   Future<void> _saveCompressedPdf() async {
     if (_tempCompressedFilePath == null) return;
 
     Future<void> performSave() async {
       try {
-        // 🚨 Puraane parent.path ki jagah, apna safe Private Folder use karo
         final directory = await getApplicationDocumentsDirectory();
         final String dirPath = directory.path;
 
         final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
         final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
 
-        // Naya file name aur path
         final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
         final String savePath = "$dirPath/$newFileName";
 
-        // Temp folder se Private folder mein file copy karo
         File tempFile = File(_tempCompressedFilePath!);
         await tempFile.copy(savePath);
 
         showToast("Saved as: $newFileName");
 
         if (mounted) {
-          //Navigator.pop(context);
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()), // Apna Home Screen ka actual naam yahan likhna
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
                 (Route<dynamic> route) => false,
           );
         }
@@ -590,24 +736,17 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       }
     }
 
-    // Tumhara Ad logic ekdum sahi hai, isme maine koi chhed-chhad nahi ki hai
-    if (_isInterstitialAdLoaded && _interstitialAd != null) {
-      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-        onAdDismissedFullScreenContent: (ad) {
-          ad.dispose();
-          _loadInterstitialAd();
-          performSave();
-        },
-        onAdFailedToShowFullScreenContent: (ad, error) {
-          ad.dispose();
-          _loadInterstitialAd();
+    // YAHAN FIX KIYA HAI: Interstitial ki jagah RewardedAd check kar rahe hain
+    if (_rewardedAd != null) {
+      _rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+          // Jab user pura ad dekh lega, tabhi yeh line chalegi aur save hoga
+          print("AdMob: Reward earned! Saving PDF...");
           performSave();
         },
       );
-
-      _interstitialAd!.show();
-      _isInterstitialAdLoaded = false;
     } else {
+      // Agar ad load nahi hua hai (jaise no internet), toh direct save kar do
       performSave();
     }
   }
