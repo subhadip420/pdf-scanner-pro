@@ -554,53 +554,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     }
   }
 
-  // Future<void> _saveCompressedPdf() async {
-  //   if (_tempCompressedFilePath == null) return;
-  //
-  //   Future<void> performSave() async {
-  //     try {
-  //       final String dirPath = widget.pdfFile.parent.path;
-  //       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
-  //       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-  //
-  //       final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
-  //       final String savePath = "$dirPath/$newFileName";
-  //
-  //       File tempFile = File(_tempCompressedFilePath!);
-  //       await tempFile.copy(savePath);
-  //
-  //       showToast("Saved as: $newFileName");
-  //
-  //       if (mounted) {
-  //         Navigator.pop(context);
-  //       }
-  //     } catch (e) {
-  //       print("Save Error: $e");
-  //       showToast("Failed to save PDF!");
-  //     }
-  //   }
-  //
-  //   if (_isInterstitialAdLoaded && _interstitialAd != null) {
-  //     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-  //       onAdDismissedFullScreenContent: (ad) {
-  //         ad.dispose();
-  //         _loadInterstitialAd();
-  //         performSave();
-  //       },
-  //       onAdFailedToShowFullScreenContent: (ad, error) {
-  //         ad.dispose();
-  //         _loadInterstitialAd();
-  //         performSave();
-  //       },
-  //     );
-  //
-  //     _interstitialAd!.show();
-  //     _isInterstitialAdLoaded = false;
-  //   } else {
-  //     performSave();
-  //   }
-  // }
-
   Future<void> _saveCompressedPdf() async {
     if (_tempCompressedFilePath == null) return;
 
