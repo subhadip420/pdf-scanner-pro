@@ -830,9 +830,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
 
       final image = pw.MemoryImage(imageBytes);
-
       PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
-
       PdfPageFormat finalPageFormat;
 
       if (selectedFormat != null) {
@@ -840,7 +838,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       } else {
         double imgWidth = image.width!.toDouble();
         double imgHeight = image.height!.toDouble();
-
         double maxDimension = 842.0;
 
         if (imgWidth > maxDimension || imgHeight > maxDimension) {
@@ -848,7 +845,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           imgWidth *= scale;
           imgHeight *= scale;
         }
-
         finalPageFormat = PdfPageFormat(imgWidth, imgHeight);
       }
 
@@ -862,62 +858,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ),
       );
     }
-
-    // try {
-    //   // if (await Permission.manageExternalStorage.isDenied) {
-    //   //   await Permission.manageExternalStorage.request();
-    //   // }
-    //   //
-    //   // if (!await Permission.manageExternalStorage.isGranted) {
-    //   //   showToast("Storage permission is required to save PDF");
-    //   //   return;
-    //   // }
-    //
-    //   // 🚨 YAHAN NAYA LOGIC AAYEGA 🚨
-    //   // bool hasPermission = await checkAndRequestStoragePermission();
-    //   // if (!hasPermission) {
-    //   //   showToast("Storage permission is required to save PDF");
-    //   //   return;
-    //   // }
-    //
-    //   // final Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
-    //   //
-    //   // if (!await publicDir.exists()) {
-    //   //   await publicDir.create(recursive: true);
-    //   // }
-    //
-    //   Directory publicDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
-    //
-    //   if (!await publicDir.exists()) {
-    //     await publicDir.create(recursive: true);
-    //   }
-    //
-    //   String baseFilePath = "${publicDir.path}/$documentName";
-    //   String finalFilePath = "$baseFilePath.pdf";
-    //   File file = File(finalFilePath);
-    //
-    //   int counter = 1;
-    //   while (await file.exists()) {
-    //     finalFilePath = "$baseFilePath ($counter).pdf";
-    //     file = File(finalFilePath);
-    //     counter++;
-    //   }
-    //
-    //   await file.writeAsBytes(await pdf.save());
-    //
-    //   showToast("Saved in Documents/PDF Scanner Pro");
-    //
-    //   if (mounted) {
-    //     Navigator.pushAndRemoveUntil(
-    //       context,
-    //       MaterialPageRoute(builder: (context) => const HomeScreen()),
-    //       (Route<dynamic> route) => false,
-    //     );
-    //   }
-    // } catch (e) {
-    //   showToast("Error saving PDF: $e");
-    //   print("Save Error: $e");
-    // }
 
     try {
       // 1. App ka apna private folder nikalo (OS yahan kabhi block nahi karega)
@@ -953,27 +893,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       print("Save Error: $e");
     }
   }
-
-  // Future<bool> checkAndRequestStoragePermission() async {
-  //   if (!Platform.isAndroid) return true;
-  //
-  //   if (await Permission.storage.isGranted) {
-  //     return true;
-  //   }
-  //
-  //   final status = await Permission.storage.request();
-  //
-  //   if (status.isGranted) {
-  //     return true;
-  //   }
-  //
-  //   if (status.isPermanentlyDenied) {
-  //     showToast("Please allow Storage permission from Settings.");
-  //     await openAppSettings();
-  //   }
-  //
-  //   return false;
-  // }
 
   void showToast(String msg) {
     Fluttertoast.showToast(
