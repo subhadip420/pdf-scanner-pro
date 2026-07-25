@@ -2095,7 +2095,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // 1. MAIN FUNCTION: Yeh button click par call hoga aur Ad handle karega
   Future<void> _savePagesAsJpeg(File pdfFile) async {
     // Sirf Android ke liye Interstitial Test Ad ID
-    final String interstitialTestId = 'ca-app-pub-3940256099942544/1033173712';
+    //final String interstitialTestId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
+    final String interstitialTestId = 'ca-app-pub-5454466291921987/6893752966'; //real ad id
 
     showToast("Preparing file...");
 
@@ -2293,7 +2294,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // 1. ENTRY POINT: Jab user Extract Text par click karega
   Future<void> _processAndShowExtractedText(BuildContext context, File pdfFile) async {
     // Sirf Android Test Rewarded Ad ID
-    final String rewardedTestId = 'ca-app-pub-3940256099942544/5224354917';
+    //final String rewardedTestId = 'ca-app-pub-3940256099942544/5224354917'; // test ad id
+    final String rewardedTestId = 'ca-app-pub-5454466291921987/8538007121'; //real ad id
 
     // Step A: Ad Load hone tak Loading Dialog dikhao
     showDialog(
