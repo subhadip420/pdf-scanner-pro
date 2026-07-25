@@ -2046,9 +2046,94 @@ class _HomeScreenState extends State<HomeScreen> {
   //   }
   // }
 
+  // Future<void> _savePagesAsJpeg(File pdfFile) async {
+  //   try {
+  //     // 🚨 1. Public folder ki jagah App ka Temporary Folder use karo
+  //     final directory = await getTemporaryDirectory();
+  //     final String imagesFolderPath = directory.path;
+  //
+  //     final document = await PdfDocument.openFile(pdfFile.path);
+  //     int pageCount = document.pagesCount;
+  //     String baseName = pdfFile.path.split('/').last.replaceAll('.pdf', '');
+  //
+  //     for (int i = 1; i <= pageCount; i++) {
+  //       final page = await document.getPage(i);
+  //       final pageImage = await page.render(
+  //         width: page.width * 2,
+  //         height: page.height * 2,
+  //         format: PdfPageImageFormat.jpeg,
+  //       );
+  //
+  //       if (pageImage != null) {
+  //         String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
+  //         File newFile = File(newImagePath);
+  //
+  //         // 2. Temp folder mein file safely save hogi (Koi Permission Denied nahi aayega)
+  //         await newFile.writeAsBytes(pageImage.bytes);
+  //
+  //         try {
+  //           // 3. Gal package ise automatically user ki public Gallery mein daal dega!
+  //           await Gal.putImage(newImagePath);
+  //         } catch (e) {
+  //           print("Gallery Sync Error: $e");
+  //         }
+  //       }
+  //
+  //       await page.close();
+  //     }
+  //
+  //     await document.close();
+  //
+  //     // 4. Message ko bhi update kar diya taaki user ko Gallery check karne ko pata chale
+  //     showToast("Success! Saved $pageCount pages to Gallery");
+  //   } catch (e) {
+  //     print("Save JPEG Error: $e");
+  //     showToast("Failed to extract pages.");
+  //   }
+  // }
+
+  // 1. MAIN FUNCTION: Yeh button click par call hoga aur Ad handle karega
   Future<void> _savePagesAsJpeg(File pdfFile) async {
+    // Sirf Android ke liye Interstitial Test Ad ID
+    final String interstitialTestId = 'ca-app-pub-3940256099942544/1033173712';
+
+    showToast("Preparing file...");
+
+    InterstitialAd.load(
+      adUnitId: interstitialTestId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (InterstitialAd ad) {
+          // Ad successully load ho gaya
+          ad.fullScreenContentCallback = FullScreenContentCallback(
+            onAdDismissedFullScreenContent: (InterstitialAd ad) {
+              // Jab user 'X' dabakar ad cut karega -> Save function call karo
+              ad.dispose();
+              _executeSaveJpeg(pdfFile);
+            },
+            onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+              // Agar ad screen par aane mein fail ho jaye -> Direct save karo
+              print('Ad failed to show: $error');
+              ad.dispose();
+              _executeSaveJpeg(pdfFile);
+            },
+          );
+
+          // Ad ko screen par dikhao
+          ad.show();
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          // Agar internet slow hai ya ad load hi nahi hua -> Direct save karo
+          print('Interstitial ad failed to load: $error');
+          _executeSaveJpeg(pdfFile);
+        },
+      ),
+    );
+  }
+
+// 2. SAVE FUNCTION: Yeh function actual mein file save karne ka logic handle karega
+  Future<void> _executeSaveJpeg(File pdfFile) async {
     try {
-      // 🚨 1. Public folder ki jagah App ka Temporary Folder use karo
       final directory = await getTemporaryDirectory();
       final String imagesFolderPath = directory.path;
 
@@ -2068,11 +2153,9 @@ class _HomeScreenState extends State<HomeScreen> {
           String newImagePath = "$imagesFolderPath/${baseName}_page_$i.jpg";
           File newFile = File(newImagePath);
 
-          // 2. Temp folder mein file safely save hogi (Koi Permission Denied nahi aayega)
           await newFile.writeAsBytes(pageImage.bytes);
 
           try {
-            // 3. Gal package ise automatically user ki public Gallery mein daal dega!
             await Gal.putImage(newImagePath);
           } catch (e) {
             print("Gallery Sync Error: $e");
@@ -2083,8 +2166,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       await document.close();
-
-      // 4. Message ko bhi update kar diya taaki user ko Gallery check karne ko pata chale
       showToast("Success! Saved $pageCount pages to Gallery");
     } catch (e) {
       print("Save JPEG Error: $e");
