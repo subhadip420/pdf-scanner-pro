@@ -1358,21 +1358,37 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Delete',
                           style: TextStyle(color: Colors.redAccent, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
-                        onTap: () async {
-                          Navigator.pop(sheetContext);
-                          bool shouldDelete = await showCustomConfirmDialog(
-                            context,
-                            title: "Delete Document",
-                            message:
-                                "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
-                            positiveBtnText: "Delete",
-                            negativeBtnText: "Cancel",
-                            positiveBtnColor: Colors.redAccent,
-                          );
-                          if (shouldDelete) {
-                            await _deletePdfFile(file);
+                        // onTap: () async {
+                        //   Navigator.pop(sheetContext);
+                        //   bool shouldDelete = await showCustomConfirmDialog(
+                        //     context,
+                        //     title: "Delete Document",
+                        //     message:
+                        //         "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
+                        //     positiveBtnText: "Delete",
+                        //     negativeBtnText: "Cancel",
+                        //     positiveBtnColor: Colors.redAccent,
+                        //   );
+                        //   if (shouldDelete) {
+                        //     await _deletePdfFile(file);
+                        //   }
+                        // },
+
+                          onTap: () async {
+                            Navigator.pop(sheetContext);
+                            bool shouldDelete = await showCustomConfirmDialog(
+                              context,
+                              title: "Move to Trash", // Title update kiya
+                              message:
+                              "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.", // Naya message
+                              positiveBtnText: "Move to Trash", // Button text update kiya
+                              negativeBtnText: "Cancel",
+                              positiveBtnColor: Colors.redAccent,
+                            );
+                            if (shouldDelete) {
+                              await _deletePdfFile(file); // Yeh function ab file ko .trash folder me move karega
+                            }
                           }
-                        },
                       ),
                       const SizedBox(height: 10),
                     ],
@@ -1683,19 +1699,39 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Future<void> _confirmBulkDelete() async {
+  //   if (_selectedFiles.isEmpty) {
+  //     showToast("Please select files to delete");
+  //     return;
+  //   }
+  //   bool shouldDelete = await showCustomConfirmDialog(
+  //     context,
+  //     title: "Delete Files",
+  //     message:
+  //         "Are you sure you want to permanently delete ${_selectedFiles.length} selected files? This action cannot be undone.",
+  //     positiveBtnText: "Delete",
+  //     negativeBtnText: "Cancel",
+  //     positiveBtnColor: Colors.redAccent,
+  //   );
+  //
+  //   if (shouldDelete) {
+  //     await _executeBulkDelete();
+  //   }
+  // }
+
   Future<void> _confirmBulkDelete() async {
     if (_selectedFiles.isEmpty) {
       showToast("Please select files to delete");
       return;
     }
+
     bool shouldDelete = await showCustomConfirmDialog(
       context,
-      title: "Delete Files",
-      message:
-          "Are you sure you want to permanently delete ${_selectedFiles.length} selected files? This action cannot be undone.",
-      positiveBtnText: "Delete",
+      title: "Move to Trash", // Title change kar diya
+      message: "Are you sure you want to move ${_selectedFiles.length} selected files to Trash? They will be permanently deleted after 30 days.", // Message updated
+      positiveBtnText: "Move to Trash",
       negativeBtnText: "Cancel",
-      positiveBtnColor: Colors.redAccent,
+      positiveBtnColor: Colors.redAccent, // Red se Orange kar diya (Warning, but not permanent)
     );
 
     if (shouldDelete) {
@@ -1703,21 +1739,65 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Future<void> _executeBulkDelete() async {
+  //   try {
+  //     int count = _selectedFiles.length;
+  //
+  //     for (String path in _selectedFiles) {
+  //       final file = File(path);
+  //       if (file.existsSync()) {
+  //         file.deleteSync();
+  //       }
+  //       if (_savedFilePaths.contains(path)) {
+  //         _toggleSaveFile(path);
+  //       }
+  //     }
+  //
+  //     showToast("$count files deleted");
+  //
+  //     setState(() {
+  //       _isSelectionMode = false;
+  //       _selectedFiles.clear();
+  //     });
+  //
+  //     _loadPdfFiles();
+  //   } catch (e) {
+  //     print("Bulk Delete Error: $e");
+  //     showToast("Error deleting some files");
+  //   }
+  // }
+
   Future<void> _executeBulkDelete() async {
     try {
       int count = _selectedFiles.length;
 
+      // 1. App ki document directory aur trash folder ka path get karo
+      final directory = await getApplicationDocumentsDirectory(); // Make sure path_provider imported ho
+      final trashDir = Directory('${directory.path}/.trash');
+
+      // 2. Agar trash folder nahi hai toh usko create karo
+      if (!await trashDir.exists()) {
+        await trashDir.create();
+      }
+
       for (String path in _selectedFiles) {
         final file = File(path);
         if (file.existsSync()) {
-          file.deleteSync();
+          // file.deleteSync(); <-- ISKO HATA DIYA HAI
+
+          // 3. File ko .trash folder mein MOVE karna hai
+          final fileName = file.path.split('/').last;
+          final trashFilePath = '${trashDir.path}/$fileName';
+
+          await file.rename(trashFilePath); // File move ho jayegi
         }
+
         if (_savedFilePaths.contains(path)) {
           _toggleSaveFile(path);
         }
       }
 
-      showToast("$count files deleted");
+      showToast("$count files moved to Trash"); // Message bhi update kar diya
 
       setState(() {
         _isSelectionMode = false;
@@ -1727,7 +1807,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadPdfFiles();
     } catch (e) {
       print("Bulk Delete Error: $e");
-      showToast("Error deleting some files");
+      showToast("Error moving some files to Trash");
     }
   }
 
@@ -2007,6 +2087,33 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Future<void> _deletePdfFile(File file) async {
+  //   try {
+  //     if (await file.exists()) {
+  //       if (await Permission.manageExternalStorage.isDenied) {
+  //         await Permission.manageExternalStorage.request();
+  //       }
+  //
+  //       try {
+  //         file.writeAsBytesSync([]);
+  //       } catch (_) {
+  //         print("Warning: Could not overwrite file before deleting. Error: $e");
+  //       }
+  //
+  //       await file.delete();
+  //       await _loadPdfFiles();
+  //
+  //       showToast("File deleted successfully");
+  //     } else {
+  //       showToast("File already deleted or not found");
+  //     }
+  //   } catch (e) {
+  //     print("Delete Error: $e");
+  //     showToast("Error: Permission denied by Android System.");
+  //   }
+  // }
+
+
   Future<void> _deletePdfFile(File file) async {
     try {
       if (await file.exists()) {
@@ -2014,22 +2121,43 @@ class _HomeScreenState extends State<HomeScreen> {
           await Permission.manageExternalStorage.request();
         }
 
-        try {
-          file.writeAsBytesSync([]);
-        } catch (_) {
-          print("Warning: Could not overwrite file before deleting. Error: $e");
+        // 1. Trash folder ka path define karo (Jahan current file hai, usi ke andar .trash folder)
+        Directory parentDir = file.parent;
+        Directory trashDir = Directory('${parentDir.path}/.trash');
+
+        // 2. Agar .trash folder nahi hai, toh create karo
+        if (!(await trashDir.exists())) {
+          await trashDir.create();
         }
 
-        await file.delete();
-        await _loadPdfFiles();
+        // 3. Trash mein file ka naya path set karo
+        String fileName = file.path.split('/').last;
+        String trashFilePath = '${trashDir.path}/$fileName';
+        File trashFile = File(trashFilePath);
 
-        showToast("File deleted successfully");
+        // 4. Name collision handle karo (Agar same naam ki file pehle se trash mein ho)
+        int counter = 1;
+        while (await trashFile.exists()) {
+          String nameWithoutExt = fileName.replaceAll('.pdf', '');
+          trashFilePath = '${trashDir.path}/$nameWithoutExt ($counter).pdf';
+          trashFile = File(trashFilePath);
+          counter++;
+        }
+
+        // 5. File ko Trash mein MOVE karo (Copy + Delete)
+        // Copy karne se file ka modified time aaj ka set ho jayega (30 days logic ke liye best!)
+        await file.copy(trashFile.path);
+        await file.delete(); // Original file delete kar do
+
+        await _loadPdfFiles(); // UI list update
+
+        showToast("Moved to Trash");
       } else {
-        showToast("File already deleted or not found");
+        showToast("File not found");
       }
     } catch (e) {
       print("Delete Error: $e");
-      showToast("Error: Permission denied by Android System.");
+      showToast("Error: Could not move file to Trash.");
     }
   }
 
