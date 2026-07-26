@@ -115,14 +115,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     _loadInterstitialAd();
     _loadBannerAd();
+    // _imageQuarterTurns = List.filled(docFiles.length, 0);
+    // _pageFilters = List.filled(docFiles.length, "Original color");
+    // _pageBrightness = List.filled(docFiles.length, 0.0); // Default 0
+    // _pageContrast = List.filled(docFiles.length, 0.0); // Default 0
+    // _pageMarkups = List.filled(docFiles.length, null);
+    // selectedPagesList = List.filled(docFiles.length, false);
+
     _imageQuarterTurns = List.filled(docFiles.length, 0);
     _pageFilters = List.filled(docFiles.length, "Original color");
     _pageBrightness = List.filled(docFiles.length, 0.0); // Default 0
     _pageContrast = List.filled(docFiles.length, 0.0); // Default 0
-
     _pageMarkups = List.filled(docFiles.length, null);
 
     selectedPagesList = List.filled(docFiles.length, false);
+
     _loadEditsFromMemory();
   }
 
@@ -2732,6 +2739,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ),
 
           _buildToolItem(
+            label: "Duplicate",
+            icon: Icons.content_copy_rounded,
+            tooltipMessage: "Duplicate current page",
+            onTap: _duplicateCurrentPage,
+          ),
+
+          _buildToolItem(
             label: "Page Size",
             icon: Icons.aspect_ratio_rounded,
             tooltipMessage: "Change page layout size",
@@ -3091,6 +3105,48 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ],
       ),
     );
+  }
+
+  /// --- DUPLICATE PAGE FUNCTION ---
+  /// --- DUPLICATE PAGE FUNCTION (BUG FIX) ---
+  void _duplicateCurrentPage() {
+    // 1. Pehle saare current edits ko memory (docFiles) me save kar lo
+    _saveEditsToMemory();
+
+    setState(() {
+      int duplicateIndex = currentPage + 1;
+
+      // 2. docFiles me current page ka data duplicate karo
+      Map<String, dynamic> duplicateMap = Map<String, dynamic>.from(docFiles[currentPage]);
+      docFiles.insert(duplicateIndex, duplicateMap);
+
+      // 3. Sirf selectedPagesList ko manually update karna hai (Kyunki ye memory map me nahi hoti)
+      // List.from() use karne se fixed-length list ka error zindagi me kabhi nahi aayega!
+      List<bool> newSelectionList = List<bool>.from(selectedPagesList);
+      newSelectionList.insert(duplicateIndex, false);
+      selectedPagesList = newSelectionList;
+
+      // 4. Current page ko naye page par shift karo
+      currentPage = duplicateIndex;
+    });
+
+    // 5. BOOM! Ye function baaki saari 7 lists (filters, rotation, crop) ko
+    // docFiles ki length ke hisaab se automatically fresh bana dega. No more RangeErrors!
+    _loadEditsFromMemory();
+
+    // 6. UI smoothly slide karegi
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          currentPage,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+
+    HapticFeedback.lightImpact(); // Vibration
+    showToast("Page duplicated successfully");
   }
 
   // Future<List<File>> _prepareImagesForMerge() async {
@@ -3596,7 +3652,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
 
           isSelectionMode = false;
-          selectedPagesList = List.filled(docFiles.length, false);
+          //selectedPagesList = List.filled(docFiles.length, false);
+          selectedPagesList = List.filled(docFiles.length, false, growable: true);
         });
 
         _loadEditsFromMemory();
