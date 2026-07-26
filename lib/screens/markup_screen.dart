@@ -640,6 +640,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
                                 /// TEXT LAYER (Auto Scale & Attached to Center)
                                 Positioned.fill(
+                                  child: IgnorePointer(
+                                    ignoring: _activeTab != "Text",
                                   child: LayoutBuilder(
                                     builder: (context, constraints) {
                                       double canvasW = constraints.maxWidth;
@@ -878,10 +880,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                       );
                                     },
                                   ),
+                                  ),
                                 ),
 
                                 /// SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
                                 Positioned.fill(
+                                  child: IgnorePointer(
+                                    ignoring: _activeTab != "Shapes",
                                   child: LayoutBuilder(
                                     builder: (context, constraints) {
                                       double canvasW = constraints.maxWidth;
@@ -1069,6 +1074,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                         }).toList(),
                                       );
                                     },
+                                  ),
                                   ),
                                 ),
                               ],
