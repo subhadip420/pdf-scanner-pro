@@ -674,207 +674,472 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
 
+  // Future<void> _generateAndSavePdf() async {
+  //   showToast("Generating PDF...");
+  //
+  //   final pdf = pw.Document();
+  //   for (int i = 0; i < docFiles.length; i++) {
+  //     var map = docFiles[i];
+  //     final File file = map['cropped'] as File;
+  //
+  //     var imageBytes = await file.readAsBytes();
+  //
+  //     int turns = _imageQuarterTurns[i];
+  //     String activeFilter = _pageFilters[i];
+  //     double activeBright = _pageBrightness[i];
+  //     double activeContrast = _pageContrast[i];
+  //     if (activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
+  //       img.Image? decodedImage = img.decodeImage(imageBytes);
+  //       if (decodedImage != null) {
+  //         decodedImage = _processImageSync(decodedImage, 0, activeFilter, activeBright, activeContrast);
+  //         imageBytes = img.encodeJpg(decodedImage, quality: 100);
+  //       }
+  //     }
+  //
+  //     if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
+  //       MarkupExportData exportData = _pageMarkups[i];
+  //
+  //       ui.Codec codec = await ui.instantiateImageCodec(imageBytes);
+  //       ui.FrameInfo frameInfo = await codec.getNextFrame();
+  //       ui.Image uiImg = frameInfo.image;
+  //
+  //       final ui.PictureRecorder recorder = ui.PictureRecorder();
+  //       final Canvas canvas = Canvas(recorder);
+  //       final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
+  //       double scaleRatio = size.width / 400.0;
+  //
+  //       canvas.drawImage(uiImg, Offset.zero, Paint());
+  //
+  //       DrawingPainter painter = DrawingPainter(
+  //         paths: exportData.paths,
+  //         currentPoints: [],
+  //         currentColor: Colors.transparent,
+  //         currentStrokeWidth: 0,
+  //         currentOpacity: 0,
+  //         isEraser: false,
+  //       );
+  //       painter.paint(canvas, size);
+  //
+  //       for (var shape in exportData.shapes) {
+  //         canvas.save();
+  //         canvas.translate(shape.offset.dx * size.width, shape.offset.dy * size.height);
+  //         canvas.rotate(shape.rotation);
+  //         canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+  //
+  //         TextPainter tp = TextPainter(
+  //           text: TextSpan(
+  //             text: String.fromCharCode(shape.icon.codePoint),
+  //             style: TextStyle(
+  //               fontSize: shape.size * scaleRatio,
+  //               color: shape.color,
+  //               fontFamily: shape.icon.fontFamily,
+  //               package: shape.icon.fontPackage,
+  //             ),
+  //           ),
+  //           textDirection: TextDirection.ltr,
+  //         );
+  //         tp.layout();
+  //         tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+  //         canvas.restore();
+  //       }
+  //
+  //       for (var item in exportData.texts) {
+  //         canvas.save();
+  //         canvas.translate(item.offset.dx * size.width, item.offset.dy * size.height);
+  //         canvas.rotate(item.rotation);
+  //
+  //         double fontSize = item.fontSize * scaleRatio;
+  //         Color textColor = item.appearance == 0
+  //             ? item.color
+  //             : (item.appearance == 1 || item.appearance == 2)
+  //             ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+  //             : Colors.white;
+  //         Color bgColor = item.appearance == 1
+  //             ? item.color
+  //             : item.appearance == 2
+  //             ? item.color.withOpacity(0.5)
+  //             : Colors.transparent;
+  //
+  //         TextDecoration decoration = TextDecoration.none;
+  //         if (item.isUnderline && item.isStrikethrough) {
+  //           decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+  //         } else if (item.isUnderline) {
+  //           decoration = TextDecoration.underline;
+  //         } else if (item.isStrikethrough) {
+  //           decoration = TextDecoration.lineThrough;
+  //         }
+  //
+  //         TextStyle style = TextStyle(
+  //           color: textColor,
+  //           fontSize: fontSize,
+  //           fontFamily: item.font,
+  //           fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+  //           fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+  //           decoration: decoration,
+  //           decorationColor: textColor,
+  //           shadows: item.appearance == 0
+  //               ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+  //               : null,
+  //         );
+  //
+  //         TextPainter tp = TextPainter(
+  //           text: TextSpan(text: item.text, style: style),
+  //           textAlign: item.alignment,
+  //           textDirection: TextDirection.ltr,
+  //         );
+  //         tp.layout();
+  //
+  //         Rect bgRect = Rect.fromCenter(
+  //           center: Offset.zero,
+  //           width: tp.width + (32 * scaleRatio),
+  //           height: tp.height + (16 * scaleRatio),
+  //         );
+  //         if (bgColor != Colors.transparent) {
+  //           canvas.drawRRect(
+  //             RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
+  //             Paint()..color = bgColor,
+  //           );
+  //         }
+  //
+  //         if (item.appearance == 3) {
+  //           TextPainter strokeTp = TextPainter(
+  //             text: TextSpan(
+  //               text: item.text,
+  //               style: style.copyWith(
+  //                 foreground: Paint()
+  //                   ..style = PaintingStyle.stroke
+  //                   ..strokeWidth = fontSize * 0.25
+  //                   ..strokeJoin = StrokeJoin.round
+  //                   ..strokeCap = StrokeCap.round
+  //                   ..color = item.color,
+  //               ),
+  //             ),
+  //             textAlign: item.alignment,
+  //             textDirection: TextDirection.ltr,
+  //           );
+  //           strokeTp.layout();
+  //           strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
+  //         }
+  //
+  //         // Main text paint
+  //         tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+  //         canvas.restore();
+  //       }
+  //
+  //       final ui.Picture picture = recorder.endRecording();
+  //       final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
+  //       final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
+  //
+  //       if (byteData != null) {
+  //         imageBytes = byteData.buffer.asUint8List(); // Data replace kar do
+  //       }
+  //     }
+  //
+  //     if (turns != 0) {
+  //       img.Image? decodedStampedImage = img.decodeImage(imageBytes);
+  //       if (decodedStampedImage != null) {
+  //         decodedStampedImage = img.copyRotate(decodedStampedImage, angle: turns * 90);
+  //         imageBytes = img.encodeJpg(decodedStampedImage, quality: 90);
+  //       }
+  //     }
+  //
+  //     final image = pw.MemoryImage(imageBytes);
+  //     PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
+  //     PdfPageFormat finalPageFormat;
+  //
+  //     if (selectedFormat != null) {
+  //       finalPageFormat = selectedFormat;
+  //     } else {
+  //       double imgWidth = image.width!.toDouble();
+  //       double imgHeight = image.height!.toDouble();
+  //       double maxDimension = 842.0;
+  //
+  //       if (imgWidth > maxDimension || imgHeight > maxDimension) {
+  //         double scale = math.min(maxDimension / imgWidth, maxDimension / imgHeight);
+  //         imgWidth *= scale;
+  //         imgHeight *= scale;
+  //       }
+  //       finalPageFormat = PdfPageFormat(imgWidth, imgHeight);
+  //     }
+  //
+  //     pdf.addPage(
+  //       pw.Page(
+  //         margin: pw.EdgeInsets.zero,
+  //         pageFormat: finalPageFormat,
+  //         build: (context) {
+  //           return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+  //         },
+  //       ),
+  //     );
+  //   }
+  //
+  //   try {
+  //     // 1. App ka apna private folder nikalo (OS yahan kabhi block nahi karega)
+  //     Directory appDir = await getApplicationDocumentsDirectory();
+  //
+  //     // 2. File ka path banao
+  //     String baseFilePath = "${appDir.path}/$documentName";
+  //     String finalFilePath = "$baseFilePath.pdf";
+  //     File file = File(finalFilePath);
+  //
+  //     int counter = 1;
+  //     while (await file.exists()) {
+  //       finalFilePath = "$baseFilePath ($counter).pdf";
+  //       file = File(finalFilePath);
+  //       counter++;
+  //     }
+  //
+  //     // 3. File Save karo
+  //     await file.writeAsBytes(await pdf.save());
+  //
+  //     showToast("PDF Saved Successfully!");
+  //
+  //     // 4. Home Screen par jao
+  //     if (mounted) {
+  //       Navigator.pushAndRemoveUntil(
+  //         context,
+  //         MaterialPageRoute(builder: (context) => const HomeScreen()),
+  //             (Route<dynamic> route) => false,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     showToast("Error saving PDF: $e");
+  //     print("Save Error: $e");
+  //   }
+  // }
+
   Future<void> _generateAndSavePdf() async {
-    showToast("Generating PDF...");
-
-    final pdf = pw.Document();
-    for (int i = 0; i < docFiles.length; i++) {
-      var map = docFiles[i];
-      final File file = map['cropped'] as File;
-
-      var imageBytes = await file.readAsBytes();
-
-      int turns = _imageQuarterTurns[i];
-      String activeFilter = _pageFilters[i];
-      double activeBright = _pageBrightness[i];
-      double activeContrast = _pageContrast[i];
-      if (activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
-        img.Image? decodedImage = img.decodeImage(imageBytes);
-        if (decodedImage != null) {
-          decodedImage = _processImageSync(decodedImage, 0, activeFilter, activeBright, activeContrast);
-          imageBytes = img.encodeJpg(decodedImage, quality: 100);
-        }
-      }
-
-      if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
-        MarkupExportData exportData = _pageMarkups[i];
-
-        ui.Codec codec = await ui.instantiateImageCodec(imageBytes);
-        ui.FrameInfo frameInfo = await codec.getNextFrame();
-        ui.Image uiImg = frameInfo.image;
-
-        final ui.PictureRecorder recorder = ui.PictureRecorder();
-        final Canvas canvas = Canvas(recorder);
-        final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
-        double scaleRatio = size.width / 400.0;
-
-        canvas.drawImage(uiImg, Offset.zero, Paint());
-
-        DrawingPainter painter = DrawingPainter(
-          paths: exportData.paths,
-          currentPoints: [],
-          currentColor: Colors.transparent,
-          currentStrokeWidth: 0,
-          currentOpacity: 0,
-          isEraser: false,
-        );
-        painter.paint(canvas, size);
-
-        for (var shape in exportData.shapes) {
-          canvas.save();
-          canvas.translate(shape.offset.dx * size.width, shape.offset.dy * size.height);
-          canvas.rotate(shape.rotation);
-          canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
-
-          TextPainter tp = TextPainter(
-            text: TextSpan(
-              text: String.fromCharCode(shape.icon.codePoint),
-              style: TextStyle(
-                fontSize: shape.size * scaleRatio,
-                color: shape.color,
-                fontFamily: shape.icon.fontFamily,
-                package: shape.icon.fontPackage,
-              ),
-            ),
-            textDirection: TextDirection.ltr,
-          );
-          tp.layout();
-          tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
-          canvas.restore();
-        }
-
-        for (var item in exportData.texts) {
-          canvas.save();
-          canvas.translate(item.offset.dx * size.width, item.offset.dy * size.height);
-          canvas.rotate(item.rotation);
-
-          double fontSize = item.fontSize * scaleRatio;
-          Color textColor = item.appearance == 0
-              ? item.color
-              : (item.appearance == 1 || item.appearance == 2)
-              ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
-              : Colors.white;
-          Color bgColor = item.appearance == 1
-              ? item.color
-              : item.appearance == 2
-              ? item.color.withOpacity(0.5)
-              : Colors.transparent;
-
-          TextDecoration decoration = TextDecoration.none;
-          if (item.isUnderline && item.isStrikethrough) {
-            decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
-          } else if (item.isUnderline) {
-            decoration = TextDecoration.underline;
-          } else if (item.isStrikethrough) {
-            decoration = TextDecoration.lineThrough;
-          }
-
-          TextStyle style = TextStyle(
-            color: textColor,
-            fontSize: fontSize,
-            fontFamily: item.font,
-            fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
-            fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
-            decoration: decoration,
-            decorationColor: textColor,
-            shadows: item.appearance == 0
-                ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
-                : null,
-          );
-
-          TextPainter tp = TextPainter(
-            text: TextSpan(text: item.text, style: style),
-            textAlign: item.alignment,
-            textDirection: TextDirection.ltr,
-          );
-          tp.layout();
-
-          Rect bgRect = Rect.fromCenter(
-            center: Offset.zero,
-            width: tp.width + (32 * scaleRatio),
-            height: tp.height + (16 * scaleRatio),
-          );
-          if (bgColor != Colors.transparent) {
-            canvas.drawRRect(
-              RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
-              Paint()..color = bgColor,
-            );
-          }
-
-          if (item.appearance == 3) {
-            TextPainter strokeTp = TextPainter(
-              text: TextSpan(
-                text: item.text,
-                style: style.copyWith(
-                  foreground: Paint()
-                    ..style = PaintingStyle.stroke
-                    ..strokeWidth = fontSize * 0.25
-                    ..strokeJoin = StrokeJoin.round
-                    ..strokeCap = StrokeCap.round
-                    ..color = item.color,
+    // 1. Sabse pehle ek Loading Spinner (Dialog) show karo
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User touch karke band na kar sake
+      builder: (BuildContext context) {
+        return const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Colors.blueAccent),
+              SizedBox(height: 16),
+              Text(
+                "Generating PDF...",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.none, // Yellow underline rokne ke liye
                 ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+
+    // 2. MAGIC: Thoda UI ko saans lene do taaki spinner screen par draw ho jaye
+    // Iske bina heavy process shuru ho jayega aur spinner dikhega hi nahi
+    await Future.delayed(const Duration(milliseconds: 150));
+
+    try {
+      final pdf = pw.Document();
+
+      // --- TUMHARA PURANA HEAVY PDF GENERATION LOOP ---
+      for (int i = 0; i < docFiles.length; i++) {
+        var map = docFiles[i];
+        final File file = map['cropped'] as File;
+
+        var imageBytes = await file.readAsBytes();
+
+        int turns = _imageQuarterTurns[i];
+        String activeFilter = _pageFilters[i];
+        double activeBright = _pageBrightness[i];
+        double activeContrast = _pageContrast[i];
+        if (activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
+          img.Image? decodedImage = img.decodeImage(imageBytes);
+          if (decodedImage != null) {
+            decodedImage = _processImageSync(decodedImage, 0, activeFilter, activeBright, activeContrast);
+            imageBytes = img.encodeJpg(decodedImage, quality: 100);
+          }
+        }
+
+        if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
+          MarkupExportData exportData = _pageMarkups[i];
+
+          ui.Codec codec = await ui.instantiateImageCodec(imageBytes);
+          ui.FrameInfo frameInfo = await codec.getNextFrame();
+          ui.Image uiImg = frameInfo.image;
+
+          final ui.PictureRecorder recorder = ui.PictureRecorder();
+          final Canvas canvas = Canvas(recorder);
+          final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
+          double scaleRatio = size.width / 400.0;
+
+          canvas.drawImage(uiImg, Offset.zero, Paint());
+
+          DrawingPainter painter = DrawingPainter(
+            paths: exportData.paths,
+            currentPoints: [],
+            currentColor: Colors.transparent,
+            currentStrokeWidth: 0,
+            currentOpacity: 0,
+            isEraser: false,
+          );
+          painter.paint(canvas, size);
+
+          for (var shape in exportData.shapes) {
+            canvas.save();
+            canvas.translate(shape.offset.dx * size.width, shape.offset.dy * size.height);
+            canvas.rotate(shape.rotation);
+            canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+
+            TextPainter tp = TextPainter(
+              text: TextSpan(
+                text: String.fromCharCode(shape.icon.codePoint),
+                style: TextStyle(
+                  fontSize: shape.size * scaleRatio,
+                  color: shape.color,
+                  fontFamily: shape.icon.fontFamily,
+                  package: shape.icon.fontPackage,
+                ),
+              ),
+              textDirection: TextDirection.ltr,
+            );
+            tp.layout();
+            tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+            canvas.restore();
+          }
+
+          for (var item in exportData.texts) {
+            canvas.save();
+            canvas.translate(item.offset.dx * size.width, item.offset.dy * size.height);
+            canvas.rotate(item.rotation);
+
+            double fontSize = item.fontSize * scaleRatio;
+            Color textColor = item.appearance == 0
+                ? item.color
+                : (item.appearance == 1 || item.appearance == 2)
+                ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                : Colors.white;
+            Color bgColor = item.appearance == 1
+                ? item.color
+                : item.appearance == 2
+                ? item.color.withOpacity(0.5)
+                : Colors.transparent;
+
+            TextDecoration decoration = TextDecoration.none;
+            if (item.isUnderline && item.isStrikethrough) {
+              decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+            } else if (item.isUnderline) {
+              decoration = TextDecoration.underline;
+            } else if (item.isStrikethrough) {
+              decoration = TextDecoration.lineThrough;
+            }
+
+            TextStyle style = TextStyle(
+              color: textColor,
+              fontSize: fontSize,
+              fontFamily: item.font,
+              fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+              fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+              decoration: decoration,
+              decorationColor: textColor,
+              shadows: item.appearance == 0
+                  ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+                  : null,
+            );
+
+            TextPainter tp = TextPainter(
+              text: TextSpan(text: item.text, style: style),
               textAlign: item.alignment,
               textDirection: TextDirection.ltr,
             );
-            strokeTp.layout();
-            strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
+            tp.layout();
+
+            Rect bgRect = Rect.fromCenter(
+              center: Offset.zero,
+              width: tp.width + (32 * scaleRatio),
+              height: tp.height + (16 * scaleRatio),
+            );
+            if (bgColor != Colors.transparent) {
+              canvas.drawRRect(
+                RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
+                Paint()..color = bgColor,
+              );
+            }
+
+            if (item.appearance == 3) {
+              TextPainter strokeTp = TextPainter(
+                text: TextSpan(
+                  text: item.text,
+                  style: style.copyWith(
+                    foreground: Paint()
+                      ..style = PaintingStyle.stroke
+                      ..strokeWidth = fontSize * 0.25
+                      ..strokeJoin = StrokeJoin.round
+                      ..strokeCap = StrokeCap.round
+                      ..color = item.color,
+                  ),
+                ),
+                textAlign: item.alignment,
+                textDirection: TextDirection.ltr,
+              );
+              strokeTp.layout();
+              strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
+            }
+
+            // Main text paint
+            tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+            canvas.restore();
           }
 
-          // Main text paint
-          tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
-          canvas.restore();
+          final ui.Picture picture = recorder.endRecording();
+          final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
+          final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
+
+          if (byteData != null) {
+            imageBytes = byteData.buffer.asUint8List(); // Data replace kar do
+          }
         }
 
-        final ui.Picture picture = recorder.endRecording();
-        final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
-        final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
-
-        if (byteData != null) {
-          imageBytes = byteData.buffer.asUint8List(); // Data replace kar do
+        if (turns != 0) {
+          img.Image? decodedStampedImage = img.decodeImage(imageBytes);
+          if (decodedStampedImage != null) {
+            decodedStampedImage = img.copyRotate(decodedStampedImage, angle: turns * 90);
+            imageBytes = img.encodeJpg(decodedStampedImage, quality: 90);
+          }
         }
+
+        final image = pw.MemoryImage(imageBytes);
+        PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
+        PdfPageFormat finalPageFormat;
+
+        if (selectedFormat != null) {
+          finalPageFormat = selectedFormat;
+        } else {
+          double imgWidth = image.width!.toDouble();
+          double imgHeight = image.height!.toDouble();
+          double maxDimension = 842.0;
+
+          if (imgWidth > maxDimension || imgHeight > maxDimension) {
+            double scale = math.min(maxDimension / imgWidth, maxDimension / imgHeight);
+            imgWidth *= scale;
+            imgHeight *= scale;
+          }
+          finalPageFormat = PdfPageFormat(imgWidth, imgHeight);
+        }
+
+        pdf.addPage(
+          pw.Page(
+            margin: pw.EdgeInsets.zero,
+            pageFormat: finalPageFormat,
+            build: (context) {
+              return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
+            },
+          ),
+        );
       }
+      // --- LOOP ENDS HERE ---
 
-      if (turns != 0) {
-        img.Image? decodedStampedImage = img.decodeImage(imageBytes);
-        if (decodedStampedImage != null) {
-          decodedStampedImage = img.copyRotate(decodedStampedImage, angle: turns * 90);
-          imageBytes = img.encodeJpg(decodedStampedImage, quality: 90);
-        }
-      }
-
-      final image = pw.MemoryImage(imageBytes);
-      PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
-      PdfPageFormat finalPageFormat;
-
-      if (selectedFormat != null) {
-        finalPageFormat = selectedFormat;
-      } else {
-        double imgWidth = image.width!.toDouble();
-        double imgHeight = image.height!.toDouble();
-        double maxDimension = 842.0;
-
-        if (imgWidth > maxDimension || imgHeight > maxDimension) {
-          double scale = math.min(maxDimension / imgWidth, maxDimension / imgHeight);
-          imgWidth *= scale;
-          imgHeight *= scale;
-        }
-        finalPageFormat = PdfPageFormat(imgWidth, imgHeight);
-      }
-
-      pdf.addPage(
-        pw.Page(
-          margin: pw.EdgeInsets.zero,
-          pageFormat: finalPageFormat,
-          build: (context) {
-            return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-          },
-        ),
-      );
-    }
-
-    try {
-      // 1. App ka apna private folder nikalo (OS yahan kabhi block nahi karega)
+      // 1. App ka apna private folder nikalo
       Directory appDir = await getApplicationDocumentsDirectory();
 
       // 2. File ka path banao
@@ -894,15 +1159,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
       showToast("PDF Saved Successfully!");
 
-      // 4. Home Screen par jao
+      // 4. Spinner close karo aur Home Screen par jao
       if (mounted) {
+        Navigator.pop(context); // Ye line Loading spinner ko band karegi
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false,
+              (Route<dynamic> route) => false, // Pichle saare screens clear kar dega
         );
       }
+
     } catch (e) {
+      // Agar beech me koi error aa jaye toh spinner phasna nahi chahiye
+      if (mounted) {
+        Navigator.pop(context); // Spinner band
+      }
       showToast("Error saving PDF: $e");
       print("Save Error: $e");
     }
