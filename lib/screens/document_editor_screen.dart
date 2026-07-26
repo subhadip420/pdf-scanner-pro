@@ -3093,6 +3093,200 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
+  // Future<List<File>> _prepareImagesForMerge() async {
+  //   List<File> bakedFiles = [];
+  //   final tempDir = await getTemporaryDirectory();
+  //
+  //   for (int i = 0; i < docFiles.length; i++) {
+  //     if (selectedPagesList[i] == true) {
+  //       var map = docFiles[i];
+  //       final File file = map['cropped'] as File;
+  //       final Uint8List bytes = await file.readAsBytes();
+  //
+  //       final ui.Codec codec = await ui.instantiateImageCodec(bytes, targetWidth: 1500);
+  //       final ui.FrameInfo frameInfo = await codec.getNextFrame();
+  //       final ui.Image uiImg = frameInfo.image;
+  //
+  //       int turns = _imageQuarterTurns[i];
+  //       bool isLandscape = turns % 2 != 0;
+  //       double targetWidth = isLandscape ? uiImg.height.toDouble() : uiImg.width.toDouble();
+  //       double targetHeight = isLandscape ? uiImg.width.toDouble() : uiImg.height.toDouble();
+  //
+  //       final ui.PictureRecorder recorder = ui.PictureRecorder();
+  //       final Canvas canvas = Canvas(recorder);
+  //
+  //       // --- ROTATION LOGIC (Instantly on GPU) ---
+  //       canvas.translate(targetWidth / 2, targetHeight / 2);
+  //       canvas.rotate(turns * 3.141592653589793 / 2); // 90 degree = pi/2
+  //       canvas.translate(-uiImg.width / 2, -uiImg.height / 2);
+  //
+  //       // ---  FILTER & ADJUST LOGIC (Instantly on GPU via saveLayer) ---
+  //       String activeFilter = _pageFilters[i];
+  //       double activeBright = _pageBrightness[i];
+  //       double activeContrast = _pageContrast[i];
+  //
+  //       ColorFilter? baseFilter = _getColorFilter(activeFilter);
+  //       ColorFilter adjustFilter = _getAdjustColorFilter(activeBright, activeContrast);
+  //
+  //       Rect imageRect = Rect.fromLTWH(0, 0, uiImg.width.toDouble(), uiImg.height.toDouble());
+  //
+  //       // Apply Adjustments
+  //       canvas.saveLayer(imageRect, Paint()..colorFilter = adjustFilter);
+  //
+  //       // Apply Color Filter (Agar koi select kiya hai)
+  //       if (baseFilter != null) {
+  //         canvas.saveLayer(imageRect, Paint()..colorFilter = baseFilter);
+  //       }
+  //
+  //       canvas.drawImage(uiImg, Offset.zero, Paint());
+  //
+  //       if (baseFilter != null) canvas.restore();
+  //       canvas.restore(); // Adjust layer restore
+  //
+  //       // --- MARKUPS (Shapes, Text, Drawing) ---
+  //       if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
+  //         MarkupExportData exportData = _pageMarkups[i];
+  //         double scaleRatio = uiImg.width / 400.0;
+  //
+  //         //  Draw Strokes (Drawing)
+  //         DrawingPainter painter = DrawingPainter(
+  //           paths: exportData.paths,
+  //           currentPoints: [],
+  //           currentColor: Colors.transparent,
+  //           currentStrokeWidth: 0,
+  //           currentOpacity: 0,
+  //           isEraser: false,
+  //         );
+  //         painter.paint(canvas, Size(uiImg.width.toDouble(), uiImg.height.toDouble()));
+  //
+  //         //  Draw Shapes
+  //         for (var shape in exportData.shapes) {
+  //           canvas.save();
+  //           canvas.translate(shape.offset.dx * uiImg.width, shape.offset.dy * uiImg.height);
+  //           canvas.rotate(shape.rotation);
+  //           canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+  //
+  //           TextPainter tp = TextPainter(
+  //             text: TextSpan(
+  //               text: String.fromCharCode(shape.icon.codePoint),
+  //               style: TextStyle(
+  //                 fontSize: shape.size * scaleRatio,
+  //                 color: shape.color,
+  //                 fontFamily: shape.icon.fontFamily,
+  //                 package: shape.icon.fontPackage,
+  //               ),
+  //             ),
+  //             textDirection: TextDirection.ltr,
+  //           );
+  //           tp.layout();
+  //           tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+  //           canvas.restore();
+  //         }
+  //
+  //         //  Draw Texts
+  //         for (var item in exportData.texts) {
+  //           canvas.save();
+  //           canvas.translate(item.offset.dx * uiImg.width, item.offset.dy * uiImg.height);
+  //           canvas.rotate(item.rotation);
+  //
+  //           double fontSize = item.fontSize * scaleRatio;
+  //           Color textColor = item.appearance == 0
+  //               ? item.color
+  //               : (item.appearance == 1 || item.appearance == 2)
+  //               ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+  //               : Colors.white;
+  //           Color bgColor = item.appearance == 1
+  //               ? item.color
+  //               : item.appearance == 2
+  //               ? item.color.withOpacity(0.5)
+  //               : Colors.transparent;
+  //
+  //           TextDecoration decoration = TextDecoration.none;
+  //           if (item.isUnderline && item.isStrikethrough) {
+  //             decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
+  //           } else if (item.isUnderline) {
+  //             decoration = TextDecoration.underline;
+  //           } else if (item.isStrikethrough) {
+  //             decoration = TextDecoration.lineThrough;
+  //           }
+  //
+  //           TextStyle style = TextStyle(
+  //             color: textColor,
+  //             fontSize: fontSize,
+  //             fontFamily: item.font,
+  //             fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
+  //             fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
+  //             decoration: decoration,
+  //             decorationColor: textColor,
+  //             shadows: item.appearance == 0
+  //                 ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
+  //                 : null,
+  //           );
+  //
+  //           TextPainter tp = TextPainter(
+  //             text: TextSpan(text: item.text, style: style),
+  //             textAlign: item.alignment,
+  //             textDirection: TextDirection.ltr,
+  //           );
+  //           tp.layout();
+  //
+  //           Rect bgRect = Rect.fromCenter(
+  //             center: Offset.zero,
+  //             width: tp.width + (32 * scaleRatio),
+  //             height: tp.height + (16 * scaleRatio),
+  //           );
+  //           if (bgColor != Colors.transparent) {
+  //             canvas.drawRRect(
+  //               RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
+  //               Paint()..color = bgColor,
+  //             );
+  //           }
+  //
+  //           if (item.appearance == 3) {
+  //             TextPainter strokeTp = TextPainter(
+  //               text: TextSpan(
+  //                 text: item.text,
+  //                 style: style.copyWith(
+  //                   foreground: Paint()
+  //                     ..style = PaintingStyle.stroke
+  //                     ..strokeWidth = fontSize * 0.25
+  //                     ..strokeJoin = StrokeJoin.round
+  //                     ..strokeCap = StrokeCap.round
+  //                     ..color = item.color,
+  //                 ),
+  //               ),
+  //               textAlign: item.alignment,
+  //               textDirection: TextDirection.ltr,
+  //             );
+  //             strokeTp.layout();
+  //             strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
+  //           }
+  //
+  //           tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+  //           canvas.restore();
+  //         }
+  //       }
+  //
+  //       // ---  EXPORT (Extremely Fast Native PNG Encoding) ---
+  //       final ui.Picture picture = recorder.endRecording();
+  //
+  //       // Picture se final scaled image generate kar li
+  //       final ui.Image finalImg = await picture.toImage(targetWidth.toInt(), targetHeight.toInt());
+  //
+  //       // PNG format fast aur lossless hota hai background canvases ke liye
+  //       final ByteData? byteData = await finalImg.toByteData(format: ui.ImageByteFormat.png);
+  //
+  //       if (byteData != null) {
+  //         String tempPath = '${tempDir.path}/merge_baked_${DateTime.now().millisecondsSinceEpoch}_$i.png';
+  //         File tempFile = File(tempPath);
+  //         await tempFile.writeAsBytes(byteData.buffer.asUint8List());
+  //         bakedFiles.add(tempFile);
+  //       }
+  //     }
+  //   }
+  //   return bakedFiles;
+  // }
+
   Future<List<File>> _prepareImagesForMerge() async {
     List<File> bakedFiles = [];
     final tempDir = await getTemporaryDirectory();
@@ -3115,12 +3309,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         final ui.PictureRecorder recorder = ui.PictureRecorder();
         final Canvas canvas = Canvas(recorder);
 
+        // 🌟 FIX 1: Canvas ko rotate karne se pehle SAVE karo
+        canvas.save();
+
         // --- ROTATION LOGIC (Instantly on GPU) ---
         canvas.translate(targetWidth / 2, targetHeight / 2);
         canvas.rotate(turns * 3.141592653589793 / 2); // 90 degree = pi/2
         canvas.translate(-uiImg.width / 2, -uiImg.height / 2);
 
-        // ---  FILTER & ADJUST LOGIC (Instantly on GPU via saveLayer) ---
+        // ---  FILTER & ADJUST LOGIC ---
         String activeFilter = _pageFilters[i];
         double activeBright = _pageBrightness[i];
         double activeContrast = _pageContrast[i];
@@ -3133,7 +3330,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         // Apply Adjustments
         canvas.saveLayer(imageRect, Paint()..colorFilter = adjustFilter);
 
-        // Apply Color Filter (Agar koi select kiya hai)
         if (baseFilter != null) {
           canvas.saveLayer(imageRect, Paint()..colorFilter = baseFilter);
         }
@@ -3143,10 +3339,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         if (baseFilter != null) canvas.restore();
         canvas.restore(); // Adjust layer restore
 
+        // 🌟 FIX 2: Image draw hone ke baad canvas ko RESTORE karo taaki markups seedhe draw ho
+        canvas.restore();
+
         // --- MARKUPS (Shapes, Text, Drawing) ---
         if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
           MarkupExportData exportData = _pageMarkups[i];
-          double scaleRatio = uiImg.width / 400.0;
+
+          // 🌟 FIX 3: targetWidth use karo kyunki UI me rotated width show ho rahi thi
+          double scaleRatio = targetWidth / 400.0;
 
           //  Draw Strokes (Drawing)
           DrawingPainter painter = DrawingPainter(
@@ -3157,14 +3358,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             currentOpacity: 0,
             isEraser: false,
           );
-          painter.paint(canvas, Size(uiImg.width.toDouble(), uiImg.height.toDouble()));
+          // 🌟 FIX 4: painter ko bhi targetWidth/targetHeight dena zaroori hai
+          painter.paint(canvas, Size(targetWidth, targetHeight));
 
           //  Draw Shapes
           for (var shape in exportData.shapes) {
             canvas.save();
-            canvas.translate(shape.offset.dx * uiImg.width, shape.offset.dy * uiImg.height);
+            // 🌟 FIX 5: uiImg ki jagah targetWidth & targetHeight
+            canvas.translate(shape.offset.dx * targetWidth, shape.offset.dy * targetHeight);
             canvas.rotate(shape.rotation);
-            canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+            //canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
+            canvas.scale(shape.scaleX, shape.scaleY);
 
             TextPainter tp = TextPainter(
               text: TextSpan(
@@ -3186,7 +3390,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           //  Draw Texts
           for (var item in exportData.texts) {
             canvas.save();
-            canvas.translate(item.offset.dx * uiImg.width, item.offset.dy * uiImg.height);
+            // 🌟 FIX 6: uiImg ki jagah targetWidth & targetHeight
+            canvas.translate(item.offset.dx * targetWidth, item.offset.dy * targetHeight);
             canvas.rotate(item.rotation);
 
             double fontSize = item.fontSize * scaleRatio;
@@ -3270,10 +3475,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         // ---  EXPORT (Extremely Fast Native PNG Encoding) ---
         final ui.Picture picture = recorder.endRecording();
 
-        // Picture se final scaled image generate kar li
         final ui.Image finalImg = await picture.toImage(targetWidth.toInt(), targetHeight.toInt());
 
-        // PNG format fast aur lossless hota hai background canvases ke liye
         final ByteData? byteData = await finalImg.toByteData(format: ui.ImageByteFormat.png);
 
         if (byteData != null) {
