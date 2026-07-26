@@ -365,16 +365,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   //  FUNCTION FOR share_plus ^12.0.2
-  void _shareApp() {
-    //TODO: change to original link
-    const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
+  // void _shareApp() {
+  //   //TODO: change to original link
+  //   const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
+  //
+  //   const String shareMessage =
+  //       "Hey! Check out PDF Scanner Pro by SP Tech Studios. "
+  //       "It's a fast, secure, and 100% offline PDF creator & document scanner. "
+  //       "Download it here: $playStoreLink";
+  //
+  //   Share.share(shareMessage, subject: "Download PDF Scanner Pro");
+  // }
+
+  Future<void> _shareApp() async {
+    const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptechstudios.pdf_scanner_pro";
 
     const String shareMessage =
         "Hey! Check out PDF Scanner Pro by SP Tech Studios. "
         "It's a fast, secure, and 100% offline PDF creator & document scanner. "
         "Download it here: $playStoreLink";
 
-    Share.share(shareMessage, subject: "Download PDF Scanner Pro");
+    try {
+      // 🌟 ERROR FIX: Ab Share ki jagah SharePlus use karna hai
+      await SharePlus.instance.share(
+        ShareParams(
+          text: shareMessage,
+          subject: "Download PDF Scanner Pro",
+        ),
+      );
+    } catch (e) {
+      print("Share error: $e");
+    }
   }
 
   //  GLOBAL FUNCTION: Customer Support Dialog
