@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:pdf_scanner_pro/screens/terms_screen.dart';
 import 'package:share_plus/share_plus.dart';
@@ -23,11 +24,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _defaultPageSize = 'Auto Fit';
   bool _saveToGallery = true;
   String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
+  // State class ke andar variables:
+  BannerAd? _bannerAd;
+  bool _isBannerAdLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    _loadBannerAd();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose(); // Memory leak se bachne ke liye dispose zaroori hai
+    super.dispose();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      //adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test ID
+      adUnitId: 'ca-app-pub-5454466291921987/3057082758',
+
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          print('Banner Ad failed to load: $error');
+          ad.dispose();
+        },
+      ),
+    )..load();
   }
 
   Future<void> _loadSettings() async {
@@ -68,7 +100,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      body: SingleChildScrollView(
+      //body: SingleChildScrollView(
+      body: Column(
+          children: [
+          // 🌟 NAYA CODE: Banner Ad Container (App Bar ke theek niche fixed rahega)
+          if (_isBannerAdLoaded && _bannerAd != null)
+      Container(
+      color: Colors.transparent,
+      width: _bannerAd!.size.width.toDouble(),
+      height: _bannerAd!.size.height.toDouble(),
+      child: AdWidget(ad: _bannerAd!),
+    ),
+    Expanded(
+    child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -211,6 +255,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       ),
+    ),
+    ],
+    ),
     );
   }
 
