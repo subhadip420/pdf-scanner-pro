@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_storage/shared_storage.dart' as saf;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'custom_dialog.dart';
@@ -34,7 +35,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _defaultPageSize = prefs.getString('pref_page_size') ?? 'A4 (P)';
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
-      _storageLocation = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/PDF Scanner Pro";
+      //_storageLocation = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/PDF Scanner Pro";
+      _storageLocation = prefs.getString('pdf_save_folder') ?? "";
     });
   }
 
@@ -127,10 +129,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSectionHeader("Storage & Data"),
 
             // 3. Storage Location Tile
+            // _buildSettingTile(
+            //   icon: Icons.folder_open_rounded,
+            //   title: "Storage Location",
+            //   subtitle: _storageLocation,
+            //   onTap: _changeStorageLocation,
+            // ),
+
             _buildSettingTile(
               icon: Icons.folder_open_rounded,
-              title: "Storage Location",
-              subtitle: _storageLocation,
+              title: "Download Location", // Title change kar diya
+              subtitle: _storageLocation.isEmpty ? "Not set" : "Custom Folder Set", // SAF path thoda ajeeb dikhta hai, isliye simple text dikhana behtar hai
               onTap: _changeStorageLocation,
             ),
 
@@ -470,23 +479,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   // FUNCTION: Folder Picker (Bina dialogTitle ke)
+  // Future<void> _changeStorageLocation() async {
+  //   try {
+  //     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+  //
+  //     if (selectedDirectory != null) {
+  //       setState(() {
+  //         _storageLocation = selectedDirectory;
+  //       });
+  //
+  //       final prefs = await SharedPreferences.getInstance();
+  //       await prefs.setString('pref_storage_location', selectedDirectory);
+  //
+  //       _showSettingToast("Folder updated successfully!");
+  //     }
+  //   } catch (e) {
+  //     print("Folder Picker Error: $e");
+  //     _showSettingToast("Failed to pick folder.");
+  //   }
+  // }
+
+// FUNCTION: Folder Picker (Using SAF to sync with Downloads)
   Future<void> _changeStorageLocation() async {
     try {
-      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+      // 1. saf package ka use karke folder picker kholo
+      Uri? folderUri = await saf.openDocumentTree();
 
-      if (selectedDirectory != null) {
+      if (folderUri != null) {
+        final prefs = await SharedPreferences.getInstance();
+
+        // 2. SAME KEY ('pdf_save_folder') use karni hai jo Home page mein hai
+        await prefs.setString('pdf_save_folder', folderUri.toString());
+
         setState(() {
-          _storageLocation = selectedDirectory;
+          _storageLocation = folderUri.toString();
         });
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('pref_storage_location', selectedDirectory);
-
-        _showSettingToast("Folder updated successfully!");
+        _showSettingToast("Download location updated successfully!");
       }
     } catch (e) {
       print("Folder Picker Error: $e");
       _showSettingToast("Failed to pick folder.");
     }
   }
+
 } // end main
