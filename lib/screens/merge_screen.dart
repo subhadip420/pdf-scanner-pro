@@ -883,20 +883,7 @@ class _MergeScreenState extends State<MergeScreen> {
                     });
                   },
                 ),
-                _buildToolItem(
-                  label: "Rotate",
-                  icon: Icons.rotate_right_rounded,
-                  isDisabled:
-                      _selectedImageIndex == null ||
-                      _imageStates[_selectedImageIndex!].isLocked ||
-                      _imageStates[_selectedImageIndex!].isHidden,
-                  onTap: () {
-                    setState(() {
-                      isRotateMode = true; /// ROTATE ANIMATION TRIGGER KAREGA
-                      if (_selectedImageIndex != null) {}
-                    });
-                  },
-                ),
+
                 _buildToolItem(
                   label: "Size",
                   icon: Icons.photo_size_select_large_rounded,
@@ -910,6 +897,34 @@ class _MergeScreenState extends State<MergeScreen> {
                     });
                   },
                 ),
+
+                _buildToolItem(
+                  label: "Rotate",
+                  icon: Icons.rotate_right_rounded,
+                  isDisabled:
+                  _selectedImageIndex == null ||
+                      _imageStates[_selectedImageIndex!].isLocked ||
+                      _imageStates[_selectedImageIndex!].isHidden,
+                  onTap: () {
+                    setState(() {
+                      isRotateMode = true; /// ROTATE ANIMATION TRIGGER KAREGA
+                      if (_selectedImageIndex != null) {}
+                    });
+                  },
+                ),
+
+                _buildToolItem(
+                  label: "Duplicate",
+                  icon: Icons.content_copy_rounded,
+                  isDisabled:
+                  _selectedImageIndex == null ||
+                      _imageStates[_selectedImageIndex!].isLocked ||
+                      _imageStates[_selectedImageIndex!].isHidden,
+                  onTap: () {
+                    _duplicateSelectedImage(); // Yahan function call ho raha hai
+                  },
+                ),
+
                 _buildToolItem(
                   label: "Opacity",
                   icon: Icons.opacity_rounded,
@@ -1701,6 +1716,33 @@ class _MergeScreenState extends State<MergeScreen> {
         ],
       ),
     );
+  }
+
+  /// --- DUPLICATE FUNCTION ---
+  void _duplicateSelectedImage() {
+    if (_selectedImageIndex != null) {
+      _saveStateToHistory(); // Undo ke liye pehle state save karo
+
+      setState(() {
+        // 1. Current selected state ka exact clone banao
+        MergedImageState duplicateState = _imageStates[_selectedImageIndex!].clone();
+
+        // 2. Position thodi shift karo taaki purani image ke bilkul upar na chhupe
+        duplicateState.position += const Offset(20, 20);
+
+        // 3. Naye duplicate ko default unlocked & unhidden rakho
+        duplicateState.isLocked = false;
+        duplicateState.isHidden = false;
+
+        // 4. Duplicate ko selected image ke theek aage insert karo
+        _imageStates.insert(_selectedImageIndex! + 1, duplicateState);
+
+        // 5. Nayi duplicate image ko automatically select kar lo
+        _selectedImageIndex = _selectedImageIndex! + 1;
+      });
+
+      HapticFeedback.lightImpact(); // Achhe UX ke liye vibration
+    }
   }
 
   /// Universal Sub-tool closer function
