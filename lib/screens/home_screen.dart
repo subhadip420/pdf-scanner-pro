@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Set<String> _selectedFiles = {};
   List<File> _allDevicePdfFiles = [];
   bool _isLoadingDeviceFiles = true;
+  RewardedAd? _rewardedAd;
 
   @override
   void initState() {
@@ -61,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadPdfFiles();
     _loadSavedFiles();
     _loadAllDevicePdfFiles();
+    _loadRewardedAd();
   }
 
   // Load Banner Ad
@@ -83,6 +85,23 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     )..load();
+  }
+
+  void _loadRewardedAd() {
+    RewardedAd.load(
+      adUnitId: 'ca-app-pub-3940256099942544/5224354917', //test id
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (RewardedAd ad) {
+          print('Rewarded ad loaded successfully.');
+          _rewardedAd = ad;
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          print('Rewarded ad failed to load: $error');
+          _rewardedAd = null;
+        },
+      ),
+    );
   }
 
   @override
@@ -1392,74 +1411,211 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Future<void> _mergeSelectedFiles() async {
+  //   if (_selectedFiles.length < 2) {
+  //     showToast("Please select at least 2 files to merge");
+  //     return;
+  //   }
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         backgroundColor: const Color(0xFF2C2C2C),
+  //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //         content: const Row(
+  //           children: [
+  //             CircularProgressIndicator(color: Colors.lightBlueAccent),
+  //             SizedBox(width: 20),
+  //             Text(
+  //               "Merging PDFs... Please wait",
+  //               style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  //
+  //   try {
+  //     List<String> filesToMerge = _selectedFiles.toList();
+  //     String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+  //     String newFileName = "Merged_PDF_$timestamp.pdf";
+  //     String outputDirectory = filesToMerge.first.substring(0, filesToMerge.first.lastIndexOf('/'));
+  //     String finalOutputPath = "$outputDirectory/$newFileName";
+  //     syncfusion.PdfDocument newDocument = syncfusion.PdfDocument();
+  //
+  //     for (String filePath in filesToMerge) {
+  //       final Uint8List bytes = await File(filePath).readAsBytes();
+  //
+  //       syncfusion.PdfDocument loadedDocument = syncfusion.PdfDocument(inputBytes: bytes);
+  //
+  //       for (int i = 0; i < loadedDocument.pages.count; i++) {
+  //         syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
+  //         syncfusion.PdfTemplate template = loadedPage.createTemplate();
+  //
+  //         syncfusion.PdfSection section = newDocument.sections!.add();
+  //         section.pageSettings.size = template.size;
+  //         section.pageSettings.margins.all = 0;
+  //
+  //         syncfusion.PdfPage newPage = section.pages.add();
+  //         newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+  //       }
+  //       loadedDocument.dispose();
+  //     }
+  //
+  //     final List<int> mergedBytes = await newDocument.save();
+  //     newDocument.dispose();
+  //     File finalFile = File(finalOutputPath);
+  //     await finalFile.writeAsBytes(mergedBytes, flush: true);
+  //     Navigator.pop(context);
+  //     showToast("PDF Merged Successfully!");
+  //     setState(() {
+  //       _isSelectionMode = false;
+  //       _selectedFiles.clear();
+  //     });
+  //     _loadPdfFiles();
+  //   } catch (e) {
+  //     Navigator.pop(context);
+  //     print("Syncfusion Merge Error: $e");
+  //     showToast("Something went wrong while merging");
+  //   }
+  // }
+
   Future<void> _mergeSelectedFiles() async {
     if (_selectedFiles.length < 2) {
       showToast("Please select at least 2 files to merge");
       return;
     }
+
+    // Tumhara original merge logic ek function ke andar taaki code duplicate na ho
+    Future<void> performMerge() async {
+      try {
+        List<String> filesToMerge = _selectedFiles.toList();
+        String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+        String newFileName = "Merged_PDF_$timestamp.pdf";
+        String outputDirectory = filesToMerge.first.substring(0, filesToMerge.first.lastIndexOf('/'));
+        String finalOutputPath = "$outputDirectory/$newFileName";
+        syncfusion.PdfDocument newDocument = syncfusion.PdfDocument();
+
+        for (String filePath in filesToMerge) {
+          final Uint8List bytes = await File(filePath).readAsBytes();
+
+          syncfusion.PdfDocument loadedDocument = syncfusion.PdfDocument(inputBytes: bytes);
+
+          // for (int i = 0; i < loadedDocument.pages.count; i++) {
+          //   syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
+          //   syncfusion.PdfTemplate template = loadedPage.createTemplate();
+          //
+          //   syncfusion.PdfSection section = newDocument.sections!.add();
+          //   section.pageSettings.size = template.size;
+          //   section.pageSettings.margins.all = 0;
+          //
+          //   syncfusion.PdfPage newPage = section.pages.add();
+          //   newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+          // }
+          for (int i = 0; i < loadedDocument.pages.count; i++) {
+            syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
+
+            // 1. Original page ka ekdum sateek size aur rotation nikaalo
+            Size pageSize = loadedPage.size;
+            syncfusion.PdfTemplate template = loadedPage.createTemplate();
+
+            syncfusion.PdfSection section = newDocument.sections!.add();
+
+            // 🌟 FIX 1: Orientation dynamically set karo! (Sabse zaroori)
+            // Agar width height se zyada hai, toh page ko Landscape mode mein rakho
+            section.pageSettings.orientation = (pageSize.width > pageSize.height)
+                ? syncfusion.PdfPageOrientation.landscape
+                : syncfusion.PdfPageOrientation.portrait;
+
+            // 🌟 FIX 2: Original page ka Size aur Rotation angle same to same copy karo
+            section.pageSettings.size = pageSize;
+            section.pageSettings.margins.all = 0;
+            section.pageSettings.rotate = loadedPage.rotation;
+
+            syncfusion.PdfPage newPage = section.pages.add();
+
+            // 3. Template draw karo original size ke sath
+            newPage.graphics.drawPdfTemplate(template, const Offset(0, 0), pageSize);
+          }
+          loadedDocument.dispose();
+        }
+
+        final List<int> mergedBytes = await newDocument.save();
+        newDocument.dispose();
+        File finalFile = File(finalOutputPath);
+        await finalFile.writeAsBytes(mergedBytes, flush: true);
+
+        Navigator.pop(context); // Merge complete hone par dialog hide karega
+        showToast("PDF Merged Successfully!");
+        setState(() {
+          _isSelectionMode = false;
+          _selectedFiles.clear();
+        });
+        _loadPdfFiles();
+      } catch (e) {
+        Navigator.pop(context); // Error aane par bhi dialog hide karega
+        print("Syncfusion Merge Error: $e");
+        showToast("Something went wrong while merging");
+      }
+    }
+
+    // 1. Sabse pehle simple loading spinner dikhao
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: const Row(
-            children: [
-              CircularProgressIndicator(color: Colors.lightBlueAccent),
-              SizedBox(width: 20),
-              Text(
-                "Merging PDFs... Please wait",
-                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-              ),
-            ],
+        return const Center(
+          child: CircularProgressIndicator(
+            color: Colors.lightBlueAccent,
           ),
         );
       },
     );
 
-    try {
-      List<String> filesToMerge = _selectedFiles.toList();
-      String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      String newFileName = "Merged_PDF_$timestamp.pdf";
-      String outputDirectory = filesToMerge.first.substring(0, filesToMerge.first.lastIndexOf('/'));
-      String finalOutputPath = "$outputDirectory/$newFileName";
-      syncfusion.PdfDocument newDocument = syncfusion.PdfDocument();
+    // 2. Check karo agar Rewarded Ad ready hai
+    if (_rewardedAd != null) {
+      _rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+          // Reward mil gaya
+        },
+      );
 
-      for (String filePath in filesToMerge) {
-        final Uint8List bytes = await File(filePath).readAsBytes();
-
-        syncfusion.PdfDocument loadedDocument = syncfusion.PdfDocument(inputBytes: bytes);
-
-        for (int i = 0; i < loadedDocument.pages.count; i++) {
-          syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
-          syncfusion.PdfTemplate template = loadedPage.createTemplate();
-
-          syncfusion.PdfSection section = newDocument.sections!.add();
-          section.pageSettings.size = template.size;
-          section.pageSettings.margins.all = 0;
-
-          syncfusion.PdfPage newPage = section.pages.add();
-          newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
+      _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (Ad ad) {
+          ad.dispose();
+          _rewardedAd = null;
+          _loadRewardedAd(); // Ad close hone par next ad load ke liye request (agar function banaya hai to)
+          performMerge(); // Ad dekhne ke baad merge shuru karo
+        },
+        onAdFailedToShowFullScreenContent: (Ad ad, AdError error) {
+          ad.dispose();
+          _rewardedAd = null;
+          _loadRewardedAd();
+          performMerge(); // Agar ad load hone ke baad show hone mein fail ho jaye, to bhi user ka kaam rukna nahi chahiye
+        },
+      );
+    } else {
+      // 3. Agar ad load nahi hua, to Internet check karo
+      bool hasInternet = false;
+      try {
+        final result = await InternetAddress.lookup('google.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          hasInternet = true;
         }
-        loadedDocument.dispose();
+      } catch (_) {
+        hasInternet = false;
       }
 
-      final List<int> mergedBytes = await newDocument.save();
-      newDocument.dispose();
-      File finalFile = File(finalOutputPath);
-      await finalFile.writeAsBytes(mergedBytes, flush: true);
-      Navigator.pop(context);
-      showToast("PDF Merged Successfully!");
-      setState(() {
-        _isSelectionMode = false;
-        _selectedFiles.clear();
-      });
-      _loadPdfFiles();
-    } catch (e) {
-      Navigator.pop(context);
-      print("Syncfusion Merge Error: $e");
-      showToast("Something went wrong while merging");
+      if (!hasInternet) {
+        // Internet nahi hai -> Dialog hide karo aur Toast dikhao
+        Navigator.pop(context);
+        showToast("No internet, try again");
+      } else {
+        // Internet hai par Ad abhi tak ready nahi hua -> User ko wait mat karao, direct merge kar do
+        performMerge();
+      }
     }
   }
 
