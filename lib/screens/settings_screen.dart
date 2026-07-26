@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:pdf_scanner_pro/screens/terms_screen.dart';
+import 'package:pdf_scanner_pro/screens/trash_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -193,6 +194,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: "Clear App Cache",
               subtitle: "Free up space by deleting temp files",
               onTap: _clearAppCache,
+            ),
+
+            _buildSettingTile(
+              icon: Icons.restore_from_trash_rounded,
+              title: "Recently Deleted",
+              subtitle: "Recover files (30 days backup)",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TrashScreen()),
+                );
+              },
             ),
 
             // ---------------- CATEGORY 3: SUPPORT & FEEDBACK ----------------
