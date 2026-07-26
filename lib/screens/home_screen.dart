@@ -89,7 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadRewardedAd() {
     RewardedAd.load(
-      adUnitId: 'ca-app-pub-3940256099942544/5224354917', //test id
+      //adUnitId: 'ca-app-pub-3940256099942544/5224354917', //test id
+      adUnitId: 'ca-app-pub-5454466291921987/5787187877', //real id
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
