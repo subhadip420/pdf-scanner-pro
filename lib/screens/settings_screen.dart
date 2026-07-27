@@ -70,13 +70,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _defaultPageSize = prefs.getString('pref_page_size') ?? 'A4 (P)';
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
       _storageLocation = prefs.getString('pdf_save_folder') ?? "";
+
+      isDarkMode = prefs.getBool('pref_dark_mode') ?? true; // Default dark mode ON
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true; // Default vibration ON
     });
   }
 
   Future<void> _saveSetting(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
-    _showSettingToast("Setting updated to $value");
+    //_showSettingToast("Setting updated to $value");
+  }
+
+  Future<void> _saveBoolSetting(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
   }
 
   void _showSettingToast(String msg) {
@@ -177,6 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         isDarkMode = value;
                       });
+                      _saveBoolSetting('pref_dark_mode', value);
                     },
                   ),
 
@@ -190,6 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         isHapticEnabled = value;
                       });
+                      _saveBoolSetting('pref_haptic', value);
                     },
                   ),
 
