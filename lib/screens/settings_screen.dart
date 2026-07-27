@@ -27,6 +27,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
+  bool isDarkMode = true;
+  bool isHapticEnabled = true;
 
   @override
   void initState() {
@@ -160,6 +162,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                       ),
                     ),
+                  ),
+
+                  // 1. Header banayein
+                  _buildSectionHeader("Appearance & Vibration"),
+
+                  // Dark Mode Toggle
+                  _buildToggleTile(
+                    icon: Icons.dark_mode_outlined,
+                    title: "Dark Mode",
+                    subtitle: "System wide dark theme",
+                    value: isDarkMode,
+                    onChanged: (value) {
+                      setState(() {
+                        isDarkMode = value;
+                      });
+                    },
+                  ),
+
+                  // Haptic Toggle
+                  _buildToggleTile(
+                    icon: Icons.vibration,
+                    title: "System Vibration",
+                    subtitle: "Vibrate when tapping buttons",
+                    value: isHapticEnabled,
+                    onChanged: (value) {
+                      setState(() {
+                        isHapticEnabled = value;
+                      });
+                    },
                   ),
 
                   _buildSectionHeader("Storage & Data"),
@@ -329,6 +360,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onTap: () {
           HapticFeedback.lightImpact();
           onTap();
+        },
+      ),
+    );
+  }
+
+  Widget _buildToggleTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Card(
+      color: const Color(0xFF1A1A1A),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.lightBlueAccent),
+        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        trailing: Switch(
+          value: value,
+          onChanged: (newValue) {
+            if (isHapticEnabled) HapticFeedback.lightImpact(); // Haptic setting check
+            onChanged(newValue);
+          },
+          activeThumbColor: Colors.lightBlueAccent,
+          activeTrackColor: Colors.lightBlueAccent.withOpacity(0.4),
+        ),
+        onTap: () {
+          if (isHapticEnabled) HapticFeedback.lightImpact();
+          onChanged(!value); // Pura tile click karne pe bhi toggle ho jayega
         },
       ),
     );
