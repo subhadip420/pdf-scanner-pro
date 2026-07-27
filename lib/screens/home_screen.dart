@@ -2228,9 +2228,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // SHARE BUTTON
             TextButton.icon(
-              onPressed: () {
-                Share.share(extractedText, subject: 'Extracted Text from Scanner Pro');
-                Navigator.pop(context);
+              // onPressed: () {
+              //   Share.share(extractedText, subject: 'Extracted Text from Scanner Pro');
+              //   Navigator.pop(context);
+              // },
+              onPressed: () async {
+                try {
+                  await SharePlus.instance.share(
+                    ShareParams(
+                        text: extractedText,
+                        subject: 'Extracted Text from Scanner Pro'
+                    ),
+                  );
+                } catch (e) {
+                  print("Share error: $e");
+                }
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
               },
               icon: const Icon(Icons.share, color: Colors.greenAccent),
               label: const Text("Share", style: TextStyle(color: Colors.greenAccent)),
