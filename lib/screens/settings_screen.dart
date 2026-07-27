@@ -25,7 +25,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _defaultPageSize = 'Auto Fit';
   bool _saveToGallery = true;
   String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
-  // State class ke andar variables:
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
 
@@ -38,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void dispose() {
-    _bannerAd?.dispose(); // Memory leak se bachne ke liye dispose zaroori hai
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -68,7 +67,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _defaultPageSize = prefs.getString('pref_page_size') ?? 'A4 (P)';
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
-      //_storageLocation = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/PDF Scanner Pro";
       _storageLocation = prefs.getString('pdf_save_folder') ?? "";
     });
   }
@@ -101,176 +99,158 @@ class _SettingsScreenState extends State<SettingsScreen> {
           style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      //body: SingleChildScrollView(
       body: Column(
-          children: [
-          // 🌟 NAYA CODE: Banner Ad Container (App Bar ke theek niche fixed rahega)
+        children: [
+
           if (_isBannerAdLoaded && _bannerAd != null)
-      Container(
-      color: Colors.transparent,
-      width: _bannerAd!.size.width.toDouble(),
-      height: _bannerAd!.size.height.toDouble(),
-      child: AdWidget(ad: _bannerAd!),
-    ),
-    Expanded(
-    child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ---------------- CATEGORY 1: DOCUMENT SETTINGS ----------------
-            _buildSectionHeader("Document Settings"),
+            Container(
+              color: Colors.transparent,
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ---------------- CATEGORY 1: DOCUMENT SETTINGS ----------------
+                  _buildSectionHeader("Document Settings"),
 
-            // 1. Default Page Size Dropdown
-            Card(
-              color: const Color(0xFF1A1A1A),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: ListTile(
-                leading: const Icon(Icons.text_snippet_rounded, color: Colors.lightBlueAccent),
-                title: const Text("Default Page Size", style: TextStyle(color: Colors.white, fontSize: 15)),
-                //subtitle: Text(_defaultPageSize, style: const TextStyle(color: Colors.white54, fontSize: 13)),
-                trailing: DropdownButton<String>(
-                  value: _defaultPageSize,
-                  dropdownColor: const Color(0xFF2C2C2C),
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-                  underline: const SizedBox(),
-                  // Line hatane ke liye
-                  items:
-                      <String>[
-                        'Auto Fit',
-                        'Letter (P)',
-                        'Letter (L)',
-                        'Legal (P)',
-                        'Legal (L)',
-                        'A4 (P)',
-                        'A4 (L)',
-                        'A3 (P)',
-                        'A3 (L)',
-                        'A5 (P)',
-                        'A5 (L)',
-                      ].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value, style: const TextStyle(color: Colors.white)),
-                        );
-                      }).toList(),
-                  onChanged: (newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _defaultPageSize = newValue;
-                      });
+                  Card(
+                    color: const Color(0xFF1A1A1A),
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      leading: const Icon(Icons.text_snippet_rounded, color: Colors.lightBlueAccent),
+                      title: const Text("Default Page Size", style: TextStyle(color: Colors.white, fontSize: 15)),
+                      trailing: DropdownButton<String>(
+                        value: _defaultPageSize,
+                        dropdownColor: const Color(0xFF2C2C2C),
+                        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                        underline: const SizedBox(),
+                        items:
+                            <String>[
+                              'Auto Fit',
+                              'Letter (P)',
+                              'Letter (L)',
+                              'Legal (P)',
+                              'Legal (L)',
+                              'A4 (P)',
+                              'A4 (L)',
+                              'A3 (P)',
+                              'A3 (L)',
+                              'A5 (P)',
+                              'A5 (L)',
+                            ].map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value, style: const TextStyle(color: Colors.white)),
+                              );
+                            }).toList(),
+                        onChanged: (newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _defaultPageSize = newValue;
+                            });
 
-                      // Disk (SharedPreferences) mein save karne ka call
-                      _saveSetting('pref_page_size', newValue);
+                            _saveSetting('pref_page_size', newValue);
+                            _showSettingToast("Default size set to $_defaultPageSize");
+                          }
+                        },
+                      ),
+                    ),
+                  ),
 
-                      _showSettingToast("Default size set to $_defaultPageSize");
-                    }
-                  },
-                ),
+                  _buildSectionHeader("Storage & Data"),
+
+                  _buildSettingTile(
+                    icon: Icons.folder_open_rounded,
+                    title: "Download Location",
+                    subtitle: _storageLocation.isEmpty ? "Not set" : "Custom Folder Set",
+                    onTap: _changeStorageLocation,
+                  ),
+
+                  _buildSettingTile(
+                    icon: Icons.delete_sweep_rounded,
+                    title: "Clear App Cache",
+                    subtitle: "Free up space by deleting temp files",
+                    onTap: _clearAppCache,
+                  ),
+
+                  _buildSettingTile(
+                    icon: Icons.restore_from_trash_rounded,
+                    title: "Recently Deleted",
+                    subtitle: "Recover files (30 days backup)",
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const TrashScreen()));
+                    },
+                  ),
+
+                  _buildSectionHeader("Support & Feedback"),
+
+                  // Share App
+                  _buildSettingTile(
+                    icon: Icons.share_rounded,
+                    title: "Share App",
+                    subtitle: "Share PDF Scanner Pro with friends",
+                    onTap: () {
+                      _shareApp();
+                    },
+                  ),
+
+                  // Rate Us
+                  _buildSettingTile(
+                    icon: Icons.star_rate_rounded,
+                    title: "Rate Us",
+                    subtitle: "Support us on Google Play Store",
+                    onTap: () {
+                      _handleRateUs();
+                    },
+                  ),
+
+                  // Customer Help
+                  _buildSettingTile(
+                    icon: Icons.support_agent_rounded,
+                    title: "Customer Help",
+                    subtitle: "Get help or report a problem",
+                    onTap: () {
+                      showSupportDialog(context);
+                    },
+                  ),
+
+                  _buildSectionHeader("About & Legal"),
+
+                  //  Terms & Conditions
+                  _buildSettingTile(
+                    icon: Icons.gavel_rounded,
+                    title: "Terms & Conditions",
+                    subtitle: "Read our usage policy and legal terms",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
+                      );
+                    },
+                  ),
+
+                  // About App
+                  _buildSettingTile(
+                    icon: Icons.info_outline_rounded,
+                    title: "About",
+                    subtitle: "App info and developer details",
+                    onTap: () {
+                      showAboutAppDialog(context);
+                    },
+                  ),
+
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
-
-            // ---------------- CATEGORY 2: STORAGE & DATA ----------------
-            _buildSectionHeader("Storage & Data"),
-
-            // 3. Storage Location Tile
-            // _buildSettingTile(
-            //   icon: Icons.folder_open_rounded,
-            //   title: "Storage Location",
-            //   subtitle: _storageLocation,
-            //   onTap: _changeStorageLocation,
-            // ),
-
-            _buildSettingTile(
-              icon: Icons.folder_open_rounded,
-              title: "Download Location", // Title change kar diya
-              subtitle: _storageLocation.isEmpty ? "Not set" : "Custom Folder Set", // SAF path thoda ajeeb dikhta hai, isliye simple text dikhana behtar hai
-              onTap: _changeStorageLocation,
-            ),
-
-            // 4. Clear Cache Tile
-            _buildSettingTile(
-              icon: Icons.delete_sweep_rounded,
-              title: "Clear App Cache",
-              subtitle: "Free up space by deleting temp files",
-              onTap: _clearAppCache,
-            ),
-
-            _buildSettingTile(
-              icon: Icons.restore_from_trash_rounded,
-              title: "Recently Deleted",
-              subtitle: "Recover files (30 days backup)",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TrashScreen()),
-                );
-              },
-            ),
-
-            // ---------------- CATEGORY 3: SUPPORT & FEEDBACK ----------------
-            _buildSectionHeader("Support & Feedback"),
-
-            // 5. Share App
-            _buildSettingTile(
-              icon: Icons.share_rounded,
-              title: "Share App",
-              subtitle: "Share PDF Scanner Pro with friends",
-              onTap: () {
-                _shareApp();
-              },
-            ),
-
-            // 6. Rate Us
-            _buildSettingTile(
-              icon: Icons.star_rate_rounded,
-              title: "Rate Us",
-              subtitle: "Support us on Google Play Store",
-              onTap: () {
-                _handleRateUs();
-              },
-            ),
-
-            // 7. Customer Help
-            _buildSettingTile(
-              icon: Icons.support_agent_rounded,
-              title: "Customer Help",
-              subtitle: "Get help or report a problem",
-              onTap: () {
-                showSupportDialog(context);
-              },
-            ),
-
-            // ---------------- CATEGORY 4: ABOUT & LEGAL ----------------
-            _buildSectionHeader("About & Legal"),
-
-            // 8. Terms & Conditions
-            _buildSettingTile(
-              icon: Icons.gavel_rounded,
-              title: "Terms & Conditions",
-              subtitle: "Read our usage policy and legal terms",
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()));
-              },
-            ),
-
-            // 9. About App
-            _buildSettingTile(
-              icon: Icons.info_outline_rounded,
-              title: "About",
-              subtitle: "App info and developer details",
-              onTap: () {
-                showAboutAppDialog(context);
-              },
-            ),
-
-            const SizedBox(height: 30),
-          ],
-        ),
+          ),
+        ],
       ),
-    ),
-    ],
-    ),
     );
   }
 
@@ -287,7 +267,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (!confirmClear) return;
-
     _showSettingToast("Clearing cache... Please wait.");
 
     try {
@@ -345,12 +324,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: ListTile(
         leading: Icon(icon, color: Colors.lightBlueAccent),
         title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
-        subtitle: Text(
-          subtitle,
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
-          // maxLines: 1,
-          // overflow: TextOverflow.ellipsis,
-        ),
+        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
         onTap: () {
           HapticFeedback.lightImpact();
@@ -377,19 +351,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  //  FUNCTION FOR share_plus ^12.0.2
-  // void _shareApp() {
-  //   //TODO: change to original link
-  //   const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptech.pdfscanner";
-  //
-  //   const String shareMessage =
-  //       "Hey! Check out PDF Scanner Pro by SP Tech Studios. "
-  //       "It's a fast, secure, and 100% offline PDF creator & document scanner. "
-  //       "Download it here: $playStoreLink";
-  //
-  //   Share.share(shareMessage, subject: "Download PDF Scanner Pro");
-  // }
-
   Future<void> _shareApp() async {
     const String playStoreLink = "https://play.google.com/store/apps/details?id=com.sptechstudios.pdf_scanner_pro";
 
@@ -399,13 +360,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         "Download it here: $playStoreLink";
 
     try {
-      // 🌟 ERROR FIX: Ab Share ki jagah SharePlus use karna hai
-      await SharePlus.instance.share(
-        ShareParams(
-          text: shareMessage,
-          subject: "Download PDF Scanner Pro",
-        ),
-      );
+      await SharePlus.instance.share(ShareParams(text: shareMessage, subject: "Download PDF Scanner Pro"));
     } catch (e) {
       print("Share error: $e");
     }
@@ -467,8 +422,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        //Icon(Icons.email_outlined, color: Colors.lightBlueAccent, size: 20),
-                        //SizedBox(width: 10),
                         Text(
                           "support.sptechstudios@gmail.com",
                           style: TextStyle(color: Colors.lightBlueAccent, fontSize: 13, fontWeight: FontWeight.bold),
@@ -527,7 +480,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  //const Icon(Icons.code_rounded, size: 16, color: Colors.white54),
                   const SizedBox(width: 8),
                   const Text(
                     "Developed by SP Tech Studios",
@@ -544,7 +496,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.lightBlueAccent,
-                    foregroundColor: Colors.black, // Text color black for contrast
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     elevation: 0,
                   ),
@@ -559,39 +511,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // FUNCTION: Folder Picker (Bina dialogTitle ke)
-  // Future<void> _changeStorageLocation() async {
-  //   try {
-  //     String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
-  //
-  //     if (selectedDirectory != null) {
-  //       setState(() {
-  //         _storageLocation = selectedDirectory;
-  //       });
-  //
-  //       final prefs = await SharedPreferences.getInstance();
-  //       await prefs.setString('pref_storage_location', selectedDirectory);
-  //
-  //       _showSettingToast("Folder updated successfully!");
-  //     }
-  //   } catch (e) {
-  //     print("Folder Picker Error: $e");
-  //     _showSettingToast("Failed to pick folder.");
-  //   }
-  // }
-
-// FUNCTION: Folder Picker (Using SAF to sync with Downloads)
+  // FUNCTION: Folder Picker (Using SAF to sync with Downloads)
   Future<void> _changeStorageLocation() async {
     try {
-      // 1. saf package ka use karke folder picker kholo
       Uri? folderUri = await saf.openDocumentTree();
-
       if (folderUri != null) {
         final prefs = await SharedPreferences.getInstance();
-
-        // 2. SAME KEY ('pdf_save_folder') use karni hai jo Home page mein hai
         await prefs.setString('pdf_save_folder', folderUri.toString());
-
         setState(() {
           _storageLocation = folderUri.toString();
         });
@@ -603,5 +529,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _showSettingToast("Failed to pick folder.");
     }
   }
-
 } // end main
