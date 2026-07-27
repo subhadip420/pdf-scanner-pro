@@ -1473,23 +1473,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(color: Colors.redAccent, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
 
-                        onTap: () async {
-                          Navigator.pop(sheetContext);
-                          bool shouldDelete = await showCustomConfirmDialog(
-                            context,
-                            title: "Move to Trash",
-                            // Title update kiya
-                            message:
-                                "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.",
-                            // Naya message
-                            positiveBtnText: "Move to Trash",
-                            negativeBtnText: "Cancel",
-                            positiveBtnColor: Colors.redAccent,
-                          );
-                          if (shouldDelete) {
-                            await _deletePdfFile(file);
-                          }
-                        },
+                        // onTap: () async {
+                        //   Navigator.pop(sheetContext);
+                        //   bool shouldDelete = await showCustomConfirmDialog(
+                        //     context,
+                        //     title: "Move to Trash",
+                        //     // Title update kiya
+                        //     message:
+                        //         "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.",
+                        //     // Naya message
+                        //     positiveBtnText: "Move to Trash",
+                        //     negativeBtnText: "Cancel",
+                        //     positiveBtnColor: Colors.redAccent,
+                        //   );
+                        //   if (shouldDelete) {
+                        //     await _deletePdfFile(file);
+                        //   }
+                        // },
+
+                        onTap: () => _handleDeleteAction(context, sheetContext, file),
                       ),
                       const SizedBox(height: 10),
                     ],
@@ -1501,6 +1503,23 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  Future<void> _handleDeleteAction(BuildContext context, BuildContext sheetContext, dynamic file) async {
+
+    Navigator.pop(sheetContext);
+    bool shouldDelete = await showCustomConfirmDialog(
+      context,
+      title: "Move to Trash",
+      message: "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.",
+      positiveBtnText: "Move to Trash",
+      negativeBtnText: "Cancel",
+      positiveBtnColor: Colors.redAccent,
+    );
+
+    if (shouldDelete) {
+      await _deletePdfFile(file);
+    }
   }
 
   Widget _buildSelectionBottomBar({Key? key}) {
