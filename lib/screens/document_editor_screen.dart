@@ -16,14 +16,11 @@ import 'package:pdf_scanner_pro/screens/reorder_screen.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'custom_dialog.dart';
 import 'home_screen.dart';
 import 'markup_screen.dart';
-
 import 'dart:ui' as ui;
 import 'dart:typed_data';
-
 import 'merge_screen.dart';
 
 class DocumentEditorScreen extends StatefulWidget {
@@ -585,7 +582,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   void _loadInterstitialAd() {
     print("AdMob: Loading Interstitial Ad...");
     InterstitialAd.load(
-
       //adUnitId: 'ca-app-pub-3940256099942544/1033173712', // test ad id
       adUnitId: 'ca-app-pub-5454466291921987/9394785031', // real ad id
       request: const AdRequest(),
@@ -646,7 +642,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     if (_isInterstitialAdLoaded && _interstitialAd != null) {
       _interstitialAd!.show();
     } else {
-
       showToast("Saving PDF...");
       _generateAndSavePdf();
     }
@@ -673,246 +668,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     )..load();
   }
 
-
-  // Future<void> _generateAndSavePdf() async {
-  //   showToast("Generating PDF...");
-  //
-  //   final pdf = pw.Document();
-  //   for (int i = 0; i < docFiles.length; i++) {
-  //     var map = docFiles[i];
-  //     final File file = map['cropped'] as File;
-  //
-  //     var imageBytes = await file.readAsBytes();
-  //
-  //     int turns = _imageQuarterTurns[i];
-  //     String activeFilter = _pageFilters[i];
-  //     double activeBright = _pageBrightness[i];
-  //     double activeContrast = _pageContrast[i];
-  //     if (activeFilter != "Original color" || activeBright != 0.0 || activeContrast != 0.0) {
-  //       img.Image? decodedImage = img.decodeImage(imageBytes);
-  //       if (decodedImage != null) {
-  //         decodedImage = _processImageSync(decodedImage, 0, activeFilter, activeBright, activeContrast);
-  //         imageBytes = img.encodeJpg(decodedImage, quality: 100);
-  //       }
-  //     }
-  //
-  //     if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
-  //       MarkupExportData exportData = _pageMarkups[i];
-  //
-  //       ui.Codec codec = await ui.instantiateImageCodec(imageBytes);
-  //       ui.FrameInfo frameInfo = await codec.getNextFrame();
-  //       ui.Image uiImg = frameInfo.image;
-  //
-  //       final ui.PictureRecorder recorder = ui.PictureRecorder();
-  //       final Canvas canvas = Canvas(recorder);
-  //       final Size size = Size(uiImg.width.toDouble(), uiImg.height.toDouble());
-  //       double scaleRatio = size.width / 400.0;
-  //
-  //       canvas.drawImage(uiImg, Offset.zero, Paint());
-  //
-  //       DrawingPainter painter = DrawingPainter(
-  //         paths: exportData.paths,
-  //         currentPoints: [],
-  //         currentColor: Colors.transparent,
-  //         currentStrokeWidth: 0,
-  //         currentOpacity: 0,
-  //         isEraser: false,
-  //       );
-  //       painter.paint(canvas, size);
-  //
-  //       for (var shape in exportData.shapes) {
-  //         canvas.save();
-  //         canvas.translate(shape.offset.dx * size.width, shape.offset.dy * size.height);
-  //         canvas.rotate(shape.rotation);
-  //         canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
-  //
-  //         TextPainter tp = TextPainter(
-  //           text: TextSpan(
-  //             text: String.fromCharCode(shape.icon.codePoint),
-  //             style: TextStyle(
-  //               fontSize: shape.size * scaleRatio,
-  //               color: shape.color,
-  //               fontFamily: shape.icon.fontFamily,
-  //               package: shape.icon.fontPackage,
-  //             ),
-  //           ),
-  //           textDirection: TextDirection.ltr,
-  //         );
-  //         tp.layout();
-  //         tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
-  //         canvas.restore();
-  //       }
-  //
-  //       for (var item in exportData.texts) {
-  //         canvas.save();
-  //         canvas.translate(item.offset.dx * size.width, item.offset.dy * size.height);
-  //         canvas.rotate(item.rotation);
-  //
-  //         double fontSize = item.fontSize * scaleRatio;
-  //         Color textColor = item.appearance == 0
-  //             ? item.color
-  //             : (item.appearance == 1 || item.appearance == 2)
-  //             ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
-  //             : Colors.white;
-  //         Color bgColor = item.appearance == 1
-  //             ? item.color
-  //             : item.appearance == 2
-  //             ? item.color.withOpacity(0.5)
-  //             : Colors.transparent;
-  //
-  //         TextDecoration decoration = TextDecoration.none;
-  //         if (item.isUnderline && item.isStrikethrough) {
-  //           decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
-  //         } else if (item.isUnderline) {
-  //           decoration = TextDecoration.underline;
-  //         } else if (item.isStrikethrough) {
-  //           decoration = TextDecoration.lineThrough;
-  //         }
-  //
-  //         TextStyle style = TextStyle(
-  //           color: textColor,
-  //           fontSize: fontSize,
-  //           fontFamily: item.font,
-  //           fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
-  //           fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
-  //           decoration: decoration,
-  //           decorationColor: textColor,
-  //           shadows: item.appearance == 0
-  //               ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
-  //               : null,
-  //         );
-  //
-  //         TextPainter tp = TextPainter(
-  //           text: TextSpan(text: item.text, style: style),
-  //           textAlign: item.alignment,
-  //           textDirection: TextDirection.ltr,
-  //         );
-  //         tp.layout();
-  //
-  //         Rect bgRect = Rect.fromCenter(
-  //           center: Offset.zero,
-  //           width: tp.width + (32 * scaleRatio),
-  //           height: tp.height + (16 * scaleRatio),
-  //         );
-  //         if (bgColor != Colors.transparent) {
-  //           canvas.drawRRect(
-  //             RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
-  //             Paint()..color = bgColor,
-  //           );
-  //         }
-  //
-  //         if (item.appearance == 3) {
-  //           TextPainter strokeTp = TextPainter(
-  //             text: TextSpan(
-  //               text: item.text,
-  //               style: style.copyWith(
-  //                 foreground: Paint()
-  //                   ..style = PaintingStyle.stroke
-  //                   ..strokeWidth = fontSize * 0.25
-  //                   ..strokeJoin = StrokeJoin.round
-  //                   ..strokeCap = StrokeCap.round
-  //                   ..color = item.color,
-  //               ),
-  //             ),
-  //             textAlign: item.alignment,
-  //             textDirection: TextDirection.ltr,
-  //           );
-  //           strokeTp.layout();
-  //           strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
-  //         }
-  //
-  //         // Main text paint
-  //         tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
-  //         canvas.restore();
-  //       }
-  //
-  //       final ui.Picture picture = recorder.endRecording();
-  //       final ui.Image finalUiImg = await picture.toImage(uiImg.width, uiImg.height);
-  //       final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
-  //
-  //       if (byteData != null) {
-  //         imageBytes = byteData.buffer.asUint8List(); // Data replace kar do
-  //       }
-  //     }
-  //
-  //     if (turns != 0) {
-  //       img.Image? decodedStampedImage = img.decodeImage(imageBytes);
-  //       if (decodedStampedImage != null) {
-  //         decodedStampedImage = img.copyRotate(decodedStampedImage, angle: turns * 90);
-  //         imageBytes = img.encodeJpg(decodedStampedImage, quality: 90);
-  //       }
-  //     }
-  //
-  //     final image = pw.MemoryImage(imageBytes);
-  //     PdfPageFormat? selectedFormat = _getPdfPageFormat(_selectedPageSize);
-  //     PdfPageFormat finalPageFormat;
-  //
-  //     if (selectedFormat != null) {
-  //       finalPageFormat = selectedFormat;
-  //     } else {
-  //       double imgWidth = image.width!.toDouble();
-  //       double imgHeight = image.height!.toDouble();
-  //       double maxDimension = 842.0;
-  //
-  //       if (imgWidth > maxDimension || imgHeight > maxDimension) {
-  //         double scale = math.min(maxDimension / imgWidth, maxDimension / imgHeight);
-  //         imgWidth *= scale;
-  //         imgHeight *= scale;
-  //       }
-  //       finalPageFormat = PdfPageFormat(imgWidth, imgHeight);
-  //     }
-  //
-  //     pdf.addPage(
-  //       pw.Page(
-  //         margin: pw.EdgeInsets.zero,
-  //         pageFormat: finalPageFormat,
-  //         build: (context) {
-  //           return pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain));
-  //         },
-  //       ),
-  //     );
-  //   }
-  //
-  //   try {
-  //     // 1. App ka apna private folder nikalo (OS yahan kabhi block nahi karega)
-  //     Directory appDir = await getApplicationDocumentsDirectory();
-  //
-  //     // 2. File ka path banao
-  //     String baseFilePath = "${appDir.path}/$documentName";
-  //     String finalFilePath = "$baseFilePath.pdf";
-  //     File file = File(finalFilePath);
-  //
-  //     int counter = 1;
-  //     while (await file.exists()) {
-  //       finalFilePath = "$baseFilePath ($counter).pdf";
-  //       file = File(finalFilePath);
-  //       counter++;
-  //     }
-  //
-  //     // 3. File Save karo
-  //     await file.writeAsBytes(await pdf.save());
-  //
-  //     showToast("PDF Saved Successfully!");
-  //
-  //     // 4. Home Screen par jao
-  //     if (mounted) {
-  //       Navigator.pushAndRemoveUntil(
-  //         context,
-  //         MaterialPageRoute(builder: (context) => const HomeScreen()),
-  //             (Route<dynamic> route) => false,
-  //       );
-  //     }
-  //   } catch (e) {
-  //     showToast("Error saving PDF: $e");
-  //     print("Save Error: $e");
-  //   }
-  // }
-
   Future<void> _generateAndSavePdf() async {
-    // 1. Sabse pehle ek Loading Spinner (Dialog) show karo
     showDialog(
       context: context,
-      barrierDismissible: false, // User touch karke band na kar sake
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return const Center(
           child: Column(
@@ -926,7 +685,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.none, // Yellow underline rokne ke liye
+                  decoration: TextDecoration.none,
                 ),
               ),
             ],
@@ -935,14 +694,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       },
     );
 
-    // 2. MAGIC: Thoda UI ko saans lene do taaki spinner screen par draw ho jaye
-    // Iske bina heavy process shuru ho jayega aur spinner dikhega hi nahi
     await Future.delayed(const Duration(milliseconds: 150));
 
     try {
       final pdf = pw.Document();
 
-      // --- TUMHARA PURANA HEAVY PDF GENERATION LOOP ---
       for (int i = 0; i < docFiles.length; i++) {
         var map = docFiles[i];
         final File file = map['cropped'] as File;
@@ -1165,10 +921,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false, // Pichle saare screens clear kar dega
+          (Route<dynamic> route) => false, // Pichle saare screens clear kar dega
         );
       }
-
     } catch (e) {
       // Agar beech me koi error aa jaye toh spinner phasna nahi chahiye
       if (mounted) {
@@ -2186,13 +1941,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       bottom: _showAdjustMenu ? 0 : -200,
                       left: 0,
                       right: 0,
-                      child: _buildAdjustMenuWidget(), // Naya adjust menu call kiya
+                      child: _buildAdjustMenuWidget(),
                     ),
 
                     if (isProcessing)
                       Positioned.fill(
                         child: Container(
-                          color: Colors.black54, // Peeche ka thoda dark karne ke liye
+                          color: Colors.black54,
                           child: const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
                         ),
                       ),
@@ -2300,7 +2055,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       child: _buildCropSubTools(),
                     ),
 
-                    // Jab isSelectionMode true hoga, tab ye upar aayega
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
@@ -2722,10 +2476,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     await prefs.setString('default_filter', tempSelectedFilter);
 
                     setState(() {
-                      _defaultFilter = tempSelectedFilter; // Main state update
+                      _defaultFilter = tempSelectedFilter;
                     });
 
-                    Navigator.pop(context); // Close dialog
+                    Navigator.pop(context);
                     showToast("Default filter set to $tempSelectedFilter");
                   },
                   child: const Text(
@@ -2977,7 +2731,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
           _buildToolItem(
             label: "Filter",
-            //icon: Symbols.masked_transitions_rounded,
             icon: Icons.animation_rounded,
             tooltipMessage: "Apply color filters",
             isSelected: _showFilterMenu,
@@ -3077,7 +2830,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
   }
 
-  // --- RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildResizeSubTools() {
     bool hasSizeChanged = _selectedPageSize != _defaultPageSize;
 
@@ -3220,8 +2972,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
         children: [
           _buildToolItem(
-            label: allSelected ? "Deselect" : "Select All", // Text dynamic
-            icon: allSelected ? Icons.deselect_rounded : Icons.select_all_rounded, // Icon dynamic
+            label: allSelected ? "Deselect" : "Select All",
+            icon: allSelected ? Icons.deselect_rounded : Icons.select_all_rounded,
             tooltipMessage: allSelected ? "Deselect all pages" : "Select all pages",
             onTap: () {
               setState(() {
@@ -3252,7 +3004,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       ignoring: selectedCount < 2,
                       child: _buildToolItem(
                         label: "Merge",
-                        //icon: Symbols.stack_group_rounded,
                         icon: Icons.layers_rounded,
                         tooltipMessage: "Merge selected photos into one page",
                         onTap: () async {
@@ -3274,7 +3025,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                             if (mergedFile != null && mergedFile is File) {
                               setState(() {
-                                // A. Photo ko original list me daalo
                                 docFiles.add({
                                   'original': mergedFile,
                                   'cropped': mergedFile,
@@ -3313,7 +3063,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 selectedPagesList = List.generate(docFiles.length, (i) => false);
 
                                 isSelectionMode = false;
-                                currentPage = docFiles.length - 1; // Naye page par focus
+                                currentPage = docFiles.length - 1;
                               });
 
                               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -3334,13 +3084,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     label: "Rotate",
                     icon: Icons.rotate_right_rounded,
                     tooltipMessage: "Rotate selected pages",
-                    //onTap: () => showToast("Bulk rotate coming soon"),
                     isRotate: true,
                     onTap: _bulkRotateImages,
                   ),
                   _buildToolItem(
                     label: "Filter",
-                    //icon: Symbols.masked_transitions_rounded,
                     icon: Icons.animation_rounded,
                     tooltipMessage: "Apply filter to selected pages",
                     isSelected: _showFilterMenu,
@@ -3379,33 +3127,20 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   }
 
   /// --- DUPLICATE PAGE FUNCTION ---
-  /// --- DUPLICATE PAGE FUNCTION (BUG FIX) ---
   void _duplicateCurrentPage() {
-    // 1. Pehle saare current edits ko memory (docFiles) me save kar lo
     _saveEditsToMemory();
 
     setState(() {
       int duplicateIndex = currentPage + 1;
-
-      // 2. docFiles me current page ka data duplicate karo
       Map<String, dynamic> duplicateMap = Map<String, dynamic>.from(docFiles[currentPage]);
       docFiles.insert(duplicateIndex, duplicateMap);
-
-      // 3. Sirf selectedPagesList ko manually update karna hai (Kyunki ye memory map me nahi hoti)
-      // List.from() use karne se fixed-length list ka error zindagi me kabhi nahi aayega!
       List<bool> newSelectionList = List<bool>.from(selectedPagesList);
       newSelectionList.insert(duplicateIndex, false);
       selectedPagesList = newSelectionList;
-
-      // 4. Current page ko naye page par shift karo
       currentPage = duplicateIndex;
     });
-
-    // 5. BOOM! Ye function baaki saari 7 lists (filters, rotation, crop) ko
-    // docFiles ki length ke hisaab se automatically fresh bana dega. No more RangeErrors!
     _loadEditsFromMemory();
 
-    // 6. UI smoothly slide karegi
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_pageController.hasClients) {
         _pageController.animateToPage(
@@ -3416,203 +3151,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
     });
 
-    HapticFeedback.lightImpact(); // Vibration
+    HapticFeedback.lightImpact();
     showToast("Page duplicated successfully");
   }
-
-  // Future<List<File>> _prepareImagesForMerge() async {
-  //   List<File> bakedFiles = [];
-  //   final tempDir = await getTemporaryDirectory();
-  //
-  //   for (int i = 0; i < docFiles.length; i++) {
-  //     if (selectedPagesList[i] == true) {
-  //       var map = docFiles[i];
-  //       final File file = map['cropped'] as File;
-  //       final Uint8List bytes = await file.readAsBytes();
-  //
-  //       final ui.Codec codec = await ui.instantiateImageCodec(bytes, targetWidth: 1500);
-  //       final ui.FrameInfo frameInfo = await codec.getNextFrame();
-  //       final ui.Image uiImg = frameInfo.image;
-  //
-  //       int turns = _imageQuarterTurns[i];
-  //       bool isLandscape = turns % 2 != 0;
-  //       double targetWidth = isLandscape ? uiImg.height.toDouble() : uiImg.width.toDouble();
-  //       double targetHeight = isLandscape ? uiImg.width.toDouble() : uiImg.height.toDouble();
-  //
-  //       final ui.PictureRecorder recorder = ui.PictureRecorder();
-  //       final Canvas canvas = Canvas(recorder);
-  //
-  //       // --- ROTATION LOGIC (Instantly on GPU) ---
-  //       canvas.translate(targetWidth / 2, targetHeight / 2);
-  //       canvas.rotate(turns * 3.141592653589793 / 2); // 90 degree = pi/2
-  //       canvas.translate(-uiImg.width / 2, -uiImg.height / 2);
-  //
-  //       // ---  FILTER & ADJUST LOGIC (Instantly on GPU via saveLayer) ---
-  //       String activeFilter = _pageFilters[i];
-  //       double activeBright = _pageBrightness[i];
-  //       double activeContrast = _pageContrast[i];
-  //
-  //       ColorFilter? baseFilter = _getColorFilter(activeFilter);
-  //       ColorFilter adjustFilter = _getAdjustColorFilter(activeBright, activeContrast);
-  //
-  //       Rect imageRect = Rect.fromLTWH(0, 0, uiImg.width.toDouble(), uiImg.height.toDouble());
-  //
-  //       // Apply Adjustments
-  //       canvas.saveLayer(imageRect, Paint()..colorFilter = adjustFilter);
-  //
-  //       // Apply Color Filter (Agar koi select kiya hai)
-  //       if (baseFilter != null) {
-  //         canvas.saveLayer(imageRect, Paint()..colorFilter = baseFilter);
-  //       }
-  //
-  //       canvas.drawImage(uiImg, Offset.zero, Paint());
-  //
-  //       if (baseFilter != null) canvas.restore();
-  //       canvas.restore(); // Adjust layer restore
-  //
-  //       // --- MARKUPS (Shapes, Text, Drawing) ---
-  //       if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
-  //         MarkupExportData exportData = _pageMarkups[i];
-  //         double scaleRatio = uiImg.width / 400.0;
-  //
-  //         //  Draw Strokes (Drawing)
-  //         DrawingPainter painter = DrawingPainter(
-  //           paths: exportData.paths,
-  //           currentPoints: [],
-  //           currentColor: Colors.transparent,
-  //           currentStrokeWidth: 0,
-  //           currentOpacity: 0,
-  //           isEraser: false,
-  //         );
-  //         painter.paint(canvas, Size(uiImg.width.toDouble(), uiImg.height.toDouble()));
-  //
-  //         //  Draw Shapes
-  //         for (var shape in exportData.shapes) {
-  //           canvas.save();
-  //           canvas.translate(shape.offset.dx * uiImg.width, shape.offset.dy * uiImg.height);
-  //           canvas.rotate(shape.rotation);
-  //           canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
-  //
-  //           TextPainter tp = TextPainter(
-  //             text: TextSpan(
-  //               text: String.fromCharCode(shape.icon.codePoint),
-  //               style: TextStyle(
-  //                 fontSize: shape.size * scaleRatio,
-  //                 color: shape.color,
-  //                 fontFamily: shape.icon.fontFamily,
-  //                 package: shape.icon.fontPackage,
-  //               ),
-  //             ),
-  //             textDirection: TextDirection.ltr,
-  //           );
-  //           tp.layout();
-  //           tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
-  //           canvas.restore();
-  //         }
-  //
-  //         //  Draw Texts
-  //         for (var item in exportData.texts) {
-  //           canvas.save();
-  //           canvas.translate(item.offset.dx * uiImg.width, item.offset.dy * uiImg.height);
-  //           canvas.rotate(item.rotation);
-  //
-  //           double fontSize = item.fontSize * scaleRatio;
-  //           Color textColor = item.appearance == 0
-  //               ? item.color
-  //               : (item.appearance == 1 || item.appearance == 2)
-  //               ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
-  //               : Colors.white;
-  //           Color bgColor = item.appearance == 1
-  //               ? item.color
-  //               : item.appearance == 2
-  //               ? item.color.withOpacity(0.5)
-  //               : Colors.transparent;
-  //
-  //           TextDecoration decoration = TextDecoration.none;
-  //           if (item.isUnderline && item.isStrikethrough) {
-  //             decoration = TextDecoration.combine([TextDecoration.underline, TextDecoration.lineThrough]);
-  //           } else if (item.isUnderline) {
-  //             decoration = TextDecoration.underline;
-  //           } else if (item.isStrikethrough) {
-  //             decoration = TextDecoration.lineThrough;
-  //           }
-  //
-  //           TextStyle style = TextStyle(
-  //             color: textColor,
-  //             fontSize: fontSize,
-  //             fontFamily: item.font,
-  //             fontWeight: item.isBold ? FontWeight.bold : FontWeight.normal,
-  //             fontStyle: item.isItalic ? FontStyle.italic : FontStyle.normal,
-  //             decoration: decoration,
-  //             decorationColor: textColor,
-  //             shadows: item.appearance == 0
-  //                 ? [const Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))]
-  //                 : null,
-  //           );
-  //
-  //           TextPainter tp = TextPainter(
-  //             text: TextSpan(text: item.text, style: style),
-  //             textAlign: item.alignment,
-  //             textDirection: TextDirection.ltr,
-  //           );
-  //           tp.layout();
-  //
-  //           Rect bgRect = Rect.fromCenter(
-  //             center: Offset.zero,
-  //             width: tp.width + (32 * scaleRatio),
-  //             height: tp.height + (16 * scaleRatio),
-  //           );
-  //           if (bgColor != Colors.transparent) {
-  //             canvas.drawRRect(
-  //               RRect.fromRectAndRadius(bgRect, Radius.circular(8 * scaleRatio)),
-  //               Paint()..color = bgColor,
-  //             );
-  //           }
-  //
-  //           if (item.appearance == 3) {
-  //             TextPainter strokeTp = TextPainter(
-  //               text: TextSpan(
-  //                 text: item.text,
-  //                 style: style.copyWith(
-  //                   foreground: Paint()
-  //                     ..style = PaintingStyle.stroke
-  //                     ..strokeWidth = fontSize * 0.25
-  //                     ..strokeJoin = StrokeJoin.round
-  //                     ..strokeCap = StrokeCap.round
-  //                     ..color = item.color,
-  //                 ),
-  //               ),
-  //               textAlign: item.alignment,
-  //               textDirection: TextDirection.ltr,
-  //             );
-  //             strokeTp.layout();
-  //             strokeTp.paint(canvas, Offset(-strokeTp.width / 2, -strokeTp.height / 2));
-  //           }
-  //
-  //           tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
-  //           canvas.restore();
-  //         }
-  //       }
-  //
-  //       // ---  EXPORT (Extremely Fast Native PNG Encoding) ---
-  //       final ui.Picture picture = recorder.endRecording();
-  //
-  //       // Picture se final scaled image generate kar li
-  //       final ui.Image finalImg = await picture.toImage(targetWidth.toInt(), targetHeight.toInt());
-  //
-  //       // PNG format fast aur lossless hota hai background canvases ke liye
-  //       final ByteData? byteData = await finalImg.toByteData(format: ui.ImageByteFormat.png);
-  //
-  //       if (byteData != null) {
-  //         String tempPath = '${tempDir.path}/merge_baked_${DateTime.now().millisecondsSinceEpoch}_$i.png';
-  //         File tempFile = File(tempPath);
-  //         await tempFile.writeAsBytes(byteData.buffer.asUint8List());
-  //         bakedFiles.add(tempFile);
-  //       }
-  //     }
-  //   }
-  //   return bakedFiles;
-  // }
 
   Future<List<File>> _prepareImagesForMerge() async {
     List<File> bakedFiles = [];
@@ -3636,12 +3177,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         final ui.PictureRecorder recorder = ui.PictureRecorder();
         final Canvas canvas = Canvas(recorder);
 
-        // 🌟 FIX 1: Canvas ko rotate karne se pehle SAVE karo
         canvas.save();
 
         // --- ROTATION LOGIC (Instantly on GPU) ---
         canvas.translate(targetWidth / 2, targetHeight / 2);
-        canvas.rotate(turns * 3.141592653589793 / 2); // 90 degree = pi/2
+        canvas.rotate(turns * 3.141592653589793 / 2);
         canvas.translate(-uiImg.width / 2, -uiImg.height / 2);
 
         // ---  FILTER & ADJUST LOGIC ---
@@ -3653,8 +3193,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         ColorFilter adjustFilter = _getAdjustColorFilter(activeBright, activeContrast);
 
         Rect imageRect = Rect.fromLTWH(0, 0, uiImg.width.toDouble(), uiImg.height.toDouble());
-
-        // Apply Adjustments
         canvas.saveLayer(imageRect, Paint()..colorFilter = adjustFilter);
 
         if (baseFilter != null) {
@@ -3664,16 +3202,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         canvas.drawImage(uiImg, Offset.zero, Paint());
 
         if (baseFilter != null) canvas.restore();
-        canvas.restore(); // Adjust layer restore
-
-        // 🌟 FIX 2: Image draw hone ke baad canvas ko RESTORE karo taaki markups seedhe draw ho
+        canvas.restore();
         canvas.restore();
 
-        // --- MARKUPS (Shapes, Text, Drawing) ---
         if (_pageMarkups[i] != null && _pageMarkups[i] is MarkupExportData) {
           MarkupExportData exportData = _pageMarkups[i];
 
-          // 🌟 FIX 3: targetWidth use karo kyunki UI me rotated width show ho rahi thi
           double scaleRatio = targetWidth / 400.0;
 
           //  Draw Strokes (Drawing)
@@ -3685,16 +3219,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             currentOpacity: 0,
             isEraser: false,
           );
-          // 🌟 FIX 4: painter ko bhi targetWidth/targetHeight dena zaroori hai
           painter.paint(canvas, Size(targetWidth, targetHeight));
 
           //  Draw Shapes
           for (var shape in exportData.shapes) {
             canvas.save();
-            // 🌟 FIX 5: uiImg ki jagah targetWidth & targetHeight
             canvas.translate(shape.offset.dx * targetWidth, shape.offset.dy * targetHeight);
             canvas.rotate(shape.rotation);
-            //canvas.scale(shape.scaleX < 0 ? -1.0 : 1.0, shape.scaleY < 0 ? -1.0 : 1.0);
             canvas.scale(shape.scaleX, shape.scaleY);
 
             TextPainter tp = TextPainter(
@@ -3717,7 +3248,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           //  Draw Texts
           for (var item in exportData.texts) {
             canvas.save();
-            // 🌟 FIX 6: uiImg ki jagah targetWidth & targetHeight
             canvas.translate(item.offset.dx * targetWidth, item.offset.dy * targetHeight);
             canvas.rotate(item.rotation);
 
@@ -3876,7 +3406,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   /// Bulk Delete Logic
   Future<void> _promptBulkDelete() async {
-    // 1. Check karo kitne pages selected hain
     int selectedCount = selectedPagesList.where((e) => e == true).length;
     if (selectedCount == 0) return;
     setState(() {
