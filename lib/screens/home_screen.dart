@@ -148,10 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
         List<FileSystemEntity> entities = directory.listSync();
 
         // Sirf PDF files filter karo
-        List<File> files = entities
-            .whereType<File>()
-            .where((f) => f.path.toLowerCase().endsWith('.pdf'))
-            .toList();
+        List<File> files = entities.whereType<File>().where((f) => f.path.toLowerCase().endsWith('.pdf')).toList();
 
         // Sorting logic (Name, Size, Date)
         files.sort((a, b) {
@@ -605,7 +602,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Files Tab Content (Poore phone ka PDF list)
   Widget _buildFilesTabContent() {
     if (_isLoadingDeviceFiles) {
       return const Center(
@@ -845,10 +841,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         width: 260,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF333333), // Dark grey Adobe Scan jaisa
-          borderRadius: BorderRadius.circular(30),
-        ),
+        decoration: BoxDecoration(color: const Color(0xFF333333), borderRadius: BorderRadius.circular(30)),
         child: Row(
           children: [
             Icon(icon, color: Colors.white, size: 24),
@@ -1226,7 +1219,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: const Icon(Icons.share_outlined, color: Colors.white, size: 20),
                         title: const Text('Share', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
-                          Navigator.pop(sheetContext); // 🚨 sheetContext use kiya
+                          Navigator.pop(sheetContext);
                           _sharePdfFile(file);
                         },
                       ),
@@ -1269,8 +1262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: const Icon(Icons.image_outlined, color: Colors.white, size: 20),
                         title: const Text('Save pages as JPEG', style: TextStyle(color: Colors.white, fontSize: 15)),
                         onTap: () {
-                          Navigator.pop(sheetContext); // Bottom sheet close ho jayegi
-                          // 🚨 Main screen ka zinda 'context' pass kiya
+                          Navigator.pop(sheetContext);
                           _showSavePagesAsJpegConfirmDialog(context, file);
                         },
                       ),
@@ -1289,23 +1281,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
 
-                      // ListTile(
-                      //   dense: true,
-                      //   visualDensity: const VisualDensity(vertical: -3),
-                      //   leading: const Icon(Icons.text_snippet_outlined, color: Colors.white, size: 22),
-                      //   title: const Text('Convert to Word', style: TextStyle(color: Colors.white, fontSize: 16)),
-                      //   onTap: () {
-                      //     Navigator.pop(sheetContext); // Bottom sheet band karo
-                      //     _showConvertToWordConfirmDialog(context, file); // Naya function call hoga
-                      //   },
-                      // ),
-
                       ListTile(
                         leading: const Icon(Icons.text_snippet, color: Colors.white),
                         title: const Text("Extract Text (OCR)", style: TextStyle(color: Colors.white)),
                         onTap: () {
-                          Navigator.pop(context); // Bottom sheet ko pehle band karo
-                          _processAndShowExtractedText(context, file); // Naya logic start
+                          Navigator.pop(context);
+                          _processAndShowExtractedText(context, file);
                         },
                       ),
 
@@ -1358,37 +1339,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Delete',
                           style: TextStyle(color: Colors.redAccent, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
-                        // onTap: () async {
-                        //   Navigator.pop(sheetContext);
-                        //   bool shouldDelete = await showCustomConfirmDialog(
-                        //     context,
-                        //     title: "Delete Document",
-                        //     message:
-                        //         "Are you sure you want to permanently delete \"${file.path.split('/').last}\"? This action cannot be undone.",
-                        //     positiveBtnText: "Delete",
-                        //     negativeBtnText: "Cancel",
-                        //     positiveBtnColor: Colors.redAccent,
-                        //   );
-                        //   if (shouldDelete) {
-                        //     await _deletePdfFile(file);
-                        //   }
-                        // },
 
-                          onTap: () async {
-                            Navigator.pop(sheetContext);
-                            bool shouldDelete = await showCustomConfirmDialog(
-                              context,
-                              title: "Move to Trash", // Title update kiya
-                              message:
-                              "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.", // Naya message
-                              positiveBtnText: "Move to Trash", // Button text update kiya
-                              negativeBtnText: "Cancel",
-                              positiveBtnColor: Colors.redAccent,
-                            );
-                            if (shouldDelete) {
-                              await _deletePdfFile(file); // Yeh function ab file ko .trash folder me move karega
-                            }
+                        onTap: () async {
+                          Navigator.pop(sheetContext);
+                          bool shouldDelete = await showCustomConfirmDialog(
+                            context,
+                            title: "Move to Trash",
+                            // Title update kiya
+                            message:
+                                "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.",
+                            // Naya message
+                            positiveBtnText: "Move to Trash",
+                            negativeBtnText: "Cancel",
+                            positiveBtnColor: Colors.redAccent,
+                          );
+                          if (shouldDelete) {
+                            await _deletePdfFile(file);
                           }
+                        },
                       ),
                       const SizedBox(height: 10),
                     ],
@@ -1428,84 +1396,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Future<void> _mergeSelectedFiles() async {
-  //   if (_selectedFiles.length < 2) {
-  //     showToast("Please select at least 2 files to merge");
-  //     return;
-  //   }
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         backgroundColor: const Color(0xFF2C2C2C),
-  //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //         content: const Row(
-  //           children: [
-  //             CircularProgressIndicator(color: Colors.lightBlueAccent),
-  //             SizedBox(width: 20),
-  //             Text(
-  //               "Merging PDFs... Please wait",
-  //               style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  //
-  //   try {
-  //     List<String> filesToMerge = _selectedFiles.toList();
-  //     String timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-  //     String newFileName = "Merged_PDF_$timestamp.pdf";
-  //     String outputDirectory = filesToMerge.first.substring(0, filesToMerge.first.lastIndexOf('/'));
-  //     String finalOutputPath = "$outputDirectory/$newFileName";
-  //     syncfusion.PdfDocument newDocument = syncfusion.PdfDocument();
-  //
-  //     for (String filePath in filesToMerge) {
-  //       final Uint8List bytes = await File(filePath).readAsBytes();
-  //
-  //       syncfusion.PdfDocument loadedDocument = syncfusion.PdfDocument(inputBytes: bytes);
-  //
-  //       for (int i = 0; i < loadedDocument.pages.count; i++) {
-  //         syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
-  //         syncfusion.PdfTemplate template = loadedPage.createTemplate();
-  //
-  //         syncfusion.PdfSection section = newDocument.sections!.add();
-  //         section.pageSettings.size = template.size;
-  //         section.pageSettings.margins.all = 0;
-  //
-  //         syncfusion.PdfPage newPage = section.pages.add();
-  //         newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
-  //       }
-  //       loadedDocument.dispose();
-  //     }
-  //
-  //     final List<int> mergedBytes = await newDocument.save();
-  //     newDocument.dispose();
-  //     File finalFile = File(finalOutputPath);
-  //     await finalFile.writeAsBytes(mergedBytes, flush: true);
-  //     Navigator.pop(context);
-  //     showToast("PDF Merged Successfully!");
-  //     setState(() {
-  //       _isSelectionMode = false;
-  //       _selectedFiles.clear();
-  //     });
-  //     _loadPdfFiles();
-  //   } catch (e) {
-  //     Navigator.pop(context);
-  //     print("Syncfusion Merge Error: $e");
-  //     showToast("Something went wrong while merging");
-  //   }
-  // }
-
   Future<void> _mergeSelectedFiles() async {
     if (_selectedFiles.length < 2) {
       showToast("Please select at least 2 files to merge");
       return;
     }
 
-    // Tumhara original merge logic ek function ke andar taaki code duplicate na ho
     Future<void> performMerge() async {
       try {
         List<String> filesToMerge = _selectedFiles.toList();
@@ -1520,40 +1416,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
           syncfusion.PdfDocument loadedDocument = syncfusion.PdfDocument(inputBytes: bytes);
 
-          // for (int i = 0; i < loadedDocument.pages.count; i++) {
-          //   syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
-          //   syncfusion.PdfTemplate template = loadedPage.createTemplate();
-          //
-          //   syncfusion.PdfSection section = newDocument.sections!.add();
-          //   section.pageSettings.size = template.size;
-          //   section.pageSettings.margins.all = 0;
-          //
-          //   syncfusion.PdfPage newPage = section.pages.add();
-          //   newPage.graphics.drawPdfTemplate(template, const Offset(0, 0));
-          // }
           for (int i = 0; i < loadedDocument.pages.count; i++) {
             syncfusion.PdfPage loadedPage = loadedDocument.pages[i];
 
-            // 1. Original page ka ekdum sateek size aur rotation nikaalo
             Size pageSize = loadedPage.size;
             syncfusion.PdfTemplate template = loadedPage.createTemplate();
 
             syncfusion.PdfSection section = newDocument.sections!.add();
 
-            // 🌟 FIX 1: Orientation dynamically set karo! (Sabse zaroori)
-            // Agar width height se zyada hai, toh page ko Landscape mode mein rakho
             section.pageSettings.orientation = (pageSize.width > pageSize.height)
                 ? syncfusion.PdfPageOrientation.landscape
                 : syncfusion.PdfPageOrientation.portrait;
 
-            // 🌟 FIX 2: Original page ka Size aur Rotation angle same to same copy karo
             section.pageSettings.size = pageSize;
             section.pageSettings.margins.all = 0;
             section.pageSettings.rotate = loadedPage.rotation;
 
             syncfusion.PdfPage newPage = section.pages.add();
 
-            // 3. Template draw karo original size ke sath
             newPage.graphics.drawPdfTemplate(template, const Offset(0, 0), pageSize);
           }
           loadedDocument.dispose();
@@ -1564,7 +1444,7 @@ class _HomeScreenState extends State<HomeScreen> {
         File finalFile = File(finalOutputPath);
         await finalFile.writeAsBytes(mergedBytes, flush: true);
 
-        Navigator.pop(context); // Merge complete hone par dialog hide karega
+        Navigator.pop(context);
         showToast("PDF Merged Successfully!");
         setState(() {
           _isSelectionMode = false;
@@ -1572,26 +1452,20 @@ class _HomeScreenState extends State<HomeScreen> {
         });
         _loadPdfFiles();
       } catch (e) {
-        Navigator.pop(context); // Error aane par bhi dialog hide karega
+        Navigator.pop(context);
         print("Syncfusion Merge Error: $e");
         showToast("Something went wrong while merging");
       }
     }
 
-    // 1. Sabse pehle simple loading spinner dikhao
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const Center(
-          child: CircularProgressIndicator(
-            color: Colors.lightBlueAccent,
-          ),
-        );
+        return const Center(child: CircularProgressIndicator(color: Colors.lightBlueAccent));
       },
     );
 
-    // 2. Check karo agar Rewarded Ad ready hai
     if (_rewardedAd != null) {
       _rewardedAd!.show(
         onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
@@ -1603,18 +1477,17 @@ class _HomeScreenState extends State<HomeScreen> {
         onAdDismissedFullScreenContent: (Ad ad) {
           ad.dispose();
           _rewardedAd = null;
-          _loadRewardedAd(); // Ad close hone par next ad load ke liye request (agar function banaya hai to)
-          performMerge(); // Ad dekhne ke baad merge shuru karo
+          _loadRewardedAd();
+          performMerge();
         },
         onAdFailedToShowFullScreenContent: (Ad ad, AdError error) {
           ad.dispose();
           _rewardedAd = null;
           _loadRewardedAd();
-          performMerge(); // Agar ad load hone ke baad show hone mein fail ho jaye, to bhi user ka kaam rukna nahi chahiye
+          performMerge();
         },
       );
     } else {
-      // 3. Agar ad load nahi hua, to Internet check karo
       bool hasInternet = false;
       try {
         final result = await InternetAddress.lookup('google.com');
@@ -1626,11 +1499,9 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       if (!hasInternet) {
-        // Internet nahi hai -> Dialog hide karo aur Toast dikhao
         Navigator.pop(context);
         showToast("No internet, try again");
       } else {
-        // Internet hai par Ad abhi tak ready nahi hua -> User ko wait mat karao, direct merge kar do
         performMerge();
       }
     }
@@ -1699,26 +1570,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Future<void> _confirmBulkDelete() async {
-  //   if (_selectedFiles.isEmpty) {
-  //     showToast("Please select files to delete");
-  //     return;
-  //   }
-  //   bool shouldDelete = await showCustomConfirmDialog(
-  //     context,
-  //     title: "Delete Files",
-  //     message:
-  //         "Are you sure you want to permanently delete ${_selectedFiles.length} selected files? This action cannot be undone.",
-  //     positiveBtnText: "Delete",
-  //     negativeBtnText: "Cancel",
-  //     positiveBtnColor: Colors.redAccent,
-  //   );
-  //
-  //   if (shouldDelete) {
-  //     await _executeBulkDelete();
-  //   }
-  // }
-
   Future<void> _confirmBulkDelete() async {
     if (_selectedFiles.isEmpty) {
       showToast("Please select files to delete");
@@ -1727,11 +1578,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
     bool shouldDelete = await showCustomConfirmDialog(
       context,
-      title: "Move to Trash", // Title change kar diya
-      message: "Are you sure you want to move ${_selectedFiles.length} selected files to Trash? They will be permanently deleted after 30 days.", // Message updated
+      title: "Move to Trash",
+      message:
+          "Are you sure you want to move ${_selectedFiles.length} selected files to Trash? They will be permanently deleted after 30 days.",
+      // Message updated
       positiveBtnText: "Move to Trash",
       negativeBtnText: "Cancel",
-      positiveBtnColor: Colors.redAccent, // Red se Orange kar diya (Warning, but not permanent)
+      positiveBtnColor: Colors.redAccent,
     );
 
     if (shouldDelete) {
@@ -1739,43 +1592,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Future<void> _executeBulkDelete() async {
-  //   try {
-  //     int count = _selectedFiles.length;
-  //
-  //     for (String path in _selectedFiles) {
-  //       final file = File(path);
-  //       if (file.existsSync()) {
-  //         file.deleteSync();
-  //       }
-  //       if (_savedFilePaths.contains(path)) {
-  //         _toggleSaveFile(path);
-  //       }
-  //     }
-  //
-  //     showToast("$count files deleted");
-  //
-  //     setState(() {
-  //       _isSelectionMode = false;
-  //       _selectedFiles.clear();
-  //     });
-  //
-  //     _loadPdfFiles();
-  //   } catch (e) {
-  //     print("Bulk Delete Error: $e");
-  //     showToast("Error deleting some files");
-  //   }
-  // }
-
   Future<void> _executeBulkDelete() async {
     try {
       int count = _selectedFiles.length;
-
-      // 1. App ki document directory aur trash folder ka path get karo
-      final directory = await getApplicationDocumentsDirectory(); // Make sure path_provider imported ho
+      final directory = await getApplicationDocumentsDirectory();
       final trashDir = Directory('${directory.path}/.trash');
 
-      // 2. Agar trash folder nahi hai toh usko create karo
       if (!await trashDir.exists()) {
         await trashDir.create();
       }
@@ -1783,12 +1605,8 @@ class _HomeScreenState extends State<HomeScreen> {
       for (String path in _selectedFiles) {
         final file = File(path);
         if (file.existsSync()) {
-          // file.deleteSync(); <-- ISKO HATA DIYA HAI
-
-          // 3. File ko .trash folder mein MOVE karna hai
           final fileName = file.path.split('/').last;
           final trashFilePath = '${trashDir.path}/$fileName';
-
           await file.rename(trashFilePath); // File move ho jayegi
         }
 
@@ -1797,7 +1615,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
 
-      showToast("$count files moved to Trash"); // Message bhi update kar diya
+      showToast("$count files moved to Trash");
 
       setState(() {
         _isSelectionMode = false;
@@ -1837,9 +1655,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Tumhari bottom sheet wali class ke andar ye function aayega
   Future<void> _openInEditor(File file) async {
-    // 1. Loading Indicator dikhao
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1849,19 +1665,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     try {
-      // 2. PDF load karo
       final document = await PdfDocument.openFile(file.path);
       final tempDir = await getTemporaryDirectory();
 
-      // 🚨 NAYA: List of Map banayenge tumhare DocumentEditorScreen ke liye
       List<Map<String, dynamic>> formattedImages = [];
 
-      // 3. Har page ko convert karo
       for (int i = 1; i <= document.pagesCount; i++) {
         final page = await document.getPage(i);
 
         final pageImage = await page.render(
-          width: page.width * 2, // High quality ke liye 2x kiya hai
+          width: page.width * 2,
           height: page.height * 2,
           format: PdfPageImageFormat.jpeg,
         );
@@ -1883,7 +1696,6 @@ class _HomeScreenState extends State<HomeScreen> {
         await page.close();
       }
       await document.close();
-
       if (!mounted) return;
       Navigator.pop(context);
 
@@ -2087,33 +1899,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Future<void> _deletePdfFile(File file) async {
-  //   try {
-  //     if (await file.exists()) {
-  //       if (await Permission.manageExternalStorage.isDenied) {
-  //         await Permission.manageExternalStorage.request();
-  //       }
-  //
-  //       try {
-  //         file.writeAsBytesSync([]);
-  //       } catch (_) {
-  //         print("Warning: Could not overwrite file before deleting. Error: $e");
-  //       }
-  //
-  //       await file.delete();
-  //       await _loadPdfFiles();
-  //
-  //       showToast("File deleted successfully");
-  //     } else {
-  //       showToast("File already deleted or not found");
-  //     }
-  //   } catch (e) {
-  //     print("Delete Error: $e");
-  //     showToast("Error: Permission denied by Android System.");
-  //   }
-  // }
-
-
   Future<void> _deletePdfFile(File file) async {
     try {
       if (await file.exists()) {
@@ -2121,21 +1906,16 @@ class _HomeScreenState extends State<HomeScreen> {
           await Permission.manageExternalStorage.request();
         }
 
-        // 1. Trash folder ka path define karo (Jahan current file hai, usi ke andar .trash folder)
         Directory parentDir = file.parent;
         Directory trashDir = Directory('${parentDir.path}/.trash');
 
-        // 2. Agar .trash folder nahi hai, toh create karo
         if (!(await trashDir.exists())) {
           await trashDir.create();
         }
-
-        // 3. Trash mein file ka naya path set karo
         String fileName = file.path.split('/').last;
         String trashFilePath = '${trashDir.path}/$fileName';
         File trashFile = File(trashFilePath);
 
-        // 4. Name collision handle karo (Agar same naam ki file pehle se trash mein ho)
         int counter = 1;
         while (await trashFile.exists()) {
           String nameWithoutExt = fileName.replaceAll('.pdf', '');
@@ -2144,13 +1924,9 @@ class _HomeScreenState extends State<HomeScreen> {
           counter++;
         }
 
-        // 5. File ko Trash mein MOVE karo (Copy + Delete)
-        // Copy karne se file ka modified time aaj ka set ho jayega (30 days logic ke liye best!)
         await file.copy(trashFile.path);
-        await file.delete(); // Original file delete kar do
-
+        await file.delete();
         await _loadPdfFiles(); // UI list update
-
         showToast("Moved to Trash");
       } else {
         showToast("File not found");
@@ -2162,8 +1938,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _showSavePagesAsJpegConfirmDialog(BuildContext context, File pdfFile) async {
-    // 🚨 SharedPreferences aur hardcoded Download path hata diya
-    // Ab dialog me user ko saaf batao ki images Phone Gallery me save hongi
     bool isConfirmed = await showCustomConfirmDialog(
       context,
       title: "Save as JPEG",
@@ -2197,18 +1971,15 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
 
-      // 🚨 Naye function signature ke mutabiq sirf `pdfFile` pass karo
       await _savePagesAsJpeg(pdfFile);
 
       if (context.mounted) {
-        Navigator.pop(context); // Loading dialog ko close karne ke liye
+        Navigator.pop(context);
       }
     }
   }
 
-  // 1. MAIN FUNCTION: Yeh button click par call hoga aur Ad handle karega
   Future<void> _savePagesAsJpeg(File pdfFile) async {
-    // Sirf Android ke liye Interstitial Test Ad ID
     //final String interstitialTestId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
     final String interstitialTestId = 'ca-app-pub-5454466291921987/6893752966'; //real ad id
 
@@ -2219,26 +1990,21 @@ class _HomeScreenState extends State<HomeScreen> {
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
-          // Ad successully load ho gaya
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (InterstitialAd ad) {
-              // Jab user 'X' dabakar ad cut karega -> Save function call karo
               ad.dispose();
               _executeSaveJpeg(pdfFile);
             },
             onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-              // Agar ad screen par aane mein fail ho jaye -> Direct save karo
               print('Ad failed to show: $error');
               ad.dispose();
               _executeSaveJpeg(pdfFile);
             },
           );
 
-          // Ad ko screen par dikhao
           ad.show();
         },
         onAdFailedToLoad: (LoadAdError error) {
-          // Agar internet slow hai ya ad load hi nahi hua -> Direct save karo
           print('Interstitial ad failed to load: $error');
           _executeSaveJpeg(pdfFile);
         },
@@ -2246,7 +2012,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// 2. SAVE FUNCTION: Yeh function actual mein file save karne ka logic handle karega
   Future<void> _executeSaveJpeg(File pdfFile) async {
     try {
       final directory = await getTemporaryDirectory();
@@ -2288,169 +2053,39 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Future<void> _showConvertToWordConfirmDialog(BuildContext context, File pdfFile) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   String baseSavePath = prefs.getString('pref_storage_location') ?? "/storage/emulated/0/Download";
-  //
-  //   String wordFolderPath = "$baseSavePath/Word Files";
-  //
-  //   bool isConfirmed = await showCustomConfirmDialog(
-  //     context,
-  //     title: "Convert to Word",
-  //     message: "Do you want to convert this PDF into a Word document?\n\nSave Location:\n$wordFolderPath",
-  //     positiveBtnText: "Convert",
-  //     negativeBtnText: "Cancel",
-  //     positiveBtnColor: Colors.blueAccent,
-  //   );
-  //
-  //   if (isConfirmed) {
-  //     showDialog(
-  //       context: context,
-  //       barrierDismissible: false,
-  //       builder: (BuildContext dialogContext) {
-  //         return const AlertDialog(
-  //           backgroundColor: Color(0xFF2C2C2C),
-  //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
-  //           content: Row(
-  //             children: [
-  //               CircularProgressIndicator(color: Colors.blueAccent),
-  //               SizedBox(width: 20),
-  //               Expanded(
-  //                 child: Text(
-  //                   "Converting to Word... Please wait",
-  //                   style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         );
-  //       },
-  //     );
-  //
-  //     await _convertPdfToWord(pdfFile, wordFolderPath);
-  //
-  //     if (context.mounted) {
-  //       Navigator.pop(context);
-  //     }
-  //   }
-  // }
-  //
-  // Future<void> _convertPdfToWord(File pdfFile, String saveDirectory) async {
-  //   try {
-  //     final dir = Directory(saveDirectory);
-  //     if (!await dir.exists()) {
-  //       await dir.create(recursive: true);
-  //     }
-  //
-  //     String fileName = pdfFile.path.split('/').last.replaceAll('.pdf', '.doc');
-  //     String savePath = "${dir.path}/$fileName";
-  //
-  //     final document = await PdfDocument.openFile(pdfFile.path);
-  //     final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-  //
-  //     // 4. Word File ka boilerplate structure (Jadu yahin hai!)
-  //     StringBuffer wordContent = StringBuffer();
-  //     wordContent.writeln('<html xmlns:w="urn:schemas-microsoft-com:office:word">');
-  //     wordContent.writeln('<head><meta charset="utf-8"><title>Scanner Pro Document</title></head><body>');
-  //
-  //     for (int i = 1; i <= document.pagesCount; i++) {
-  //       final page = await document.getPage(i);
-  //
-  //       final pageImage = await page.render(
-  //         width: page.width * 2,
-  //         height: page.height * 2,
-  //         format: PdfPageImageFormat.jpeg,
-  //       );
-  //
-  //       if (pageImage != null) {
-  //         final tempDir = await getTemporaryDirectory();
-  //         final tempFile = File('${tempDir.path}/temp_ocr_page_$i.jpg');
-  //         await tempFile.writeAsBytes(pageImage.bytes);
-  //
-  //         final inputImage = InputImage.fromFile(tempFile);
-  //         final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-  //
-  //         String pageText = recognizedText.text.trim();
-  //
-  //         if (pageText.isNotEmpty) {
-  //           String formattedText = pageText.replaceAll('\n', '<br>');
-  //           wordContent.writeln('<p style="font-family: Arial, sans-serif; font-size: 14pt;">$formattedText</p>');
-  //         } else {
-  //           wordContent.writeln('<p style="color: grey;"><i>[Image Only / No Text Found on Page $i]</i></p>');
-  //         }
-  //
-  //         if (i < document.pagesCount) {
-  //           wordContent.writeln('<br clear="all" style="page-break-before:always" />');
-  //         }
-  //
-  //         if (await tempFile.exists()) await tempFile.delete();
-  //       }
-  //       await page.close();
-  //     }
-  //
-  //     wordContent.writeln('</body></html>');
-  //
-  //     textRecognizer.close();
-  //     await document.close();
-  //
-  //     File wordFile = File(savePath);
-  //     await wordFile.writeAsString(wordContent.toString());
-  //
-  //     showToast("Converted successfully! Saved in Word Files");
-  //   } catch (e) {
-  //     showToast("Error converting to Word: $e");
-  //     print("Convert Error: $e");
-  //   }
-  // }
-
-
-// 1. Button pe click hone par yeh function call karna
-  // 1. ENTRY POINT: Jab user Extract Text par click karega
   Future<void> _processAndShowExtractedText(BuildContext context, File pdfFile) async {
-    // Sirf Android Test Rewarded Ad ID
     //final String rewardedTestId = 'ca-app-pub-3940256099942544/5224354917'; // test ad id
     final String rewardedTestId = 'ca-app-pub-5454466291921987/8538007121'; //real ad id
 
-    // Step A: Ad Load hone tak Loading Dialog dikhao
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return const Center(
-          child: CircularProgressIndicator(color: Colors.blueAccent),
-        );
+        return const Center(child: CircularProgressIndicator(color: Colors.blueAccent));
       },
     );
 
-    // Step B: Ad Load karne ki koshish karo
     RewardedAd.load(
       adUnitId: rewardedTestId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
-          // 1. Ad mil gaya -> Pehle Loading Dialog band karo
           if (context.mounted) Navigator.pop(context);
 
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (RewardedAd ad) {
-              // User ne Ad close kar diya -> Ab OCR start karo
               ad.dispose();
               _executeOcrAndShowDialog(context, pdfFile);
             },
             onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
-              // Ad screen par show nahi ho paya -> Tab bhi direct OCR start karo
               ad.dispose();
               _executeOcrAndShowDialog(context, pdfFile);
             },
           );
 
-          // 2. Ad Screen par dikhao
-          ad.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-            // Reward logic yahan handle ho gaya
-          });
+          ad.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {});
         },
         onAdFailedToLoad: (LoadAdError error) {
-          // Ad load nahi hua (Network issue etc.) -> Loading Dialog band karo aur direct OCR chalao
           print('Rewarded ad failed to load: $error');
           if (context.mounted) Navigator.pop(context);
           _executeOcrAndShowDialog(context, pdfFile);
@@ -2459,9 +2094,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-// 2. ACTUAL OCR EXECUTION: Yeh OCR ka Progress Dialog aur Result Dialog Sambhalega
   Future<void> _executeOcrAndShowDialog(BuildContext context, File pdfFile) async {
-    // Step 1: OCR Loading Dialog dikhao
     if (context.mounted) {
       showDialog(
         context: context,
@@ -2487,15 +2120,12 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Step 2: Background Engine se Text Extract karo
     String extractedText = await _extractTextFromPdf(pdfFile);
 
-    // Step 3: Extraction complete hone par OCR Loading Dialog band karo
     if (context.mounted) {
       Navigator.pop(context);
     }
 
-    // Step 4: Final Result Dialog (Jo tumne banaya hai) Show karo
     if (context.mounted) {
       if (extractedText.trim().isEmpty) {
         showToast("No text found in this PDF.");
@@ -2505,7 +2135,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-// 2. Background Engine: Jo PDF se actually text nikalega
   Future<String> _extractTextFromPdf(File pdfFile) async {
     StringBuffer allText = StringBuffer();
     try {
@@ -2515,7 +2144,7 @@ class _HomeScreenState extends State<HomeScreen> {
       for (int i = 1; i <= document.pagesCount; i++) {
         final page = await document.getPage(i);
         final pageImage = await page.render(
-          width: page.width * 2, // High resolution for better OCR
+          width: page.width * 2,
           height: page.height * 2,
           format: PdfPageImageFormat.jpeg,
         );
@@ -2530,9 +2159,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
           String pageText = recognizedText.text.trim();
           if (pageText.isNotEmpty) {
-            allText.writeln("--- Page $i ---"); // Page divider for neat look
+            allText.writeln("--- Page $i ---");
             allText.writeln(pageText);
-            allText.writeln(); // Extra space
+            allText.writeln();
           }
 
           if (await tempFile.exists()) await tempFile.delete();
@@ -2554,46 +2183,39 @@ class _HomeScreenState extends State<HomeScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF2C2C2C),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          // TITLE KO UPDATE KIYA HAI - ROW USE KARKE
           title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Ek left, ek right
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 "Extracted Text",
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white), // Close (X) Icon
+                icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () {
-                  Navigator.pop(context); // Dialog close karne ka function
+                  Navigator.pop(context);
                 },
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(), // Extra space kam karne ke liye
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
           content: SizedBox(
             width: double.maxFinite,
             child: ConstrainedBox(
-              // Dialog screen se bahar na jaye isliye height limit ki hai
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
               child: SingleChildScrollView(
-                // SelectableText use kiya taaki user thoda sa text bhi manually copy kar sake
-                child: SelectableText(
-                  extractedText,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                ),
+                child: SelectableText(extractedText, style: const TextStyle(color: Colors.white70, fontSize: 14)),
               ),
             ),
           ),
           actionsAlignment: MainAxisAlignment.spaceEvenly,
           actions: [
-            // COPY BUTTON
             TextButton.icon(
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: extractedText));
                 showToast("Text copied to clipboard!");
-                Navigator.pop(context); // Copy karne ke baad bhi dialog close hoga
+                Navigator.pop(context);
               },
               icon: const Icon(Icons.copy, color: Colors.blueAccent),
               label: const Text("Copy", style: TextStyle(color: Colors.blueAccent)),
@@ -2608,7 +2230,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton.icon(
               onPressed: () {
                 Share.share(extractedText, subject: 'Extracted Text from Scanner Pro');
-                Navigator.pop(context); // Share pe click karne ke baad dialog close hoga
+                Navigator.pop(context);
               },
               icon: const Icon(Icons.share, color: Colors.greenAccent),
               label: const Text("Share", style: TextStyle(color: Colors.greenAccent)),
@@ -2628,7 +2250,6 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      // 1. Phone memory se purana saved folder path check karo
       String? savedUriString = prefs.getString('pdf_save_folder');
       Uri? folderUri;
       saf.DocumentFile? savedPdf;
@@ -2636,7 +2257,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final String uniqueFileName = 'PDF_Scanner_${DateTime.now().millisecondsSinceEpoch}.pdf';
       final Uint8List bytes = await pdfFile.readAsBytes();
 
-      // 2. Agar path pehle se saved hai, toh bina pooche SILENT SAVE karne ki koshish karo
       if (savedUriString != null) {
         folderUri = Uri.parse(savedUriString);
         try {
@@ -2647,29 +2267,22 @@ class _HomeScreenState extends State<HomeScreen> {
             bytes: bytes,
           );
         } catch (e) {
-          // Agar user ne file manager se wo folder delete kar diya hai, toh path reset kar do
           folderUri = null;
         }
       }
 
-      // 3. Agar pehli baar app use ho rahi hai (ya purana folder delete ho gaya)
       if (folderUri == null) {
-        // User ko ek chota message dikhao
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Select a folder once. Next time PDFs will save automatically here!")),
         );
 
-        // Native folder picker kholo (Sirf 1 baar khulega)
         folderUri = await saf.openDocumentTree();
-
         if (folderUri == null) {
-          return; // Agar user ne back daba diya toh cancel kar do
+          return;
         }
 
-        // JADOO YAHAN HAI: Folder ka path hamesha ke liye memory mein save kar lo!
         await prefs.setString('pdf_save_folder', folderUri.toString());
 
-        // Naye select kiye hue folder mein PDF save karo
         savedPdf = await saf.createFile(
           folderUri,
           mimeType: 'application/pdf',
@@ -2678,7 +2291,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
 
-      // 4. Success Message (Yeh batane ke liye ki background mein save ho gaya)
       if (savedPdf != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -2694,15 +2306,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       }
-
     } catch (e) {
       print("PDF Save Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.redAccent),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.redAccent));
     }
   }
-
 } //end main class
 ///end main class///////////////////////////////////////////////////////////////////
 ///
