@@ -54,6 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<File> _allDevicePdfFiles = [];
   bool _isLoadingDeviceFiles = true;
   RewardedAd? _rewardedAd;
+  bool _hasStoragePermission = false;
 
   @override
   void initState() {
@@ -61,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadBannerAd();
     _loadPdfFiles();
     _loadSavedFiles();
-    _loadAllDevicePdfFiles();
+   // _loadAllDevicePdfFiles();
     _loadRewardedAd();
   }
 
@@ -109,6 +110,65 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _bannerAd?.dispose();
     super.dispose();
+  }
+
+  // Naya Method: Permission check karne ke liye
+  Future<bool> _requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      if (await Permission.manageExternalStorage.isGranted ||
+          await Permission.storage.isGranted) {
+        return true;
+      }
+
+      var manageStatus = await Permission.manageExternalStorage.request();
+      if (manageStatus.isGranted) return true;
+
+      var storageStatus = await Permission.storage.request();
+      if (storageStatus.isGranted) return true;
+
+      return false;
+    }
+    return true; // For iOS
+  }
+
+  // Updated Method
+  Future<void> _loadAllDevicePdfFiles() async {
+    setState(() => _isLoadingDeviceFiles = true);
+    try {
+      bool hasPermission = await _requestStoragePermission();
+
+      if (!hasPermission) {
+        if (mounted) {
+          setState(() {
+            _hasStoragePermission = false;
+            _isLoadingDeviceFiles = false;
+          });
+        }
+        return; // Permission nahi mili toh yahi ruk jao
+      }
+
+      setState(() => _hasStoragePermission = true); // Permission mil gayi
+
+      List<String> paths = await compute(searchAllPdfsInBackground, '/storage/emulated/0');
+      List<File> allPdfs = paths.map((path) => File(path)).toList();
+
+      allPdfs.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+      if (mounted) {
+        setState(() {
+          _allDevicePdfFiles = allPdfs;
+          _isLoadingDeviceFiles = false;
+        });
+      }
+    } catch (e) {
+      print("Device PDF Search Error: $e");
+      if (mounted) {
+        setState(() {
+          _isLoadingDeviceFiles = false;
+          _hasStoragePermission = false;
+        });
+      }
+    }
   }
 
   List<File> get _getAllKnownFiles {
@@ -178,30 +238,30 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _loadAllDevicePdfFiles() async {
-    setState(() => _isLoadingDeviceFiles = true);
-    try {
-      if (await Permission.manageExternalStorage.isDenied) {
-        await Permission.manageExternalStorage.request();
-      }
-
-      List<String> paths = await compute(searchAllPdfsInBackground, '/storage/emulated/0');
-
-      List<File> allPdfs = paths.map((path) => File(path)).toList();
-
-      allPdfs.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
-
-      if (mounted) {
-        setState(() {
-          _allDevicePdfFiles = allPdfs;
-          _isLoadingDeviceFiles = false;
-        });
-      }
-    } catch (e) {
-      print("Device PDF Search Error: $e");
-      if (mounted) setState(() => _isLoadingDeviceFiles = false);
-    }
-  }
+  // Future<void> _loadAllDevicePdfFiles() async {
+  //   setState(() => _isLoadingDeviceFiles = true);
+  //   try {
+  //     if (await Permission.manageExternalStorage.isDenied) {
+  //       await Permission.manageExternalStorage.request();
+  //     }
+  //
+  //     List<String> paths = await compute(searchAllPdfsInBackground, '/storage/emulated/0');
+  //
+  //     List<File> allPdfs = paths.map((path) => File(path)).toList();
+  //
+  //     allPdfs.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+  //
+  //     if (mounted) {
+  //       setState(() {
+  //         _allDevicePdfFiles = allPdfs;
+  //         _isLoadingDeviceFiles = false;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     print("Device PDF Search Error: $e");
+  //     if (mounted) setState(() => _isLoadingDeviceFiles = false);
+  //   }
+  // }
 
   Future<void> _loadSavedFiles() async {
     try {
@@ -568,6 +628,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () {
                                       setState(() => _currentIndex = 1);
+                                      if (!_hasStoragePermission && _allDevicePdfFiles.isEmpty) {
+                                        _loadAllDevicePdfFiles();
+                                      }
                                     },
                                     child: SizedBox(
                                       width: 80,
@@ -580,7 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            "Files",
+                                            "All Files",
                                             style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
