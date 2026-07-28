@@ -28,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
-  bool isDarkMode = true;
+  //bool isDarkMode = true;
   bool isHapticEnabled = true;
 
   @override
@@ -72,7 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
       _storageLocation = prefs.getString('pdf_save_folder') ?? "";
 
-      isDarkMode = prefs.getBool('pref_dark_mode') ?? true; // Default dark mode ON
+      //isDarkMode = prefs.getBool('pref_dark_mode') ?? true; // Default dark mode ON
       isHapticEnabled = prefs.getBool('pref_haptic') ?? true; // Default vibration ON
     });
   }
@@ -100,14 +100,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Color(0xFF100F0F),
+      //backgroundColor: Color(0xFF100F0F),
+      backgroundColor: isDarkMode ? const Color(0xFF100F0F) : const Color(0xFFE3E2E2),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
+        //backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black,),
+        title: Text(
           "Settings",
-          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -129,16 +132,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildSectionHeader("Document Settings"),
 
                   Card(
-                    color: const Color(0xFF1A1A1A),
+                    //color: const Color(0xFF1A1A1A),
+                    color: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: ListTile(
-                      leading: const Icon(Icons.text_snippet_rounded, color: Colors.lightBlueAccent),
-                      title: const Text("Default Page Size", style: TextStyle(color: Colors.white, fontSize: 15)),
+                      leading: Icon(Icons.text_snippet_rounded, color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,),
+                      title: Text("Default Page Size", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15)),
                       trailing: DropdownButton<String>(
                         value: _defaultPageSize,
-                        dropdownColor: const Color(0xFF2C2C2C),
-                        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                        dropdownColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+                        icon: Icon(Icons.arrow_drop_down, color: isDarkMode ? Colors.white : Colors.black87,),
                         underline: const SizedBox(),
                         items:
                             <String>[
@@ -156,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
-                                child: Text(value, style: const TextStyle(color: Colors.white)),
+                                child: Text(value, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87,)),
                               );
                             }).toList(),
                         onChanged: (newValue) {
@@ -340,12 +344,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildSectionHeader(String title) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 20, top: 20, bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.lightBlueAccent,
+        style: TextStyle(
+          color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
           fontSize: 14,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -360,15 +365,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: const Color(0xFF1A1A1A),
+      color: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: Icon(icon, color: Colors.lightBlueAccent),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
-        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 16),
+        leading: Icon(icon,color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,),
+        title: Text(title, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15)),
+        subtitle: Text(subtitle, style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 12)),
+        trailing: Icon(Icons.arrow_forward_ios_rounded, color: isDarkMode ? Colors.white24 : Colors.black26, size: 16),
         onTap: () {
           HapticFeedback.lightImpact();
           onTap();
@@ -384,22 +390,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: const Color(0xFF1A1A1A),
+      //color: const Color(0xFF1A1A1A),
+      color: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: Icon(icon, color: Colors.lightBlueAccent),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 15)),
-        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        leading: Icon(icon, color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,),
+        title: Text(title, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15)),
+        subtitle: Text(subtitle, style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 12)),
         trailing: Switch(
           value: value,
           onChanged: (newValue) {
             if (isHapticEnabled) HapticFeedback.lightImpact(); // Haptic setting check
             onChanged(newValue);
           },
-          activeThumbColor: Colors.lightBlueAccent,
-          activeTrackColor: Colors.lightBlueAccent.withOpacity(0.4),
+          activeThumbColor: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+          activeTrackColor: isDarkMode
+              ? Colors.lightBlueAccent.withOpacity(0.4)
+              : Colors.blue.withOpacity(0.4),
         ),
         onTap: () {
           if (isHapticEnabled) HapticFeedback.lightImpact();
@@ -443,31 +453,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   //  GLOBAL FUNCTION: Customer Support Dialog
   void showSupportDialog(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C),
+          backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Column(
+          title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 "Customer Help",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: isDarkMode ?  Colors.white : Colors.black, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 12),
-              Divider(color: Colors.white24, thickness: 1, height: 1),
+              const SizedBox(height: 12),
+              Divider(color: isDarkMode ? Colors.white24 : Colors.black12, thickness: 1, height: 1),
             ],
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "If you have any questions, feedback, or need help with PDF Scanner Pro, feel free to reach out to the SP Tech Studios team at:",
-                style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+                style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 14, height: 1.4),
               ),
               const SizedBox(height: 24),
 
@@ -494,12 +505,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: Colors.lightBlueAccent.withOpacity(0.5)),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           "support.sptechstudios@gmail.com",
-                          style: TextStyle(color: Colors.lightBlueAccent, fontSize: 13, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -511,7 +522,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Close", style: TextStyle(color: Colors.white54)),
+              child: Text("Close", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54,)),
             ),
           ],
         );
@@ -524,30 +535,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
         return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C),
+          backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           contentPadding: const EdgeInsets.all(24),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // App Name & Version
-              const Text(
+              Text(
                 "PDF Scanner Pro",
-                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 6),
-              const Text("Version 1.0.0", style: TextStyle(color: Colors.white54, fontSize: 13)),
+              Text("Version 1.0.0", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13)),
               const SizedBox(height: 20),
 
-              const Divider(color: Colors.white12, thickness: 1),
+              Divider(color: isDarkMode ? Colors.white12 : Colors.black12, thickness: 1),
               const SizedBox(height: 16),
 
               // Description
-              const Text(
+              Text(
                 "A fast, secure, and professional tool to manage, merge, and organize all your PDF documents offline.",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
+                style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 14, height: 1.4),
               ),
               const SizedBox(height: 20),
 
@@ -556,9 +568,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     "Developed by SP Tech Studios",
-                    style: TextStyle(color: Colors.white54, fontSize: 13, fontStyle: FontStyle.italic),
+                    style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13, fontStyle: FontStyle.italic),
                   ),
                 ],
               ),
@@ -570,8 +582,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 height: 45,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightBlueAccent,
-                    foregroundColor: Colors.black,
+                    backgroundColor: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                    foregroundColor: isDarkMode ? Colors.black : Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     elevation: 0,
                   ),
