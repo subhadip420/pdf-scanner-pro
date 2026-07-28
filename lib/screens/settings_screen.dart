@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_storage/shared_storage.dart' as saf;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../main.dart';
 import 'custom_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -185,6 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         isDarkMode = value;
                       });
+                      isDarkModeNotifier.value = value;
                       _saveBoolSetting('pref_dark_mode', value);
                     },
                   ),
