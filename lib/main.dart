@@ -7,13 +7,18 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:pdf_scanner_pro/screens/splash_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-
+final ValueNotifier<bool> isDarkModeNotifier = ValueNotifier(true);
 //late List<CameraDescription> cameras;
 List<CameraDescription> cameras = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool savedTheme = prefs.getBool('pref_dark_mode') ?? true;
+  isDarkModeNotifier.value = savedTheme;
 
   //cameras = await availableCameras();
   //WidgetsFlutterBinding.ensureInitialized();
@@ -82,13 +87,44 @@ class _PdfScannerProState extends State<PdfScannerPro> {
       designSize: const Size(360, 800), // Standard base size (Mobile)
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (context, child) {
-        return MaterialApp(
+      // builder: (context, child) {
+      //   return MaterialApp(
+
+    builder: (context, child) {
+    // 1. YAHAN ValueListenableBuilder lagana zaroori hai
+    return ValueListenableBuilder<bool>(
+    valueListenable: isDarkModeNotifier,
+    builder: (context, isDark, _) {
+    return MaterialApp(
           debugShowCheckedModeBanner: false,
+          themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+
+          theme: ThemeData(
+            brightness: Brightness.light,
+            primaryColor: Colors.blue,
+            scaffoldBackgroundColor: const Color(0xFFE3E2E2),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black, // Text/Icons color
+            ),
+          ),
+
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            primaryColor: Colors.blue,
+            scaffoldBackgroundColor: const Color(0xFF121212),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF1E1E1E),
+              foregroundColor: Colors.white, // Text/Icons color
+            ),
+          ),
+
           // home: const SplashScreen(),
           home: child, // 3. Yahan 'child' lagana zaroori hai optimization ke liye
         );
       },
+    );
+    },
       child: const ScannerScreen(isOpenedFromEditor: false), // 4. Tumhari screen yahan aayegi
     );
   }
