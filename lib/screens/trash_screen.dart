@@ -132,13 +132,14 @@ class _TrashScreenState extends State<TrashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E1E), // Dark theme
+      backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFF1F0F0),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 0,
-        title: const Text("Recently Deleted", style: TextStyle(color: Colors.white, fontSize: 18)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text("Recently Deleted", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 18)),
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black,),
         actions: [
           if (_trashFiles.isNotEmpty)
             Padding(
@@ -152,15 +153,15 @@ class _TrashScreenState extends State<TrashScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+          ? Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue))
           : _trashFiles.isEmpty
-          ? const Center(
+          ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.recycling_rounded, size: 80, color: Colors.white24),
-            SizedBox(height: 16),
-            Text("Trash is empty", style: TextStyle(fontSize: 16, color: Colors.white54)),
+            Icon(Icons.recycling_rounded, size: 80, color: isDarkMode ? Colors.white24 : Colors.black26),
+            const SizedBox(height: 16),
+            Text("Trash is empty", style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white54 : Colors.black54)),
           ],
         ),
       )
@@ -178,7 +179,7 @@ class _TrashScreenState extends State<TrashScreen> {
           if (daysLeft < 0) daysLeft = 0; // Negative se bachne ke liye
 
           return Card(
-            color: const Color(0xFF2C2C2C),
+            color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             margin: const EdgeInsets.only(bottom: 12),
             child: ListTile(
@@ -196,7 +197,7 @@ class _TrashScreenState extends State<TrashScreen> {
               ),
               title: Text(
                 fileName,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.w500),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -207,7 +208,9 @@ class _TrashScreenState extends State<TrashScreen> {
                       ? "Will be deleted today"
                       : "$daysLeft days left",
                   style: TextStyle(
-                    color: daysLeft <= 3 ? Colors.redAccent : Colors.orangeAccent,
+                    color: daysLeft <= 3
+                        ? (isDarkMode ? Colors.redAccent : Colors.red)
+                        : (isDarkMode ? Colors.orangeAccent : Colors.orange.shade800),
                     fontSize: 12,
                   ),
                 ),
@@ -218,14 +221,14 @@ class _TrashScreenState extends State<TrashScreen> {
                   Tooltip(
                     message: "Restore",
                     child: IconButton(
-                      icon: const Icon(Icons.restore_rounded, color: Colors.blueAccent),
+                      icon: Icon(Icons.restore_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue.shade700,),
                       onPressed: () => _restoreFile(file),
                     ),
                   ),
                   Tooltip(
                     message: "Delete Permanently",
                     child: IconButton(
-                      icon: const Icon(Icons.delete_forever_rounded, color: Colors.white54),
+                      icon: Icon(Icons.delete_forever_rounded, color: isDarkMode ? Colors.white54 : Colors.black54,),
                       onPressed: () => _deleteForever(file),
                     ),
                   ),
