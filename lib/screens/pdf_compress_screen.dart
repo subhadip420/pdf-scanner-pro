@@ -44,7 +44,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   //final String _interstitialAdUnitId = 'ca-app-pub-5454466291921987/9394785031'; // real ad id
 
   // TODO Google's Test AD ID
-// final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917'; // test ad id
+  // final String _rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917'; // test ad id
   final String _rewardedAdUnitId = 'ca-app-pub-5454466291921987/2609884833'; // real ad id
 
   @override
@@ -53,7 +53,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     _fileName = widget.pdfFile.path.split('/').last;
     _originalSize = _formatBytes(widget.pdfFile.lengthSync());
     _loadBannerAd();
-    //_loadInterstitialAd();
     _loadRewardedAd();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startCompression();
@@ -63,7 +62,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   @override
   void dispose() {
     _bannerAd?.dispose();
-
     super.dispose();
   }
 
@@ -88,24 +86,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     )..load();
   }
 
-  // void _loadInterstitialAd() {
-  //   InterstitialAd.load(
-  //     adUnitId: _interstitialAdUnitId,
-  //     request: const AdRequest(),
-  //     adLoadCallback: InterstitialAdLoadCallback(
-  //       onAdLoaded: (ad) {
-  //         _interstitialAd = ad;
-  //         _isInterstitialAdLoaded = true;
-  //       },
-  //       onAdFailedToLoad: (error) {
-  //         print('Interstitial ad failed to load: $error');
-  //         _isInterstitialAdLoaded = false;
-  //       },
-  //     ),
-  //   );
-  // }
-
-  // initState mein isko call kar lena
   void _loadRewardedAd() {
     print("AdMob: Loading Rewarded ad...");
     RewardedAd.load(
@@ -118,7 +98,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
             onAdDismissedFullScreenContent: (RewardedAd ad) {
               ad.dispose();
               _rewardedAd = null;
-              _loadRewardedAd(); // Agli baar ke liye naya ad load karo
+              _loadRewardedAd();
             },
             onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
               ad.dispose();
@@ -137,11 +117,10 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
   void showToast(String message) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: TextStyle(color:  isDarkMode ? Colors.white : Colors.black)),
-        backgroundColor:  isDarkMode ?  Colors.grey.shade900 : Colors.white,
+        content: Text(message, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+        backgroundColor: isDarkMode ? Colors.grey.shade900 : Colors.white,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -185,9 +164,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
-              Icon(Icons.info_outline, color: isDarkMode ? Colors.blueAccent : Colors.blue,),
+              Icon(Icons.info_outline, color: isDarkMode ? Colors.blueAccent : Colors.blue),
               const SizedBox(width: 10),
-              Text('Compression Info', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87,)),
+              Text('Compression Info', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87)),
             ],
           ),
           content: Text(
@@ -197,7 +176,10 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Got it', style: TextStyle(color: isDarkMode ? Colors.blueAccent : Colors.blue, fontSize: 16)),
+              child: Text(
+                'Got it',
+                style: TextStyle(color: isDarkMode ? Colors.blueAccent : Colors.blue, fontSize: 16),
+              ),
             ),
           ],
         );
@@ -257,16 +239,16 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
-      canPop: false, // Direct back hone se rokega
+      canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) return;
 
         await _handleBackButton();
       },
       child: Scaffold(
-        backgroundColor: isDarkMode ?  const Color(0xFF121212) : Colors.white,
+        backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
         appBar: AppBar(
-          backgroundColor: isDarkMode ?  const Color(0xFF1E1E1E) : Colors.grey.shade300,
+          backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
           elevation: 0,
           leading: Tooltip(
             message: "Back",
@@ -277,16 +259,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           ),
           title: Text("Compress PDF", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 20)),
         ),
-
-        // 1. Scrollable Body
-        //body: SingleChildScrollView(
         body: Column(
           children: [
             // Banner Ad Container
             if (_isBannerAdLoaded && _bannerAd != null)
               Container(
                 width: double.infinity,
-                color:isDarkMode ?  const Color(0xFF121212) : Colors.white,
+                color: isDarkMode ? const Color(0xFF121212) : Colors.white,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 child: SizedBox(
@@ -307,11 +286,15 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                       children: [
                         Text(
                           "Compression Level",
-                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        const SizedBox(width: 4), // Text aur icon ke beech halka sa space
+                        const SizedBox(width: 4),
                         IconButton(
-                          icon: Icon(Icons.info_outline, color: isDarkMode ?  Colors.white54 : Colors.black, size: 20),
+                          icon: Icon(Icons.info_outline, color: isDarkMode ? Colors.white54 : Colors.black, size: 20),
                           onPressed: _showInfoDialog,
                           tooltip: "Info",
                           padding: EdgeInsets.zero,
@@ -326,13 +309,12 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         Expanded(
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              //activeTrackColor: Colors.blueAccent,
                               activeTrackColor: isDarkMode ? Colors.grey.shade400 : Colors.blue.shade700,
-                              //inactiveTrackColor: Colors.white12,
                               inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
-                              //thumbColor: Colors.blueAccent,
                               thumbColor: isDarkMode ? Colors.white : Colors.blue,
-                              overlayColor: isDarkMode ?  Colors.blueAccent.withOpacity(0.2) : Colors.blue.withOpacity(0.2),
+                              overlayColor: isDarkMode
+                                  ? Colors.blueAccent.withOpacity(0.2)
+                                  : Colors.blue.withOpacity(0.2),
                               valueIndicatorTextStyle: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                             ),
                             child: Slider(
@@ -352,7 +334,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         ),
                         Text(
                           "${_compressionLevel.toInt()}%",
-                          style: TextStyle(color: isDarkMode ?  Colors.blueAccent : Colors.blue, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.blueAccent : Colors.blue,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -409,11 +395,14 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("Original Size: ", style: TextStyle(color: isDarkMode ?Colors.white54 : Colors.black, fontSize: 14)),
+                              Text(
+                                "Original Size: ",
+                                style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black, fontSize: 14),
+                              ),
                               Text(
                                 _originalSize,
                                 style: TextStyle(
-                                  color: isDarkMode ?  Colors.white54 : Colors.black,
+                                  color: isDarkMode ? Colors.white54 : Colors.black,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -430,7 +419,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                               //color: Colors.grey.shade800,
                               color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: isDarkMode ? Colors.white24 : Colors.grey.shade400,),
+                              border: Border.all(color: isDarkMode ? Colors.white24 : Colors.grey.shade400),
                             ),
                             clipBehavior: Clip.hardEdge,
                             child: PdfThumbnailView(key: ValueKey(widget.pdfFile.path), filePath: widget.pdfFile.path),
@@ -441,12 +430,15 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text("New Size: ", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black, fontSize: 15)),
+                              Text(
+                                "New Size: ",
+                                style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black, fontSize: 15),
+                              ),
                               Text(
                                 _newSize ?? "Pending...",
                                 style: TextStyle(
                                   color: _newSize != null
-                                      ? (isDarkMode ? Colors.greenAccent : Colors.green.shade700) // Active/Success state
+                                      ? (isDarkMode ? Colors.greenAccent : Colors.green.shade700)
                                       : (isDarkMode ? Colors.white54 : Colors.black54),
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
@@ -465,8 +457,15 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _newSize == null ? null : () => _saveAsZip(),
-                            icon: Icon(Icons.folder_zip_outlined, size: 20, color: isDarkMode ? Colors.white : Colors.black),
-                            label: Text("Save as ZIP", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+                            icon: Icon(
+                              Icons.folder_zip_outlined,
+                              size: 20,
+                              color: isDarkMode ? Colors.white : Colors.black,
+                            ),
+                            label: Text(
+                              "Save as ZIP",
+                              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                            ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(color: isDarkMode ? Colors.white24 : Colors.black45),
@@ -478,8 +477,15 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _newSize == null ? null : () => _shareCompressedPdf(),
-                            icon: Icon(Icons.share_outlined, size: 20, color: isDarkMode ? Colors.blueAccent : Colors.blue),
-                            label: Text("Share PDF", style: TextStyle(color: isDarkMode ? Colors.blueAccent : Colors.blue)),
+                            icon: Icon(
+                              Icons.share_outlined,
+                              size: 20,
+                              color: isDarkMode ? Colors.blueAccent : Colors.blue,
+                            ),
+                            label: Text(
+                              "Share PDF",
+                              style: TextStyle(color: isDarkMode ? Colors.blueAccent : Colors.blue),
+                            ),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               side: BorderSide(color: isDarkMode ? Colors.blueAccent : Colors.blue),
@@ -516,131 +522,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     );
   }
 
-  // Future<void> _saveAsZip() async {
-  //   if (_tempCompressedFilePath == null) return;
-  //   Future<void> performZipSave() async {
-  //     try {
-  //       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
-  //       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-  //       final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
-  //
-  //       final Directory baseDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
-  //       final Directory zipFolder = Directory('${baseDir.path}/ZIP Files');
-  //
-  //       if (!await zipFolder.exists()) {
-  //         await zipFolder.create(recursive: true);
-  //       }
-  //
-  //       final String zipPath = "${zipFolder.path}/$zipFileName";
-  //
-  //       File compressedFile = File(_tempCompressedFilePath!);
-  //       List<int> fileBytes = await compressedFile.readAsBytes();
-  //
-  //       final archive = Archive();
-  //       archive.addFile(ArchiveFile(_fileName, fileBytes.length, fileBytes));
-  //
-  //       final zipEncoder = ZipEncoder();
-  //       final zipData = zipEncoder.encode(archive);
-  //
-  //       if (zipData != null) {
-  //         File zipFile = File(zipPath);
-  //         await zipFile.writeAsBytes(zipData);
-  //
-  //         showToast("Saved in ZIP Files folder");
-  //
-  //         // Screen close karke pichhe jao
-  //         if (mounted) {
-  //           Navigator.pop(context);
-  //         }
-  //       }
-  //     } catch (e) {
-  //       print("Zip Error: $e");
-  //       showToast("Failed to create ZIP!");
-  //     }
-  //   }
-  //
-  //   if (_isInterstitialAdLoaded && _interstitialAd != null) {
-  //     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-  //       onAdDismissedFullScreenContent: (ad) {
-  //         ad.dispose();
-  //         _loadInterstitialAd();
-  //         performZipSave();
-  //       },
-  //       onAdFailedToShowFullScreenContent: (ad, error) {
-  //         ad.dispose();
-  //         _loadInterstitialAd();
-  //         performZipSave();
-  //       },
-  //     );
-  //
-  //     _interstitialAd!.show();
-  //     _isInterstitialAdLoaded = false;
-  //   } else {
-  //     performZipSave();
-  //   }
-  // }
-
-  // Future<void> _saveAsZip() async {
-  //   if (_tempCompressedFilePath == null) return;
-  //
-  //   Future<void> performZipSave() async {
-  //     try {
-  //       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
-  //       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-  //       final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
-  //
-  //       final Directory baseDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
-  //       final Directory zipFolder = Directory('${baseDir.path}/ZIP Files');
-  //
-  //       if (!await zipFolder.exists()) {
-  //         await zipFolder.create(recursive: true);
-  //       }
-  //
-  //       final String zipPath = "${zipFolder.path}/$zipFileName";
-  //
-  //       File compressedFile = File(_tempCompressedFilePath!);
-  //       List<int> fileBytes = await compressedFile.readAsBytes();
-  //
-  //       final archive = Archive();
-  //       archive.addFile(ArchiveFile(_fileName, fileBytes.length, fileBytes));
-  //
-  //       final zipEncoder = ZipEncoder();
-  //       final zipData = zipEncoder.encode(archive);
-  //
-  //       if (zipData != null) {
-  //         File zipFile = File(zipPath);
-  //         await zipFile.writeAsBytes(zipData);
-  //
-  //         showToast("Saved in ZIP Files folder");
-  //
-  //         if (mounted) {
-  //           Navigator.pop(context);
-  //         }
-  //       }
-  //     } catch (e) {
-  //       print("Zip Error: $e");
-  //       showToast("Failed to create ZIP!");
-  //     }
-  //   }
-  //
-  //   // YAHAN BHI REWARDED AD KA LOGIC LAGA DIYA
-  //   if (_rewardedAd != null) {
-  //     _rewardedAd!.show(
-  //       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-  //         performZipSave();
-  //       },
-  //     );
-  //   } else {
-  //     performZipSave();
-  //   }
-  // }
-
   Future<void> _saveAsZip() async {
     if (_tempCompressedFilePath == null) return;
 
     Future<void> performZipSave() async {
       try {
-        // 1. Ad khatam hone ke baad ab folder picker khulega
         String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
           dialogTitle: 'Select Folder to Save ZIP',
         );
@@ -650,10 +536,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           return;
         }
 
-        final String nameWithoutExt = _fileName.replaceAll(
-          RegExp(r'\.pdf$', caseSensitive: false),
-          '',
-        );
+        final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
         final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
         final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
         final String zipPath = "$selectedDirectory/$zipFileName";
@@ -685,17 +568,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       }
     }
 
-    // Rewarded Ad Logic
     if (_rewardedAd != null) {
       bool rewardEarned = false;
-
-      // Ad ke events ko track karne ke liye callback lagayein
       _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
           ad.dispose();
-          // _loadRewardedAd(); // Agle ad ke liye pre-load karne ka function (agar aapke paas hai)
-
-          // Jab user ad poori dekh kar cross kar de, tabhi save process start hoga
           if (rewardEarned) {
             performZipSave();
           } else {
@@ -704,18 +581,16 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
           ad.dispose();
-          // Agar ad show hone mein koi error aayi, toh user ka kaam nahi rukna chahiye
           performZipSave();
         },
       );
 
       _rewardedAd!.show(
         onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-          rewardEarned = true; // Iska matlab user ne reward earn kar liya (ad poori dekhi)
+          rewardEarned = true;
         },
       );
     } else {
-      // Agar ad load nahi hua hai, toh direct save process chalu ho jayega
       performZipSave();
     }
   }
@@ -743,64 +618,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     }
   }
 
-  // Future<void> _saveCompressedPdf() async {
-  //   if (_tempCompressedFilePath == null) return;
-  //
-  //   Future<void> performSave() async {
-  //     try {
-  //       // 🚨 Puraane parent.path ki jagah, apna safe Private Folder use karo
-  //       final directory = await getApplicationDocumentsDirectory();
-  //       final String dirPath = directory.path;
-  //
-  //       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
-  //       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-  //
-  //       // Naya file name aur path
-  //       final String newFileName = "compressed_${nameWithoutExt}_$timestamp.pdf";
-  //       final String savePath = "$dirPath/$newFileName";
-  //
-  //       // Temp folder se Private folder mein file copy karo
-  //       File tempFile = File(_tempCompressedFilePath!);
-  //       await tempFile.copy(savePath);
-  //
-  //       showToast("Saved as: $newFileName");
-  //
-  //       if (mounted) {
-  //         //Navigator.pop(context);
-  //         Navigator.pushAndRemoveUntil(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => const HomeScreen()), // Apna Home Screen ka actual naam yahan likhna
-  //               (Route<dynamic> route) => false,
-  //         );
-  //       }
-  //     } catch (e) {
-  //       print("Save Error: $e");
-  //       showToast("Failed to save PDF!");
-  //     }
-  //   }
-  //
-  //   // Tumhara Ad logic ekdum sahi hai, isme maine koi chhed-chhad nahi ki hai
-  //   if (_isInterstitialAdLoaded && _interstitialAd != null) {
-  //     _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-  //       onAdDismissedFullScreenContent: (ad) {
-  //         ad.dispose();
-  //         _loadInterstitialAd();
-  //         performSave();
-  //       },
-  //       onAdFailedToShowFullScreenContent: (ad, error) {
-  //         ad.dispose();
-  //         _loadInterstitialAd();
-  //         performSave();
-  //       },
-  //     );
-  //
-  //     _interstitialAd!.show();
-  //     _isInterstitialAdLoaded = false;
-  //   } else {
-  //     performSave();
-  //   }
-  // }
-
   Future<void> _saveCompressedPdf() async {
     if (_tempCompressedFilePath == null) return;
 
@@ -824,7 +641,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (Route<dynamic> route) => false,
+            (Route<dynamic> route) => false,
           );
         }
       } catch (e) {
@@ -833,19 +650,15 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       }
     }
 
-    // YAHAN FIX KIYA HAI: Interstitial ki jagah RewardedAd check kar rahe hain
     if (_rewardedAd != null) {
       _rewardedAd!.show(
         onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-          // Jab user pura ad dekh lega, tabhi yeh line chalegi aur save hoga
           print("AdMob: Reward earned! Saving PDF...");
           performSave();
         },
       );
     } else {
-      // Agar ad load nahi hua hai (jaise no internet), toh direct save kar do
       performSave();
     }
   }
-
 } // end main
