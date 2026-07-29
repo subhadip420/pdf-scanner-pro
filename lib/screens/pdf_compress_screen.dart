@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:archive/archive.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
@@ -139,8 +140,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: TextStyle(color:  isDarkMode ? Colors.white : Colors.black45)),
-        backgroundColor:  isDarkMode ?  Colors.grey.shade900 : Colors.grey.shade300,
+        content: Text(message, style: TextStyle(color:  isDarkMode ? Colors.white : Colors.black)),
+        backgroundColor:  isDarkMode ?  Colors.grey.shade900 : Colors.white,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -579,23 +580,83 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   //   }
   // }
 
+  // Future<void> _saveAsZip() async {
+  //   if (_tempCompressedFilePath == null) return;
+  //
+  //   Future<void> performZipSave() async {
+  //     try {
+  //       final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
+  //       final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+  //       final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
+  //
+  //       final Directory baseDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
+  //       final Directory zipFolder = Directory('${baseDir.path}/ZIP Files');
+  //
+  //       if (!await zipFolder.exists()) {
+  //         await zipFolder.create(recursive: true);
+  //       }
+  //
+  //       final String zipPath = "${zipFolder.path}/$zipFileName";
+  //
+  //       File compressedFile = File(_tempCompressedFilePath!);
+  //       List<int> fileBytes = await compressedFile.readAsBytes();
+  //
+  //       final archive = Archive();
+  //       archive.addFile(ArchiveFile(_fileName, fileBytes.length, fileBytes));
+  //
+  //       final zipEncoder = ZipEncoder();
+  //       final zipData = zipEncoder.encode(archive);
+  //
+  //       if (zipData != null) {
+  //         File zipFile = File(zipPath);
+  //         await zipFile.writeAsBytes(zipData);
+  //
+  //         showToast("Saved in ZIP Files folder");
+  //
+  //         if (mounted) {
+  //           Navigator.pop(context);
+  //         }
+  //       }
+  //     } catch (e) {
+  //       print("Zip Error: $e");
+  //       showToast("Failed to create ZIP!");
+  //     }
+  //   }
+  //
+  //   // YAHAN BHI REWARDED AD KA LOGIC LAGA DIYA
+  //   if (_rewardedAd != null) {
+  //     _rewardedAd!.show(
+  //       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+  //         performZipSave();
+  //       },
+  //     );
+  //   } else {
+  //     performZipSave();
+  //   }
+  // }
+
   Future<void> _saveAsZip() async {
     if (_tempCompressedFilePath == null) return;
 
     Future<void> performZipSave() async {
       try {
-        final String nameWithoutExt = _fileName.replaceAll(RegExp(r'\.pdf$', caseSensitive: false), '');
-        final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-        final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
+        // 1. Ad khatam hone ke baad ab folder picker khulega
+        String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
+          dialogTitle: 'Select Folder to Save ZIP',
+        );
 
-        final Directory baseDir = Directory('/storage/emulated/0/Documents/PDF Scanner Pro');
-        final Directory zipFolder = Directory('${baseDir.path}/ZIP Files');
-
-        if (!await zipFolder.exists()) {
-          await zipFolder.create(recursive: true);
+        if (selectedDirectory == null) {
+          showToast("Save cancelled");
+          return;
         }
 
-        final String zipPath = "${zipFolder.path}/$zipFileName";
+        final String nameWithoutExt = _fileName.replaceAll(
+          RegExp(r'\.pdf$', caseSensitive: false),
+          '',
+        );
+        final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+        final String zipFileName = "zip_${nameWithoutExt}_$timestamp.zip";
+        final String zipPath = "$selectedDirectory/$zipFileName";
 
         File compressedFile = File(_tempCompressedFilePath!);
         List<int> fileBytes = await compressedFile.readAsBytes();
@@ -604,32 +665,57 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         archive.addFile(ArchiveFile(_fileName, fileBytes.length, fileBytes));
 
         final zipEncoder = ZipEncoder();
-        final zipData = zipEncoder.encode(archive);
+        final List<int>? zipData = zipEncoder.encode(archive);
 
         if (zipData != null) {
           File zipFile = File(zipPath);
           await zipFile.writeAsBytes(zipData);
 
-          showToast("Saved in ZIP Files folder");
+          showToast("Saved successfully in selected folder!");
 
           if (mounted) {
             Navigator.pop(context);
           }
+        } else {
+          showToast("Failed to encode ZIP!");
         }
       } catch (e) {
         print("Zip Error: $e");
-        showToast("Failed to create ZIP!");
+        showToast("Failed to save ZIP!");
       }
     }
 
-    // YAHAN BHI REWARDED AD KA LOGIC LAGA DIYA
+    // Rewarded Ad Logic
     if (_rewardedAd != null) {
-      _rewardedAd!.show(
-        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+      bool rewardEarned = false;
+
+      // Ad ke events ko track karne ke liye callback lagayein
+      _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          // _loadRewardedAd(); // Agle ad ke liye pre-load karne ka function (agar aapke paas hai)
+
+          // Jab user ad poori dekh kar cross kar de, tabhi save process start hoga
+          if (rewardEarned) {
+            performZipSave();
+          } else {
+            showToast("Please watch the full ad to save ZIP");
+          }
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          // Agar ad show hone mein koi error aayi, toh user ka kaam nahi rukna chahiye
           performZipSave();
         },
       );
+
+      _rewardedAd!.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+          rewardEarned = true; // Iska matlab user ne reward earn kar liya (ad poori dekhi)
+        },
+      );
     } else {
+      // Agar ad load nahi hua hai, toh direct save process chalu ho jayega
       performZipSave();
     }
   }
