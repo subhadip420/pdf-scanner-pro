@@ -329,6 +329,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Future<void> _handleSaveClick() async {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     if (_interstitialAd != null) {
       _interstitialAd!.show();
       return;
@@ -337,7 +339,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+      builder: (_) => Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue,)),
     );
 
     for (int i = 0; i < 20; i++) {
@@ -373,10 +375,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Future<void> _openColorPicker() async {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     await showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF2C2C2C),
+        backgroundColor: isDarkMode ?  const Color(0xFF2C2C2C) :  Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -434,10 +437,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       .toList(),
                 )
               else
-                const SizedBox(
+                SizedBox(
                   height: 38,
                   child: Center(
-                    child: Text("No recent colors", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                    child: Text("No recent colors", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 12)),
                   ),
                 ),
             ],
@@ -451,34 +454,40 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return WillPopScope(
       onWillPop: _onWillPop,
       child: GestureDetector(
         onTap: _unfocusAll,
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          backgroundColor: const Color(0xFF1E1E1E),
+          //backgroundColor: const Color(0xFF1E1E1E),
+          backgroundColor: isDarkMode ? const Color(0xFF100F0F) : Colors.white,
           appBar: AppBar(
-            backgroundColor: const Color(0xFF1E1E1E),
+            //backgroundColor: const Color(0xFF1E1E1E),
+            backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFE3E2E2),
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+              icon: Icon(Icons.close_rounded, color: isDarkMode ?  Colors.white : Colors.black, size: 28),
               onPressed: () async {
                 if (await _onWillPop()) {
                   Navigator.pop(context);
                 }
               },
             ),
-            title: const Text(
+            title: Text(
               "Markup",
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+              style: TextStyle(color: isDarkMode ?  Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
             ),
             actions: [
               if (_activeTab == "Drawing") ...[
                 Tooltip(
                   message: "Undo",
                   child: IconButton(
-                    icon: Icon(Icons.undo_rounded, color: _paths.isNotEmpty ? Colors.white : Colors.white38),
+                    icon: Icon(Icons.undo_rounded, color: _paths.isNotEmpty
+                        ? (isDarkMode ? Colors.white : Colors.black87)
+                        : (isDarkMode ? Colors.white38 : Colors.black26)
+                    ),
                     onPressed: () {
                       if (_paths.isNotEmpty) {
                         setState(() {
@@ -491,7 +500,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Tooltip(
                   message: "Redo",
                   child: IconButton(
-                    icon: Icon(Icons.redo_rounded, color: _undonePaths.isNotEmpty ? Colors.white : Colors.white38),
+                    icon: Icon(Icons.redo_rounded, color: _undonePaths.isNotEmpty
+                        ? (isDarkMode ? Colors.white : Colors.black87)
+                        : (isDarkMode ? Colors.white38 : Colors.black26),
+                    ),
                     onPressed: () {
                       if (_undonePaths.isNotEmpty) {
                         setState(() {
@@ -503,7 +515,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ],
               IconButton(
-                icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 30),
+                icon: Icon(Icons.check_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue, size: 30),
                 //onPressed: _saveMarkup,
                 onPressed: _handleSaveClick,
               ),
@@ -515,7 +527,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               /// --- MAIN PREVIEW AREA (With Zoom & Draw) ---
               Expanded(
                 child: Container(
-                  color: const Color(0xFF2C2C2C),
+                  color:  isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
                   child: InteractiveViewer(
                     minScale: 1.0,
                     maxScale: 8.0,
@@ -1089,14 +1101,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
               /// --- SETTINGS PANEL (Animated Hide/Show) ---
               Container(
-                color: const Color(0xFF2C2C2C),
+                color: isDarkMode ? const Color(0xFF2C2C2C) :  Colors.white,
                 child: AnimatedSize(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1E1E1E), // Panel ka color
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    decoration: BoxDecoration(
+                      color: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFEFEBEB),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                     ),
                     // Agar hidden hai, toh padding hata do
                     padding: _isPanelHidden
@@ -1122,7 +1134,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                             child: Container(
                               width: 40,
                               height: 4,
-                              decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)),
+                              decoration: BoxDecoration(color: isDarkMode ? Colors.white30 : Colors.black26, borderRadius: BorderRadius.circular(2)),
                             ),
                           ),
                         ),
@@ -1136,7 +1148,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               /// --- BOTTOM TABS ---
               Container(
                 height: 65,
-                color: Colors.black,
+                color: isDarkMode ? Colors.black : const Color(0xFFE3E2E2),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -1155,6 +1167,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Widget _buildBottomTab(String title, IconData icon) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     bool isSelected = _activeTab == title;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -1168,9 +1181,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isSelected ? Colors.blueAccent : Colors.white54, size: 24),
+            Icon(icon, color: isSelected
+                ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                : (isDarkMode ? Colors.white54 : Colors.black), size: 24),
             const SizedBox(height: 4),
-            Text(title, style: TextStyle(color: isSelected ? Colors.blueAccent : Colors.white54, fontSize: 11)),
+            Text(title, style: TextStyle(color: isSelected
+                ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                : (isDarkMode ? Colors.white54 : Colors.black), fontSize: 11)),
           ],
         ),
       ),
@@ -1191,6 +1208,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   /// --- DRAWING WIDGET PANEL ---
   Widget _buildDrawingPanel() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     bool canEraseOrClear = _paths.isNotEmpty;
 
     return Column(
@@ -1203,7 +1222,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             if (!_isEraserMode)
               Row(
                 children: [
-                  const Text("Color", style: TextStyle(color: Colors.white, fontSize: 14)),
+                  Text("Color", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14)),
                   const SizedBox(width: 16),
                   GestureDetector(
                     onTap: _openColorPicker,
@@ -1216,7 +1235,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ],
               )
             else
-              const Text("Eraser Mode", style: TextStyle(color: Colors.white70, fontSize: 14)),
+              Text("Eraser Mode", style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 14)),
 
             Row(
               children: [
@@ -1233,7 +1252,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       child: Icon(
                         //Symbols.stylus_note,
                         Icons.draw_rounded,
-                        color: !_isEraserMode ? Colors.blueAccent : Colors.white70,
+                        color: !_isEraserMode
+                            ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700) // Normal/Active state
+                            : (isDarkMode ? Colors.white70 : Colors.black54),         // Eraser mode state
                         size: 24,
                       ),
                     ),
@@ -1252,7 +1273,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       ),
                       child: Icon(
                         Symbols.ink_eraser_rounded,
-                        color: canEraseOrClear ? (_isEraserMode ? Colors.blueAccent : Colors.white70) : Colors.white38,
+                        color: canEraseOrClear
+                            ? (_isEraserMode
+                            ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700) // Eraser active state
+                            : (isDarkMode ? Colors.white70 : Colors.black54))         // Normal state
+                            : (isDarkMode ? Colors.white38 : Colors.black26),             // Disabled state
                         size: 24,
                       ),
                     ),
@@ -1282,7 +1307,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       padding: const EdgeInsets.all(6),
                       child: Icon(
                         Icons.delete_outline_rounded,
-                        color: canEraseOrClear ? Colors.redAccent : Colors.white38,
+                        color: canEraseOrClear
+                            ? Colors.redAccent
+                            : (isDarkMode ? Colors.white38 : Colors.black26),
                         size: 24,
                       ),
                     ),
@@ -1298,16 +1325,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text("Stroke width", style: TextStyle(color: Colors.white, fontSize: 14)),
-            Text("${_strokeWidth.toInt()}", style: const TextStyle(color: Colors.white, fontSize: 14)),
+            Text("Stroke width", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14)),
+            Text("${_strokeWidth.toInt()}", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14)),
           ],
         ),
         SliderTheme(
           data: SliderThemeData(
             trackHeight: 2,
-            activeTrackColor: Colors.grey.shade400,
-            inactiveTrackColor: Colors.grey.shade800,
-            thumbColor: Colors.white,
+            //activeTrackColor: Colors.grey.shade400,
+            activeTrackColor: isDarkMode ? Colors.grey.shade400 : Colors.blue.shade700,
+            //inactiveTrackColor: Colors.grey.shade800,
+            inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
+            //thumbColor: Colors.white,
+            thumbColor: isDarkMode ? Colors.white : Colors.blue,
           ),
           child: Slider(value: _strokeWidth, min: 1, max: 50, onChanged: (val) => setState(() => _strokeWidth = val)),
         ),
@@ -1315,21 +1345,30 @@ class _MarkupScreenState extends State<MarkupScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Opacity", style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 14)),
+            Text("Opacity", style: TextStyle(color: _isEraserMode
+                ? (isDarkMode ? Colors.white38 : Colors.black26)
+                : (isDarkMode ? Colors.white : Colors.black87),
+                fontSize: 14)),
             Text(
               "${(_opacity * 100).toInt()}%",
-              style: TextStyle(color: _isEraserMode ? Colors.white38 : Colors.white, fontSize: 14),
+              style: TextStyle(color: _isEraserMode
+                  ? (isDarkMode ? Colors.white38 : Colors.black26) // Eraser mode on (disabled look)
+                  : (isDarkMode ? Colors.white : Colors.black87),
+                  fontSize: 14),
             ),
           ],
         ),
         SliderTheme(
           data: SliderThemeData(
             trackHeight: 2,
-            activeTrackColor: Colors.grey.shade400,
-            inactiveTrackColor: Colors.grey.shade800,
-            thumbColor: Colors.white,
-            disabledThumbColor: Colors.grey.shade800,
-            disabledActiveTrackColor: Colors.grey.shade800,
+            //activeTrackColor: Colors.grey.shade400,
+            activeTrackColor: isDarkMode ? Colors.grey.shade400 : Colors.blue.shade700,
+            //inactiveTrackColor: Colors.grey.shade800,
+            inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
+            //thumbColor: Colors.white,
+            thumbColor: isDarkMode ? Colors.white : Colors.blue,
+            disabledThumbColor: Colors.grey.shade600,
+            disabledActiveTrackColor: Colors.grey.shade500,
           ),
           child: Slider(
             value: _opacity,
@@ -1344,6 +1383,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   /// --- TEXT WIDGET PANEL ---
   Widget _buildTextPanel() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     TextOverlayItem activeItem = _activeTextItem ?? _draftTextItem;
     bool hasActiveText = _activeTextItem != null;
 
@@ -1361,12 +1402,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.white54),
+                  //border: Border.all(color: Colors.white54),
+                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   activeItem.font,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -1398,14 +1440,17 @@ class _MarkupScreenState extends State<MarkupScreen> {
         /// --- 2ND ROW: Size Slider ---
         Row(
           children: [
-            const Text("T", style: TextStyle(color: Colors.white70, fontSize: 14)),
+            Text("T", style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 14)),
             Expanded(
               child: SliderTheme(
                 data: SliderThemeData(
                   trackHeight: 2,
-                  thumbColor: Colors.white,
-                  activeTrackColor: Colors.grey.shade400,
-                  inactiveTrackColor: Colors.grey.shade800,
+                  //thumbColor: Colors.white,
+                  thumbColor: isDarkMode ? Colors.white : Colors.blue,
+                  //activeTrackColor: Colors.grey.shade400,
+                  activeTrackColor: isDarkMode ? Colors.grey.shade400 : Colors.blue.shade700,
+                  //inactiveTrackColor: Colors.grey.shade800,
+                  inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
                 ),
                 child: Slider(
                   value: activeItem.fontSize,
@@ -1415,9 +1460,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 ),
               ),
             ),
-            const Text(
+            Text(
               "T",
-              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -1439,10 +1484,15 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     height: 36,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
+                      // color: activeItem.appearance == 1
+                      //     ? Colors.white
+                      //     : (activeItem.appearance == 2 ? Colors.white38 : Colors.transparent),
                       color: activeItem.appearance == 1
-                          ? Colors.white
-                          : (activeItem.appearance == 2 ? Colors.white38 : Colors.transparent),
-                      border: Border.all(color: Colors.white),
+                          ? (isDarkMode ? Colors.white : Colors.black87)        // Appearance 1 (Active)
+                          : (activeItem.appearance == 2
+                          ? (isDarkMode ? Colors.white38 : Colors.black26)  // Appearance 2 (Subtle/Disabled)
+                          : Colors.transparent),
+                      border: Border.all(color: isDarkMode ? Colors.white : Colors.black),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Stack(
@@ -1463,9 +1513,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         Text(
                           "T",
                           style: TextStyle(
-                            color: (activeItem.appearance == 1 || activeItem.appearance == 2)
-                                ? Colors.black
-                                : Colors.white,
+                            // color: (activeItem.appearance == 1 || activeItem.appearance == 2)
+                            //     ? Colors.black
+                            //     : Colors.white,
+                          color: (activeItem.appearance == 1 || activeItem.appearance == 2)
+                              ? (isDarkMode ? Colors.black : Colors.white)
+                              : (isDarkMode ? Colors.white : Colors.black),
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1489,7 +1542,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       color: activeItem.isBold ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.format_bold_rounded, color: activeItem.isBold ? Colors.blueAccent : Colors.white),
+                    child: Icon(Icons.format_bold_rounded,
+                        color: activeItem.isBold
+                        ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                        : (isDarkMode ? Colors.white : Colors.black)
+                    ),
                   ),
                 ),
               ),
@@ -1508,7 +1565,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     ),
                     child: Icon(
                       Icons.format_underlined_rounded,
-                      color: activeItem.isUnderline ? Colors.blueAccent : Colors.white,
+                      color: activeItem.isUnderline ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                          : (isDarkMode ? Colors.white : Colors.black),
                     ),
                   ),
                 ),
@@ -1528,7 +1586,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     ),
                     child: Icon(
                       Icons.format_italic_rounded,
-                      color: activeItem.isItalic ? Colors.blueAccent : Colors.white,
+                      color: activeItem.isItalic ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                          : (isDarkMode ? Colors.white : Colors.black),
                     ),
                   ),
                 ),
@@ -1548,7 +1607,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     ),
                     child: Icon(
                       Icons.format_strikethrough_rounded,
-                      color: activeItem.isStrikethrough ? Colors.blueAccent : Colors.white,
+                      color: activeItem.isStrikethrough ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                          : (isDarkMode ? Colors.white : Colors.black),
                     ),
                   ),
                 ),
@@ -1568,7 +1628,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
                     height: 36,
-                    child: Icon(Icons.rotate_right_rounded, color: hasActiveText ? Colors.white : Colors.white38),
+                    child: Icon(
+                      Icons.rotate_right_rounded,
+                      color: hasActiveText
+                          ? (isDarkMode ? Colors.white : Colors.black)   // Active state
+                          : (isDarkMode ? Colors.white38 : Colors.black26), // Inactive/Disabled state
+                    )
                   ),
                 ),
               ),
@@ -1587,7 +1652,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
                     height: 36,
-                    child: Icon(Icons.content_copy_rounded, color: hasActiveText ? Colors.white : Colors.white38),
+                    child: Icon(
+                      Icons.content_copy_rounded,
+                      color: hasActiveText
+                          ? (isDarkMode ? Colors.white : Colors.black)   // Active state
+                          : (isDarkMode ? Colors.white38 : Colors.black26), // Inactive state
+                    )
                   ),
                 ),
               ),
@@ -1605,7 +1675,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
                     height: 36,
-                    child: Icon(Icons.delete_forever_rounded, color: hasActiveText ? Colors.redAccent : Colors.white38),
+                    child: Icon(Icons.delete_forever_rounded, color: hasActiveText
+                        ? Colors.redAccent
+                        : (isDarkMode ? Colors.white38 : Colors.black26),),
                   ),
                 ),
               ),
@@ -1651,7 +1723,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                             decoration: BoxDecoration(
                               color: c,
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: isSelected ? 2.5 : 1.5),
+                              border: Border.all(color: isDarkMode ? Colors.white : Colors.black26, width: isSelected ? 2.5 : 1.5),
                             ),
                             child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
                           ),
@@ -1675,7 +1747,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 height: 30,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
+                  border: Border.all(color: isDarkMode ? Colors.white : Colors.black26, width: 1.5),
                   gradient: const SweepGradient(
                     colors: [
                       Colors.red,
@@ -1699,6 +1771,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Widget _buildShapesPanel() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final active = _activeShapeItem;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1708,7 +1781,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
           children: [
             Row(
               children: [
-                const Text("Color", style: TextStyle(color: Colors.white, fontSize: 14)),
+                Text("Color", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14)),
                 const SizedBox(width: 16),
                 GestureDetector(
                   onTap: _openColorPicker,
@@ -1726,7 +1799,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.content_copy_rounded,
-                    color: _activeShapeItem != null ? Colors.white : Colors.white38,
+                    //color: _activeShapeItem != null ? Colors.white : Colors.white38,
+                    color: _activeShapeItem != null
+                        ? (isDarkMode ? Colors.white : Colors.black87)
+                        : (isDarkMode ? Colors.white38 : Colors.black26),
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
@@ -1752,7 +1828,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.delete_forever_rounded,
-                    color: _activeShapeItem != null ? Colors.redAccent : Colors.white38,
+                    // color: _activeShapeItem != null ? Colors.redAccent : Colors.white38,
+                    color: _activeShapeItem != null
+                        ? Colors.redAccent
+                        : (isDarkMode ? Colors.white38 : Colors.black26),
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
@@ -1838,17 +1917,21 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Widget _buildSlider(String label, double val, double min, double max, Function(double) onChanged) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        Text(label, style: TextStyle(color: isDarkMode ? Colors.white70  : Colors.black, fontSize: 14)),
         const SizedBox(width: 10),
         Expanded(
           child: SliderTheme(
             data: SliderThemeData(
               trackHeight: 2,
-              thumbColor: Colors.white,
-              activeTrackColor: Colors.grey.shade400,
-              inactiveTrackColor: Colors.grey.shade800,
+              //thumbColor: Colors.white,
+              thumbColor: isDarkMode ? Colors.white : Colors.blue,
+              // activeTrackColor: Colors.grey.shade400,
+              activeTrackColor: isDarkMode ? Colors.grey.shade400 : Colors.blue.shade700,
+              //inactiveTrackColor: Colors.grey.shade800,
+              inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
             ),
             child: Slider(value: val.clamp(min, max), min: min, max: max, onChanged: onChanged),
           ),
@@ -1858,6 +1941,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
   }
 
   Widget _buildShapeIcon(IconData icon) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     bool isSelected = _selectedShape == icon.toString();
     return GestureDetector(
       onTap: () {
@@ -1877,10 +1961,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
-          border: Border.all(color: Colors.white70),
+          border: Border.all(color: isDarkMode ? Colors.white70 : Colors.black),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: Colors.white, size: 28),
+        child: Icon(icon, color: isDarkMode ?  Colors.white : Colors.black54, size: 28),
       ),
     );
   }
