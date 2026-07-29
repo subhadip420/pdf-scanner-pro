@@ -135,10 +135,12 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   }
 
   void showToast(String message) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        backgroundColor: Colors.grey.shade900,
+        content: Text(message, style: TextStyle(color:  isDarkMode ? Colors.white : Colors.black45)),
+        backgroundColor:  isDarkMode ?  Colors.grey.shade900 : Colors.grey.shade300,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -172,27 +174,29 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   }
 
   void _showInfoDialog() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C),
+          //backgroundColor: const Color(0xFF2C2C2C),
+          backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blueAccent),
-              SizedBox(width: 10),
-              Text('Compression Info', style: TextStyle(color: Colors.white)),
+              Icon(Icons.info_outline, color: isDarkMode ? Colors.blueAccent : Colors.blue,),
+              const SizedBox(width: 10),
+              Text('Compression Info', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87,)),
             ],
           ),
-          content: const Text(
+          content: Text(
             "Higher percentage will reduce the PDF size more, but might lower image quality slightly.",
-            style: TextStyle(color: Colors.white70, fontSize: 15),
+            style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black54, fontSize: 15),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Got it', style: TextStyle(color: Colors.blueAccent, fontSize: 16)),
+              child: Text('Got it', style: TextStyle(color: isDarkMode ? Colors.blueAccent : Colors.blue, fontSize: 16)),
             ),
           ],
         );
@@ -250,6 +254,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: false, // Direct back hone se rokega
       onPopInvokedWithResult: (bool didPop, Object? result) async {
@@ -258,18 +263,18 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         await _handleBackButton();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: isDarkMode ?  const Color(0xFF121212) : Colors.white,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1E1E1E),
+          backgroundColor: isDarkMode ?  const Color(0xFF1E1E1E) : Colors.grey.shade300,
           elevation: 0,
           leading: Tooltip(
             message: "Back",
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black),
               onPressed: () => _handleBackButton(),
             ),
           ),
-          title: const Text("Compress PDF", style: TextStyle(color: Colors.white, fontSize: 20)),
+          title: Text("Compress PDF", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 20)),
         ),
 
         // 1. Scrollable Body
@@ -280,7 +285,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
             if (_isBannerAdLoaded && _bannerAd != null)
               Container(
                 width: double.infinity,
-                color: const Color(0xFF121212),
+                color:isDarkMode ?  const Color(0xFF121212) : Colors.white,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 child: SizedBox(
@@ -299,13 +304,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "Compression Level",
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(width: 4), // Text aur icon ke beech halka sa space
                         IconButton(
-                          icon: const Icon(Icons.info_outline, color: Colors.white54, size: 20),
+                          icon: Icon(Icons.info_outline, color: isDarkMode ?  Colors.white54 : Colors.black, size: 20),
                           onPressed: _showInfoDialog,
                           tooltip: "Info",
                           padding: EdgeInsets.zero,
@@ -320,11 +325,14 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         Expanded(
                           child: SliderTheme(
                             data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: Colors.blueAccent,
-                              inactiveTrackColor: Colors.white12,
-                              thumbColor: Colors.blueAccent,
-                              overlayColor: Colors.blueAccent.withOpacity(0.2),
-                              valueIndicatorTextStyle: const TextStyle(color: Colors.white),
+                              //activeTrackColor: Colors.blueAccent,
+                              activeTrackColor: isDarkMode ? Colors.grey.shade400 : Colors.blue.shade700,
+                              //inactiveTrackColor: Colors.white12,
+                              inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
+                              //thumbColor: Colors.blueAccent,
+                              thumbColor: isDarkMode ? Colors.white : Colors.blue,
+                              overlayColor: isDarkMode ?  Colors.blueAccent.withOpacity(0.2) : Colors.blue.withOpacity(0.2),
+                              valueIndicatorTextStyle: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                             ),
                             child: Slider(
                               value: _compressionLevel,
@@ -343,7 +351,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         ),
                         Text(
                           "${_compressionLevel.toInt()}%",
-                          style: const TextStyle(color: Colors.blueAccent, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: isDarkMode ?  Colors.blueAccent : Colors.blue, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -353,7 +361,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                     ElevatedButton(
                       onPressed: _isCompressing ? null : _startCompression,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
+                        backgroundColor: isDarkMode ? Colors.blueAccent : Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
@@ -380,7 +388,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                       margin: const EdgeInsets.symmetric(horizontal: 20),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E),
+                        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: Colors.white12),
                       ),
@@ -389,7 +397,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           /// File Name
                           Text(
                             _fileName,
-                            style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 13),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
@@ -400,11 +408,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text("Original Size: ", style: TextStyle(color: Colors.white54, fontSize: 14)),
+                              Text("Original Size: ", style: TextStyle(color: isDarkMode ?Colors.white54 : Colors.black, fontSize: 14)),
                               Text(
                                 _originalSize,
-                                style: const TextStyle(
-                                  color: Colors.white54,
+                                style: TextStyle(
+                                  color: isDarkMode ?  Colors.white54 : Colors.black,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -418,9 +426,10 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                             height: 180,
                             width: 130,
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade800,
+                              //color: Colors.grey.shade800,
+                              color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white24),
+                              border: Border.all(color: isDarkMode ? Colors.white24 : Colors.grey.shade400,),
                             ),
                             clipBehavior: Clip.hardEdge,
                             child: PdfThumbnailView(key: ValueKey(widget.pdfFile.path), filePath: widget.pdfFile.path),
@@ -431,11 +440,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text("New Size: ", style: TextStyle(color: Colors.white54, fontSize: 15)),
+                              Text("New Size: ", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black, fontSize: 15)),
                               Text(
                                 _newSize ?? "Pending...",
                                 style: TextStyle(
-                                  color: _newSize != null ? Colors.greenAccent : Colors.white54,
+                                  color: _newSize != null
+                                      ? (isDarkMode ? Colors.greenAccent : Colors.green.shade700) // Active/Success state
+                                      : (isDarkMode ? Colors.white54 : Colors.black54),
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -453,11 +464,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _newSize == null ? null : () => _saveAsZip(),
-                            icon: const Icon(Icons.folder_zip_outlined, size: 20, color: Colors.white),
-                            label: const Text("Save as ZIP", style: TextStyle(color: Colors.white)),
+                            icon: Icon(Icons.folder_zip_outlined, size: 20, color: isDarkMode ? Colors.white : Colors.black),
+                            label: Text("Save as ZIP", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(color: Colors.white24),
+                              side: BorderSide(color: isDarkMode ? Colors.white24 : Colors.black45),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                           ),
@@ -466,11 +477,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _newSize == null ? null : () => _shareCompressedPdf(),
-                            icon: const Icon(Icons.share_outlined, size: 20, color: Colors.blueAccent),
-                            label: const Text("Share PDF", style: TextStyle(color: Colors.blueAccent)),
+                            icon: Icon(Icons.share_outlined, size: 20, color: isDarkMode ? Colors.blueAccent : Colors.blue),
+                            label: Text("Share PDF", style: TextStyle(color: isDarkMode ? Colors.blueAccent : Colors.blue)),
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              side: const BorderSide(color: Colors.blueAccent),
+                              side: BorderSide(color: isDarkMode ? Colors.blueAccent : Colors.blue),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                           ),
@@ -488,8 +499,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        disabledBackgroundColor: Colors.white12,
+                        backgroundColor: isDarkMode ? Colors.green : Colors.green.shade600,
+                        disabledBackgroundColor: isDarkMode ? Colors.white12 : Colors.black45,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
