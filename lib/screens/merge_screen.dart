@@ -174,6 +174,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // return Scaffold(
     return PopScope(
       canPop: false,
@@ -187,12 +188,14 @@ class _MergeScreenState extends State<MergeScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF2C2C2C),
+        //backgroundColor: const Color(0xFF2C2C2C),
+        backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1E1E1E),
+          //backgroundColor: const Color(0xFF1E1E1E),
+          backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 26),
+            icon: Icon(Icons.close_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 26),
             //onPressed: () => Navigator.pop(context),
             onPressed: () async {
               bool shouldExit = await _onWillPop();
@@ -201,27 +204,31 @@ class _MergeScreenState extends State<MergeScreen> {
               }
             },
           ),
-          title: const Text(
+          title: Text(
             "Merge Pages",
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.w600),
           ),
           centerTitle: false,
 
           actions: [
             IconButton(
-              icon: Icon(Icons.undo_rounded, color: _undoHistory.isNotEmpty ? Colors.white : Colors.white24, size: 24),
+              icon: Icon(Icons.undo_rounded, color: _undoHistory.isNotEmpty
+                  ? (isDarkMode ? Colors.white : Colors.black87)
+                  : (isDarkMode ? Colors.white24 : Colors.black12), size: 24),
               tooltip: "Undo",
               onPressed: _undoHistory.isNotEmpty ? _undo : null,
             ),
 
             IconButton(
-              icon: Icon(Icons.redo_rounded, color: _redoHistory.isNotEmpty ? Colors.white : Colors.white24, size: 24),
+              icon: Icon(Icons.redo_rounded, color: _redoHistory.isNotEmpty
+                  ? (isDarkMode ? Colors.white : Colors.black87)
+                  : (isDarkMode ? Colors.white24 : Colors.black12), size: 24),
               tooltip: "Redo",
               onPressed: _redoHistory.isNotEmpty ? _redo : null,
             ),
 
             IconButton(
-              icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 28),
+              icon: Icon(Icons.check_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue, size: 28),
               tooltip: "Save",
               onPressed: () {
                 _saveAndExport();
@@ -577,7 +584,7 @@ class _MergeScreenState extends State<MergeScreen> {
               },
               child: Container(
                 height: 90,
-                color: const Color(0xFF1E1E1E),
+                color: isDarkMode ?  const Color(0xFF1E1E1E) : Colors.grey.shade200,
 
                 child: ReorderableListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -621,7 +628,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
                   itemBuilder: (context, index) {
                     bool isSelected = _selectedImageIndex == index;
-                    bool isHidden = _imageStates[index].isHidden; // Check if hidden
+                    bool isHidden = _imageStates[index].isHidden;
 
                     return GestureDetector(
                       key: ObjectKey(_imageStates[index]),
@@ -682,7 +689,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
             Container(
               height: 68,
-              color: const Color(0xFF151515),
+              color: isDarkMode ?  const Color(0xFF151515) : Colors.grey.shade300,
               child: ClipRect(
                 child: Stack(
                   children: [
@@ -773,6 +780,7 @@ class _MergeScreenState extends State<MergeScreen> {
     bool isDisabled = false,
     String? tooltipMessage,
   }) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Tooltip(
       message: tooltipMessage ?? label,
       waitDuration: const Duration(milliseconds: 500),
@@ -784,7 +792,7 @@ class _MergeScreenState extends State<MergeScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.blueAccent : Colors.transparent,
+              color: isSelected ? (isDarkMode ? Colors.blueAccent : Colors.blue) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -793,14 +801,20 @@ class _MergeScreenState extends State<MergeScreen> {
               children: [
                 Icon(
                   icon,
-                  color: isDisabled ? Colors.white24 : Colors.white,
+                  //color: isDisabled ? Colors.white24 : Colors.white,
+                  color: isDisabled
+                      ? (isDarkMode ? Colors.white24 : Colors.black45)  // Disabled state
+                      : (isSelected ? Colors.white : (isDarkMode ? Colors.white : Colors.black)),
                   size: 22,
                 ),
                 const SizedBox(height: 6),
                 Text(
                   label,
                   style: TextStyle(
-                    color: isDisabled ? Colors.white24 : Colors.white,
+                    //color: isDisabled ? Colors.white24 : Colors.white,
+                    color: isDisabled
+                        ? (isDarkMode ? Colors.white24 : Colors.black45)  // Disabled state
+                        : (isSelected ? Colors.white : (isDarkMode ? Colors.white : Colors.black)),
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -815,10 +829,12 @@ class _MergeScreenState extends State<MergeScreen> {
 
   /// --- MAIN NORMAL TOOLS ---
   Widget _buildNormalTools() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 75,
       width: double.infinity,
-      color: const Color(0xFF151515),
+      color: isDarkMode ?  const Color(0xFF151515) : Colors.grey.shade300,
       child: Row(
         children: [
           Padding(
@@ -840,7 +856,7 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          Container(width: 1, height: 40, color: Colors.white24),
+          Container(width: 1, height: 40, color: isDarkMode ? Colors.white24 : Colors.black45),
 
           ///  Scrollable List (Main Tools)
           Expanded(
@@ -951,7 +967,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
                 _buildToolItem(
                   label: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden)
-                      ? "Unhide"
+                      ? "View"
                       : "Hide",
                   icon: (_selectedImageIndex != null && _imageStates[_selectedImageIndex!].isHidden)
                       ? Icons.visibility_rounded
@@ -986,6 +1002,7 @@ class _MergeScreenState extends State<MergeScreen> {
 
   /// --- RESIZE SUB TOOLS (Fixed Close Button) ---
   Widget _buildPageSizeSubTools() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     bool isChanged = _selectedPageSize != "A4 (P)";
 
     return SizedBox(
@@ -1015,7 +1032,7 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          Container(height: 30, width: 1, color: Colors.white10, margin: const EdgeInsets.symmetric(horizontal: 4)),
+          Container(height: 30, width: 1, color:  isDarkMode ?  Colors.white10 : Colors.black45, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
           /// --- SCROLLABLE OPTIONS (Expanded taaki baki jagah le sake) ---
           Expanded(
@@ -1160,6 +1177,7 @@ class _MergeScreenState extends State<MergeScreen> {
         isLayerChanged = _selectedImageIndex != _initialLayerIndex;
       }
     }
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return SizedBox(
       height: 75,
@@ -1182,7 +1200,7 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 0)),
+          Container(height: 30, width: 1, color:  isDarkMode ?  Colors.white10 : Colors.black45, margin: const EdgeInsets.symmetric(horizontal: 0)),
 
           /// LAYER OPTIONS (SCROLLABLE LIST)
           Expanded(
@@ -1268,6 +1286,8 @@ class _MergeScreenState extends State<MergeScreen> {
 
   /// --- POSITION SUB-TOOLS ---
   Widget _buildPositionSubTools() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       height: 75,
       width: double.infinity,
@@ -1290,7 +1310,7 @@ class _MergeScreenState extends State<MergeScreen> {
           ),
 
           // Divider
-          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+          Container(height: 30, width: 1, color:  isDarkMode ?  Colors.white10 : Colors.black45, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
           // 2. Direction Buttons (Expanded taaki evenly space le sake)
           Expanded(
@@ -1364,6 +1384,7 @@ class _MergeScreenState extends State<MergeScreen> {
       currentRotation = _imageStates[_selectedImageIndex!].rotation % (2 * 3.14159265);
       if (currentRotation < 0) currentRotation += (2 * 3.14159265);
     }
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 75,
@@ -1385,7 +1406,7 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 0)),
+          Container(height: 30, width: 1, color:  isDarkMode ?  Colors.white10 : Colors.black45, margin: const EdgeInsets.symmetric(horizontal: 0)),
 
           //Rotate Left (-90 degrees)
           _buildToolItem(
@@ -1426,7 +1447,7 @@ class _MergeScreenState extends State<MergeScreen> {
                 children: [
                   Text(
                     "Angle: ${(currentRotation * (180 / 3.14159265)).toStringAsFixed(0)}°",
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 11),
                   ),
                   SizedBox(
                     height: 24,
@@ -1435,8 +1456,8 @@ class _MergeScreenState extends State<MergeScreen> {
                       min: 0.0,
                       max: 2 * 3.14159265,
                       // 360 degrees
-                      activeColor: Colors.blueAccent,
-                      inactiveColor: Colors.white24,
+                      activeColor: isDarkMode ? Colors.blueAccent : Colors.blue,
+                      inactiveColor: isDarkMode ? Colors.white24 : Colors.grey,
                       onChangeStart: _selectedImageIndex == null ? null : (value) => _saveStateToHistory(),
                       onChanged: _selectedImageIndex == null
                           ? null
@@ -1458,6 +1479,8 @@ class _MergeScreenState extends State<MergeScreen> {
 
   /// --- MULTI-DOT PREMIUM SIZE SUB-TOOLS ---
   Widget _buildSizeSubTools() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     double currentScale = 1.0;
     if (_selectedImageIndex != null) {
       currentScale = _imageStates[_selectedImageIndex!].scale;
@@ -1487,7 +1510,7 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+          Container(height: 30, width: 1, color:  isDarkMode ? Colors.white24 : Colors.black45, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
           /// Slider with Multiple Dots and Snapping
           Expanded(
@@ -1498,7 +1521,7 @@ class _MergeScreenState extends State<MergeScreen> {
                 children: [
                   Text(
                     "Scale: ${currentScale.toStringAsFixed(2)}x",
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    style: TextStyle(color:  isDarkMode ? Colors.white70 : Colors.black, fontSize: 11),
                   ),
                   SizedBox(
                     height: 30,
@@ -1524,8 +1547,10 @@ class _MergeScreenState extends State<MergeScreen> {
                                 value: currentScale,
                                 min: minVal,
                                 max: maxVal,
-                                activeColor: Colors.blueAccent,
-                                inactiveColor: Colors.white24,
+                                //activeColor: Colors.blueAccent,
+                                activeColor: isDarkMode ? Colors.blueAccent : Colors.blue,
+                                //inactiveColor: Colors.white24,
+                                inactiveColor: isDarkMode ? Colors.white24 : Colors.grey,
                                 onChangeStart: _selectedImageIndex == null ? null : (value) => _saveStateToHistory(),
                                 onChanged: _selectedImageIndex == null
                                     ? null
@@ -1597,6 +1622,7 @@ class _MergeScreenState extends State<MergeScreen> {
     bool isChanged = currentOpacity != 1.0;
 
     final List<double> snapValues = [0.0, 0.25, 0.50, 0.75, 1.0];
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 75,
@@ -1619,7 +1645,7 @@ class _MergeScreenState extends State<MergeScreen> {
             ),
           ),
 
-          Container(height: 30, width: 1, color: Colors.white24, margin: const EdgeInsets.symmetric(horizontal: 4)),
+          Container(height: 30, width: 1, color: isDarkMode ? Colors.white24 : Colors.black45, margin: const EdgeInsets.symmetric(horizontal: 4)),
 
           /// Slider with Multiple Dots and Snapping
           Expanded(
@@ -1630,7 +1656,7 @@ class _MergeScreenState extends State<MergeScreen> {
                 children: [
                   Text(
                     "Opacity: ${(currentOpacity * 100).toInt()}%",
-                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    style: TextStyle(color:  isDarkMode ? Colors.white70 : Colors.black, fontSize: 11),
                   ),
                   SizedBox(
                     height: 30,
@@ -1638,7 +1664,6 @@ class _MergeScreenState extends State<MergeScreen> {
                       builder: (context, constraints) {
                         const double overlayRadius = 16.0;
                         double trackWidth = constraints.maxWidth - (overlayRadius * 2);
-
                         double minVal = 0.0;
                         double maxVal = 1.0;
 
@@ -1656,8 +1681,10 @@ class _MergeScreenState extends State<MergeScreen> {
                                 value: currentOpacity,
                                 min: minVal,
                                 max: maxVal,
-                                activeColor: Colors.blueAccent,
-                                inactiveColor: Colors.white24,
+                                //activeColor: Colors.blueAccent,
+                                activeColor: isDarkMode ? Colors.blueAccent : Colors.blue,
+                                //inactiveColor: Colors.white24,
+                                inactiveColor: isDarkMode ? Colors.white24 : Colors.grey,
                                 onChangeStart: _selectedImageIndex == null ? null : (value) => _saveStateToHistory(),
                                 onChanged: _selectedImageIndex == null
                                     ? null
@@ -2054,11 +2081,13 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     if (_isLoaded && _bannerAd != null) {
       return SafeArea(
         top: false,
         child: Container(
-          color: Colors.black,
+          color: isDarkMode ?  Colors.black : Colors.grey.shade500,
           width: double.infinity,
           height: _bannerAd!.size.height.toDouble(),
           alignment: Alignment.center,
@@ -2067,6 +2096,6 @@ class _CustomBannerAdState extends State<CustomBannerAd> {
       );
     }
 
-    return SafeArea(top: false, child: Container(height: 50, color: Colors.black));
+    return SafeArea(top: false, child: Container(height: 50, color: isDarkMode ?  Colors.black : Colors.grey.shade500));
   }
 }
