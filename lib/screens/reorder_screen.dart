@@ -125,25 +125,28 @@ class _ReorderScreenState extends State<ReorderScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final cellWidth = (screenWidth - 32 - 20) / 2;
     final cellHeight = cellWidth / 0.65;
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF333333),
+      // backgroundColor: const Color(0xFF333333),
+      backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF151515),
+        //backgroundColor: const Color(0xFF151515),
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+          icon: Icon(Icons.close_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 28),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
+        title: Text(
           "Reorder",
-          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check_rounded, color: Colors.blueAccent, size: 30),
+            icon: Icon(Icons.check_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue, size: 30),
             onPressed: () {
               Navigator.pop(context, _items);
             },
@@ -154,7 +157,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
 
       bottomNavigationBar: _isBannerAdLoaded && _bannerAd != null
           ? Container(
-              color: const Color(0xFF151515),
+              color: isDarkMode ? const Color(0xFF151515) : Colors.grey.shade300,
               width: _bannerAd!.size.width.toDouble(),
               height: _bannerAd!.size.height.toDouble(),
               child: AdWidget(ad: _bannerAd!),
@@ -232,6 +235,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
     String filterName = item['filter'] ?? "Original color";
     double brightness = item['brightness'] ?? 0.0;
     double contrast = item['contrast'] ?? 0.0;
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final markupData = item['markups'];
 
@@ -241,7 +245,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.black,
+              color: isDarkMode ? Colors.black : Colors.white,
               borderRadius: BorderRadius.circular(4),
               boxShadow: isDragging
                   ? [const BoxShadow(color: Colors.black54, blurRadius: 12, spreadRadius: 3)]
@@ -300,7 +304,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
                                         ? textItem.color
                                         : (textItem.appearance == 1 || textItem.appearance == 2)
                                         ? (textItem.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
-                                        : Colors.white;
+                                        : (isDarkMode ? Colors.white : Colors.black87);
                                     Color bgColor = textItem.appearance == 1
                                         ? textItem.color
                                         : textItem.appearance == 2
@@ -432,7 +436,11 @@ class _ReorderScreenState extends State<ReorderScreen> {
         const SizedBox(height: 12),
         Text(
           "${index + 1}",
-          style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            color: isDarkMode ? Colors.white70 : Colors.black,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
