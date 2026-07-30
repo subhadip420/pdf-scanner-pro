@@ -56,12 +56,14 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
   }
 
   void _completeSelection() async {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     if (_selectedAssets.isEmpty) return;
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+      builder: (_) => Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue)),
     );
 
     List<File> files = [];
@@ -87,23 +89,39 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
   }
 
   Widget _buildAlbumSelectorButton() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: _showAlbumListModal,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(color: const Color(0xFF333333), borderRadius: BorderRadius.circular(24)),
+        decoration: BoxDecoration(
+          color: isDarkMode ? const Color(0xFF333333) : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               _selectedAlbum?.name == "Recent" ? "Recent" : (_selectedAlbum?.name ?? "Albums"),
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Color(0xFF999999), shape: BoxShape.circle),
-              child: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF151515), size: 18),
+              decoration: BoxDecoration(
+                color: isDarkMode ? const Color(0xFF999999) : Colors.black54,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: isDarkMode ? const Color(0xFF151515) : Colors.white,
+                size: 18,
+              ),
             ),
           ],
         ),
@@ -112,9 +130,11 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
   }
 
   void _showAlbumListModal() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
+      backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (BuildContext context) {
@@ -127,14 +147,18 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
               Container(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(color: Colors.grey.shade600, borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
               const SizedBox(height: 10),
               // Main Albums ki list
               Expanded(
                 child: ListView.separated(
                   itemCount: _albums.length,
-                  separatorBuilder: (context, index) => const Divider(color: Colors.white12, height: 1),
+                  separatorBuilder: (context, index) =>
+                      Divider(color: isDarkMode ? Colors.white12 : Colors.black26, height: 1),
                   itemBuilder: (context, index) {
                     final album = _albums[index];
                     final isSelected = album == _selectedAlbum;
@@ -156,7 +180,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                                 width: 55,
                                 height: 55,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade800,
+                                  color: isDarkMode ? Colors.grey.shade800 : Colors.white,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 clipBehavior: Clip.hardEdge,
@@ -167,7 +191,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
 
                               title: Text(
                                 "${album.name == "Recent" ? "Recent" : album.name} ($count)",
-                                style: const TextStyle(color: Colors.white, fontSize: 16),
+                                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 16),
                               ),
                               trailing: isSelected ? const Icon(Icons.check, color: Colors.greenAccent) : null,
                               onTap: () {
@@ -196,13 +220,17 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF151515),
+      //backgroundColor: const Color(0xFF151515),
+      backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
+        //backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(Icons.close, color: isDarkMode ? Colors.white : Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
 
@@ -212,13 +240,19 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
         actions: [
           // TOP RIGHT CORNER: Confirm Tick mark
           IconButton(
-            icon: Icon(Icons.check, color: _selectedAssets.isNotEmpty ? Colors.blueAccent : Colors.grey, size: 28),
+            icon: Icon(
+              Icons.check,
+              color: _selectedAssets.isNotEmpty
+                  ? (isDarkMode ? Colors.blueAccent : Colors.blue) // Active state with theme support
+                  : Colors.grey,
+              size: 28,
+            ),
             onPressed: _selectedAssets.isNotEmpty ? _completeSelection : null,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
+          ? Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue))
           : GridView.builder(
               padding: const EdgeInsets.all(2),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -252,7 +286,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.3),
-                            border: Border.all(color: Colors.blueAccent, width: 3),
+                            border: Border.all(color: isDarkMode ? Colors.blueAccent : Colors.blue, width: 3),
                           ),
                         ),
 
@@ -280,19 +314,24 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
 
       /// BOTTOM BAR: "Show all photos..." ka option
       bottomNavigationBar: Container(
-        color: const Color(0xFF1E1E1E),
+        //color: const Color(0xFF1E1E1E),
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: SafeArea(
           child: GestureDetector(
             onTap: _openNativePicker,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
+              children: [
                 //Icon(Icons.photo_library_outlined, color: Colors.white70),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   "Show all photos...",
-                  style: TextStyle(color: Colors.lightBlueAccent, fontSize: 16, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -331,13 +370,14 @@ class _AssetThumbnailState extends State<_AssetThumbnail> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return FutureBuilder<Uint8List?>(
       future: _future,
       builder: (_, snapshot) {
         if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) {
           return Image.memory(snapshot.data!, fit: BoxFit.cover);
         }
-        return Container(color: Colors.grey.shade900); // Placeholder
+        return Container(color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade300); // Placeholder
       },
     );
   }
