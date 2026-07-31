@@ -158,6 +158,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       setState(() {
         isGridOn = prefs.getBool('show_grid') ?? false;
         isAutoDetectOn = prefs.getBool('pref_auto_detect_always_on') ?? true;
+        isMultiScanMode = prefs.getBool('isMultiScanMode') ?? true;
       });
     }
   }
@@ -1648,6 +1649,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           setState(() {
                             isMultiScanMode = !isMultiScanMode;
                           });
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setBool('isMultiScanMode', isMultiScanMode);
                           showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
                         },
                   icon: Opacity(
