@@ -12,7 +12,7 @@ class CameraSettingsScreen extends StatefulWidget {
 class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   // Default Values
   bool _isGridOn = false;
-  bool _isHapticFeedbackOn = true;
+  bool isHapticEnabled = true;
   bool _saveToGallery = false;
   bool _isAutoDetectAlwaysOn = true;
 
@@ -26,7 +26,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isHapticFeedbackOn = prefs.getBool('haptic_feedback') ?? true;
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
       _isGridOn = prefs.getBool('show_grid') ?? false;
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
       _isAutoDetectAlwaysOn = prefs.getBool('pref_auto_detect_always_on') ?? true;
@@ -41,7 +41,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
 
   // Haptic Helper
   void _triggerHaptic() {
-    if (_isHapticFeedbackOn) {
+    if (isHapticEnabled) {
       HapticFeedback.lightImpact();
     }
   }
@@ -90,16 +90,14 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
                 _buildDivider(),
 
                 _buildSwitchTile(
-                  title: "Haptic feedback",
-                  subtitle: "Vibrate when capturing photos",
-                  value: _isHapticFeedbackOn,
-                  onChanged: (val) {
-                    setState(() => _isHapticFeedbackOn = val);
-                    _saveSetting('haptic_feedback', val);
-
-                    if (val) {
-                      HapticFeedback.lightImpact();
-                    }
+                  title: "System Vibration",
+                  subtitle: "Vibrate when tapping buttons",
+                  value: isHapticEnabled,
+                  onChanged: (value) {
+                    setState(() {
+                      isHapticEnabled = value;
+                    });
+                    _saveSetting('pref_haptic', value);
                   },
                 ),
 
