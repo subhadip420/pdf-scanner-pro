@@ -392,6 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final double bottomPadding = MediaQuery.of(context).padding.bottom;
     return PopScope(
       canPop: !_isSelectionMode,
       onPopInvokedWithResult: (bool didPop, Object? result) {
@@ -542,7 +543,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
             if (_isFabMenuOpen)
               Positioned(
-                bottom: 90,
+                bottom: 70,
+                //bottom: 130,
                 left: 0,
                 right: 0,
                 child: Column(
@@ -588,14 +590,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-        floatingActionButtonLocation: _isFabMenuOpen
-            ? FloatingActionButtonLocation.centerFloat
-            : FloatingActionButtonLocation.centerDocked,
+        // floatingActionButtonLocation: _isFabMenuOpen
+        //     ? FloatingActionButtonLocation.centerFloat
+        //     : FloatingActionButtonLocation.centerDocked,
+
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
         /// BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
-        bottomNavigationBar: SizedBox(
-          height: 70,
-          child: AnimatedSwitcher(
+        // bottomNavigationBar: SizedBox(
+        //   //height: 70,
+        //   height: 70 + bottomPadding,
+        //   child: AnimatedSwitcher(
+          bottomNavigationBar: AnimatedSwitcher(
             duration: const Duration(milliseconds: 350),
             layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
               return Stack(
@@ -615,16 +621,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
             child: _isSelectionMode
                 ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
-                : (_isFabMenuOpen
-                      ? const SizedBox.shrink(key: ValueKey('emptyBar'))
+                // : (_isFabMenuOpen
+                //       ? const SizedBox.shrink(key: ValueKey('emptyBar'))
                       : BottomAppBar(
                           key: const ValueKey('normalModeBar'),
                           color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                           shape: const CircularNotchedRectangle(),
-                          notchMargin: 8.0,
+                          notchMargin: 4.0,
                           padding: EdgeInsets.zero,
-                          child: SizedBox(
+                          //padding: EdgeInsets.only(bottom: bottomPadding),
+                          // child: SafeArea(
+                          // child: SizedBox(
+                            //height: 90,
                             height: 70,
+                            //padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -635,7 +645,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () {
                                       _triggerHaptic('light');
-                                      setState(() => _currentIndex = 0);
+                                      //setState(() => _currentIndex = 0);
+                                      setState(() {
+                                        _currentIndex = 0;
+                                        _isFabMenuOpen = false;
+                                      });
                                     },
                                     child: SizedBox(
                                       width: 80,
@@ -675,7 +689,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () {
                                       _triggerHaptic('light');
-                                      setState(() => _currentIndex = 1);
+                                      //setState(() => _currentIndex = 1);
+                                      setState(() {
+                                        _currentIndex = 1;
+                                        _isFabMenuOpen = false;
+                                      });
                                       if (!_hasStoragePermission && _allDevicePdfFiles.isEmpty) {
                                         _loadAllDevicePdfFiles();
                                       }
@@ -709,10 +727,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
-                          ),
-                        )),
+                          // ),
+                          // ),
+                        )
+            //),
           ),
-        ),
+        // ),
       ),
     );
   }
@@ -1685,11 +1705,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSelectionBottomBar({Key? key}) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+
     return BottomAppBar(
       key: key,
       // color: const Color(0xFF1E1E1E),
       color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       padding: EdgeInsets.zero,
+      //padding: EdgeInsets.only(bottom: bottomPadding),
+      //height: 70,
+      // child: SafeArea(
+      // child: SizedBox(
       height: 70,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1712,6 +1738,8 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
         ],
       ),
+    // ),
+    //   ),
     );
   }
 
