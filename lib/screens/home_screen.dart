@@ -56,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingDeviceFiles = true;
   RewardedAd? _rewardedAd;
   bool _hasStoragePermission = false;
+
   //bool isDarkMode = true;
   bool isHapticEnabled = true;
 
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadBannerAd();
     _loadPdfFiles();
     _loadSavedFiles();
-   // _loadAllDevicePdfFiles();
+    // _loadAllDevicePdfFiles();
     _loadRewardedAd();
   }
 
@@ -153,8 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Naya Method: Permission check karne ke liye
   Future<bool> _requestStoragePermission() async {
     if (Platform.isAndroid) {
-      if (await Permission.manageExternalStorage.isGranted ||
-          await Permission.storage.isGranted) {
+      if (await Permission.manageExternalStorage.isGranted || await Permission.storage.isGranted) {
         return true;
       }
 
@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _isLoadingDeviceFiles = false;
           });
         }
-        return; // Permission nahi mili toh yahi ruk jao
+        return;
       }
 
       setState(() => _hasStoragePermission = true); // Permission mil gayi
@@ -226,25 +226,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return combinedList;
   }
 
-  // void showToast(String msg) {
-  //   Fluttertoast.showToast(
-  //     msg: msg,
-  //     toastLength: Toast.LENGTH_SHORT,
-  //     gravity: ToastGravity.BOTTOM,
-  //     backgroundColor: Colors.white,
-  //     textColor: Colors.black,
-  //   );
-  // }
-
   void showToast(String msg) {
-    // Global Notifier se direct check kar rahe hain (context ki zaroorat nahi)
     bool isDark = isDarkModeNotifier.value;
 
     Fluttertoast.showToast(
       msg: msg,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
-      // Dark mode mein White Toast dikhega, aur Light mode mein Black Toast dikhega
       backgroundColor: isDark ? Colors.white : Colors.black87,
       textColor: isDark ? Colors.black : Colors.white,
     );
@@ -289,31 +277,6 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Error loading files: $e");
     }
   }
-
-  // Future<void> _loadAllDevicePdfFiles() async {
-  //   setState(() => _isLoadingDeviceFiles = true);
-  //   try {
-  //     if (await Permission.manageExternalStorage.isDenied) {
-  //       await Permission.manageExternalStorage.request();
-  //     }
-  //
-  //     List<String> paths = await compute(searchAllPdfsInBackground, '/storage/emulated/0');
-  //
-  //     List<File> allPdfs = paths.map((path) => File(path)).toList();
-  //
-  //     allPdfs.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
-  //
-  //     if (mounted) {
-  //       setState(() {
-  //         _allDevicePdfFiles = allPdfs;
-  //         _isLoadingDeviceFiles = false;
-  //       });
-  //     }
-  //   } catch (e) {
-  //     print("Device PDF Search Error: $e");
-  //     if (mounted) setState(() => _isLoadingDeviceFiles = false);
-  //   }
-  // }
 
   Future<void> _loadSavedFiles() async {
     try {
@@ -450,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: _isSelectionMode
             ? AppBar(
                 //backgroundColor: const Color(0xFF1E1E1E),
-          backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                 leadingWidth: 80,
                 leading: TextButton(
                   onPressed: () {
@@ -462,12 +425,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: Text(
                     "Cancel",
-                    style: TextStyle(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 title: Text(
                   "${_selectedFiles.length} Selected",
-                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black , fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white : Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 centerTitle: true,
                 actions: [
@@ -484,7 +455,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     child: Text(
                       _selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty ? "Deselect" : "Select All",
-                      style: TextStyle(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue, fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -493,7 +468,10 @@ class _HomeScreenState extends State<HomeScreen> {
             : AppBar(
                 //backgroundColor: Color(0xFF1E1E1E),
                 backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-                title: Text("PDF Scanner Pro", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 18)),
+                title: Text(
+                  "PDF Scanner Pro",
+                  style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 18),
+                ),
                 actions: [
                   Tooltip(
                     message: "Saved documents",
@@ -520,11 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icon(Icons.search, color: isDarkMode ? Colors.white : Colors.black),
                       onPressed: () {
                         _triggerHaptic('selection');
-                        //showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles));
-                        showSearch(
-                          context: context,
-                          delegate: PdfSearchDelegate(_getAllKnownFiles, _triggerHaptic),
-                        );
+                        showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles, _triggerHaptic));
                       },
                     ),
                   ),
@@ -673,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             Icons.home_filled,
                                             color: _currentIndex == 0
                                                 ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                : (isDarkMode ? Colors.white54 : Colors.black54),     // Inactive color
+                                                : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
@@ -683,7 +657,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
                                               color: _currentIndex == 0
                                                   ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                  : (isDarkMode ? Colors.white54 : Colors.black54),     // Inactive color
+                                                  : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
                                             ),
                                           ),
                                         ],
@@ -715,7 +689,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             Icons.insert_drive_file_outlined,
                                             color: _currentIndex == 1
                                                 ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                : (isDarkMode ? Colors.white54 : Colors.black54),     // Inactive color
+                                                : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
@@ -725,7 +699,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
                                               color: _currentIndex == 1
                                                   ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                  : (isDarkMode ? Colors.white54 : Colors.black54),     // Inactive color
+                                                  : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
                                             ),
                                           ),
                                         ],
@@ -752,7 +726,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const CircularProgressIndicator(color: Colors.lightBlueAccent),
             const SizedBox(height: 16),
-            Text("Scanning device for PDFs...", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 15)),
+            Text(
+              "Scanning device for PDFs...",
+              style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 15),
+            ),
           ],
         ),
       );
@@ -765,7 +742,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(Icons.folder_open_rounded, color: isDarkMode ? Colors.white54 : Colors.black54, size: 80),
             const SizedBox(height: 16),
-            Text("No PDF files found on device.", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 16)),
+            Text(
+              "No PDF files found on device.",
+              style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 16),
+            ),
           ],
         ),
       );
@@ -830,7 +810,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: isDarkMode ? Colors.white12 : Colors.black12,),
+                      border: Border.all(color: isDarkMode ? Colors.white12 : Colors.black12),
                     ),
                     clipBehavior: Clip.hardEdge,
                     child: PdfThumbnailView(key: ValueKey(file.path), filePath: file.path),
@@ -845,9 +825,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           _truncateFileName(file.path.split('/').last),
                           //style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
                           style: TextStyle(
-                              color: isDarkMode ? Colors.white : Colors.black87,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500
+                            color: isDarkMode ? Colors.white : Colors.black87,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
                         ),
@@ -855,13 +835,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           DateFormat('dd/MM/yy  •  hh:mm a').format(fileStat.modified),
                           //style: const TextStyle(color: Colors.white54, fontSize: 13),
-                          style: TextStyle(
-                            color: isDarkMode ? Colors.white54 : Colors.black54,
-                            fontSize: 13,
-                          ),
+                          style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
                         ),
                         const SizedBox(height: 2),
-                        Text(_getFileSize(fileStat.size), style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13)),
+                        Text(
+                          _getFileSize(fileStat.size),
+                          style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+                        ),
                         const SizedBox(height: 8),
 
                         _isSelectionMode
@@ -927,7 +907,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         _triggerHaptic('medium');
                                         _sharePdfFile(file);
                                       },
-                                      child: Icon(Icons.share_outlined, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
+                                      child: Icon(
+                                        Icons.share_outlined,
+                                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                                        size: 22,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -942,7 +926,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       },
                                       child: Padding(
                                         padding: const EdgeInsets.all(6.0),
-                                        child: Icon(Icons.more_vert_rounded, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
+                                        child: Icon(
+                                          Icons.more_vert_rounded,
+                                          color: isDarkMode ? Colors.white70 : Colors.black54,
+                                          size: 22,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -984,10 +972,7 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         } else if (value == 'Settings') {
           //Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const SettingsScreen()),
-          ).then((_) {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())).then((_) {
             _loadSettings();
           });
         }
@@ -998,7 +983,7 @@ class _HomeScreenState extends State<HomeScreen> {
           value: 'Select Files',
           child: Row(
             children: [
-              Icon(Icons.checklist_rounded, color:isDarkMode ? Colors.white : Colors.black, size: 20),
+              Icon(Icons.checklist_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 20),
               const SizedBox(width: 12),
               Text('Select Files', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
             ],
@@ -1025,14 +1010,21 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         width: 260,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-        decoration: BoxDecoration(color: isDarkMode ? const Color(0xFF333333) : Colors.grey.shade300, borderRadius: BorderRadius.circular(30)),
+        decoration: BoxDecoration(
+          color: isDarkMode ? const Color(0xFF333333) : Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(30),
+        ),
         child: Row(
           children: [
             Icon(icon, color: isDarkMode ? Colors.white : Colors.black87, size: 24),
             const SizedBox(width: 16),
             Text(
               title,
-              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 16, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black87,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -1043,7 +1035,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildHomeTabContent() {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     if (_isLoadingFiles) {
-      return Center(child: CircularProgressIndicator(color:isDarkMode ?  Colors.blueAccent: Colors.blue));
+      return Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue));
     }
 
     if (_pdfFiles.isEmpty) {
@@ -1067,7 +1059,7 @@ class _HomeScreenState extends State<HomeScreen> {
     int totalItemCount = _pdfFiles.length >= 3 ? _pdfFiles.length + 1 : _pdfFiles.length;
     return RefreshIndicator(
       onRefresh: _loadPdfFiles,
-      color:isDarkMode ?  Colors.blueAccent: Colors.blue,
+      color: isDarkMode ? Colors.blueAccent : Colors.blue,
       backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -1100,7 +1092,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         dateCategory,
-                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black54, fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black54,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
 
                       if (isFirstHeader) _buildSortMenu(),
@@ -1157,7 +1153,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         decoration: BoxDecoration(
                           color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: isDarkMode ? Colors.white12 : Colors.black12,),
+                          border: Border.all(color: isDarkMode ? Colors.white12 : Colors.black12),
                         ),
                         clipBehavior: Clip.hardEdge,
                         child: PdfThumbnailView(key: ValueKey(file.path), filePath: file.path),
@@ -1170,7 +1166,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               _truncateFileName(file.path.split('/').last),
-                              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14, fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black87,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                               maxLines: 1,
                             ),
                             const SizedBox(height: 6),
@@ -1197,7 +1197,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                           activeColor: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
                                           checkColor: isDarkMode ? Colors.black : Colors.white,
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                          side: BorderSide(color: isDarkMode ? Colors.white54 : Colors.black54, width: 1.5),
+                                          side: BorderSide(
+                                            color: isDarkMode ? Colors.white54 : Colors.black54,
+                                            width: 1.5,
+                                          ),
                                           onChanged: (bool? value) {
                                             setState(() {
                                               if (value == true) {
@@ -1247,7 +1250,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                             _triggerHaptic('light');
                                             savePdfToDownloads(file, context);
                                           },
-                                          child: Icon(Icons.download_rounded, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
+                                          child: Icon(
+                                            Icons.download_rounded,
+                                            color: isDarkMode ? Colors.white70 : Colors.black54,
+                                            size: 22,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -1259,7 +1266,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                             _triggerHaptic('light');
                                             _sharePdfFile(file);
                                           },
-                                          child: Icon(Icons.share_outlined, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
+                                          child: Icon(
+                                            Icons.share_outlined,
+                                            color: isDarkMode ? Colors.white70 : Colors.black54,
+                                            size: 22,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 16),
@@ -1274,7 +1285,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                           },
                                           child: Padding(
                                             padding: const EdgeInsets.all(6.0),
-                                            child: Icon(Icons.more_vert_rounded, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
+                                            child: Icon(
+                                              Icons.more_vert_rounded,
+                                              color: isDarkMode ? Colors.white70 : Colors.black54,
+                                              size: 22,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -1312,7 +1327,11 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 4),
             Text(
               "Sort",
-              style: TextStyle(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue, fontSize: 13, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -1403,14 +1422,21 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 width: 40,
                 height: 4,
-                decoration: BoxDecoration(color: isDarkMode ? Colors.white24 : Colors.black12, borderRadius: BorderRadius.circular(2)),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   file.path.split('/').last,
-                  style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 14, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1426,7 +1452,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: Icon(Icons.info_outline, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Details', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        title: Text(
+                          'Details',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1437,7 +1466,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: Icon(Icons.share_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Share', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        title: Text(
+                          'Share',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1447,8 +1479,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ListTile(
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
-                        leading: Icon(Icons.file_copy_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Copy', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        leading: Icon(
+                          Icons.file_copy_outlined,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          size: 20,
+                        ),
+                        title: Text(
+                          'Copy',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1459,8 +1498,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ListTile(
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
-                        leading: Icon(Icons.download_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Download to Phone', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        leading: Icon(
+                          Icons.download_rounded,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          size: 20,
+                        ),
+                        title: Text(
+                          'Download to Phone',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1472,7 +1518,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: Icon(Icons.edit_document, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Open in Editor', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        title: Text(
+                          'Open in Editor',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1484,7 +1533,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: Icon(Icons.image_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Save pages as JPEG', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        title: Text(
+                          'Save pages as JPEG',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1495,8 +1547,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ListTile(
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
-                        leading: Icon(Icons.compress_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Compress PDF', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        leading: Icon(
+                          Icons.compress_rounded,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                          size: 20,
+                        ),
+                        title: Text(
+                          'Compress PDF',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1511,7 +1570,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: Icon(Icons.text_snippet, color: isDarkMode ? Colors.white : Colors.black),
-                        title: Text("Extract Text (OCR)", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+                        title: Text(
+                          "Extract Text (OCR)",
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(context);
@@ -1523,7 +1585,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: Icon(Icons.edit_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Rename', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        title: Text(
+                          'Rename',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1544,10 +1609,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           title: Text(
                             isSaved ? 'Remove from saved' : 'Save document',
-                            style: TextStyle(color: isSaved
-                                ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue)
-                                : (isDarkMode ? Colors.white : Colors.black87),
-                                fontSize: 15),
+                            style: TextStyle(
+                              color: isSaved
+                                  ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue)
+                                  : (isDarkMode ? Colors.white : Colors.black87),
+                              fontSize: 15,
+                            ),
                           ),
                           onTap: () {
                             _triggerHaptic('selection');
@@ -1560,7 +1627,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         dense: true,
                         visualDensity: const VisualDensity(vertical: -1),
                         leading: Icon(Icons.print_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
-                        title: Text('Print', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
+                        title: Text(
+                          'Print',
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15),
+                        ),
                         onTap: () {
                           _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
@@ -1576,24 +1646,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Delete',
                           style: TextStyle(color: Colors.redAccent, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
-
-                        // onTap: () async {
-                        //   Navigator.pop(sheetContext);
-                        //   bool shouldDelete = await showCustomConfirmDialog(
-                        //     context,
-                        //     title: "Move to Trash",
-                        //     // Title update kiya
-                        //     message:
-                        //         "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.",
-                        //     // Naya message
-                        //     positiveBtnText: "Move to Trash",
-                        //     negativeBtnText: "Cancel",
-                        //     positiveBtnColor: Colors.redAccent,
-                        //   );
-                        //   if (shouldDelete) {
-                        //     await _deletePdfFile(file);
-                        //   }
-                        // },
 
                         //onTap: () => _handleDeleteAction(context, sheetContext, file),
                         onTap: () {
@@ -1614,12 +1666,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleDeleteAction(BuildContext context, BuildContext sheetContext, dynamic file) async {
-
     Navigator.pop(sheetContext);
     bool shouldDelete = await showCustomConfirmDialog(
       context,
       title: "Move to Trash",
-      message: "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.",
+      message:
+          "Are you sure you want to move \"${file.path.split('/').last}\" to the Trash? You can restore it within 30 days.",
       positiveBtnText: "Move to Trash",
       negativeBtnText: "Cancel",
       positiveBtnColor: Colors.redAccent,
@@ -1730,7 +1782,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue ));
+        return Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue));
       },
     );
 
@@ -2005,7 +2057,11 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             'Rename File',
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.black87,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: TextField(
             controller: nameController,
@@ -2017,14 +2073,10 @@ class _HomeScreenState extends State<HomeScreen> {
               hintText: "Enter new name",
               hintStyle: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                  color: isDarkMode ? Colors.white54 : Colors.black54,
-                ),
+                borderSide: BorderSide(color: isDarkMode ? Colors.white54 : Colors.black54),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(
-                  color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
-                ),
+                borderSide: BorderSide(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue),
               ),
               suffixText: '.pdf',
               suffixStyle: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54),
@@ -2035,10 +2087,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => Navigator.pop(context), // Cancel button
               child: Text(
                 'Cancel',
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white54 : Colors.black54,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 16),
               ),
             ),
             TextButton(
@@ -2115,7 +2164,11 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             'File Details',
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.black87,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -2135,7 +2188,11 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Close',
-                style: TextStyle(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -2259,7 +2316,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Text(
                     "Extracting pages... Please wait",
-                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -2410,7 +2471,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: Text(
                     "Extracting Text (OCR)... Please wait",
-                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -2516,10 +2581,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: SingleChildScrollView(
                   child: SelectableText(
                     extractedText,
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white70 : Colors.black87,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 14),
                   ),
                 ),
               ),
@@ -2553,10 +2615,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _triggerHaptic('light');
                 try {
                   await SharePlus.instance.share(
-                    ShareParams(
-                        text: extractedText,
-                        subject: 'Extracted Text from Scanner Pro'
-                    ),
+                    ShareParams(text: extractedText, subject: 'Extracted Text from Scanner Pro'),
                   );
                 } catch (e) {
                   print("Share error: $e");
@@ -2696,14 +2755,17 @@ class _PdfThumbnailViewState extends State<PdfThumbnailView> {
 
   @override
   Widget build(BuildContext context) {
-
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     if (_hasError) {
-      return Center(child: Icon(Icons.picture_as_pdf_rounded, color: isDarkMode ? Colors.white54 : Colors.black54, size: 30));
+      return Center(
+        child: Icon(Icons.picture_as_pdf_rounded, color: isDarkMode ? Colors.white54 : Colors.black54, size: 30),
+      );
     }
     if (_imageBytes == null) {
-      return Center(child: CircularProgressIndicator(strokeWidth: 2, color: isDarkMode ? Colors.white30  : Colors.black54));
+      return Center(
+        child: CircularProgressIndicator(strokeWidth: 2, color: isDarkMode ? Colors.white30 : Colors.black54),
+      );
     }
     return Image.memory(_imageBytes!, fit: BoxFit.cover, width: double.infinity, height: double.infinity);
   }
@@ -2800,7 +2862,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
       decoration: BoxDecoration(
         color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDarkMode ? Colors.white12 : Colors.black12,),
+        border: Border.all(color: isDarkMode ? Colors.white12 : Colors.black12),
       ),
       clipBehavior: Clip.hardEdge,
       child: Center(
@@ -2813,6 +2875,7 @@ class _NativeAdCardState extends State<NativeAdCard> {
 class PdfSearchDelegate extends SearchDelegate {
   final List<File> pdfFiles;
   final Function(String) onHaptic;
+
   //PdfSearchDelegate(this.pdfFiles);
   PdfSearchDelegate(this.pdfFiles, this.onHaptic);
 
@@ -2825,7 +2888,7 @@ class PdfSearchDelegate extends SearchDelegate {
       scaffoldBackgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.grey[50],
       inputDecorationTheme: InputDecorationTheme(
         border: InputBorder.none,
-        hintStyle: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54,),
+        hintStyle: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54),
       ),
     );
   }
@@ -2836,7 +2899,7 @@ class PdfSearchDelegate extends SearchDelegate {
     return [
       if (query.isNotEmpty)
         IconButton(
-          icon: Icon(Icons.clear, color: isDarkMode ? Colors.white : Colors.black87,),
+          icon: Icon(Icons.clear, color: isDarkMode ? Colors.white : Colors.black87),
           onPressed: () {
             onHaptic('light');
             query = ''; // Text clear karega
@@ -2849,7 +2912,7 @@ class PdfSearchDelegate extends SearchDelegate {
   Widget buildLeading(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return IconButton(
-      icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white70 : Colors.black87,),
+      icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white70 : Colors.black87),
       //onPressed: () => close(context, null),
       onPressed: () {
         onHaptic('light');
@@ -2898,7 +2961,10 @@ class PdfSearchDelegate extends SearchDelegate {
           children: [
             Icon(Icons.search_off_rounded, color: isDarkMode ? Colors.white24 : Colors.black26, size: 60),
             const SizedBox(height: 12),
-            Text("No document found for '$query'", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 16)),
+            Text(
+              "No document found for '$query'",
+              style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 16),
+            ),
           ],
         ),
       );
@@ -2915,7 +2981,11 @@ class PdfSearchDelegate extends SearchDelegate {
           leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
           title: Text(
             fileName,
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.black87,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -2962,10 +3032,13 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white70 : Colors.black87,),
+          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white70 : Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text("Saved Documents", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 18)),
+        title: Text(
+          "Saved Documents",
+          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 18),
+        ),
       ),
       body: _savedFilesList.isEmpty
           ? Center(
@@ -2974,7 +3047,10 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
                 children: [
                   const Icon(Icons.bookmark_border_rounded, color: Colors.white24, size: 60),
                   const SizedBox(height: 12),
-                  Text("No saved documents yet", style: TextStyle(color: isDarkMode ? Colors.white24 : Colors.black26, fontSize: 16)),
+                  Text(
+                    "No saved documents yet",
+                    style: TextStyle(color: isDarkMode ? Colors.white24 : Colors.black26, fontSize: 16),
+                  ),
                 ],
               ),
             )
@@ -2989,7 +3065,11 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
                   leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
                   title: Text(
                     fileName,
-                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
