@@ -85,6 +85,25 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _triggerHaptic(String type) {
+    if (!isHapticEnabled) return;
+
+    switch (type) {
+      case 'light':
+        HapticFeedback.lightImpact();
+        break;
+      case 'medium':
+        HapticFeedback.mediumImpact();
+        break;
+      case 'heavy':
+        HapticFeedback.heavyImpact();
+        break;
+      case 'selection':
+        HapticFeedback.selectionClick();
+        break;
+    }
+  }
+
   // Load Banner Ad
   void _loadBannerAd() {
     _bannerAd = BannerAd(
@@ -435,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 leadingWidth: 80,
                 leading: TextButton(
                   onPressed: () {
+                    _triggerHaptic('light');
                     setState(() {
                       _isSelectionMode = false;
                       _selectedFiles.clear();
@@ -453,6 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 actions: [
                   TextButton(
                     onPressed: () {
+                      _triggerHaptic('light');
                       setState(() {
                         if (_selectedFiles.length == _pdfFiles.length && _pdfFiles.isNotEmpty) {
                           _selectedFiles.clear();
@@ -479,6 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                       icon: Icon(Icons.bookmark_rounded, color: isDarkMode ? Colors.white : Colors.black),
                       onPressed: () {
+                        _triggerHaptic('selection');
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -497,7 +519,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: IconButton(
                       icon: Icon(Icons.search, color: isDarkMode ? Colors.white : Colors.black),
                       onPressed: () {
-                        showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles));
+                        _triggerHaptic('selection');
+                        //showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles));
+                        showSearch(
+                          context: context,
+                          delegate: PdfSearchDelegate(_getAllKnownFiles, _triggerHaptic),
+                        );
                       },
                     ),
                   ),
@@ -529,6 +556,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_isFabMenuOpen)
               GestureDetector(
                 onTap: () {
+                  _triggerHaptic('light');
                   setState(() => _isFabMenuOpen = false);
                 },
                 child: Container(
@@ -547,12 +575,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildMenuPill("Create from photos", Icons.photo_library_outlined, () {
+                      _triggerHaptic('selection');
                       showToast("Gallery opening...");
                       setState(() => _isFabMenuOpen = false);
                       _openGalleryForPdf();
                     }),
                     const SizedBox(height: 12),
                     _buildMenuPill("Create scan", Icons.add_a_photo_outlined, () {
+                      _triggerHaptic('selection');
                       setState(() => _isFabMenuOpen = false);
                       Navigator.push(
                         context,
@@ -569,6 +599,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ? null
             : FloatingActionButton(
                 onPressed: () {
+                  _triggerHaptic('selection');
                   setState(() {
                     _isFabMenuOpen = !_isFabMenuOpen;
                   });
@@ -629,6 +660,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () {
+                                      _triggerHaptic('light');
                                       setState(() => _currentIndex = 0);
                                     },
                                     child: SizedBox(
@@ -668,6 +700,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: GestureDetector(
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () {
+                                      _triggerHaptic('light');
                                       setState(() => _currentIndex = 1);
                                       if (!_hasStoragePermission && _allDevicePdfFiles.isEmpty) {
                                         _loadAllDevicePdfFiles();
@@ -752,6 +785,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return GestureDetector(
             onTap: () {
+              _triggerHaptic('selection');
               if (_isSelectionMode) {
                 setState(() {
                   if (_selectedFiles.contains(file.path)) {
@@ -866,7 +900,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       message: isSaved ? "Unsave document" : "Save document",
                                       child: InkWell(
                                         borderRadius: BorderRadius.circular(20),
-                                        onTap: () => _toggleSaveFile(file.path),
+                                        // onTap: () => _toggleSaveFile(file.path),
+                                        onTap: () {
+                                          _triggerHaptic('selection');
+                                          _toggleSaveFile(file.path);
+                                        },
                                         child: Padding(
                                           padding: const EdgeInsets.all(6.0),
                                           child: Icon(
@@ -884,7 +922,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Tooltip(
                                     message: "Share",
                                     child: InkWell(
-                                      onTap: () => _sharePdfFile(file),
+                                      // onTap: () => _sharePdfFile(file),
+                                      onTap: () {
+                                        _triggerHaptic('medium');
+                                        _sharePdfFile(file);
+                                      },
                                       child: Icon(Icons.share_outlined, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
                                     ),
                                   ),
@@ -893,7 +935,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     message: "More options",
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(20),
-                                      onTap: () => _showFileOptionsBottomSheet(context, file),
+                                      // onTap: () => _showFileOptionsBottomSheet(context, file),
+                                      onTap: () {
+                                        _triggerHaptic('selection');
+                                        _showFileOptionsBottomSheet(context, file);
+                                      },
                                       child: Padding(
                                         padding: const EdgeInsets.all(6.0),
                                         child: Icon(Icons.more_vert_rounded, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
@@ -917,6 +963,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildMainAppBarMenu() {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return PopupMenuButton<String>(
+      onOpened: () {
+        _triggerHaptic('selection');
+      },
       //color: const Color(0xFF2C2C2C),
       color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
       surfaceTintColor: Colors.transparent,
@@ -927,6 +976,7 @@ class _HomeScreenState extends State<HomeScreen> {
       constraints: const BoxConstraints(maxWidth: 180),
 
       onSelected: (String value) {
+        _triggerHaptic('selection');
         if (value == 'Select Files') {
           setState(() {
             _isSelectionMode = true;
@@ -1061,6 +1111,7 @@ class _HomeScreenState extends State<HomeScreen> {
               // PDF File Card
               GestureDetector(
                 onTap: () {
+                  _triggerHaptic('selection');
                   if (_isSelectionMode) {
                     setState(() {
                       if (_selectedFiles.contains(file.path)) {
@@ -1169,7 +1220,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                           message: isSaved ? "Unsave document" : "Save document",
                                           child: InkWell(
                                             borderRadius: BorderRadius.circular(20),
-                                            onTap: () => _toggleSaveFile(file.path),
+                                            // onTap: () => _toggleSaveFile(file.path),
+                                            onTap: () {
+                                              _triggerHaptic('light');
+                                              _toggleSaveFile(file.path);
+                                            },
                                             child: Padding(
                                               padding: const EdgeInsets.all(6.0),
                                               child: Icon(
@@ -1187,7 +1242,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Tooltip(
                                         message: "Download to Phone",
                                         child: InkWell(
-                                          onTap: () => savePdfToDownloads(file, context),
+                                          // onTap: () => savePdfToDownloads(file, context),
+                                          onTap: () {
+                                            _triggerHaptic('light');
+                                            savePdfToDownloads(file, context);
+                                          },
                                           child: Icon(Icons.download_rounded, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
                                         ),
                                       ),
@@ -1195,7 +1254,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Tooltip(
                                         message: "Share",
                                         child: InkWell(
-                                          onTap: () => _sharePdfFile(file),
+                                          // onTap: () => _sharePdfFile(file),
+                                          onTap: () {
+                                            _triggerHaptic('light');
+                                            _sharePdfFile(file);
+                                          },
                                           child: Icon(Icons.share_outlined, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
                                         ),
                                       ),
@@ -1204,7 +1267,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         message: "More options",
                                         child: InkWell(
                                           borderRadius: BorderRadius.circular(20),
-                                          onTap: () => _showFileOptionsBottomSheet(context, file),
+                                          // onTap: () => _showFileOptionsBottomSheet(context, file),
+                                          onTap: () {
+                                            _triggerHaptic('selection');
+                                            _showFileOptionsBottomSheet(context, file);
+                                          },
                                           child: Padding(
                                             padding: const EdgeInsets.all(6.0),
                                             child: Icon(Icons.more_vert_rounded, color: isDarkMode ? Colors.white70 : Colors.black54, size: 22),
@@ -1251,6 +1318,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       onSelected: (String value) {
+        _triggerHaptic('selection');
         setState(() {
           if (_sortBy == value) {
             _isAscending = !_isAscending;
@@ -1360,6 +1428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.info_outline, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Details', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           _showPdfDetails(context, file);
                         },
@@ -1370,6 +1439,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.share_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Share', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           _sharePdfFile(file);
                         },
@@ -1380,6 +1450,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.file_copy_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Copy', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           _copyPdfFile(file);
                         },
@@ -1391,6 +1462,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.download_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Download to Phone', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           savePdfToDownloads(file, context);
                         },
@@ -1402,6 +1474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.edit_document, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Open in Editor', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           _openInEditor(file);
                         },
@@ -1413,6 +1486,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.image_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Save pages as JPEG', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           _showSavePagesAsJpegConfirmDialog(context, file);
                         },
@@ -1424,6 +1498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.compress_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Compress PDF', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           Navigator.push(
                             context,
@@ -1438,6 +1513,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.text_snippet, color: isDarkMode ? Colors.white : Colors.black),
                         title: Text("Extract Text (OCR)", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(context);
                           _processAndShowExtractedText(context, file);
                         },
@@ -1449,6 +1525,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.edit_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Rename', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           _renamePdfFile(context, file);
                         },
@@ -1473,6 +1550,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontSize: 15),
                           ),
                           onTap: () {
+                            _triggerHaptic('selection');
                             Navigator.pop(sheetContext);
                             _toggleSaveFile(file.path);
                           },
@@ -1484,6 +1562,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         leading: Icon(Icons.print_outlined, color: isDarkMode ? Colors.white : Colors.black, size: 20),
                         title: Text('Print', style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 15)),
                         onTap: () {
+                          _triggerHaptic('selection');
                           Navigator.pop(sheetContext);
                           _printPdfFile(file);
                         },
@@ -1516,7 +1595,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         //   }
                         // },
 
-                        onTap: () => _handleDeleteAction(context, sheetContext, file),
+                        //onTap: () => _handleDeleteAction(context, sheetContext, file),
+                        onTap: () {
+                          _triggerHaptic('heavy');
+                          _handleDeleteAction(context, sheetContext, file);
+                        },
                       ),
                       const SizedBox(height: 10),
                     ],
@@ -1543,6 +1626,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (shouldDelete) {
+      _triggerHaptic('light');
       await _deletePdfFile(file);
     }
   }
@@ -1559,15 +1643,19 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildToolIcon(Icons.share_outlined, "Share", isDarkMode ? Colors.white : Colors.black87, () {
+            _triggerHaptic('selection');
             _shareSelectedFiles();
           }),
           _buildToolIcon(Icons.bookmark_border_rounded, "Tag", isDarkMode ? Colors.white : Colors.black87, () {
+            _triggerHaptic('selection');
             _bulkToggleSaveFiles();
           }),
           _buildToolIcon(Icons.merge_type_rounded, "Merge", isDarkMode ? Colors.white : Colors.black87, () {
+            _triggerHaptic('selection');
             _mergeSelectedFiles();
           }),
           _buildToolIcon(Icons.delete_outline, "Delete", Colors.redAccent, () {
+            _triggerHaptic('selection');
             _confirmBulkDelete();
           }),
         ],
@@ -1768,6 +1856,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (shouldDelete) {
+      _triggerHaptic('heavy');
       await _executeBulkDelete();
     }
   }
@@ -1954,6 +2043,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () async {
+                _triggerHaptic('light');
                 String newName = nameController.text.trim();
 
                 if (newName.isEmpty) {
@@ -2177,7 +2267,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       );
-
+      _triggerHaptic('light');
       await _savePagesAsJpeg(pdfFile);
 
       if (context.mounted) {
@@ -2404,6 +2494,7 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 icon: Icon(Icons.close, color: isDarkMode ? Colors.white : Colors.black),
                 onPressed: () {
+                  _triggerHaptic('light');
                   Navigator.pop(context);
                 },
                 padding: EdgeInsets.zero,
@@ -2438,6 +2529,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton.icon(
               onPressed: () {
+                _triggerHaptic('light');
                 Clipboard.setData(ClipboardData(text: extractedText));
                 showToast("Text copied to clipboard!");
                 Navigator.pop(context);
@@ -2458,6 +2550,7 @@ class _HomeScreenState extends State<HomeScreen> {
               //   Navigator.pop(context);
               // },
               onPressed: () async {
+                _triggerHaptic('light');
                 try {
                   await SharePlus.instance.share(
                     ShareParams(
@@ -2719,8 +2812,9 @@ class _NativeAdCardState extends State<NativeAdCard> {
 
 class PdfSearchDelegate extends SearchDelegate {
   final List<File> pdfFiles;
-
-  PdfSearchDelegate(this.pdfFiles);
+  final Function(String) onHaptic;
+  //PdfSearchDelegate(this.pdfFiles);
+  PdfSearchDelegate(this.pdfFiles, this.onHaptic);
 
   @override
   ThemeData appBarTheme(BuildContext context) {
@@ -2744,6 +2838,7 @@ class PdfSearchDelegate extends SearchDelegate {
         IconButton(
           icon: Icon(Icons.clear, color: isDarkMode ? Colors.white : Colors.black87,),
           onPressed: () {
+            onHaptic('light');
             query = ''; // Text clear karega
           },
         ),
@@ -2755,7 +2850,11 @@ class PdfSearchDelegate extends SearchDelegate {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return IconButton(
       icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white70 : Colors.black87,),
-      onPressed: () => close(context, null),
+      //onPressed: () => close(context, null),
+      onPressed: () {
+        onHaptic('light');
+        close(context, null);
+      },
     );
   }
 
@@ -2825,6 +2924,7 @@ class PdfSearchDelegate extends SearchDelegate {
             style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
           ),
           onTap: () {
+            onHaptic('light');
             // Click karne par file open ho jayegi
             OpenFile.open(file.path);
           },
