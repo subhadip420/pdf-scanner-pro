@@ -91,7 +91,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   final TransformationController _transformationController = TransformationController();
   TapDownDetails? _doubleTapDetails;
-
+  bool isHapticEnabled = true;
   InterstitialAd? _interstitialAd;
   bool _isInterstitialAdLoaded = false;
 
@@ -128,6 +128,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     selectedPagesList = List.filled(docFiles.length, false);
 
     _loadEditsFromMemory();
+
+    SharedPreferences.getInstance().then((prefs) {
+      setState(() {
+        isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
+      });
+    });
   }
 
   @override
@@ -135,6 +141,25 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     _pageController.dispose();
     _bannerAd?.dispose();
     super.dispose();
+  }
+
+  void _triggerHaptic(String type) {
+    if (!isHapticEnabled) return;
+
+    switch (type) {
+      case 'light':
+        HapticFeedback.lightImpact();
+        break;
+      case 'medium':
+        HapticFeedback.mediumImpact();
+        break;
+      case 'heavy':
+        HapticFeedback.heavyImpact();
+        break;
+      case 'selection':
+        HapticFeedback.selectionClick();
+        break;
+    }
   }
 
   Future<void> _loadSavedPageSize() async {
@@ -230,6 +255,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     if (discard) {
       if (mounted) {
+        _triggerHaptic('medium');
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -1029,6 +1055,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     icon: Icon(Icons.home, color: isDarkMode ? Colors.white : Colors.black, size: 28),
                     onPressed: () {
                       _promptDiscard();
+                      _triggerHaptic('medium');
                     },
                   ),
                 ),
@@ -1055,6 +1082,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   child: GestureDetector(
                     onTap: () {
                       _showRenameDialog(context);
+                      _triggerHaptic('light');
                     },
                     child: IntrinsicWidth(
                       child: Column(
@@ -1091,7 +1119,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               child: CircularProgressIndicator(color: isDarkMode ? Colors.white : Colors.black, strokeWidth: 2),
                             )
                           : Icon(Icons.document_scanner_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 24),
-                      onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
+                      // onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
+                      onPressed: _isDetectingText
+                          ? null
+                          : () {
+                        _triggerHaptic('medium');
+                        _extractTextFromCurrentImage(); // Main function call
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1152,7 +1186,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                     onDoubleTap: () {
                                       if (isCroppingMode || isSelectionMode || isResizeMode) return;
-
+                                      _triggerHaptic('light');
                                       final double currentScale = _transformationController.value.getMaxScaleOnAxis();
 
                                       if (currentScale <= 1.05) {
@@ -1426,7 +1460,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Tooltip(
                                         message: "Previous Page",
                                         child: GestureDetector(
-                                          onTap: currentPage > 0 ? _previousPage : null,
+                                          // onTap: currentPage > 0 ? _previousPage : null,
+                                          onTap: currentPage > 0
+                                              ? () {
+                                            _triggerHaptic('selection');
+                                            _previousPage();
+                                          }
+                                              : null,
                                           child: Container(
                                             width: 40,
                                             height: 40,
@@ -1454,6 +1494,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             child: GestureDetector(
                                               onTap: () {
                                                 setState(() {
+                                                  _triggerHaptic('selection');
                                                   isSelectionMode = !isSelectionMode;
                                                   if (!isSelectionMode) {
                                                     selectedPagesList.fillRange(0, selectedPagesList.length, false);
@@ -1488,6 +1529,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             message: "Pages",
                                             child: GestureDetector(
                                               onTap: () {
+                                                _triggerHaptic('selection');
                                                 setState(() {
                                                   isThumbnailVisible = !isThumbnailVisible;
                                                 });
@@ -1528,7 +1570,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Tooltip(
                                         message: "Next Page",
                                         child: GestureDetector(
-                                          onTap: currentPage < docFiles.length - 1 ? _nextPage : null,
+                                          // onTap: currentPage < docFiles.length - 1 ? _nextPage : null,
+                                          onTap: currentPage < docFiles.length - 1
+                                              ? () {
+                                            _triggerHaptic('selection');
+                                            _nextPage();
+                                          }
+                                              : null,
                                           child: Container(
                                             width: 40,
                                             height: 40,
@@ -1576,7 +1624,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 onReorderStart: (int index) {
                                   _saveEditsToMemory(); // Memory me save kardo
-                                  HapticFeedback.mediumImpact(); // Solid vibration feel
+                                  //HapticFeedback.mediumImpact(); // Solid vibration feel
+                                  _triggerHaptic('selection');
                                   if (!isSelectionMode) {
                                     setState(() {
                                       isSelectionMode = true;
@@ -1615,7 +1664,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     }
                                   });
 
-                                  HapticFeedback.lightImpact();
+                                  //HapticFeedback.lightImpact();
+                                  _triggerHaptic('selection');
                                 },
 
                                 proxyDecorator: (Widget child, int index, Animation<double> animation) {
@@ -1635,6 +1685,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     key: ObjectKey(docFiles[index]),
 
                                     onTap: () {
+                                      _triggerHaptic('selection');
                                       _pageController.animateToPage(
                                         index,
                                         duration: const Duration(milliseconds: 300),
@@ -1896,6 +1947,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 left: 2,
                                                 child: GestureDetector(
                                                   onTap: () {
+                                                    _triggerHaptic('selection');
                                                     setState(() {
                                                       selectedPagesList[index] = !selectedPagesList[index];
                                                     });
@@ -1983,7 +2035,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       Positioned.fill(
                         child: GestureDetector(
                           behavior: HitTestBehavior.translucent,
-                          onTap: () => setState(() => _showCopyBanner = false),
+                          // onTap: () => setState(() => _showCopyBanner = false),
+                          onTap: () {
+                            _triggerHaptic('selection');
+                            setState(() => _showCopyBanner = false);
+                          },
                           child: Align(
                             alignment: Alignment.topRight,
                             child: Padding(
@@ -2009,6 +2065,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         /// Copy Button
                                         ElevatedButton.icon(
                                           onPressed: () {
+                                            _triggerHaptic('selection');
                                             Clipboard.setData(ClipboardData(text: _extractedText!));
                                             showToast("Text copied to clipboard!");
                                             setState(() => _showCopyBanner = false);
@@ -2033,14 +2090,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                         /// 'X' Close Icon
                                         GestureDetector(
-                                          onTap: () => setState(() => _showCopyBanner = false),
+                                          //onTap: () => setState(() => _showCopyBanner = false),
+                                          onTap: () {
+                                            _triggerHaptic('selection');
+                                            setState(() => _showCopyBanner = false);
+                                          },
                                           child: Container(
                                             padding: const EdgeInsets.all(4),
                                             decoration: BoxDecoration(
                                               color: isDarkMode ? Colors.white10 : Colors.white,
                                               shape: BoxShape.circle,
                                             ),
-                                            child: Icon(Icons.close_rounded, color: isDarkMode ? Colors.white70 : Colors.black, size: 20),
+                                            child: Icon(Icons.close_rounded,
+                                                color: isDarkMode
+                                                    ? Colors.white70
+                                                    : Colors.black,
+                                                size: 20),
                                           ),
                                         ),
                                       ],
@@ -2114,6 +2179,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         onPressed: isAnyToolActive
                             ? null
                             : () {
+                                _triggerHaptic('light');
                                 _saveEditsToMemory();
                                 showToast("Opening scanner...");
 
@@ -2148,7 +2214,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     Opacity(
                       opacity: isAnyToolActive ? 0.4 : 1.0,
                       child: ElevatedButton(
-                        onPressed: isAnyToolActive ? null : _handleSaveClick,
+                        // onPressed: isAnyToolActive ? null : _handleSaveClick,
+                        onPressed: isAnyToolActive
+                            ? null
+                            : () {
+                          _triggerHaptic('light');
+                          _handleSaveClick();
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueAccent,
                           foregroundColor: Colors.white,
@@ -2224,6 +2296,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           ? IconButton(
                               icon: Icon(Icons.cancel, color: isDarkMode ? Colors.white54 : Colors.black, size: 20),
                               onPressed: () {
+                                _triggerHaptic('selection');
                                 nameController.clear();
                                 setDialogState(() {});
                               },
@@ -2247,7 +2320,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     side: BorderSide(color: isDarkMode ? Colors.grey : Colors.black),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
-                  onPressed: () => Navigator.pop(context),
+                  //onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    _triggerHaptic('light');
+                    Navigator.pop(context);
+                  },
                   child: Text("Cancel", style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 15)),
                 ),
                 OutlinedButton(
@@ -2257,6 +2334,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                   onPressed: () {
+                    _triggerHaptic('light');
                     String newName = nameController.text.trim();
                     if (newName.isNotEmpty) {
                       setState(() {
@@ -2318,6 +2396,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                   return GestureDetector(
                     onTap: () {
+                      _triggerHaptic('selection');
                       setState(() {
                         if (isSelectionMode) {
                           for (int i = 0; i < _pageFilters.length; i++) {
@@ -2391,6 +2470,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             child: Switch(
                               value: _applyToAllPages,
                               onChanged: (val) {
+                                _triggerHaptic('selection');
                                 setState(() {
                                   _applyToAllPages = val;
                                   if (val) {
@@ -2421,6 +2501,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             child: IconButton(
                               icon: Icon(Icons.settings, color: isDarkMode ? Colors.white : Colors.black, size: 24),
                               onPressed: () {
+                                _triggerHaptic('selection');
                                 _showDefaultFilterDialog(context);
                               },
                               padding: EdgeInsets.zero,
@@ -2479,6 +2560,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     activeColor: isDarkMode ? Colors.blueAccent : Colors.blue,
                     // Select hone par blue
                     onChanged: (val) {
+                      _triggerHaptic('selection');
                       if (val != null) {
                         setDialogState(() {
                           tempSelectedFilter = val;
@@ -2496,7 +2578,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     side: BorderSide(color: isDarkMode ? Colors.grey : Colors.black),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
-                  onPressed: () => Navigator.pop(context),
+                  //onPressed: () => Navigator.pop(context),
+                  onPressed: () {
+                    _triggerHaptic('light');
+                    Navigator.pop(context);
+                  },
                   child: Text("Cancel", style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 15)),
                 ),
 
@@ -2508,6 +2594,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                   onPressed: () async {
+                    _triggerHaptic('light');
                     SharedPreferences prefs = await SharedPreferences.getInstance();
                     await prefs.setString('default_filter', tempSelectedFilter);
 
@@ -2556,7 +2643,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 GestureDetector(
-                  onTap: () => setState(() => _activeAdjustTab = "Brightness"),
+                  // onTap: () => setState(() => _activeAdjustTab = "Brightness"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() => _activeAdjustTab = "Brightness");
+                  },
                   child: Row(
                     children: [
                       Icon(
@@ -2578,7 +2669,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => setState(() => _activeAdjustTab = "Contrast"),
+                  // onTap: () => setState(() => _activeAdjustTab = "Contrast"),
+                  onTap: () {
+                    _triggerHaptic('light');
+                    setState(() => _activeAdjustTab = "Contrast");
+                  },
                   child: Row(
                     children: [
                       Icon(
@@ -2632,6 +2727,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 min: -100,
                 max: 100,
                 onChanged: (val) {
+                  _triggerHaptic('selection');
                   setState(() {
                     // Bulk Adjust Logic for Selection Mode
                     if (isSelectionMode) {
@@ -2681,6 +2777,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           child: Switch(
                             value: _applyToAllPages,
                             onChanged: (val) {
+                              _triggerHaptic('selection');
                               setState(() {
                                 _applyToAllPages = val;
                                 if (val) {
@@ -2714,6 +2811,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   /// RESET BUTTON (Bulk logic updated)
                   TextButton(
                     onPressed: () {
+                      _triggerHaptic('selection');
                       setState(() {
                         if (isSelectionMode) {
                           for (int i = 0; i < docFiles.length; i++) {
@@ -2771,21 +2869,33 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             //icon: Symbols.reset_image_rounded,
             icon: Icons.restart_alt_rounded,
             tooltipMessage: "Retake current photo",
-            onTap: _retakeImage,
+            // onTap: _retakeImage,
+            onTap: () {
+              _triggerHaptic('light');
+              _retakeImage();
+            },
           ),
           _buildToolItem(
             label: "Crop",
             icon: Icons.crop_rounded,
             tooltipMessage: "Crop & adjust borders",
             isSelected: isCroppingMode,
-            onTap: _toggleCropMode,
+            // onTap: _toggleCropMode,
+            onTap: () {
+              _triggerHaptic('selection');
+              _toggleCropMode();
+            },
           ),
 
           _buildToolItem(
             label: "Rotate",
             icon: Icons.rotate_right_rounded,
             tooltipMessage: "Rotate 90 degrees",
-            onTap: _rotateImage,
+            //onTap: _rotateImage,
+            onTap: () {
+              _triggerHaptic('light');
+              _rotateImage();
+            },
             isRotate: true,
           ),
 
@@ -2795,6 +2905,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             tooltipMessage: "Apply color filters",
             isSelected: _showFilterMenu,
             onTap: () {
+              _triggerHaptic('light');
               setState(() {
                 _showFilterMenu = !_showFilterMenu;
                 if (_showFilterMenu) _showAdjustMenu = false;
@@ -2808,6 +2919,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             tooltipMessage: "Adjust brightness and contrast",
             isSelected: _showAdjustMenu,
             onTap: () {
+              _triggerHaptic('light');
               setState(() {
                 _showAdjustMenu = !_showAdjustMenu;
                 if (_showAdjustMenu) _showFilterMenu = false;
@@ -2819,14 +2931,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Markup",
             icon: Icons.border_color_rounded,
             tooltipMessage: "Draw or add text on image",
-            onTap: _openMarkupScreen,
+            //onTap: _openMarkupScreen,
+            onTap: () {
+              _triggerHaptic('medium');
+              _openMarkupScreen();
+            },
           ),
 
           _buildToolItem(
             label: "Duplicate",
             icon: Icons.content_copy_rounded,
             tooltipMessage: "Duplicate current page",
-            onTap: _duplicateCurrentPage,
+            //onTap: _duplicateCurrentPage,
+            onTap: () {
+              _triggerHaptic('medium');
+              _duplicateCurrentPage();
+            },
           ),
 
           _buildToolItem(
@@ -2835,6 +2955,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             tooltipMessage: "Change page layout size",
             isSelected: isResizeMode,
             onTap: () {
+              _triggerHaptic('light');
               setState(() {
                 isResizeMode = true;
                 _showFilterMenu = false;
@@ -2848,13 +2969,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Reorder",
             icon: Icons.swap_horizontal_circle_outlined,
             tooltipMessage: "Rearrange page sequence",
-            onTap: _openReorderScreen,
+            //onTap: _openReorderScreen,
+            onTap: () {
+              _triggerHaptic('light');
+              _openReorderScreen();
+            },
           ),
           _buildToolItem(
             label: "Delete",
             icon: Icons.delete_outline_rounded,
             tooltipMessage: "Delete current page",
-            onTap: _promptDeletePage,
+            //onTap: _promptDeletePage,
+            onTap: () {
+              _triggerHaptic('heavy');
+              _promptDeletePage();
+            },
           ),
         ],
       ),
@@ -2869,12 +2998,25 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildToolItem(label: "Cancel", icon: Icons.close_rounded, tooltipMessage: "Cancel Crop", onTap: _cancelCrop),
+          _buildToolItem(
+              label: "Cancel",
+              icon: Icons.close_rounded,
+              tooltipMessage: "Cancel Crop",
+              //onTap: _cancelCrop
+            onTap: () {
+              _triggerHaptic('selection');
+              _cancelCrop();
+            },
+          ),
           _buildToolItem(
             label: "Auto",
             icon: Icons.auto_awesome_mosaic_rounded,
             tooltipMessage: "Reset to auto detect",
-            onTap: _resetToAutoCrop,
+            // onTap: _resetToAutoCrop,
+            onTap: () {
+              _triggerHaptic('selection');
+              _resetToAutoCrop();
+            },
           ),
           _buildToolItem(
             label: "Done",
@@ -2882,6 +3024,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             tooltipMessage: "Save crop",
             isSelected: true,
             onTap: () async {
+              _triggerHaptic('selection');
               await _saveNewCrop();
             },
           ),
@@ -2908,6 +3051,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               isSelected: hasSizeChanged,
 
               onTap: () {
+                _triggerHaptic('selection');
                 setState(() {
                   isResizeMode = false;
                   isThumbnailVisible = true;
@@ -2930,7 +3074,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.fit_screen_rounded,
                   tooltipMessage: "Auto fit to image size",
                   isSelected: _selectedPageSize == "Auto Fit",
-                  onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
+                  // onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "Auto Fit";
+                    });
+                  },
                 ),
 
                 _buildToolItem(
@@ -2939,14 +3089,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   tooltipMessage: "US Letter Portrait",
                   //onTap: () => showToast("US Letter Portrait applied"),
                   isSelected: _selectedPageSize == "Letter (P)",
-                  onTap: () => setState(() => _selectedPageSize = "Letter (P)"),
+                  // onTap: () => setState(() => _selectedPageSize = "Letter (P)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "Letter (P)";
+                    });
+                  },
                 ),
                 _buildToolItem(
                   label: "Letter (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Letter Landscape",
                   isSelected: _selectedPageSize == "Letter (L)",
-                  onTap: () => setState(() => _selectedPageSize = "Letter (L)"),
+                  // onTap: () => setState(() => _selectedPageSize = "Letter (L)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "Letter (L)";
+                    });
+                  },
                 ),
 
                 _buildToolItem(
@@ -2954,14 +3116,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "US Legal Portrait",
                   isSelected: _selectedPageSize == "Legal (P)",
-                  onTap: () => setState(() => _selectedPageSize = "Legal (P)"),
+                  // onTap: () => setState(() => _selectedPageSize = "Legal (P)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "Legal (P)";
+                    });
+                  },
                 ),
                 _buildToolItem(
                   label: "Legal (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Legal Landscape",
                   isSelected: _selectedPageSize == "Legal (L)",
-                  onTap: () => setState(() => _selectedPageSize = "Legal (L)"),
+                  // onTap: () => setState(() => _selectedPageSize = "Legal (L)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "Legal (L)";
+                    });
+                  },
                 ),
 
                 _buildToolItem(
@@ -2969,14 +3143,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A4 Portrait",
                   isSelected: _selectedPageSize == "A4 (P)",
-                  onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "A4 (P)";
+                    });
+                  },
                 ),
                 _buildToolItem(
                   label: "A4 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A4 Landscape",
                   isSelected: _selectedPageSize == "A4 (L)",
-                  onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
+                  // onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "A4 (L)";
+                    });
+                  },
                 ),
 
                 _buildToolItem(
@@ -2984,14 +3170,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A3 Portrait",
                   isSelected: _selectedPageSize == "A3 (P)",
-                  onTap: () => setState(() => _selectedPageSize = "A3 (P)"),
+                  // onTap: () => setState(() => _selectedPageSize = "A3 (P)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "A3 (P)";
+                    });
+                  },
                 ),
                 _buildToolItem(
                   label: "A3 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A3 Landscape",
                   isSelected: _selectedPageSize == "A3 (L)",
-                  onTap: () => setState(() => _selectedPageSize = "A3 (L)"),
+                  // onTap: () => setState(() => _selectedPageSize = "A3 (L)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "A3 (L)";
+                    });
+                  },
                 ),
 
                 // 6. A5 Size
@@ -3000,14 +3198,26 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A5 Portrait",
                   isSelected: _selectedPageSize == "A5 (P)",
-                  onTap: () => setState(() => _selectedPageSize = "A5 (P)"),
+                  // onTap: () => setState(() => _selectedPageSize = "A5 (P)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "A5 (P)";
+                    });
+                  },
                 ),
                 _buildToolItem(
                   label: "A5 (L)",
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A5 Landscape",
                   isSelected: _selectedPageSize == "A5 (L)",
-                  onTap: () => setState(() => _selectedPageSize = "A5 (L)"),
+                  //onTap: () => setState(() => _selectedPageSize = "A5 (L)"),
+                  onTap: () {
+                    _triggerHaptic('selection');
+                    setState(() {
+                      _selectedPageSize = "A5 (L)";
+                    });
+                  },
                 ),
               ],
             ),
@@ -3036,6 +3246,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             icon: allSelected ? Icons.deselect_rounded : Icons.select_all_rounded,
             tooltipMessage: allSelected ? "Deselect all pages" : "Select all pages",
             onTap: () {
+              _triggerHaptic('selection');
               setState(() {
                 _showFilterMenu = false;
                 _showAdjustMenu = false;
@@ -3067,6 +3278,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         icon: Icons.layers_rounded,
                         tooltipMessage: "Merge selected photos into one page",
                         onTap: () async {
+                          _triggerHaptic('selection');
                           showDialog(
                             context: context,
                             barrierDismissible: false,
@@ -3145,7 +3357,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     icon: Icons.rotate_right_rounded,
                     tooltipMessage: "Rotate selected pages",
                     isRotate: true,
-                    onTap: _bulkRotateImages,
+                    //onTap: _bulkRotateImages,
+                    onTap: () {
+                      _triggerHaptic('light');
+                      _bulkRotateImages();
+                    },
                   ),
                   _buildToolItem(
                     label: "Filter",
@@ -3153,6 +3369,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     tooltipMessage: "Apply filter to selected pages",
                     isSelected: _showFilterMenu,
                     onTap: () {
+                      _triggerHaptic('light');
                       setState(() {
                         _showFilterMenu = !_showFilterMenu;
                         if (_showFilterMenu) _showAdjustMenu = false;
@@ -3165,6 +3382,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     tooltipMessage: "Adjust selected pages",
                     isSelected: _showAdjustMenu,
                     onTap: () {
+                      _triggerHaptic('light');
                       setState(() {
                         _showAdjustMenu = !_showAdjustMenu;
                         if (_showAdjustMenu) _showFilterMenu = false;
@@ -3175,7 +3393,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     label: "Delete",
                     icon: Icons.delete_outline_rounded,
                     tooltipMessage: "Delete selected pages",
-                    onTap: _promptBulkDelete,
+                    //onTap: _promptBulkDelete,
+                    onTap: () {
+                      _triggerHaptic('light');
+                      _promptBulkDelete();
+                    },
                   ),
                 ],
               ),
@@ -3587,7 +3809,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               //color: isSelected ? Colors.blueAccent : Colors.transparent,
-              color: isSelected ? (isDarkMode ? Colors.blueAccent : Colors.blue) : Colors.transparent,
+              color: isSelected
+                  ? (isDarkMode ? Colors.blueAccent : Colors.blue)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
