@@ -2712,18 +2712,67 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
 
+      // if (savedPdf != null) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(
+      //       content: Row(
+      //         children: [
+      //           Icon(Icons.check_circle, color: Colors.white),
+      //           SizedBox(width: 10),
+      //           Text("PDF Saved Successfully!"),
+      //         ],
+      //       ),
+      //       backgroundColor: Colors.green,
+      //       behavior: SnackBarBehavior.floating,
+      //     ),
+      //   );
+      // }
+
       if (savedPdf != null) {
+        // 1. URI ko human-readable format mein convert karna
+        String displayPath = folderUri.toString();
+        try {
+          String decodedUri = Uri.decodeComponent(displayPath);
+          if (decodedUri.contains('primary:')) {
+            displayPath = "Internal Storage / ${decodedUri.split('primary:').last}";
+          } else {
+            // Agar SD card ya koi aur location hai, toh bas last ka folder name dikhayega
+            displayPath = decodedUri.split('/').last;
+          }
+        } catch (e) {
+          // Agar decode mein koi error aaya toh fallback
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 10),
-                Text("PDF Saved Successfully!"),
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "PDF Saved Successfully!",
+                        style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Path: $displayPath",
+                        style: const TextStyle(fontSize: 12, color: Colors.white),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
