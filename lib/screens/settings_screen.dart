@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 import 'custom_dialog.dart';
+import 'custom_toast.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key); // 🚨 FIX: Callback hata diya
@@ -88,15 +89,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool(key, value);
   }
 
-  void _showSettingToast(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg, style: const TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF2C2C2C),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  // void _showSettingToast(String msg) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(msg, style: const TextStyle(color: Colors.white)),
+  //       backgroundColor: const Color(0xFF2C2C2C),
+  //       duration: const Duration(seconds: 2),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +171,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             });
 
                             _saveSetting('pref_page_size', newValue);
-                            _showSettingToast("Default size set to $_defaultPageSize");
+                            //_showSettingToast("Default size set to $_defaultPageSize");
+                            CustomToast.show(
+                              context,
+                              message: "Default size set to $_defaultPageSize",
+                              icon: Icons.check_circle_outline,
+                              backgroundColor: Colors.green.shade600,
+                              iconColor: Colors.white,
+                              textColor: Colors.white,
+                            );
                           }
                         },
                       ),
@@ -227,7 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                   _buildSettingTile(
                     icon: Icons.restore_from_trash_rounded,
-                    title: "Recently Deleted",
+                    title: "Recently Deleted Files",
                     subtitle: "Recover files (30 days backup)",
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const TrashScreen()));
@@ -314,11 +323,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (!confirmClear) return;
-    _showSettingToast("Clearing cache... Please wait.");
+
+    if (!mounted) return;
+
+    //_showSettingToast("Clearing cache... Please wait.");
+    CustomToast.show(
+      context,
+      message: "Clearing cache... Please wait.",
+      icon: Icons.cleaning_services_rounded, // Cache clean karne ka feel dega
+      iconColor: Colors.blueAccent, // Thoda loading/processing wala look
+    );
 
     try {
       final Directory tempDir = await getTemporaryDirectory();
-
+      if (!mounted) return;
       if (tempDir.existsSync()) {
         final List<FileSystemEntity> tempFiles = tempDir.listSync();
         int deletedFilesCount = 0;
@@ -333,13 +351,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
 
         // Success Message
-        _showSettingToast("Success! Freed up space from $deletedFilesCount temp files.");
+        //_showSettingToast("Success! Freed up space from $deletedFilesCount temp files.");
+        CustomToast.show(
+          context,
+          message: "Success! Freed up space from $deletedFilesCount temp files.",
+          icon: Icons.check_circle_outline,
+          backgroundColor: Colors.green.shade600,
+          iconColor: Colors.white,
+          textColor: Colors.white,
+        );
       } else {
-        _showSettingToast("Cache is already clean!");
+        //_showSettingToast("Cache is already clean!");
+        CustomToast.show(
+          context,
+          message: "Cache is already clean!",
+          icon: Icons.done_all,
+          iconColor: Colors.blueAccent, // Info ke liye thoda blue touch
+        );
       }
     } catch (e) {
       print("Clear Cache Error: $e");
-      _showSettingToast("Failed to clear cache properly.");
+
+      if (!mounted) return;
+
+      //_showSettingToast("Failed to clear cache properly.");
+      CustomToast.show(
+        context,
+        message: "Failed to clear cache properly.",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.redAccent,
+        iconColor: Colors.white,
+        textColor: Colors.white,
+      );
     }
   }
 
@@ -432,7 +475,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       print("Rate Us Error: $e");
-      _showSettingToast("Unable to open rating dialog.");
+      // _showSettingToast("Unable to open rating dialog.");
+      CustomToast.show(
+        context,
+        message: "Unable to open rating dialog.",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.redAccent,
+        iconColor: Colors.white,
+        textColor: Colors.white,
+      );
     }
   }
 
@@ -605,15 +656,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (folderUri != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('pdf_save_folder', folderUri.toString());
+        if (!mounted) return;
         setState(() {
           _storageLocation = folderUri.toString();
         });
 
-        _showSettingToast("Download location updated successfully!");
+        // _showSettingToast("Download location updated successfully!");
+        CustomToast.show(
+          context,
+          message: "Download location updated successfully!",
+          icon: Icons.check_circle_outline,
+          backgroundColor: Colors.green.shade600,
+          iconColor: Colors.white,
+          textColor: Colors.white,
+        );
       }
     } catch (e) {
       print("Folder Picker Error: $e");
-      _showSettingToast("Failed to pick folder.");
+      if (!mounted) return;
+      // _showSettingToast("Failed to pick folder.");
+      CustomToast.show(
+        context,
+        message: "Failed to pick folder.",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.redAccent,
+        iconColor: Colors.white,
+        textColor: Colors.white,
+      );
     }
   }
 } // end main
