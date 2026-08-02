@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomGalleryScreen extends StatefulWidget {
   const CustomGalleryScreen({Key? key}) : super(key: key);
@@ -18,11 +20,20 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
   List<AssetEntity> _assets = [];
   List<AssetEntity> _selectedAssets = [];
   bool _isLoading = true;
+  bool isHapticEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _fetchAlbums();
+    _loadHapticSetting();
+  }
+
+  Future<void> _loadHapticSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
+    });
   }
 
   Future<void> _fetchAlbums() async {
@@ -92,7 +103,11 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      onTap: _showAlbumListModal,
+      // onTap: _showAlbumListModal,
+      onTap: () {
+        if (isHapticEnabled) HapticFeedback.lightImpact();
+        _showAlbumListModal();
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
@@ -195,6 +210,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                               ),
                               trailing: isSelected ? const Icon(Icons.check, color: Colors.greenAccent) : null,
                               onTap: () {
+                                if (isHapticEnabled) HapticFeedback.lightImpact();
                                 Navigator.pop(context);
                                 if (!isSelected) {
                                   setState(() {
@@ -231,7 +247,11 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.close, color: isDarkMode ? Colors.white : Colors.black),
-          onPressed: () => Navigator.pop(context),
+          // onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (isHapticEnabled) HapticFeedback.lightImpact();
+            Navigator.pop(context);
+          },
         ),
 
         centerTitle: true,
@@ -247,7 +267,13 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                   : Colors.grey,
               size: 28,
             ),
-            onPressed: _selectedAssets.isNotEmpty ? _completeSelection : null,
+            //onPressed: _selectedAssets.isNotEmpty ? _completeSelection : null,
+            onPressed: _selectedAssets.isNotEmpty
+                ? () {
+              if (isHapticEnabled) HapticFeedback.lightImpact();
+              _completeSelection();
+            }
+                : null,
           ),
         ],
       ),
@@ -268,6 +294,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
 
                 return GestureDetector(
                   onTap: () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
                     setState(() {
                       if (isSelected) {
                         _selectedAssets.remove(asset);
@@ -319,7 +346,11 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: SafeArea(
           child: GestureDetector(
-            onTap: _openNativePicker,
+            //onTap: _openNativePicker,
+            onTap: () {
+              if (isHapticEnabled) HapticFeedback.lightImpact();
+              _openNativePicker();
+            },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
