@@ -165,6 +165,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               );
                             }).toList(),
                         onChanged: (newValue) {
+                          if (isHapticEnabled) HapticFeedback.lightImpact();
                           if (newValue != null) {
                             setState(() {
                               _defaultPageSize = newValue;
