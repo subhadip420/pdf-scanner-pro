@@ -3047,34 +3047,74 @@ class PdfSearchDelegate extends SearchDelegate {
       );
     }
 
+    // return ListView.builder(
+    //   padding: const EdgeInsets.only(top: 10),
+    //   itemCount: results.length,
+    //   itemBuilder: (context, index) {
+    //     final file = results[index];
+    //     final fileName = file.path.split('/').last;
+    //
+    //     return ListTile(
+    //       leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+    //       title: Text(
+    //         fileName,
+    //         style: TextStyle(
+    //           color: isDarkMode ? Colors.white : Colors.black87,
+    //           fontSize: 15,
+    //           fontWeight: FontWeight.w500,
+    //         ),
+    //         maxLines: 1,
+    //         overflow: TextOverflow.ellipsis,
+    //       ),
+    //       subtitle: Text(
+    //         DateFormat('dd MMM yyyy').format(file.statSync().modified),
+    //         style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+    //       ),
+    //       onTap: () {
+    //         onHaptic('light');
+    //         // Click karne par file open ho jayegi
+    //         OpenFile.open(file.path);
+    //       },
+    //     );
+    //   },
+    // );
     return ListView.builder(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10), // Padding ko thoda adjust kiya
       itemCount: results.length,
       itemBuilder: (context, index) {
         final file = results[index];
         final fileName = file.path.split('/').last;
 
-        return ListTile(
-          leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
-          title: Text(
-            fileName,
-            style: TextStyle(
-              color: isDarkMode ? Colors.white : Colors.black87,
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
+        return Card(
+          elevation: 1.5,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+            title: Text(
+              fileName,
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black87,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            subtitle: Text(
+              DateFormat('dd MMM yyyy').format(file.statSync().modified),
+              style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+            ),
+            onTap: () {
+              onHaptic('light');
+              // Click karne par file open ho jayegi
+              OpenFile.open(file.path);
+            },
           ),
-          subtitle: Text(
-            DateFormat('dd MMM yyyy').format(file.statSync().modified),
-            style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
-          ),
-          onTap: () {
-            onHaptic('light');
-            // Click karne par file open ho jayegi
-            OpenFile.open(file.path);
-          },
         );
       },
     );
@@ -3131,36 +3171,76 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
                 ],
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.only(top: 10),
-              itemCount: _savedFilesList.length,
-              itemBuilder: (context, index) {
-                final file = _savedFilesList[index];
-                final fileName = file.path.split('/').last;
+          // : ListView.builder(
+          //     padding: const EdgeInsets.only(top: 10),
+          //     itemCount: _savedFilesList.length,
+          //     itemBuilder: (context, index) {
+          //       final file = _savedFilesList[index];
+          //       final fileName = file.path.split('/').last;
+          //
+          //       return ListTile(
+          //         leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+          //         title: Text(
+          //           fileName,
+          //           style: TextStyle(
+          //             color: isDarkMode ? Colors.white : Colors.black87,
+          //             fontSize: 15,
+          //             fontWeight: FontWeight.w500,
+          //           ),
+          //           maxLines: 1,
+          //           overflow: TextOverflow.ellipsis,
+          //         ),
+          //         subtitle: Text(
+          //           DateFormat('dd MMM yyyy').format(file.statSync().modified),
+          //           style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+          //         ),
+          //         onTap: () {
+          //           // Click karne par file direct open ho jayegi
+          //           OpenFile.open(file.path);
+          //         },
+          //       );
+          //     },
+          //   ),
 
-                return ListTile(
-                  leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
-                  title: Text(
-                    fileName,
-                    style: TextStyle(
-                      color: isDarkMode ? Colors.white : Colors.black87,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    DateFormat('dd MMM yyyy').format(file.statSync().modified),
-                    style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
-                  ),
-                  onTap: () {
-                    // Click karne par file direct open ho jayegi
-                    OpenFile.open(file.path);
-                  },
-                );
+          : ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 10), // Thoda padding adjust kiya
+        itemCount: _savedFilesList.length,
+        itemBuilder: (context, index) {
+          final file = _savedFilesList[index];
+          final fileName = file.path.split('/').last;
+
+          return Card(
+            elevation: 1.5, // Halka sa shadow effect
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), // Cards ke beech ka gap
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white, // Theme ke according card color
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12), // Card ke corners ko gol karne ke liye
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), // ListTile ke andar ki space
+              leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+              title: Text(
+                fileName,
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                DateFormat('dd MMM yyyy').format(file.statSync().modified),
+                style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+              ),
+              onTap: () {
+                // Click karne par file direct open ho jayegi
+                OpenFile.open(file.path);
               },
             ),
+          );
+        },
+      ),
     );
   }
 }
