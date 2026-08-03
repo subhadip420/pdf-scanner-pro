@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
@@ -65,7 +66,7 @@ class EditorSnapshot {
 class _MergeScreenState extends State<MergeScreen> {
   int? _selectedImageIndex;
   late List<MergedImageState> _imageStates;
-
+  bool isHapticEnabled = true;
   late List<Offset> _imagePositions;
 
   bool isPageSizeMode = false;
@@ -106,6 +107,7 @@ class _MergeScreenState extends State<MergeScreen> {
       widget.selectedImages.length,
       (index) => MergedImageState(file: widget.selectedImages[index], position: Offset(20.0 * index, 20.0 * index)),
     );
+    _loadHapticSetting();
   }
 
   Future<bool> _onWillPop() async {
@@ -118,6 +120,13 @@ class _MergeScreenState extends State<MergeScreen> {
     );
 
     return confirm;
+  }
+
+  Future<void> _loadHapticSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
+    });
   }
 
   void _saveStateToHistory() {
@@ -198,6 +207,7 @@ class _MergeScreenState extends State<MergeScreen> {
             icon: Icon(Icons.close_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 26),
             //onPressed: () => Navigator.pop(context),
             onPressed: () async {
+              if (isHapticEnabled) HapticFeedback.lightImpact();
               bool shouldExit = await _onWillPop();
               if (shouldExit && context.mounted) {
                 Navigator.pop(context);
@@ -216,7 +226,13 @@ class _MergeScreenState extends State<MergeScreen> {
                   ? (isDarkMode ? Colors.white : Colors.black87)
                   : (isDarkMode ? Colors.white24 : Colors.black12), size: 24),
               tooltip: "Undo",
-              onPressed: _undoHistory.isNotEmpty ? _undo : null,
+              // onPressed: _undoHistory.isNotEmpty ? _undo : null,
+              onPressed: _undoHistory.isNotEmpty
+                  ? () {
+                if (isHapticEnabled) HapticFeedback.selectionClick();
+                _undo();
+              }
+                  : null,
             ),
 
             IconButton(
@@ -224,13 +240,20 @@ class _MergeScreenState extends State<MergeScreen> {
                   ? (isDarkMode ? Colors.white : Colors.black87)
                   : (isDarkMode ? Colors.white24 : Colors.black12), size: 24),
               tooltip: "Redo",
-              onPressed: _redoHistory.isNotEmpty ? _redo : null,
+              //onPressed: _redoHistory.isNotEmpty ? _redo : null,
+              onPressed: _redoHistory.isNotEmpty
+                  ? () {
+                if (isHapticEnabled) HapticFeedback.lightImpact();
+                _redo();
+              }
+                  : null,
             ),
 
             IconButton(
               icon: Icon(Icons.check_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue, size: 28),
               tooltip: "Save",
               onPressed: () {
+                if (isHapticEnabled) HapticFeedback.lightImpact();
                 _saveAndExport();
               },
             ),
@@ -323,6 +346,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                           onTap: imgState.isLocked
                                               ? null
                                               : () {
+                                            if (isHapticEnabled) HapticFeedback.selectionClick();
                                                   setState(() => _selectedImageIndex = index);
                                                 },
                                           onPanStart: imgState.isLocked ? null : (details) => _saveStateToHistory(),
@@ -465,6 +489,7 @@ class _MergeScreenState extends State<MergeScreen> {
                                                   left: -12,
                                                   child: GestureDetector(
                                                     onTap: () {
+                                                      if (isHapticEnabled) HapticFeedback.selectionClick();
                                                       _saveStateToHistory();
                                                       setState(() {
                                                         _imageStates[index].isHidden = true;
@@ -634,6 +659,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       key: ObjectKey(_imageStates[index]),
 
                       onTap: () {
+                        if (isHapticEnabled) HapticFeedback.selectionClick();
                         setState(() {
                           _selectedImageIndex = index;
                         });
@@ -786,7 +812,13 @@ class _MergeScreenState extends State<MergeScreen> {
       waitDuration: const Duration(milliseconds: 500),
       preferBelow: false,
       child: GestureDetector(
-        onTap: isDisabled ? null : onTap,
+        //onTap: isDisabled ? null : onTap,
+        onTap: isDisabled
+            ? null
+            : () {
+          if (isHapticEnabled) HapticFeedback.selectionClick();
+          onTap?.call();
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Container(
