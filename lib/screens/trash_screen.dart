@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:open_file/open_file.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart'; // Tumhara custom dialog import
 
 class TrashScreen extends StatefulWidget {
@@ -15,11 +17,19 @@ class TrashScreen extends StatefulWidget {
 class _TrashScreenState extends State<TrashScreen> {
   List<File> _trashFiles = [];
   bool _isLoading = true;
-
+  bool isHapticEnabled = true;
   @override
   void initState() {
     super.initState();
     _loadTrashFiles();
+    _loadHapticSetting();
+  }
+
+  Future<void> _loadHapticSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
+    });
   }
 
   // --- 1. LOAD TRASH FILES ---
@@ -116,6 +126,7 @@ class _TrashScreenState extends State<TrashScreen> {
     );
 
     if (confirm) {
+      if (isHapticEnabled) HapticFeedback.lightImpact();
       setState(() => _isLoading = true);
       try {
         for (File file in _trashFiles) {
@@ -147,7 +158,11 @@ class _TrashScreenState extends State<TrashScreen> {
               child: IconButton(
                 icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
                 tooltip: "Empty Trash",
-                onPressed: _emptyTrash,
+                //onPressed: _emptyTrash,
+                onPressed: () {
+                  if (isHapticEnabled) HapticFeedback.lightImpact();
+                  _emptyTrash();
+                },
               ),
             ),
         ],
@@ -222,14 +237,22 @@ class _TrashScreenState extends State<TrashScreen> {
                     message: "Restore",
                     child: IconButton(
                       icon: Icon(Icons.restore_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue.shade700,),
-                      onPressed: () => _restoreFile(file),
+                      //onPressed: () => _restoreFile(file),
+                      onPressed: () {
+                        if (isHapticEnabled) HapticFeedback.selectionClick();
+                        _restoreFile(file);
+                      },
                     ),
                   ),
                   Tooltip(
                     message: "Delete Permanently",
                     child: IconButton(
                       icon: Icon(Icons.delete_forever_rounded, color: isDarkMode ? Colors.white54 : Colors.black54,),
-                      onPressed: () => _deleteForever(file),
+                      //onPressed: () => _deleteForever(file),
+                      onPressed: () {
+                        if (isHapticEnabled) HapticFeedback.lightImpact();
+                        _deleteForever(file);
+                      },
                     ),
                   ),
                 ],
