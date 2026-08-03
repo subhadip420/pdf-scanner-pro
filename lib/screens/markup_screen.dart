@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -152,7 +153,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
   List<TextOverlayItem> _textItems = [];
   TextOverlayItem? _activeTextItem;
-
+  bool isHapticEnabled = true;
   TextOverlayItem _draftTextItem = TextOverlayItem(text: "", offset: const Offset(0.5, 0.5), color: Colors.white);
   final TextEditingController _textEditorController = TextEditingController();
   final List<String> _fonts = ['Roboto', 'Serif', 'Monospace', 'Cursive'];
@@ -171,7 +172,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     super.initState();
     _loadInterstitialAd();
     _loadRecentColors();
-
+    _loadHapticSetting();
     if (widget.existingMarkups != null && widget.existingMarkups is MarkupExportData) {
       MarkupExportData data = widget.existingMarkups;
       _paths = List.from(data.paths);
@@ -184,6 +185,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
   void dispose() {
     _textEditorController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadHapticSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
+    });
   }
 
   void _loadInterstitialAd() {
@@ -470,6 +478,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
             leading: IconButton(
               icon: Icon(Icons.close_rounded, color: isDarkMode ?  Colors.white : Colors.black, size: 28),
               onPressed: () async {
+                if (isHapticEnabled) HapticFeedback.mediumImpact();
                 if (await _onWillPop()) {
                   Navigator.pop(context);
                 }
@@ -489,6 +498,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         : (isDarkMode ? Colors.white38 : Colors.black26)
                     ),
                     onPressed: () {
+                      if (isHapticEnabled) HapticFeedback.selectionClick();
                       if (_paths.isNotEmpty) {
                         setState(() {
                           _undonePaths.add(_paths.removeLast());
@@ -505,6 +515,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         : (isDarkMode ? Colors.white38 : Colors.black26),
                     ),
                     onPressed: () {
+                      if (isHapticEnabled) HapticFeedback.selectionClick();
+                      if (isHapticEnabled) HapticFeedback.lightImpact();
                       if (_undonePaths.isNotEmpty) {
                         setState(() {
                           _paths.add(_undonePaths.removeLast());
@@ -855,6 +867,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                           left: -10,
                                                           child: GestureDetector(
                                                             onTap: () {
+                                                              if (isHapticEnabled) HapticFeedback.lightImpact();
                                                               setState(() {
                                                                 _textItems.remove(item);
                                                                 _activeTextItem = null;
@@ -1005,10 +1018,17 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                             left: -10,
                                                             child: GestureDetector(
                                                               behavior: HitTestBehavior.opaque,
-                                                              onTap: () => setState(() {
-                                                                _shapeItems.remove(shape);
-                                                                _activeShapeItem = null;
-                                                              }),
+                                                              // onTap: () => setState(() {
+                                                              //   _shapeItems.remove(shape);
+                                                              //   _activeShapeItem = null;
+                                                              // }),
+                                                              onTap: () {
+                                                                if (isHapticEnabled) HapticFeedback.lightImpact();
+                                                                setState(() {
+                                                                  _shapeItems.remove(shape);
+                                                                  _activeShapeItem = null;
+                                                                });
+                                                              },
                                                               child: Container(
                                                                 width: 24,
                                                                 height: 24,
@@ -1118,7 +1138,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() => _isPanelHidden = !_isPanelHidden),
+                          // onTap: () => setState(() => _isPanelHidden = !_isPanelHidden),
+                          onTap: () {
+                            if (isHapticEnabled) HapticFeedback.lightImpact();
+                            setState(() => _isPanelHidden = !_isPanelHidden);
+                          },
                           onVerticalDragEnd: (details) {
                             if (details.primaryVelocity! > 0) {
                               setState(() => _isPanelHidden = true);
@@ -1172,6 +1196,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
+        if (isHapticEnabled) HapticFeedback.selectionClick();
         _unfocusAll();
         setState(() => _activeTab = title);
       },
@@ -1225,7 +1250,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   Text("Color", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14)),
                   const SizedBox(width: 16),
                   GestureDetector(
-                    onTap: _openColorPicker,
+                    // onTap: _openColorPicker,
+                    onTap: () {
+                      if (isHapticEnabled) HapticFeedback.lightImpact();
+                      _openColorPicker();
+                    },
                     child: Container(
                       width: 32,
                       height: 32,
@@ -1242,7 +1271,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Tooltip(
                   message: "Pen",
                   child: GestureDetector(
-                    onTap: () => setState(() => _isEraserMode = false),
+                    // onTap: () => setState(() => _isEraserMode = false),
+                    onTap: () {
+                      if (isHapticEnabled) HapticFeedback.selectionClick();
+                      setState(() => _isEraserMode = false);
+                    },
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
@@ -1264,7 +1297,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Tooltip(
                   message: "Eraser",
                   child: GestureDetector(
-                    onTap: canEraseOrClear ? () => setState(() => _isEraserMode = true) : null,
+                    // onTap: canEraseOrClear ? () => setState(() => _isEraserMode = true) : null,
+                    onTap: canEraseOrClear ? () {
+                      if (isHapticEnabled) HapticFeedback.selectionClick();
+                      setState(() => _isEraserMode = true);
+                    } : null,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
@@ -1290,6 +1327,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   child: GestureDetector(
                     onTap: canEraseOrClear
                         ? () {
+                      if (isHapticEnabled) HapticFeedback.selectionClick();
                             setState(() {
                               _paths.add(
                                 DrawnPath(
@@ -1339,7 +1377,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
             //thumbColor: Colors.white,
             thumbColor: isDarkMode ? Colors.white : Colors.blue,
           ),
-          child: Slider(value: _strokeWidth, min: 1, max: 50, onChanged: (val) => setState(() => _strokeWidth = val)),
+          child: Slider(
+              value: _strokeWidth, min: 1, max: 50,
+              //onChanged: (val) => setState(() => _strokeWidth = val)
+            onChanged: (val) {
+              if (isHapticEnabled) HapticFeedback.lightImpact();
+              setState(() => _strokeWidth = val);
+            },
+          ),
         ),
 
         Row(
@@ -1374,7 +1419,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
             value: _opacity,
             min: 0.1,
             max: 1.0,
-            onChanged: _isEraserMode ? null : (val) => setState(() => _opacity = val),
+            // onChanged: _isEraserMode ? null : (val) => setState(() => _opacity = val),
+            onChanged: _isEraserMode ? null : (val) {
+              if (isHapticEnabled) HapticFeedback.lightImpact();
+              setState(() => _opacity = val);
+            },
           ),
         ),
       ],
@@ -1396,6 +1445,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
           children: [
             GestureDetector(
               onTap: () => setState(() {
+                if (isHapticEnabled) HapticFeedback.selectionClick();
                 int idx = _fonts.indexOf(activeItem.font);
                 activeItem.font = _fonts[(idx + 1) % _fonts.length];
               }),
@@ -1419,6 +1469,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
               onPressed: () {
+                if (isHapticEnabled) HapticFeedback.lightImpact();
                 setState(() {
                   final newItem = activeItem.clone();
                   newItem.text = "";
@@ -1456,7 +1507,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   value: activeItem.fontSize,
                   min: 12,
                   max: 100,
-                  onChanged: (val) => setState(() => activeItem.fontSize = val),
+                  // onChanged: (val) => setState(() => activeItem.fontSize = val),
+                  onChanged: (val) {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() => activeItem.fontSize = val);
+                  },
                 ),
               ),
             ),
@@ -1478,7 +1533,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Text Appearance",
                 child: GestureDetector(
-                  onTap: () => setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4),
+                  // onTap: () => setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4),
+                  onTap: () {
+                    if (isHapticEnabled) HapticFeedback.selectionClick();
+                    setState(() => activeItem.appearance = (activeItem.appearance + 1) % 4);
+                  },
                   child: Container(
                     width: 36,
                     height: 36,
@@ -1533,7 +1592,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Bold Text",
                 child: GestureDetector(
-                  onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
+                  //onTap: () => setState(() => activeItem.isBold = !activeItem.isBold),
+                  onTap: () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() => activeItem.isBold = !activeItem.isBold);
+                  },
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
@@ -1554,7 +1617,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Underline Text",
                 child: GestureDetector(
-                  onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
+                  // onTap: () => setState(() => activeItem.isUnderline = !activeItem.isUnderline),
+                  onTap: () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() => activeItem.isUnderline = !activeItem.isUnderline);
+                  },
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
@@ -1575,7 +1642,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Italic",
                 child: GestureDetector(
-                  onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
+                  //onTap: () => setState(() => activeItem.isItalic = !activeItem.isItalic),
+                  onTap: () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() => activeItem.isItalic = !activeItem.isItalic);
+                  },
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
@@ -1596,7 +1667,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Strikethrough",
                 child: GestureDetector(
-                  onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
+                  // onTap: () => setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough),
+                  onTap: () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() => activeItem.isStrikethrough = !activeItem.isStrikethrough);
+                  },
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
@@ -1619,10 +1694,18 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Rotate 90°",
                 child: GestureDetector(
+                  // onTap: hasActiveText
+                  //     ? () => setState(() {
+                  //         _activeTextItem!.rotation += (math.pi / 2);
+                  //       })
+                  //     : null,
                   onTap: hasActiveText
-                      ? () => setState(() {
-                          _activeTextItem!.rotation += (math.pi / 2);
-                        })
+                      ? () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() {
+                      _activeTextItem!.rotation += (math.pi / 2);
+                    });
+                  }
                       : null,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1640,13 +1723,24 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Duplicate Text",
                 child: GestureDetector(
+                  // onTap: hasActiveText
+                  //     ? () => setState(() {
+                  //         TextOverlayItem duplicateItem = _activeTextItem!.clone();
+                  //         _textItems.add(duplicateItem);
+                  //         _activeTextItem = duplicateItem;
+                  //         _textEditorController.text = duplicateItem.text;
+                  //       })
+                  //     : null,
                   onTap: hasActiveText
-                      ? () => setState(() {
-                          TextOverlayItem duplicateItem = _activeTextItem!.clone();
-                          _textItems.add(duplicateItem);
-                          _activeTextItem = duplicateItem;
-                          _textEditorController.text = duplicateItem.text;
-                        })
+                      ? () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() {
+                      TextOverlayItem duplicateItem = _activeTextItem!.clone();
+                      _textItems.add(duplicateItem);
+                      _activeTextItem = duplicateItem;
+                      _textEditorController.text = duplicateItem.text;
+                    });
+                  }
                       : null,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1665,11 +1759,20 @@ class _MarkupScreenState extends State<MarkupScreen> {
               Tooltip(
                 message: "Delete Text",
                 child: GestureDetector(
+                  // onTap: hasActiveText
+                  //     ? () => setState(() {
+                  //         _textItems.remove(_activeTextItem);
+                  //         _activeTextItem = null;
+                  //       })
+                  //     : null,
                   onTap: hasActiveText
-                      ? () => setState(() {
-                          _textItems.remove(_activeTextItem);
-                          _activeTextItem = null;
-                        })
+                      ? () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() {
+                      _textItems.remove(_activeTextItem);
+                      _activeTextItem = null;
+                    });
+                  }
                       : null,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1714,7 +1817,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         Color iconColor = c.computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
                         return GestureDetector(
-                          onTap: () => setState(() => activeItem.color = c),
+                          // onTap: () => setState(() => activeItem.color = c),
+                          onTap: () {
+                            if (isHapticEnabled) HapticFeedback.lightImpact();
+                            setState(() => activeItem.color = c);
+                          },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -1735,7 +1842,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
             Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 1.5, height: 28, color: Colors.white24),
             GestureDetector(
+              // onTap: () async {
+              //   await _openColorPicker();
+              //   setState(() {
+              //     activeItem.color = _selectedColor;
+              //   });
+              // },
               onTap: () async {
+                if (isHapticEnabled) HapticFeedback.lightImpact();
                 await _openColorPicker();
                 setState(() {
                   activeItem.color = _selectedColor;
@@ -1784,7 +1898,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Text("Color", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14)),
                 const SizedBox(width: 16),
                 GestureDetector(
-                  onTap: _openColorPicker,
+                  // onTap: _openColorPicker,
+                  onTap: () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    _openColorPicker();
+                  },
                   child: Container(
                     width: 32,
                     height: 32,
@@ -1806,6 +1924,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
+                          if (isHapticEnabled) HapticFeedback.lightImpact();
                           setState(() {
                             /// Duplicate shape create karo
                             final copy = ShapeItem(
@@ -1835,6 +1954,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
                           setState(() {
                             _shapeItems.remove(_activeShapeItem);
                             _activeShapeItem = null;
@@ -1933,7 +2053,16 @@ class _MarkupScreenState extends State<MarkupScreen> {
               //inactiveTrackColor: Colors.grey.shade800,
               inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
             ),
-            child: Slider(value: val.clamp(min, max), min: min, max: max, onChanged: onChanged),
+            //child: Slider(value: val.clamp(min, max), min: min, max: max, onChanged: onChanged),
+            child: Slider(
+              value: val.clamp(min, max),
+              min: min,
+              max: max,
+              onChanged: (newVal) {
+                if (isHapticEnabled) HapticFeedback.selectionClick();
+                onChanged(newVal); // Agar onChanged nullable parameter hai, toh aap onChanged?.call(newVal); bhi use kar sakte ho
+              },
+            ),
           ),
         ),
       ],
@@ -1945,6 +2074,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     bool isSelected = _selectedShape == icon.toString();
     return GestureDetector(
       onTap: () {
+        if (isHapticEnabled) HapticFeedback.lightImpact();
         setState(() {
           final newShape = ShapeItem(
             icon: icon,
