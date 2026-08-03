@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // 🚨 NEW: Markup structures aur DrawingPainter use karne ke liye import add kiya
 import 'markup_screen.dart';
@@ -18,18 +20,26 @@ class _ReorderScreenState extends State<ReorderScreen> {
   late List<Map<String, dynamic>> _items;
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
-
+  bool isHapticEnabled = true;
   @override
   void initState() {
     super.initState();
     _loadBannerAd();
     _items = List.from(widget.imageFiles);
+    _loadHapticSetting();
   }
 
   @override
   void dispose() {
     _bannerAd?.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadHapticSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
+    });
   }
 
   /// --- BANNER AD FUNCTION ---
@@ -137,6 +147,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
         leading: IconButton(
           icon: Icon(Icons.close_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 28),
           onPressed: () {
+            if (isHapticEnabled) HapticFeedback.lightImpact();
             Navigator.pop(context);
           },
         ),
@@ -148,6 +159,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
           IconButton(
             icon: Icon(Icons.check_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue, size: 30),
             onPressed: () {
+              if (isHapticEnabled) HapticFeedback.lightImpact();
               Navigator.pop(context, _items);
             },
           ),
