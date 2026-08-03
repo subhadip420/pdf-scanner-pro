@@ -2,11 +2,13 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_compressor/pdf_compressor.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
 import 'home_screen.dart';
 
@@ -29,6 +31,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   String? _tempCompressedFilePath;
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
+  bool isHapticEnabled = true;
 
   // TODO Test Ad Unit ID
   //final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111'; // test ad id
@@ -57,12 +60,20 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startCompression();
     });
+    _loadHapticSetting();
   }
 
   @override
   void dispose() {
     _bannerAd?.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadHapticSetting() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
+    });
   }
 
   void _loadBannerAd() {
@@ -254,7 +265,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
             message: "Back",
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black),
-              onPressed: () => _handleBackButton(),
+              // onPressed: () => _handleBackButton(),
+              onPressed: () {
+                if (isHapticEnabled) HapticFeedback.lightImpact();
+                _handleBackButton();
+              },
             ),
           ),
           title: Text("Compress PDF", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 20)),
@@ -295,7 +310,11 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         const SizedBox(width: 4),
                         IconButton(
                           icon: Icon(Icons.info_outline, color: isDarkMode ? Colors.white54 : Colors.black, size: 20),
-                          onPressed: _showInfoDialog,
+                          //onPressed: _showInfoDialog,
+                          onPressed: () {
+                            if (isHapticEnabled) HapticFeedback.lightImpact();
+                            _showInfoDialog();
+                          },
                           tooltip: "Info",
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
@@ -324,6 +343,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                               divisions: 90,
                               label: "${_compressionLevel.toInt()}%",
                               onChanged: (value) {
+                                if (isHapticEnabled) HapticFeedback.selectionClick();
                                 setState(() {
                                   _compressionLevel = value;
                                   _newSize = null;
@@ -346,7 +366,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
                     /// Compress Button
                     ElevatedButton(
-                      onPressed: _isCompressing ? null : _startCompression,
+                      //onPressed: _isCompressing ? null : _startCompression,
+                      onPressed: _isCompressing
+                          ? null
+                          : () {
+                        if (isHapticEnabled) HapticFeedback.lightImpact();
+                        _startCompression();
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDarkMode ? Colors.blueAccent : Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -456,7 +482,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _newSize == null ? null : () => _saveAsZip(),
+                            //onPressed: _newSize == null ? null : () => _saveAsZip(),
+                            onPressed: _newSize == null
+                                ? null
+                                : () {
+                              if (isHapticEnabled) HapticFeedback.lightImpact();
+                              _saveAsZip();
+                            },
                             icon: Icon(
                               Icons.folder_zip_outlined,
                               size: 20,
@@ -476,7 +508,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         const SizedBox(width: 15),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _newSize == null ? null : () => _shareCompressedPdf(),
+                            //onPressed: _newSize == null ? null : () => _shareCompressedPdf(),
+                            onPressed: _newSize == null
+                                ? null
+                                : () {
+                              if (isHapticEnabled) HapticFeedback.lightImpact();
+                              _shareCompressedPdf();
+                            },
                             icon: Icon(
                               Icons.share_outlined,
                               size: 20,
@@ -499,7 +537,13 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
                     /// Download PDF Button
                     ElevatedButton.icon(
-                      onPressed: _newSize == null ? null : () => _saveCompressedPdf(),
+                      //onPressed: _newSize == null ? null : () => _saveCompressedPdf(),
+                      onPressed: _newSize == null
+                          ? null
+                          : () {
+                        if (isHapticEnabled) HapticFeedback.lightImpact();
+                        _saveCompressedPdf();
+                      },
                       icon: const Icon(Icons.download_rounded, color: Colors.white),
                       label: const Text(
                         "SAVE COMPRESSED PDF",
