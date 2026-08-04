@@ -19,6 +19,7 @@ import 'package:image/image.dart' as img;
 import 'camera_settings_screen.dart';
 import 'custom_dialog.dart';
 import 'custom_gallery_screen.dart';
+import 'custom_toast.dart';
 import 'document_editor_screen.dart';
 import 'home_screen.dart'; // For StreamSubscription
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -192,7 +193,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       if (!status.isGranted) {
-        showToast("Camera permission is required to scan!");
+        //showToast("Camera permission is required to scan!");
+        if (!mounted) return;
+
+        CustomToast.show(
+          context,
+          message: "Camera permission is required to scan!",
+          icon: Icons.warning_amber_rounded,
+          backgroundColor: Colors.orangeAccent,
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
         return;
       }
 
@@ -224,7 +235,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
     } catch (e) {
       debugPrint("Camera init error: $e");
       if (mounted) {
-        showToast("Error starting camera. Please restart the app.");
+        //showToast("Error starting camera. Please restart the app.");
+        if (!mounted) return;
+
+        CustomToast.show(
+          context,
+          message: "Error starting camera. Please restart the app.",
+          icon: Icons.error_outline_rounded,
+          backgroundColor: Colors.redAccent,
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
     }
   }
@@ -369,7 +390,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   Future<void> _flipCamera() async {
     if (cameras.length < 2) {
-      showToast("Secondary camera not available");
+      //showToast("Secondary camera not available");
+      CustomToast.show(
+        context,
+        message: "Secondary camera not available",
+        icon: Icons.flip_camera_ios_outlined, // Camera switch warning ke liye perfect icon
+        backgroundColor: Colors.orangeAccent,
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       return;
     }
     if (controller.value.isStreamingImages) {
@@ -408,7 +437,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
         _startMLAutoDetect();
       }
     } catch (e) {
-      showToast("Error switching camera");
+      //showToast("Error switching camera");
+      if (!mounted) return;
+
+      CustomToast.show(
+        context,
+        message: "Error switching camera",
+        icon: Icons.error_outline_rounded,
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       if (mounted) {
         setState(() => _isCameraReady = true);
       }
@@ -435,7 +474,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
           break;
       }
     } catch (e) {
-      showToast("Flash not supported on this camera");
+      //showToast("Flash not supported on this camera");
+      if (!mounted) return;
+
+      CustomToast.show(
+        context,
+        message: "Flash not supported on this camera",
+        icon: Icons.flash_off_rounded,
+        backgroundColor: Colors.orangeAccent,
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -447,9 +496,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
   }
 
-  void showToast(String msg) {
-    Fluttertoast.showToast(msg: msg, toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM);
-  }
+  // void showToast(String msg) {
+  //   Fluttertoast.showToast(msg: msg, toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM);
+  // }
 
   Future<void> _capturePhoto() async {
     if (!controller.value.isInitialized || isCapturing || _isCameraSleeping) return;
@@ -517,11 +566,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
         isCapturing = false;
       });
     } catch (e) {
+      debugPrint("Error capturing photo: $e");
+      if (!mounted) return;
       setState(() {
         isCapturing = false;
         currentCountdown = 0;
       });
-      showToast("Error capturing photo");
+      //showToast("Error capturing photo");
+      CustomToast.show(
+        context,
+        message: "Error capturing photo",
+        icon: Icons.error_outline_rounded,
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -870,7 +929,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       if (mounted) {
         if (isMultiScanMode) {
-          showToast("Page $capturedPhotosCount captured. Scanning next...");
+          //showToast("Page $capturedPhotosCount captured. Scanning next...");
+          CustomToast.show(
+            context,
+            message: "Page $capturedPhotosCount captured. Scanning next...",
+            icon: Icons.check_circle_outline_rounded,
+            backgroundColor: Colors.green, // Success feedback ke liye green theme
+            textColor: Colors.white,
+            iconColor: Colors.white,
+          );
           Future.delayed(const Duration(milliseconds: 1500), () {
             if (mounted && isAutoDetectOn && !_isCameraSleeping) {
               _startMLAutoDetect();
@@ -993,12 +1060,33 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       if (status.isPermanentlyDenied) {
-        showToast("Please enable Gallery permission from settings.");
+        if (!mounted) return;
+        HapticFeedback.lightImpact();
+        //showToast("Please enable Gallery permission from settings.");
+        CustomToast.show(
+          context,
+          message: "Please enable Gallery permission from settings.",
+          icon: Icons.settings_rounded,
+          backgroundColor: Colors.orangeAccent, // Warning theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
         await openAppSettings();
         return;
       }
       if (!status.isGranted && !status.isLimited) {
-        showToast("Gallery permission required.");
+        if (!mounted) return;
+
+        HapticFeedback.lightImpact();
+        //showToast("Gallery permission required.");
+        CustomToast.show(
+          context,
+          message: "Gallery permission required.",
+          icon: Icons.photo_library_outlined, // Gallery icon context ke liye best rahega
+          backgroundColor: Colors.redAccent,  // Process ruk raha hai isliye red theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
         return;
       }
 
@@ -1026,6 +1114,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         context,
         MaterialPageRoute(builder: (context) => const CustomGalleryScreen()),
       );
+      if (!mounted) return;
 
       if (selectedFiles == null || selectedFiles.isEmpty) {
         if (mounted) {
@@ -1034,6 +1123,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           });
           _resetSleepTimer();
           await _wakeUpCamera();
+          if (!mounted) return;
           if (isAutoDetectOn && selectedIndex == 0) {
             _startMLAutoDetect();
           }
@@ -1053,14 +1143,32 @@ class _ScannerScreenState extends State<ScannerScreen> {
         capturedPhotosCount = capturedImagesList.length;
       });
 
-      showToast("${selectedFiles.length} images imported serial wise");
+      //showToast("${selectedFiles.length} images imported serial wise");
+      CustomToast.show(
+        context,
+        message: "${selectedFiles.length} images imported serial wise",
+        icon: Icons.check_circle_outline_rounded,
+        backgroundColor: Colors.green, // Success theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
 
       if (mounted) {
         _goToEditor(); // 🚨 Master Helper call kiya
       }
     } catch (e) {
       print("Gallery Error: $e");
-      showToast("Error importing images");
+      if (!mounted) return;
+      HapticFeedback.lightImpact();
+      //showToast("Error importing images");
+      CustomToast.show(
+        context,
+        message: "Error importing images",
+        icon: Icons.error_outline_rounded,
+        backgroundColor: Colors.redAccent, // Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -1209,7 +1317,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     //onPressed: () => setState(() => _detectedQrCode = null),
                                     onPressed: () async {
                                       await _triggerVibration();
-                                      _detectedQrCode = null;
+                                      if (!mounted) return;
+                                      //_detectedQrCode = null;
+                                      setState(() {
+                                        _detectedQrCode = null;
+                                      });
                                     },
                                   ),
                                 ],
@@ -1228,8 +1340,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                   TextButton.icon(
                                     onPressed: () async {
                                       await _triggerVibration();
+                                      if (!mounted) return;
                                       Clipboard.setData(ClipboardData(text: _detectedQrCode!));
-                                      showToast("Copied to clipboard");
+
+                                      //showToast("Copied to clipboard");
+                                      CustomToast.show(
+                                        context,
+                                        message: "Copied to clipboard",
+                                        icon: Icons.copy_rounded, // Copy action ke liye best icon
+                                        backgroundColor: Colors.green, // Success feedback
+                                        textColor: Colors.white,
+                                        iconColor: Colors.white,
+                                      );
                                     },
                                     icon: const Icon(Icons.copy_rounded, size: 18),
                                     label: const Text("Copy"),
@@ -1240,8 +1362,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       onPressed: () async {
                                         await _triggerVibration();
                                         final Uri url = Uri.parse(_detectedQrCode!);
-                                        if (await canLaunchUrl(url)) {
+
+                                        bool canLaunch = await canLaunchUrl(url);
+                                        if (!mounted) return;
+                                        // if (await canLaunchUrl(url)) {
+                                        //   await launchUrl(url, mode: LaunchMode.externalApplication);
+                                        // }
+                                        if (canLaunch) {
                                           await launchUrl(url, mode: LaunchMode.externalApplication);
+                                        } else {
+                                          // Agar link invalid ho ya browser na mile toh Error Toast
+                                          CustomToast.show(
+                                            context,
+                                            message: "Could not open link",
+                                            icon: Icons.error_outline_rounded,
+                                            backgroundColor: Colors.redAccent, // Error feedback
+                                            textColor: Colors.white,
+                                            iconColor: Colors.white,
+                                          );
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(
@@ -1646,12 +1784,25 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       ? null
                       : () async {
                           await _triggerVibration();
+                          if (!mounted) return;
                           setState(() {
                             isMultiScanMode = !isMultiScanMode;
                           });
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.setBool('isMultiScanMode', isMultiScanMode);
-                          showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
+
+                          if (!mounted) return;
+                          //showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
+                          CustomToast.show(
+                            context,
+                            message: isMultiScanMode ? "Multi-scan ON" : "Single-scan ON",
+                            icon: isMultiScanMode
+                                ? Icons.file_copy_rounded
+                                : Icons.insert_drive_file_outlined,
+                            backgroundColor: Colors.green, // Mode change success
+                            textColor: Colors.white,
+                            iconColor: Colors.white,
+                          );
                         },
                   icon: Opacity(
                     opacity: selectedIndex == 1 ? 0.4 : 1.0,
