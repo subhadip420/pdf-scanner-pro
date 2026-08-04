@@ -10,6 +10,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
+import 'custom_toast.dart';
 import 'home_screen.dart';
 
 class PdfCompressScreen extends StatefulWidget {
@@ -126,18 +127,18 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     );
   }
 
-  void showToast(String message) {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
-        backgroundColor: isDarkMode ? Colors.grey.shade900 : Colors.white,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  // void showToast(String message) {
+  //   bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text(message, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+  //       backgroundColor: isDarkMode ? Colors.grey.shade900 : Colors.white,
+  //       behavior: SnackBarBehavior.floating,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  //       duration: const Duration(seconds: 2),
+  //     ),
+  //   );
+  // }
 
   Future<void> _handleBackButton() async {
     bool shouldDiscard = await showCustomConfirmDialog(
@@ -236,13 +237,25 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       }
     } catch (e) {
       print("Real Compression Error: $e");
+
+      if (!mounted) return;
+
       if (mounted) {
         setState(() {
           _isCompressing = false;
           _newSize = "Error!";
         });
       }
-      showToast("Failed to compress PDF. File might be protected or too complex.");
+
+      // showToast("Failed to compress PDF. File might be protected or too complex.");
+      CustomToast.show(
+        context,
+        message: "Failed to compress PDF. File might be protected or too complex.",
+        icon: Icons.error_outline_rounded,
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -575,8 +588,18 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           dialogTitle: 'Select Folder to Save ZIP',
         );
 
+        if (!mounted) return;
+
         if (selectedDirectory == null) {
-          showToast("Save cancelled");
+          //showToast("Save cancelled");
+          CustomToast.show(
+            context,
+            message: "Save cancelled",
+            icon: Icons.info_outline_rounded,
+            backgroundColor: Colors.orangeAccent,
+            textColor: Colors.white,
+            iconColor: Colors.white,
+          );
           return;
         }
 
@@ -598,17 +621,47 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           File zipFile = File(zipPath);
           await zipFile.writeAsBytes(zipData);
 
-          showToast("Saved successfully in selected folder!");
+          //showToast("Saved successfully in selected folder!");
+          if (!mounted) return;
 
-          if (mounted) {
-            Navigator.pop(context);
-          }
+          CustomToast.show(
+            context,
+            message: "Saved successfully in selected folder!",
+            icon: Icons.check_circle_outline_rounded,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            iconColor: Colors.white,
+          );
+
+          // if (mounted) {
+          //   Navigator.pop(context);
+          // }
+          Navigator.pop(context);
         } else {
-          showToast("Failed to encode ZIP!");
+          //showToast("Failed to encode ZIP!");
+          if (!mounted) return;
+          CustomToast.show(
+            context,
+            message: "Failed to encode ZIP!",
+            icon: Icons.error_outline_rounded,
+            backgroundColor: Colors.redAccent,
+            textColor: Colors.white,
+            iconColor: Colors.white,
+          );
         }
       } catch (e) {
         print("Zip Error: $e");
-        showToast("Failed to save ZIP!");
+        //showToast("Failed to save ZIP!");
+        if (!mounted) return;
+
+        CustomToast.show(
+          context,
+          message: "Failed to save ZIP!",
+          icon: Icons.error_outline_rounded,
+          backgroundColor: Colors.redAccent,
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
     }
 
@@ -617,10 +670,21 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (ad) {
           ad.dispose();
+
+          if (!mounted) return;
+
           if (rewardEarned) {
             performZipSave();
           } else {
-            showToast("Please watch the full ad to save ZIP");
+            //showToast("Please watch the full ad to save ZIP");
+            CustomToast.show(
+              context,
+              message: "Please watch the full ad to save ZIP",
+              icon: Icons.warning_amber_rounded,
+              backgroundColor: Colors.orangeAccent,
+              textColor: Colors.white,
+              iconColor: Colors.white,
+            );
           }
         },
         onAdFailedToShowFullScreenContent: (ad, error) {
@@ -658,7 +722,17 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       );
     } catch (e) {
       print("Share Error: $e");
-      showToast("Failed to share PDF!");
+      //showToast("Failed to share PDF!");
+      if (!mounted) return;
+
+      CustomToast.show(
+        context,
+        message: "Failed to share PDF!",
+        icon: Icons.error_outline_rounded,
+        backgroundColor: Colors.redAccent,
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -679,18 +753,45 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         File tempFile = File(_tempCompressedFilePath!);
         await tempFile.copy(savePath);
 
-        showToast("Saved as: $newFileName");
+        //showToast("Saved as: $newFileName");
 
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (Route<dynamic> route) => false,
-          );
-        }
+        if (!mounted) return;
+
+        CustomToast.show(
+          context,
+          message: "Saved as: $newFileName",
+          icon: Icons.check_circle_outline_rounded,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
+
+        // if (mounted) {
+        //   Navigator.pushAndRemoveUntil(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => const HomeScreen()),
+        //     (Route<dynamic> route) => false,
+        //   );
+        // }
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (Route<dynamic> route) => false,
+        );
       } catch (e) {
         print("Save Error: $e");
-        showToast("Failed to save PDF!");
+        //showToast("Failed to save PDF!");
+        if (!mounted) return;
+
+        CustomToast.show(
+          context,
+          message: "Failed to save PDF!",
+          icon: Icons.error_outline_rounded,
+          backgroundColor: Colors.redAccent,
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
     }
 
