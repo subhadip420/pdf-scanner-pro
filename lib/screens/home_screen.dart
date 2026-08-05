@@ -24,6 +24,7 @@ import 'package:shared_storage/shared_storage.dart' as saf;
 import '../main.dart';
 import 'custom_dialog.dart';
 import 'custom_gallery_screen.dart'; // Apni gallery wali screen
+import 'custom_toast.dart';
 import 'document_editor_screen.dart'; // Apna editor
 import 'package:gal/gal.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -226,17 +227,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return combinedList;
   }
 
-  void showToast(String msg) {
-    bool isDark = isDarkModeNotifier.value;
-
-    Fluttertoast.showToast(
-      msg: msg,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: isDark ? Colors.white : Colors.black87,
-      textColor: isDark ? Colors.black : Colors.white,
-    );
-  }
+  // void showToast(String msg) {
+  //   bool isDark = isDarkModeNotifier.value;
+  //
+  //   Fluttertoast.showToast(
+  //     msg: msg,
+  //     toastLength: Toast.LENGTH_SHORT,
+  //     gravity: ToastGravity.BOTTOM,
+  //     backgroundColor: isDark ? Colors.white : Colors.black87,
+  //     textColor: isDark ? Colors.black : Colors.white,
+  //   );
+  // }
 
   Future<void> _loadPdfFiles() async {
     try {
@@ -299,16 +300,39 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         if (_savedFilePaths.contains(filePath)) {
           _savedFilePaths.remove(filePath);
-          showToast("Removed from saved");
+          //showToast("Removed from saved");
+          CustomToast.show(
+            context,
+            message: "Removed from saved",
+            // Yahan icon parameter pass nahi kiya gaya hai
+            backgroundColor: Colors.grey[800], // Neutral/Dark grey theme simple info ke liye
+            textColor: Colors.white,
+          );
         } else {
           _savedFilePaths.add(filePath);
-          showToast("Added to saved");
+          //showToast("Added to saved");
+          CustomToast.show(
+            context,
+            message: "Added to saved",
+            // Icon nahi diya, UI ko clean rakhne ke liye
+            backgroundColor: Colors.green, // Ya Colors.grey[800] agar neutral rakhna ho
+            textColor: Colors.white,
+          );
         }
       });
       await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
     } catch (e) {
       print("SharedPreferences Save Error: $e");
-      showToast("Error updating save status");
+      // showToast("Error updating save status");
+      if (!mounted) return;
+      CustomToast.show(
+        context,
+        message: "Error updating save status",
+        icon: Icons.error_outline, // Error ke liye icon dena best hai
+        backgroundColor: Colors.red, // Alert ke liye red theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -357,14 +381,30 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         status = await Permission.photos.request();
       }
-
+      if (!mounted) return;
       if (status.isPermanentlyDenied) {
-        showToast("Please enable Gallery permission from settings.");
+        // showToast("Please enable Gallery permission from settings.");
+        CustomToast.show(
+          context,
+          message: "Please enable Gallery permission from settings.",
+          icon: Icons.settings, // Settings ka icon, kyunki user settings mein ja raha hai
+          backgroundColor: Colors.orange,
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
         await openAppSettings();
         return;
       }
       if (!status.isGranted && !status.isLimited) {
-        showToast("Gallery permission required.");
+        //showToast("Gallery permission required.");
+        CustomToast.show(
+          context,
+          message: "Gallery permission required.",
+          icon: Icons.warning_amber_rounded, // Alert karne ke liye warning icon
+          backgroundColor: Colors.orange, // Warning theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
         return;
       }
       if (!mounted) return;
@@ -385,7 +425,17 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } catch (e) {
       print("Home Screen Gallery Error: $e");
-      showToast("Error opening gallery");
+      // showToast("Error opening gallery");
+      if (!mounted) return;
+
+      CustomToast.show(
+        context,
+        message: "Error opening gallery",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -502,6 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles, _triggerHaptic));
                       },
                     ),
+
                   ),
                   _buildMainAppBarMenu(),
                 ],
@@ -552,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildMenuPill("Create from photos", Icons.photo_library_outlined, () {
                       _triggerHaptic('selection');
-                      showToast("Gallery opening...");
+                      //showToast("Gallery opening...");
                       setState(() => _isFabMenuOpen = false);
                       _openGalleryForPdf();
                     }),
@@ -1374,7 +1425,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
         _loadPdfFiles(); // List refresh karo
         String orderText = _isAscending ? "Ascending" : "Descending";
-        showToast("Sorted by $_sortBy ($orderText)");
+        //showToast("Sorted by $_sortBy ($orderText)");
+        CustomToast.show(
+          context,
+          message: "Sorted by $_sortBy ($orderText)",
+          backgroundColor: Colors.grey[800], // Neutral/Informational state
+          textColor: Colors.white,
+        );
       },
       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
         _buildSortMenuItem('Date', Icons.calendar_today_rounded),
@@ -1746,7 +1803,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _mergeSelectedFiles() async {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     if (_selectedFiles.length < 2) {
-      showToast("Please select at least 2 files to merge");
+      //showToast("Please select at least 2 files to merge");
+      CustomToast.show(
+        context,
+        message: "Please select at least 2 files to merge",
+        icon: Icons.info_outline, // Info ya warning icon suit karega
+        backgroundColor: Colors.orange, // User constraint/warning theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       return;
     }
 
@@ -1792,8 +1857,18 @@ class _HomeScreenState extends State<HomeScreen> {
         File finalFile = File(finalOutputPath);
         await finalFile.writeAsBytes(mergedBytes, flush: true);
 
+        if (!mounted) return;
+
         Navigator.pop(context);
-        showToast("PDF Merged Successfully!");
+        //showToast("PDF Merged Successfully!");
+        CustomToast.show(
+          context,
+          message: "PDF Merged Successfully!",
+          icon: Icons.check_circle_outline,
+          backgroundColor: Colors.green, // Success theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
         setState(() {
           _isSelectionMode = false;
           _selectedFiles.clear();
@@ -1802,7 +1877,15 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         Navigator.pop(context);
         print("Syncfusion Merge Error: $e");
-        showToast("Something went wrong while merging");
+        //showToast("Something went wrong while merging");
+        CustomToast.show(
+          context,
+          message: "Something went wrong while merging",
+          icon: Icons.error_outline,
+          backgroundColor: Colors.red, // Error theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
     }
 
@@ -1847,8 +1930,17 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       if (!hasInternet) {
+        if (!mounted) return;
         Navigator.pop(context);
-        showToast("No internet, try again");
+        //showToast("No internet, try again");
+        CustomToast.show(
+          context,
+          message: "No internet, try again",
+          icon: Icons.wifi_off, // Internet issue ke liye perfect icon
+          backgroundColor: Colors.orange, // Warning state
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       } else {
         performMerge();
       }
@@ -1882,8 +1974,17 @@ class _HomeScreenState extends State<HomeScreen> {
       final xFile = XFile(file.path);
       await SharePlus.instance.share(ShareParams(files: [xFile], text: 'Document shared from PDF Scanner Pro'));
     } catch (e) {
-      showToast("Error sharing file");
       print("Share Error: $e");
+      if (!mounted) return;
+      //showToast("Error sharing file");
+      CustomToast.show(
+        context,
+        message: "Error sharing file",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -1899,14 +2000,26 @@ class _HomeScreenState extends State<HomeScreen> {
           for (String path in _selectedFiles) {
             _savedFilePaths.remove(path);
           }
-          showToast("${_selectedFiles.length} files removed from saved");
+          //showToast("${_selectedFiles.length} files removed from saved");
+          CustomToast.show(
+            context,
+            message: "${_selectedFiles.length} files removed from saved",
+            backgroundColor: Colors.grey.shade800, // Minimal/Info theme
+            textColor: Colors.white,
+          );
         } else {
           for (String path in _selectedFiles) {
             if (!_savedFilePaths.contains(path)) {
               _savedFilePaths.add(path);
             }
           }
-          showToast("${_selectedFiles.length} files added to saved");
+          //showToast("${_selectedFiles.length} files added to saved");
+          CustomToast.show(
+            context,
+            message: "${_selectedFiles.length} files added to saved",
+            backgroundColor: Colors.grey.shade800, // Minimal/Info theme
+            textColor: Colors.white,
+          );
         }
         _isSelectionMode = false;
         _selectedFiles.clear();
@@ -1914,13 +2027,31 @@ class _HomeScreenState extends State<HomeScreen> {
       await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
     } catch (e) {
       print("Bulk Tag Error: $e");
-      showToast("Error updating tags");
+      //showToast("Error updating tags");
+      if (!mounted) return;
+
+      CustomToast.show(
+        context,
+        message: "Error updating tags",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
   Future<void> _confirmBulkDelete() async {
     if (_selectedFiles.isEmpty) {
-      showToast("Please select files to delete");
+      //showToast("Please select files to delete");
+      CustomToast.show(
+        context,
+        message: "Please select files to delete",
+        icon: Icons.info_outline, // Gentle reminder icon
+        backgroundColor: Colors.orange, // Warning/Action-required theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       return;
     }
 
@@ -1963,8 +2094,14 @@ class _HomeScreenState extends State<HomeScreen> {
           _toggleSaveFile(path);
         }
       }
-
-      showToast("$count files moved to Trash");
+      if (!mounted) return;
+      //showToast("$count files moved to Trash");
+      CustomToast.show(
+        context,
+        message: "$count files moved to Trash",
+        backgroundColor: Colors.grey.shade800,
+        textColor: Colors.white,
+      );
 
       setState(() {
         _isSelectionMode = false;
@@ -1974,7 +2111,15 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadPdfFiles();
     } catch (e) {
       print("Bulk Delete Error: $e");
-      showToast("Error moving some files to Trash");
+      //showToast("Error moving some files to Trash");
+      CustomToast.show(
+        context,
+        message: "Error moving some files to Trash",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -1997,10 +2142,30 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       await originalFile.copy(newPath);
       await _loadPdfFiles();
-      showToast("File copied successfully");
+      //showToast("File copied successfully");
+      if (!mounted) return;
+
+      CustomToast.show(
+        context,
+        message: "File copied successfully",
+        icon: Icons.check_circle_outline, // Success icon
+        backgroundColor: Colors.green, // Success/Positive theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     } catch (e) {
       print("Copy Error: $e");
-      showToast("Error copying file");
+      //showToast("Error copying file");
+      if (!mounted) return;
+
+      CustomToast.show(
+        context,
+        message: "Error copying file",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -2124,7 +2289,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 String newName = nameController.text.trim();
 
                 if (newName.isEmpty) {
-                  showToast("Name cannot be empty");
+                  //showToast("Name cannot be empty");
+                  CustomToast.show(
+                    context,
+                    message: "Name cannot be empty",
+                    icon: Icons.warning_amber_rounded, // Validation warning icon
+                    backgroundColor: Colors.orange, // Warning theme
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                  );
                   return;
                 }
 
@@ -2137,7 +2310,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 if (await newFile.exists()) {
-                  showToast("A file with this name already exists");
+                  //showToast("A file with this name already exists");
+                  CustomToast.show(
+                    context,
+                    message: "A file with this name already exists",
+                    icon: Icons.warning_amber_rounded, // Warning/Alert icon
+                    backgroundColor: Colors.orange, // Warning theme
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                  );
                   return;
                 }
 
@@ -2152,12 +2333,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
                   }
 
+                  if (!mounted) return;
                   Navigator.pop(context);
+
                   await _loadPdfFiles();
-                  showToast("File renamed successfully");
+
+                  //showToast("File renamed successfully");
+                  if (!mounted) return;
+                  CustomToast.show(
+                    context,
+                    message: "File renamed successfully",
+                    icon: Icons.check_circle_outline, // Success icon
+                    backgroundColor: Colors.green, // Success theme
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                  );
                 } catch (e) {
                   print("Rename Error: $e");
-                  showToast("Error renaming file");
+                  //showToast("Error renaming file");
+                  if (!mounted) return;
+
+                  CustomToast.show(
+                    context,
+                    message: "Error renaming file",
+                    icon: Icons.error_outline,
+                    backgroundColor: Colors.red, // Error theme
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                  );
                 }
               },
               child: Text(
@@ -2246,12 +2449,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _shareSelectedFiles() async {
     if (_selectedFiles.isEmpty) {
-      showToast("Please select at least one file to share");
+      //showToast("Please select at least one file to share");
+      CustomToast.show(
+        context,
+        message: "Please select at least one file to share",
+        icon: Icons.warning_amber_rounded, // Validation warning icon
+        backgroundColor: Colors.orange, // Warning theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       return;
     }
 
     try {
-      showToast("Preparing ${_selectedFiles.length} files...");
+      //showToast("Preparing ${_selectedFiles.length} files...");
+      CustomToast.show(
+        context,
+        message: "Preparing ${_selectedFiles.length} files...",
+        icon: Icons.info_outline,
+        backgroundColor: Colors.grey.shade700, // Neutral/Process theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       List<XFile> filesToShare = _selectedFiles.map((path) => XFile(path)).toList();
       await SharePlus.instance.share(ShareParams(files: filesToShare, text: 'Documents shared from PDF Scanner Pro'));
       setState(() {
@@ -2260,7 +2479,16 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (e) {
       print("Bulk Share Error: $e");
-      showToast("Error sharing files");
+      if (!mounted) return;
+      //showToast("Error sharing files");
+      CustomToast.show(
+        context,
+        message: "Error sharing files",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -2276,7 +2504,16 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } catch (e) {
       print("Print Error: $e");
-      showToast("Error printing file");
+      if (!mounted) return;
+      //showToast("Error printing file");
+      CustomToast.show(
+        context,
+        message: "Error printing file",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Critical error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -2308,13 +2545,40 @@ class _HomeScreenState extends State<HomeScreen> {
         await file.copy(trashFile.path);
         await file.delete();
         await _loadPdfFiles(); // UI list update
-        showToast("Moved to Trash");
+        //showToast("Moved to Trash");
+        CustomToast.show(
+          context,
+          message: "Moved to Trash",
+          // Optional: Success ke liye check icon lagana chaho toh laga sakte ho,
+          // warna clean minimalist look ke liye skip kar sakte ho.
+          // icon: Icons.check_circle_outline,
+          backgroundColor: Colors.green, // Success theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       } else {
-        showToast("File not found");
+        //showToast("File not found");
+        CustomToast.show(
+          context,
+          message: "File not found",
+          icon: Icons.warning_amber_rounded,
+          backgroundColor: Colors.orange, // Warning theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
     } catch (e) {
       print("Delete Error: $e");
-      showToast("Error: Could not move file to Trash.");
+      if (!mounted) return;
+      //showToast("Error: Could not move file to Trash.");
+      CustomToast.show(
+        context,
+        message: "Error: Could not move file to Trash.",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -2369,7 +2633,7 @@ class _HomeScreenState extends State<HomeScreen> {
     //final String interstitialTestId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
     final String interstitialTestId = 'ca-app-pub-5454466291921987/6893752966'; //real ad id
 
-    showToast("Preparing file...");
+    //showToast("Preparing file...");
 
     InterstitialAd.load(
       adUnitId: interstitialTestId,
@@ -2432,10 +2696,27 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       await document.close();
-      showToast("Success! Saved $pageCount pages to Gallery");
+      //showToast("Success! Saved $pageCount pages to Gallery");
+      CustomToast.show(
+        context,
+        message: "No text found in this PDF.",
+        icon: Icons.warning_amber_rounded,
+        backgroundColor: Colors.orange, // Warning/Empty state theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     } catch (e) {
       print("Save JPEG Error: $e");
-      showToast("Failed to extract pages.");
+      if (!mounted) return;
+      //showToast("Failed to extract pages.");
+      CustomToast.show(
+        context,
+        message: "Failed to extract pages.",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red, // Critical error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -2521,7 +2802,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (context.mounted) {
       if (extractedText.trim().isEmpty) {
-        showToast("No text found in this PDF.");
+        //showToast("No text found in this PDF.");
+        CustomToast.show(
+          context,
+          message: "No text found in this PDF.",
+          icon: Icons.warning_amber_rounded,
+          backgroundColor: Colors.orange, // Warning/Empty state theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       } else {
         _showExtractedTextDialog(context, extractedText);
       }
@@ -2621,7 +2910,15 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 _triggerHaptic('light');
                 Clipboard.setData(ClipboardData(text: extractedText));
-                showToast("Text copied to clipboard!");
+                //showToast("Text copied to clipboard!");
+                CustomToast.show(
+                  context,
+                  message: "Text copied to clipboard!",
+                  icon: Icons.copy_all, // Copy action ke liye perfect icon
+                  backgroundColor: Colors.green, // Success theme
+                  textColor: Colors.white,
+                  iconColor: Colors.white,
+                );
                 Navigator.pop(context);
               },
               icon: Icon(Icons.copy, color: isDarkMode ? Colors.blueAccent : Colors.blue),
