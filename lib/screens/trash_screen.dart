@@ -5,7 +5,8 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'custom_dialog.dart'; // Tumhara custom dialog import
+import 'custom_dialog.dart';
+import 'custom_toast.dart'; // Tumhara custom dialog import
 
 class TrashScreen extends StatefulWidget {
   const TrashScreen({Key? key}) : super(key: key);
@@ -82,11 +83,25 @@ class _TrashScreenState extends State<TrashScreen> {
 
       await trashFile.copy(restoredFile.path); // Copy to Home
       await trashFile.delete(); // Delete from Trash
-
-      Fluttertoast.showToast(msg: "File Restored");
+      if (!mounted) return;
+      // Fluttertoast.showToast(msg: "File Restored");
+      CustomToast.show(
+        context,
+        message: "File Restored",
+        backgroundColor: Colors.green, // Success ko represent karne ke liye
+        textColor: Colors.white,
+      );
       _loadTrashFiles(); // List update karo
     } catch (e) {
-      Fluttertoast.showToast(msg: "Error restoring file");
+      print("Error restoring file: $e");
+      //Fluttertoast.showToast(msg: "Error restoring file");
+      CustomToast.show(
+        context,
+        message: "Error restoring file",
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        icon: Icons.error_outline,
+      );
     }
   }
 
@@ -104,10 +119,26 @@ class _TrashScreenState extends State<TrashScreen> {
     if (confirm) {
       try {
         await trashFile.delete();
-        Fluttertoast.showToast(msg: "Deleted permanently");
+        if (!mounted) return;
+        //Fluttertoast.showToast(msg: "Deleted permanently");
+        CustomToast.show(
+          context,
+          message: "Deleted permanently",
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
         _loadTrashFiles();
       } catch (e) {
-        Fluttertoast.showToast(msg: "Error deleting file");
+        print("Error deleting file permanently: $e");
+        if (!mounted) return;
+        // Fluttertoast.showToast(msg: "Error deleting file");
+        CustomToast.show(
+          context,
+          message: "Error deleting file",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          icon: Icons.error_outline,
+        );
       }
     }
   }
@@ -132,10 +163,26 @@ class _TrashScreenState extends State<TrashScreen> {
         for (File file in _trashFiles) {
           await file.delete();
         }
-        Fluttertoast.showToast(msg: "Trash Emptied");
+        if (!mounted) return;
+        //Fluttertoast.showToast(msg: "Trash Emptied");
+        CustomToast.show(
+          context,
+          message: "Trash Emptied",
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
         _loadTrashFiles();
       } catch (e) {
-        Fluttertoast.showToast(msg: "Error emptying trash");
+        print("Error emptying trash: $e");
+        if (!mounted) return;
+        //Fluttertoast.showToast(msg: "Error emptying trash");
+        CustomToast.show(
+          context,
+          message: "Error emptying trash",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          icon: Icons.error_outline,
+        );
         setState(() => _isLoading = false);
       }
     }
