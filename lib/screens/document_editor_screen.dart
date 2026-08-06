@@ -17,6 +17,7 @@ import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
+import 'custom_toast.dart';
 import 'home_screen.dart';
 import 'markup_screen.dart';
 import 'dart:ui' as ui;
@@ -461,13 +462,31 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           _isDetectingText = false;
         });
       } else {
+        if (!mounted) return;
         setState(() => _isDetectingText = false);
-        showToast("No text found in this image");
+        //showToast("No text found in this image");
+        CustomToast.show(
+          context,
+          message: "No text found in this image",
+          icon: Icons.warning_amber_rounded,
+          backgroundColor: Colors.orange, // Warning/Empty state theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
       textRecognizer.close();
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isDetectingText = false);
-      showToast("Failed to extract text");
+      // showToast("Failed to extract text");
+      CustomToast.show(
+        context,
+        message: "Failed to extract text",
+        icon: Icons.error_outline, // Error icon
+        backgroundColor: Colors.red, // Critical error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -479,7 +498,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       final croppedFile = docFiles[currentPage]['cropped'] as File?;
 
       if (originalFile == null || croppedFile == null) {
-        showToast("Error: Image data not found");
+        //showToast("Error: Image data not found");
+        CustomToast.show(
+          context,
+          message: "Error: Image data not found",
+          icon: Icons.broken_image_outlined, // Missing image ke liye perfect icon
+          backgroundColor: Colors.red, // Data failure ke liye Red theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
         return;
       }
 
@@ -549,12 +576,30 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             isProcessing = false;
           });
         } else {
+          if (!mounted) return;
           setState(() => isProcessing = false);
-          showToast("Could not process image");
+          //showToast("Could not process image");
+          CustomToast.show(
+            context,
+            message: "Could not process image",
+            icon: Icons.image_not_supported_outlined,
+            backgroundColor: Colors.red, // Processing failed
+            textColor: Colors.white,
+            iconColor: Colors.white,
+          );
         }
       } catch (e) {
+        if (!mounted) return;
         setState(() => isProcessing = false);
-        showToast("Error: $e");
+        //showToast("Error: $e");
+        CustomToast.show(
+          context,
+          message: "Error: ${e.toString()}",
+          icon: Icons.error,
+          backgroundColor: Colors.red, // Exception theme
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
     }
   }
@@ -572,7 +617,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   Future<void> _openReorderScreen() async {
     if (docFiles.length <= 1) {
-      showToast("Only one page available");
+      //showToast("Only one page available");
+      CustomToast.show(
+        context,
+        message: "Need at least 2 pages to reorder", // Message ko thoda aur clear kar diya
+        //icon: Icons.layers_clear, // Perfect icon for document layers/pages
+        backgroundColor: Colors.orange, // Validation/Warning theme
+        textColor: Colors.white,
+        //iconColor: Colors.white,
+      );
       return;
     }
 
@@ -590,12 +643,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       MaterialPageRoute(builder: (context) => ReorderScreen(imageFiles: List.from(docFiles))),
     );
 
+    if (!mounted) return;
+
     if (reorderedList != null && reorderedList is List<Map<String, dynamic>>) {
       docFiles.clear();
       docFiles.addAll(reorderedList);
       _loadEditsFromMemory();
       _pageController.jumpToPage(0);
-      showToast("Pages reordered successfully");
+      //showToast("Pages reordered successfully");
+      CustomToast.show(
+        context,
+        message: "Pages reordered successfully",
+        icon: Icons.check_circle, // Success icon
+        backgroundColor: Colors.green, // Success theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -624,7 +687,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               _isInterstitialAdLoaded = false;
               _loadInterstitialAd();
 
-              showToast("Saving PDF...");
+              //showToast("Saving PDF...");
+              CustomToast.show(
+                context,
+                message: "Saving PDF...",
+                icon: Icons.picture_as_pdf, // Process ko match karta icon
+                backgroundColor: Colors.grey.shade800, // Neutral/Process theme
+                textColor: Colors.white,
+                iconColor: Colors.white,
+              );
               _generateAndSavePdf();
             },
             onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
@@ -632,7 +703,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               _interstitialAd = null;
               _isInterstitialAdLoaded = false;
 
-              showToast("Saving PDF...");
+              //showToast("Saving PDF...");
+              CustomToast.show(
+                context,
+                message: "Saving PDF...",
+                icon: Icons.picture_as_pdf,
+                backgroundColor: Colors.grey.shade800, // Neutral/Process theme
+                textColor: Colors.white,
+                iconColor: Colors.white,
+              );
               _generateAndSavePdf();
             },
           );
@@ -662,13 +741,21 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       await Future.delayed(const Duration(milliseconds: 100));
       if (_isInterstitialAdLoaded) break;
     }
-
-    if (mounted) Navigator.pop(context);
+    if (!mounted) return;
+    Navigator.pop(context);
 
     if (_isInterstitialAdLoaded && _interstitialAd != null) {
       _interstitialAd!.show();
     } else {
-      showToast("Saving PDF...");
+      //showToast("Saving PDF...");
+      CustomToast.show(
+        context,
+        message: "Saving PDF...",
+        icon: Icons.picture_as_pdf,
+        backgroundColor: Colors.grey.shade800, // Neutral/Process theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       _generateAndSavePdf();
     }
   }
@@ -939,7 +1026,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       // 3. File Save karo
       await file.writeAsBytes(await pdf.save());
 
-      showToast("PDF Saved Successfully!");
+      if (!mounted) return;
+
+      //showToast("PDF Saved Successfully!");
+      CustomToast.show(
+        context,
+        message: "PDF Saved Successfully!",
+        icon: Icons.check_circle, // Success icon
+        backgroundColor: Colors.green, // Success theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
 
       // 4. Spinner close karo aur Home Screen par jao
       if (mounted) {
@@ -952,31 +1049,50 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
     } catch (e) {
       // Agar beech me koi error aa jaye toh spinner phasna nahi chahiye
-      if (mounted) {
-        Navigator.pop(context); // Spinner band
-      }
-      showToast("Error saving PDF: $e");
+      // if (mounted) {
+      //   Navigator.pop(context); // Spinner band
+      // }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+      //showToast("Error saving PDF: $e");
+      CustomToast.show(
+        context,
+        message: "Error saving PDF: $e",
+        icon: Icons.error_outline, // Alert/Error icon
+        backgroundColor: Colors.red.shade700, // Critical Error theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
       print("Save Error: $e");
     }
   }
 
-  void showToast(String msg) {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    Fluttertoast.showToast(
-      msg: msg,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: isDarkMode ? Colors.white : Colors.black,
-      textColor: isDarkMode ? Colors.black : Colors.white,
-    );
-  }
+  // void showToast(String msg) {
+  //   bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  //
+  //   Fluttertoast.showToast(
+  //     msg: msg,
+  //     toastLength: Toast.LENGTH_SHORT,
+  //     gravity: ToastGravity.BOTTOM,
+  //     backgroundColor: isDarkMode ? Colors.white : Colors.black,
+  //     textColor: isDarkMode ? Colors.black : Colors.white,
+  //   );
+  // }
 
   void _previousPage() {
     if (currentPage > 0) {
       _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
-      showToast("First page");
+      //showToast("First page");
+      CustomToast.show(
+        context,
+        message: "Already on the first page", // Thoda aur clear UX message
+        icon: Icons.info_outline, // Info ya warning icon
+        backgroundColor: Colors.orange.shade700, // Warning theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -984,7 +1100,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     if (currentPage < docFiles.length - 1) {
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
-      showToast("Last page");
+      //showToast("Last page");
+      CustomToast.show(
+        context,
+        message: "Already on the last page", // Better UX copy
+        icon: Icons.info_outline,
+        backgroundColor: Colors.orange.shade700, // Warning theme
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -1002,6 +1126,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         MaterialPageRoute(builder: (context) => const ScannerScreen(isRetakeMode: true, isOpenedFromEditor: false)),
       );
 
+      if (!mounted) return;
+
       if (result != null && result is File) {
         setState(() {
           docFiles[currentPage] = {'original': result, 'cropped': result};
@@ -1014,11 +1140,27 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           _pageContrast[currentPage] = 0.0;
         });
 
-        showToast("Page ${currentPage + 1} replaced successfully!");
+        //showToast("Page ${currentPage + 1} replaced successfully!");
+        CustomToast.show(
+          context,
+          message: "Page ${currentPage + 1} replaced successfully!",
+          icon: Icons.check_circle,
+          backgroundColor: Colors.green, // Success
+          textColor: Colors.white,
+          iconColor: Colors.white,
+        );
       }
     } catch (e) {
-      showToast("Error replacing photo: $e");
+      //showToast("Error replacing photo: $e");
       print("Retake Error: $e");
+      CustomToast.show(
+        context,
+        message: "Error replacing photo: $e",
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red.shade700, // Critical Error
+        textColor: Colors.white,
+        iconColor: Colors.white,
+      );
     }
   }
 
@@ -2067,7 +2209,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                           onPressed: () {
                                             _triggerHaptic('selection');
                                             Clipboard.setData(ClipboardData(text: _extractedText!));
-                                            showToast("Text copied to clipboard!");
+                                            //showToast("Text copied to clipboard!");
+                                            CustomToast.show(
+                                              context,
+                                              message: "Text copied to clipboard!",
+                                              icon: Icons.copy, // Ya Icons.check_circle bhi achha lagega
+                                              backgroundColor: Colors.green, // Success theme
+                                              textColor: Colors.white,
+                                              iconColor: Colors.white,
+                                            );
                                             setState(() => _showCopyBanner = false);
                                           },
                                           style: ElevatedButton.styleFrom(
@@ -2181,7 +2331,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             : () {
                                 _triggerHaptic('light');
                                 _saveEditsToMemory();
-                                showToast("Opening scanner...");
+                                //showToast("Opening scanner...");
 
                                 if (widget.isFromGallery) {
                                   Navigator.push(
@@ -2342,7 +2492,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       });
                       Navigator.pop(context);
                     } else {
-                      showToast("Name cannot be empty");
+                      //showToast("Name cannot be empty");
+                      CustomToast.show(
+                        context,
+                        message: "Name cannot be empty",
+                        icon: Icons.warning_amber_rounded, // Ya fir Icons.edit_off
+                        backgroundColor: Colors.orange.shade700, // Validation/Warning theme
+                        textColor: Colors.white,
+                        iconColor: Colors.white,
+                      );
                     }
                   },
                   child: Text(
@@ -2602,8 +2760,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       _defaultFilter = tempSelectedFilter;
                     });
 
+                    CustomToast.show(
+                      context,
+                      message: "Default filter set to $tempSelectedFilter",
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
+                    );
                     Navigator.pop(context);
-                    showToast("Default filter set to $tempSelectedFilter");
+                    //showToast("Default filter set to $tempSelectedFilter");
                   },
                   child: Text(
                     "Save",
@@ -2833,7 +2997,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           }
                         }
                       });
-                      showToast("$_activeAdjustTab reset to 0");
+                      //showToast("$_activeAdjustTab reset to 0");
                     },
                     child: Text(
                       "Reset",
@@ -3343,8 +3507,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   _pageController.jumpToPage(currentPage);
                                 }
                               });
-
-                              showToast("Merged photo added!");
+                              if (!mounted) return;
+                              //showToast("Merged photo added!");
+                              CustomToast.show(
+                                context,
+                                message: "Merged photo added!",
+                                backgroundColor: Colors.green,
+                                textColor: Colors.white,
+                              );
                             }
                           }
                         },
@@ -3434,7 +3604,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
 
     HapticFeedback.lightImpact();
-    showToast("Page duplicated successfully");
+    //showToast("Page duplicated successfully");
+    CustomToast.show(
+      context,
+      message: "Page duplicated successfully",
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
   }
 
   Future<List<File>> _prepareImagesForMerge() async {
@@ -3641,7 +3817,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
 
     int selectedCount = selectedPagesList.where((e) => e == true).length;
-    showToast("$selectedCount page(s) rotated");
+    //showToast("$selectedCount page(s) rotated");
   }
 
   // Delete Page Logic with Memory Sync
@@ -3658,15 +3834,31 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
 
     if (confirmDelete) {
+
+      if (!mounted) return;
       if (docFiles.length == 1) {
-        showToast("Document deleted");
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (route) => false,
-          );
-        }
+        //showToast("Document deleted");
+        CustomToast.show(
+          context,
+          message: "Document deleted",
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+        );
+
+        // if (mounted) {
+        //   Navigator.pushAndRemoveUntil(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => const HomeScreen()),
+        //     (route) => false,
+        //   );
+        // }
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+        );
+
       } else {
         setState(() {
           docFiles.removeAt(currentPage);
@@ -3681,7 +3873,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
         });
 
-        showToast("Page deleted");
+        //showToast("Page deleted");
+        CustomToast.show(
+          context,
+          message: "Page deleted",
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+        );
       }
     }
   }
@@ -3712,15 +3910,29 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
 
     if (confirmDelete) {
+      if (!mounted) return;
       if (selectedCount == docFiles.length) {
-        showToast("Document deleted");
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (route) => false,
-          );
-        }
+        // showToast("Document deleted");
+
+        CustomToast.show(
+          context,
+          message: "Document deleted",
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+        );
+
+        // if (mounted) {
+        //   Navigator.pushAndRemoveUntil(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => const HomeScreen()),
+        //     (route) => false,
+        //   );
+        // }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+        );
       } else {
         setState(() {
           for (int i = docFiles.length - 1; i >= 0; i--) {
@@ -3746,7 +3958,13 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
         });
 
-        showToast("$selectedCount page(s) deleted");
+        //showToast("$selectedCount page(s) deleted");
+        CustomToast.show(
+          context,
+          message: "$selectedCount page(s) deleted",
+          backgroundColor: Colors.grey.shade800,
+          textColor: Colors.white,
+        );
       }
     }
   }
@@ -3802,7 +4020,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return Tooltip(
       message: tooltipMessage,
       child: GestureDetector(
-        onTap: onTap ?? () => showToast("$label clicked"),
+        //onTap: onTap ?? () => showToast("$label clicked"),
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Container(
@@ -3916,8 +4135,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         setState(() => isProcessing = false);
       }
     } catch (e) {
-      showToast("Error saving crop");
+      print("Error saving crop: $e");
+      if (!mounted) return;
       setState(() => isProcessing = false);
+      //showToast("Error saving crop");
+      CustomToast.show(
+        context,
+        message: "Error saving crop",
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        icon: Icons.error_outline, // Important/Alert ke liye icon allowed hai
+      );
+
     }
   }
 
