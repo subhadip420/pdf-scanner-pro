@@ -138,9 +138,6 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
     );
   }
 
-  // --- Helper Widgets ---
-
-  // Function parameters se 'icon' hata diya
   Widget _buildSwitchTile({
     required String title,
     required String subtitle,
@@ -154,7 +151,6 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
       activeTrackColor: Colors.blueAccent.withOpacity(0.4),
       inactiveThumbColor: Colors.grey.shade400,
       inactiveTrackColor: Colors.grey.shade700,
-      // Yahan se 'secondary: Icon(...)' property poori tarah hata di
       title: Text(
         title,
         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
