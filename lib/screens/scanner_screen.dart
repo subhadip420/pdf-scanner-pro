@@ -180,7 +180,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Future<void> _initializeCamera() async {
     if (!mounted) return;
 
-    // Reset status
     setState(() {
       _isCameraReady = false;
       _isCameraSleeping = false;
@@ -193,7 +192,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       if (!status.isGranted) {
-        //showToast("Camera permission is required to scan!");
         if (!mounted) return;
 
         CustomToast.show(
@@ -390,11 +388,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   Future<void> _flipCamera() async {
     if (cameras.length < 2) {
-      //showToast("Secondary camera not available");
       CustomToast.show(
         context,
         message: "Secondary camera not available",
-        icon: Icons.flip_camera_ios_outlined, // Camera switch warning ke liye perfect icon
+        icon: Icons.flip_camera_ios_outlined,
         backgroundColor: Colors.orangeAccent,
         textColor: Colors.white,
         iconColor: Colors.white,
@@ -437,7 +434,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         _startMLAutoDetect();
       }
     } catch (e) {
-      //showToast("Error switching camera");
       if (!mounted) return;
 
       CustomToast.show(
@@ -495,10 +491,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
     });
   }
-
-  // void showToast(String msg) {
-  //   Fluttertoast.showToast(msg: msg, toastLength: Toast.LENGTH_SHORT, gravity: ToastGravity.BOTTOM);
-  // }
 
   Future<void> _capturePhoto() async {
     if (!controller.value.isInitialized || isCapturing || _isCameraSleeping) return;
@@ -929,12 +921,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       if (mounted) {
         if (isMultiScanMode) {
-          //showToast("Page $capturedPhotosCount captured. Scanning next...");
           CustomToast.show(
             context,
             message: "Page $capturedPhotosCount captured. Scanning next...",
             icon: Icons.check_circle_outline_rounded,
-            backgroundColor: Colors.green, // Success feedback ke liye green theme
+            backgroundColor: Colors.green,
             textColor: Colors.white,
             iconColor: Colors.white,
           );
@@ -1062,12 +1053,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (status.isPermanentlyDenied) {
         if (!mounted) return;
         HapticFeedback.lightImpact();
-        //showToast("Please enable Gallery permission from settings.");
         CustomToast.show(
           context,
           message: "Please enable Gallery permission from settings.",
           icon: Icons.settings_rounded,
-          backgroundColor: Colors.orangeAccent, // Warning theme
+          backgroundColor: Colors.orangeAccent,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -1078,12 +1068,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
         if (!mounted) return;
 
         HapticFeedback.lightImpact();
-        //showToast("Gallery permission required.");
         CustomToast.show(
           context,
           message: "Gallery permission required.",
-          icon: Icons.photo_library_outlined, // Gallery icon context ke liye best rahega
-          backgroundColor: Colors.redAccent,  // Process ruk raha hai isliye red theme
+          icon: Icons.photo_library_outlined,
+          backgroundColor: Colors.redAccent,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -1143,29 +1132,27 @@ class _ScannerScreenState extends State<ScannerScreen> {
         capturedPhotosCount = capturedImagesList.length;
       });
 
-      //showToast("${selectedFiles.length} images imported serial wise");
       CustomToast.show(
         context,
         message: "${selectedFiles.length} images imported serial wise",
         icon: Icons.check_circle_outline_rounded,
-        backgroundColor: Colors.green, // Success theme
+        backgroundColor: Colors.green,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
 
       if (mounted) {
-        _goToEditor(); // 🚨 Master Helper call kiya
+        _goToEditor();
       }
     } catch (e) {
       print("Gallery Error: $e");
       if (!mounted) return;
       HapticFeedback.lightImpact();
-      //showToast("Error importing images");
       CustomToast.show(
         context,
         message: "Error importing images",
         icon: Icons.error_outline_rounded,
-        backgroundColor: Colors.redAccent, // Error theme
+        backgroundColor: Colors.redAccent,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -1258,7 +1245,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   /// Status Text (Looking for document / Hold steady / Looking for QR)
                   if (isAutoDetectOn && !_isCameraSleeping && autoScanStatus.isNotEmpty)
                     Positioned(
-                      //top: MediaQuery.of(context).size.height * 0.45,
                       top: 0.45.sh,
                       left: 0,
                       right: 0,
@@ -1314,7 +1300,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
                                     icon: const Icon(Icons.close_rounded, color: Colors.grey),
-                                    //onPressed: () => setState(() => _detectedQrCode = null),
                                     onPressed: () async {
                                       await _triggerVibration();
                                       if (!mounted) return;
@@ -1343,12 +1328,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       if (!mounted) return;
                                       Clipboard.setData(ClipboardData(text: _detectedQrCode!));
 
-                                      //showToast("Copied to clipboard");
                                       CustomToast.show(
                                         context,
                                         message: "Copied to clipboard",
-                                        icon: Icons.copy_rounded, // Copy action ke liye best icon
-                                        backgroundColor: Colors.green, // Success feedback
+                                        icon: Icons.copy_rounded,
+                                        backgroundColor: Colors.green,
                                         textColor: Colors.white,
                                         iconColor: Colors.white,
                                       );
@@ -1365,18 +1349,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
                                         bool canLaunch = await canLaunchUrl(url);
                                         if (!mounted) return;
-                                        // if (await canLaunchUrl(url)) {
-                                        //   await launchUrl(url, mode: LaunchMode.externalApplication);
-                                        // }
+
                                         if (canLaunch) {
                                           await launchUrl(url, mode: LaunchMode.externalApplication);
                                         } else {
-                                          // Agar link invalid ho ya browser na mile toh Error Toast
                                           CustomToast.show(
                                             context,
                                             message: "Could not open link",
                                             icon: Icons.error_outline_rounded,
-                                            backgroundColor: Colors.redAccent, // Error feedback
+                                            backgroundColor: Colors.redAccent,
                                             textColor: Colors.white,
                                             iconColor: Colors.white,
                                           );
@@ -1401,11 +1382,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   Positioned(
                     left: 0,
                     right: 0,
-                    // Niche diya gaya formula camera preview ka exact bottom nikalega
-                    top: 70.h + (MediaQuery.of(context).size.width * (4 / 3)) + 10.h, // 10.h camera aur controls ke beech ka gap hai
+
+                    top: 70.h + (MediaQuery.of(context).size.width * (4 / 3)) + 10.h,
                     child: SafeArea(
                       child: Padding(
-                        padding: EdgeInsets.zero, // Kyunki ab hum top se control kar rahe hain
+                        padding: EdgeInsets.zero,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -1770,7 +1751,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
 
               IconButton(
-                //onPressed: _flipCamera,
                 onPressed: () async {
                   await _triggerVibration();
                   _flipCamera();
@@ -1779,7 +1759,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
               if (!widget.isRetakeMode)
                 IconButton(
-                  //onPressed: () async {
                   onPressed: selectedIndex == 1
                       ? null
                       : () async {
@@ -1792,14 +1771,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           await prefs.setBool('isMultiScanMode', isMultiScanMode);
 
                           if (!mounted) return;
-                          //showToast(isMultiScanMode ? "Multi-scan ON" : "Single-scan ON");
                           CustomToast.show(
                             context,
                             message: isMultiScanMode ? "Multi-scan ON" : "Single-scan ON",
                             icon: isMultiScanMode
                                 ? Icons.file_copy_rounded
                                 : Icons.insert_drive_file_outlined,
-                            backgroundColor: Colors.green, // Mode change success
+                            backgroundColor: Colors.green,
                             textColor: Colors.white,
                             iconColor: Colors.white,
                           );
@@ -1833,7 +1811,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               if (!widget.isRetakeMode)
                 IconButton(
                   onPressed: _goToSettings,
-                  //icon: _buildRotatedIcon(Symbols.segment_sharp, color: Colors.white, size: 26),
                   icon: _buildRotatedIcon(Icons.segment, color: Colors.white, size: 26),
                 ),
             ],
@@ -1845,7 +1822,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Future<void> _goToSettings() async {
     await _triggerVibration();
 
-    // 1. Settings jane se pehle flash sync reset
     if (selectedFlashMode != "Off") {
       await _applyFlashMode("Off");
       if (mounted) {
