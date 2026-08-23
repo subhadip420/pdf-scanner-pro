@@ -42,7 +42,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0; // 0 for Home, 1 for Files
+  int _currentIndex = 0;
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
   List<File> _pdfFiles = [];
@@ -57,8 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingDeviceFiles = true;
   RewardedAd? _rewardedAd;
   bool _hasStoragePermission = false;
-
-  //bool isDarkMode = true;
   bool isHapticEnabled = true;
 
   @override
@@ -68,7 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadBannerAd();
     _loadPdfFiles();
     _loadSavedFiles();
-    // _loadAllDevicePdfFiles();
     _loadRewardedAd();
   }
 
@@ -77,8 +74,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final prefs = await SharedPreferences.getInstance();
       if (mounted) {
         setState(() {
-          // Direct bool get kar rahe hain
-          // isDarkMode = prefs.getBool('pref_dark_mode') ?? true;
           isHapticEnabled = prefs.getBool('pref_haptic') ?? true;
         });
       }
@@ -152,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // Naya Method: Permission check karne ke liye
   Future<bool> _requestStoragePermission() async {
     if (Platform.isAndroid) {
       if (await Permission.manageExternalStorage.isGranted || await Permission.storage.isGranted) {
@@ -170,7 +164,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return true; // For iOS
   }
 
-  // Updated Method
   Future<void> _loadAllDevicePdfFiles() async {
     setState(() => _isLoadingDeviceFiles = true);
     try {
@@ -186,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
 
-      setState(() => _hasStoragePermission = true); // Permission mil gayi
+      setState(() => _hasStoragePermission = true);
 
       List<String> paths = await compute(searchAllPdfsInBackground, '/storage/emulated/0');
       List<File> allPdfs = paths.map((path) => File(path)).toList();
@@ -227,31 +220,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return combinedList;
   }
 
-  // void showToast(String msg) {
-  //   bool isDark = isDarkModeNotifier.value;
-  //
-  //   Fluttertoast.showToast(
-  //     msg: msg,
-  //     toastLength: Toast.LENGTH_SHORT,
-  //     gravity: ToastGravity.BOTTOM,
-  //     backgroundColor: isDark ? Colors.white : Colors.black87,
-  //     textColor: isDark ? Colors.black : Colors.white,
-  //   );
-  // }
-
   Future<void> _loadPdfFiles() async {
     try {
-      // 🚨 Yahan Permission.manageExternalStorage ki zaroorat nahi hai
-      // App ke private folder (safe zone) ka path direct get karo
       final directory = await getApplicationDocumentsDirectory();
 
       if (await directory.exists()) {
         List<FileSystemEntity> entities = directory.listSync();
 
-        // Sirf PDF files filter karo
+
         List<File> files = entities.whereType<File>().where((f) => f.path.toLowerCase().endsWith('.pdf')).toList();
 
-        // Sorting logic (Name, Size, Date)
         files.sort((a, b) {
           int result;
           if (_sortBy == 'Name') {
@@ -300,22 +278,18 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         if (_savedFilePaths.contains(filePath)) {
           _savedFilePaths.remove(filePath);
-          //showToast("Removed from saved");
           CustomToast.show(
             context,
             message: "Removed from saved",
-            // Yahan icon parameter pass nahi kiya gaya hai
-            backgroundColor: Colors.grey[800], // Neutral/Dark grey theme simple info ke liye
+            backgroundColor: Colors.grey[800],
             textColor: Colors.white,
           );
         } else {
           _savedFilePaths.add(filePath);
-          //showToast("Added to saved");
           CustomToast.show(
             context,
             message: "Added to saved",
-            // Icon nahi diya, UI ko clean rakhne ke liye
-            backgroundColor: Colors.green, // Ya Colors.grey[800] agar neutral rakhna ho
+            backgroundColor: Colors.green,
             textColor: Colors.white,
           );
         }
@@ -328,8 +302,8 @@ class _HomeScreenState extends State<HomeScreen> {
       CustomToast.show(
         context,
         message: "Error updating save status",
-        icon: Icons.error_outline, // Error ke liye icon dena best hai
-        backgroundColor: Colors.red, // Alert ke liye red theme
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -383,11 +357,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       if (!mounted) return;
       if (status.isPermanentlyDenied) {
-        // showToast("Please enable Gallery permission from settings.");
         CustomToast.show(
           context,
           message: "Please enable Gallery permission from settings.",
-          icon: Icons.settings, // Settings ka icon, kyunki user settings mein ja raha hai
+          icon: Icons.settings,
           backgroundColor: Colors.orange,
           textColor: Colors.white,
           iconColor: Colors.white,
@@ -396,12 +369,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return;
       }
       if (!status.isGranted && !status.isLimited) {
-        //showToast("Gallery permission required.");
         CustomToast.show(
           context,
           message: "Gallery permission required.",
-          icon: Icons.warning_amber_rounded, // Alert karne ke liye warning icon
-          backgroundColor: Colors.orange, // Warning theme
+          icon: Icons.warning_amber_rounded,
+          backgroundColor: Colors.orange,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -425,7 +397,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     } catch (e) {
       print("Home Screen Gallery Error: $e");
-      // showToast("Error opening gallery");
       if (!mounted) return;
 
       CustomToast.show(
@@ -457,13 +428,11 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
-        //backgroundColor: const Color(0xFF121212),
         backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFE3E2E2),
 
         /// 1. APP BAR
         appBar: _isSelectionMode
             ? AppBar(
-                //backgroundColor: const Color(0xFF1E1E1E),
                 backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                 leadingWidth: 80,
                 leading: TextButton(
@@ -517,7 +486,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               )
             : AppBar(
-                //backgroundColor: Color(0xFF1E1E1E),
                 backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                 title: Text(
                   "PDF Scanner Pro",
@@ -595,7 +563,6 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_isFabMenuOpen)
               Positioned(
                 bottom: 70,
-                //bottom: 130,
                 left: 0,
                 right: 0,
                 child: Column(
@@ -603,7 +570,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildMenuPill("Create from photos", Icons.photo_library_outlined, () {
                       _triggerHaptic('selection');
-                      //showToast("Gallery opening...");
                       setState(() => _isFabMenuOpen = false);
                       _openGalleryForPdf();
                     }),
@@ -641,17 +607,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-        // floatingActionButtonLocation: _isFabMenuOpen
-        //     ? FloatingActionButtonLocation.centerFloat
-        //     : FloatingActionButtonLocation.centerDocked,
-
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
         /// BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
-        // bottomNavigationBar: SizedBox(
-        //   //height: 70,
-        //   height: 70 + bottomPadding,
-        //   child: AnimatedSwitcher(
           bottomNavigationBar: AnimatedSwitcher(
             duration: const Duration(milliseconds: 350),
             layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
@@ -672,20 +630,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
             child: _isSelectionMode
                 ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
-                // : (_isFabMenuOpen
-                //       ? const SizedBox.shrink(key: ValueKey('emptyBar'))
                       : BottomAppBar(
                           key: const ValueKey('normalModeBar'),
                           color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                           shape: const CircularNotchedRectangle(),
                           notchMargin: 4.0,
                           padding: EdgeInsets.zero,
-                          //padding: EdgeInsets.only(bottom: bottomPadding),
-                          // child: SafeArea(
-                          // child: SizedBox(
-                            //height: 90,
                             height: 70,
-                            //padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -696,7 +647,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     behavior: HitTestBehavior.opaque,
                                     onTap: () {
                                       _triggerHaptic('light');
-                                      //setState(() => _currentIndex = 0);
                                       setState(() {
                                         _currentIndex = 0;
                                         _isFabMenuOpen = false;
@@ -862,7 +812,6 @@ class _HomeScreenState extends State<HomeScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               padding: const EdgeInsets.only(left: 8, top: 8, right: 12, bottom: 8),
               decoration: BoxDecoration(
-                // color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
                 color: _selectedFiles.contains(file.path)
                     ? (isDarkMode ? const Color(0xFF2A3A4A) : Colors.blue.shade100)
                     : (isDarkMode ? const Color(0xFF1E1E1E) : Colors.white),
@@ -894,7 +843,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           _truncateFileName(file.path.split('/').last),
-                          //style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
                           style: TextStyle(
                             color: isDarkMode ? Colors.white : Colors.black87,
                             fontSize: 14,
@@ -905,7 +853,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 6),
                         Text(
                           DateFormat('dd/MM/yy  •  hh:mm a').format(fileStat.modified),
-                          //style: const TextStyle(color: Colors.white54, fontSize: 13),
                           style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
                         ),
                         const SizedBox(height: 2),
@@ -951,7 +898,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       message: isSaved ? "Unsave document" : "Save document",
                                       child: InkWell(
                                         borderRadius: BorderRadius.circular(20),
-                                        // onTap: () => _toggleSaveFile(file.path),
                                         onTap: () {
                                           _triggerHaptic('selection');
                                           _toggleSaveFile(file.path);
@@ -973,7 +919,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Tooltip(
                                     message: "Share",
                                     child: InkWell(
-                                      // onTap: () => _sharePdfFile(file),
                                       onTap: () {
                                         _triggerHaptic('medium');
                                         _sharePdfFile(file);
@@ -990,7 +935,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                     message: "More options",
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(20),
-                                      // onTap: () => _showFileOptionsBottomSheet(context, file),
                                       onTap: () {
                                         _triggerHaptic('selection');
                                         _showFileOptionsBottomSheet(context, file);
@@ -1042,7 +986,6 @@ class _HomeScreenState extends State<HomeScreen> {
             _selectedFiles.clear();
           });
         } else if (value == 'Settings') {
-          //Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
           Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen())).then((_) {
             _loadSettings();
           });
@@ -1205,7 +1148,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   padding: const EdgeInsets.only(left: 8, top: 8, right: 12, bottom: 8),
                   decoration: BoxDecoration(
-                    //color: _selectedFiles.contains(file.path) ? const Color(0xFF2A3A4A) : const Color(0xFF1E1E1E),
                     color: _selectedFiles.contains(file.path)
                         ? (isDarkMode ? const Color(0xFF2A3A4A) : Colors.blue.shade100)
                         : (isDarkMode ? const Color(0xFF1E1E1E) : Colors.white),
@@ -1294,7 +1236,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           message: isSaved ? "Unsave document" : "Save document",
                                           child: InkWell(
                                             borderRadius: BorderRadius.circular(20),
-                                            // onTap: () => _toggleSaveFile(file.path),
                                             onTap: () {
                                               _triggerHaptic('light');
                                               _toggleSaveFile(file.path);
@@ -1316,7 +1257,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Tooltip(
                                         message: "Download to Phone",
                                         child: InkWell(
-                                          // onTap: () => savePdfToDownloads(file, context),
                                           onTap: () {
                                             _triggerHaptic('light');
                                             savePdfToDownloads(file, context);
@@ -1332,7 +1272,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Tooltip(
                                         message: "Share",
                                         child: InkWell(
-                                          // onTap: () => _sharePdfFile(file),
                                           onTap: () {
                                             _triggerHaptic('light');
                                             _sharePdfFile(file);
@@ -1349,7 +1288,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                         message: "More options",
                                         child: InkWell(
                                           borderRadius: BorderRadius.circular(20),
-                                          // onTap: () => _showFileOptionsBottomSheet(context, file),
                                           onTap: () {
                                             _triggerHaptic('selection');
                                             _showFileOptionsBottomSheet(context, file);
@@ -1383,7 +1321,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSortMenu() {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return PopupMenuButton<String>(
-      //color: const Color(0xFF2C2C2C),
       color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1425,11 +1362,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
         _loadPdfFiles(); // List refresh karo
         String orderText = _isAscending ? "Ascending" : "Descending";
-        //showToast("Sorted by $_sortBy ($orderText)");
         CustomToast.show(
           context,
           message: "Sorted by $_sortBy ($orderText)",
-          backgroundColor: Colors.grey[800], // Neutral/Informational state
+          backgroundColor: Colors.grey[800],
           textColor: Colors.white,
         );
       },
@@ -1724,7 +1660,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(color: Colors.redAccent, fontSize: 15, fontWeight: FontWeight.bold),
                         ),
 
-                        //onTap: () => _handleDeleteAction(context, sheetContext, file),
                         onTap: () {
                           _triggerHaptic('heavy');
                           _handleDeleteAction(context, sheetContext, file);
@@ -1766,13 +1701,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return BottomAppBar(
       key: key,
-      // color: const Color(0xFF1E1E1E),
       color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
       padding: EdgeInsets.zero,
-      //padding: EdgeInsets.only(bottom: bottomPadding),
-      //height: 70,
-      // child: SafeArea(
-      // child: SizedBox(
       height: 70,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1803,12 +1733,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _mergeSelectedFiles() async {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     if (_selectedFiles.length < 2) {
-      //showToast("Please select at least 2 files to merge");
       CustomToast.show(
         context,
         message: "Please select at least 2 files to merge",
-        icon: Icons.info_outline, // Info ya warning icon suit karega
-        backgroundColor: Colors.orange, // User constraint/warning theme
+        icon: Icons.info_outline,
+        backgroundColor: Colors.orange,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -1860,12 +1789,11 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!mounted) return;
 
         Navigator.pop(context);
-        //showToast("PDF Merged Successfully!");
         CustomToast.show(
           context,
           message: "PDF Merged Successfully!",
           icon: Icons.check_circle_outline,
-          backgroundColor: Colors.green, // Success theme
+          backgroundColor: Colors.green,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -1877,12 +1805,11 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         Navigator.pop(context);
         print("Syncfusion Merge Error: $e");
-        //showToast("Something went wrong while merging");
         CustomToast.show(
           context,
           message: "Something went wrong while merging",
           icon: Icons.error_outline,
-          backgroundColor: Colors.red, // Error theme
+          backgroundColor: Colors.red,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -1900,7 +1827,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_rewardedAd != null) {
       _rewardedAd!.show(
         onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-          // Reward mil gaya
         },
       );
 
@@ -1932,12 +1858,11 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!hasInternet) {
         if (!mounted) return;
         Navigator.pop(context);
-        //showToast("No internet, try again");
         CustomToast.show(
           context,
           message: "No internet, try again",
-          icon: Icons.wifi_off, // Internet issue ke liye perfect icon
-          backgroundColor: Colors.orange, // Warning state
+          icon: Icons.wifi_off,
+          backgroundColor: Colors.orange,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -1976,12 +1901,11 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print("Share Error: $e");
       if (!mounted) return;
-      //showToast("Error sharing file");
       CustomToast.show(
         context,
         message: "Error sharing file",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Error theme
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2000,11 +1924,10 @@ class _HomeScreenState extends State<HomeScreen> {
           for (String path in _selectedFiles) {
             _savedFilePaths.remove(path);
           }
-          //showToast("${_selectedFiles.length} files removed from saved");
           CustomToast.show(
             context,
             message: "${_selectedFiles.length} files removed from saved",
-            backgroundColor: Colors.grey.shade800, // Minimal/Info theme
+            backgroundColor: Colors.grey.shade800,
             textColor: Colors.white,
           );
         } else {
@@ -2013,11 +1936,10 @@ class _HomeScreenState extends State<HomeScreen> {
               _savedFilePaths.add(path);
             }
           }
-          //showToast("${_selectedFiles.length} files added to saved");
           CustomToast.show(
             context,
             message: "${_selectedFiles.length} files added to saved",
-            backgroundColor: Colors.grey.shade800, // Minimal/Info theme
+            backgroundColor: Colors.grey.shade800,
             textColor: Colors.white,
           );
         }
@@ -2027,14 +1949,13 @@ class _HomeScreenState extends State<HomeScreen> {
       await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
     } catch (e) {
       print("Bulk Tag Error: $e");
-      //showToast("Error updating tags");
       if (!mounted) return;
 
       CustomToast.show(
         context,
         message: "Error updating tags",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Error theme
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2043,12 +1964,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _confirmBulkDelete() async {
     if (_selectedFiles.isEmpty) {
-      //showToast("Please select files to delete");
       CustomToast.show(
         context,
         message: "Please select files to delete",
-        icon: Icons.info_outline, // Gentle reminder icon
-        backgroundColor: Colors.orange, // Warning/Action-required theme
+        icon: Icons.info_outline,
+        backgroundColor: Colors.orange,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2060,7 +1980,6 @@ class _HomeScreenState extends State<HomeScreen> {
       title: "Move to Trash",
       message:
           "Are you sure you want to move ${_selectedFiles.length} selected files to Trash? They will be permanently deleted after 30 days.",
-      // Message updated
       positiveBtnText: "Move to Trash",
       negativeBtnText: "Cancel",
       positiveBtnColor: Colors.redAccent,
@@ -2087,7 +2006,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (file.existsSync()) {
           final fileName = file.path.split('/').last;
           final trashFilePath = '${trashDir.path}/$fileName';
-          await file.rename(trashFilePath); // File move ho jayegi
+          await file.rename(trashFilePath);
         }
 
         if (_savedFilePaths.contains(path)) {
@@ -2095,7 +2014,6 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
       if (!mounted) return;
-      //showToast("$count files moved to Trash");
       CustomToast.show(
         context,
         message: "$count files moved to Trash",
@@ -2111,12 +2029,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _loadPdfFiles();
     } catch (e) {
       print("Bulk Delete Error: $e");
-      //showToast("Error moving some files to Trash");
       CustomToast.show(
         context,
         message: "Error moving some files to Trash",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Error theme
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2142,27 +2059,25 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       await originalFile.copy(newPath);
       await _loadPdfFiles();
-      //showToast("File copied successfully");
       if (!mounted) return;
 
       CustomToast.show(
         context,
         message: "File copied successfully",
-        icon: Icons.check_circle_outline, // Success icon
-        backgroundColor: Colors.green, // Success/Positive theme
+        icon: Icons.check_circle_outline,
+        backgroundColor: Colors.green,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
     } catch (e) {
       print("Copy Error: $e");
-      //showToast("Error copying file");
       if (!mounted) return;
 
       CustomToast.show(
         context,
         message: "Error copying file",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Error theme
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2245,7 +2160,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          //backgroundColor: const Color(0xFF2C2C2C),
           backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
@@ -2277,7 +2191,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // Cancel button
+              onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel',
                 style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 16),
@@ -2289,12 +2203,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 String newName = nameController.text.trim();
 
                 if (newName.isEmpty) {
-                  //showToast("Name cannot be empty");
                   CustomToast.show(
                     context,
                     message: "Name cannot be empty",
-                    icon: Icons.warning_amber_rounded, // Validation warning icon
-                    backgroundColor: Colors.orange, // Warning theme
+                    icon: Icons.warning_amber_rounded,
+                    backgroundColor: Colors.orange,
                     textColor: Colors.white,
                     iconColor: Colors.white,
                   );
@@ -2310,12 +2223,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 if (await newFile.exists()) {
-                  //showToast("A file with this name already exists");
                   CustomToast.show(
                     context,
                     message: "A file with this name already exists",
-                    icon: Icons.warning_amber_rounded, // Warning/Alert icon
-                    backgroundColor: Colors.orange, // Warning theme
+                    icon: Icons.warning_amber_rounded,
+                    backgroundColor: Colors.orange,
                     textColor: Colors.white,
                     iconColor: Colors.white,
                   );
@@ -2327,37 +2239,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (_savedFilePaths.contains(originalPath)) {
                     final SharedPreferences prefs = await SharedPreferences.getInstance();
                     setState(() {
-                      _savedFilePaths.remove(originalPath); // Purana path hatao
-                      _savedFilePaths.add(newPath); // Naya path daalo
+                      _savedFilePaths.remove(originalPath);
+                      _savedFilePaths.add(newPath);
                     });
                     await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
                   }
 
                   if (!mounted) return;
                   Navigator.pop(context);
-
                   await _loadPdfFiles();
 
-                  //showToast("File renamed successfully");
                   if (!mounted) return;
                   CustomToast.show(
                     context,
                     message: "File renamed successfully",
-                    icon: Icons.check_circle_outline, // Success icon
-                    backgroundColor: Colors.green, // Success theme
+                    icon: Icons.check_circle_outline,
+                    backgroundColor: Colors.green,
                     textColor: Colors.white,
                     iconColor: Colors.white,
                   );
                 } catch (e) {
                   print("Rename Error: $e");
-                  //showToast("Error renaming file");
                   if (!mounted) return;
 
                   CustomToast.show(
                     context,
                     message: "Error renaming file",
                     icon: Icons.error_outline,
-                    backgroundColor: Colors.red, // Error theme
+                    backgroundColor: Colors.red,
                     textColor: Colors.white,
                     iconColor: Colors.white,
                   );
@@ -2390,7 +2299,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          //backgroundColor: const Color(0xFF2C2C2C),
           backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
@@ -2449,12 +2357,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _shareSelectedFiles() async {
     if (_selectedFiles.isEmpty) {
-      //showToast("Please select at least one file to share");
       CustomToast.show(
         context,
         message: "Please select at least one file to share",
-        icon: Icons.warning_amber_rounded, // Validation warning icon
-        backgroundColor: Colors.orange, // Warning theme
+        icon: Icons.warning_amber_rounded,
+        backgroundColor: Colors.orange,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2462,12 +2369,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      //showToast("Preparing ${_selectedFiles.length} files...");
       CustomToast.show(
         context,
         message: "Preparing ${_selectedFiles.length} files...",
         icon: Icons.info_outline,
-        backgroundColor: Colors.grey.shade700, // Neutral/Process theme
+        backgroundColor: Colors.grey.shade700,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2485,7 +2391,7 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         message: "Error sharing files",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Error theme
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2505,12 +2411,11 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print("Print Error: $e");
       if (!mounted) return;
-      //showToast("Error printing file");
       CustomToast.show(
         context,
         message: "Error printing file",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Critical error theme
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2544,25 +2449,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
         await file.copy(trashFile.path);
         await file.delete();
-        await _loadPdfFiles(); // UI list update
-        //showToast("Moved to Trash");
+        await _loadPdfFiles();
         CustomToast.show(
           context,
           message: "Moved to Trash",
-          // Optional: Success ke liye check icon lagana chaho toh laga sakte ho,
-          // warna clean minimalist look ke liye skip kar sakte ho.
-          // icon: Icons.check_circle_outline,
-          backgroundColor: Colors.green, // Success theme
+          backgroundColor: Colors.green,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
       } else {
-        //showToast("File not found");
         CustomToast.show(
           context,
           message: "File not found",
           icon: Icons.warning_amber_rounded,
-          backgroundColor: Colors.orange, // Warning theme
+          backgroundColor: Colors.orange,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -2570,12 +2470,11 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print("Delete Error: $e");
       if (!mounted) return;
-      //showToast("Error: Could not move file to Trash.");
       CustomToast.show(
         context,
         message: "Error: Could not move file to Trash.",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Error theme
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2632,8 +2531,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _savePagesAsJpeg(File pdfFile) async {
     //final String interstitialTestId = 'ca-app-pub-3940256099942544/1033173712'; // test ad id
     final String interstitialTestId = 'ca-app-pub-5454466291921987/6893752966'; //real ad id
-
-    //showToast("Preparing file...");
 
     InterstitialAd.load(
       adUnitId: interstitialTestId,
@@ -2696,12 +2593,11 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       await document.close();
-      //showToast("Success! Saved $pageCount pages to Gallery");
       CustomToast.show(
         context,
         message: "No text found in this PDF.",
         icon: Icons.warning_amber_rounded,
-        backgroundColor: Colors.orange, // Warning/Empty state theme
+        backgroundColor: Colors.orange,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2770,7 +2666,6 @@ class _HomeScreenState extends State<HomeScreen> {
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            //backgroundColor: const Color(0xFF2C2C2C),
             backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
             shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
             content: Row(
@@ -2802,12 +2697,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (context.mounted) {
       if (extractedText.trim().isEmpty) {
-        //showToast("No text found in this PDF.");
         CustomToast.show(
           context,
           message: "No text found in this PDF.",
           icon: Icons.warning_amber_rounded,
-          backgroundColor: Colors.orange, // Warning/Empty state theme
+          backgroundColor: Colors.orange,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -2888,9 +2782,6 @@ class _HomeScreenState extends State<HomeScreen> {
             width: double.maxFinite,
             child: ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),
-              // child: SingleChildScrollView(
-              //   child: SelectableText(extractedText, style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 14)),
-              // ),
               child: Container(
                 color: isDarkMode ? Colors.grey[900] : Colors.grey[200],
                 padding: const EdgeInsets.all(5.0),
@@ -2910,12 +2801,11 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 _triggerHaptic('light');
                 Clipboard.setData(ClipboardData(text: extractedText));
-                //showToast("Text copied to clipboard!");
                 CustomToast.show(
                   context,
                   message: "Text copied to clipboard!",
-                  icon: Icons.copy_all, // Copy action ke liye perfect icon
-                  backgroundColor: Colors.green, // Success theme
+                  icon: Icons.copy_all,
+                  backgroundColor: Colors.green,
                   textColor: Colors.white,
                   iconColor: Colors.white,
                 );
@@ -2932,10 +2822,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // SHARE BUTTON
             TextButton.icon(
-              // onPressed: () {
-              //   Share.share(extractedText, subject: 'Extracted Text from Scanner Pro');
-              //   Navigator.pop(context);
-              // },
               onPressed: () async {
                 _triggerHaptic('light');
                 try {
@@ -3009,22 +2895,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
 
-      // if (savedPdf != null) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(
-      //       content: Row(
-      //         children: [
-      //           Icon(Icons.check_circle, color: Colors.white),
-      //           SizedBox(width: 10),
-      //           Text("PDF Saved Successfully!"),
-      //         ],
-      //       ),
-      //       backgroundColor: Colors.green,
-      //       behavior: SnackBarBehavior.floating,
-      //     ),
-      //   );
-      // }
-
       if (savedPdf != null) {
         // 1. URI ko human-readable format mein convert karna
         String displayPath = folderUri.toString();
@@ -3033,7 +2903,6 @@ class _HomeScreenState extends State<HomeScreen> {
           if (decodedUri.contains('primary:')) {
             displayPath = "Internal Storage / ${decodedUri.split('primary:').last}";
           } else {
-            // Agar SD card ya koi aur location hai, toh bas last ka folder name dikhayega
             displayPath = decodedUri.split('/').last;
           }
         } catch (e) {
@@ -3276,7 +3145,7 @@ class PdfSearchDelegate extends SearchDelegate {
           icon: Icon(Icons.clear, color: isDarkMode ? Colors.white : Colors.black87),
           onPressed: () {
             onHaptic('light');
-            query = ''; // Text clear karega
+            query = '';
           },
         ),
     ];
@@ -3344,39 +3213,8 @@ class PdfSearchDelegate extends SearchDelegate {
       );
     }
 
-    // return ListView.builder(
-    //   padding: const EdgeInsets.only(top: 10),
-    //   itemCount: results.length,
-    //   itemBuilder: (context, index) {
-    //     final file = results[index];
-    //     final fileName = file.path.split('/').last;
-    //
-    //     return ListTile(
-    //       leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
-    //       title: Text(
-    //         fileName,
-    //         style: TextStyle(
-    //           color: isDarkMode ? Colors.white : Colors.black87,
-    //           fontSize: 15,
-    //           fontWeight: FontWeight.w500,
-    //         ),
-    //         maxLines: 1,
-    //         overflow: TextOverflow.ellipsis,
-    //       ),
-    //       subtitle: Text(
-    //         DateFormat('dd MMM yyyy').format(file.statSync().modified),
-    //         style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
-    //       ),
-    //       onTap: () {
-    //         onHaptic('light');
-    //         // Click karne par file open ho jayegi
-    //         OpenFile.open(file.path);
-    //       },
-    //     );
-    //   },
-    // );
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 10), // Padding ko thoda adjust kiya
+      padding: const EdgeInsets.symmetric(vertical: 10),
       itemCount: results.length,
       itemBuilder: (context, index) {
         final file = results[index];
@@ -3408,7 +3246,6 @@ class PdfSearchDelegate extends SearchDelegate {
             ),
             onTap: () {
               onHaptic('light');
-              // Click karne par file open ho jayegi
               OpenFile.open(file.path);
             },
           ),
@@ -3468,53 +3305,22 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
                 ],
               ),
             )
-          // : ListView.builder(
-          //     padding: const EdgeInsets.only(top: 10),
-          //     itemCount: _savedFilesList.length,
-          //     itemBuilder: (context, index) {
-          //       final file = _savedFilesList[index];
-          //       final fileName = file.path.split('/').last;
-          //
-          //       return ListTile(
-          //         leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
-          //         title: Text(
-          //           fileName,
-          //           style: TextStyle(
-          //             color: isDarkMode ? Colors.white : Colors.black87,
-          //             fontSize: 15,
-          //             fontWeight: FontWeight.w500,
-          //           ),
-          //           maxLines: 1,
-          //           overflow: TextOverflow.ellipsis,
-          //         ),
-          //         subtitle: Text(
-          //           DateFormat('dd MMM yyyy').format(file.statSync().modified),
-          //           style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
-          //         ),
-          //         onTap: () {
-          //           // Click karne par file direct open ho jayegi
-          //           OpenFile.open(file.path);
-          //         },
-          //       );
-          //     },
-          //   ),
-
           : ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 10), // Thoda padding adjust kiya
+        padding: const EdgeInsets.symmetric(vertical: 10),
         itemCount: _savedFilesList.length,
         itemBuilder: (context, index) {
           final file = _savedFilesList[index];
           final fileName = file.path.split('/').last;
 
           return Card(
-            elevation: 1.5, // Halka sa shadow effect
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6), // Cards ke beech ka gap
-            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white, // Theme ke according card color
+            elevation: 1.5,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12), // Card ke corners ko gol karne ke liye
+              borderRadius: BorderRadius.circular(12),
             ),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), // ListTile ke andar ki space
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
               title: Text(
                 fileName,
