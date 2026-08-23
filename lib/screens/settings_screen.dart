@@ -17,7 +17,7 @@ import 'custom_dialog.dart';
 import 'custom_toast.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key); // 🚨 FIX: Callback hata diya
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -26,10 +26,9 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _defaultPageSize = 'Auto Fit';
   bool _saveToGallery = true;
-  String _storageLocation = "/storage/emulated/0/PDF Scanner Pro"; // Default Path
+  String _storageLocation = "/storage/emulated/0/PDF Scanner Pro";
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
-  //bool isDarkMode = true;
   bool isHapticEnabled = true;
 
   @override
@@ -72,8 +71,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _defaultPageSize = prefs.getString('pref_page_size') ?? 'A4 (P)';
       _saveToGallery = prefs.getBool('pref_save_to_gallery') ?? false;
       _storageLocation = prefs.getString('pdf_save_folder') ?? "";
-
-      //isDarkMode = prefs.getBool('pref_dark_mode') ?? true; // Default dark mode ON
       isHapticEnabled = prefs.getBool('pref_haptic') ?? true; // Default vibration ON
     });
   }
@@ -81,7 +78,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _saveSetting(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
-    //_showSettingToast("Setting updated to $value");
   }
 
   Future<void> _saveBoolSetting(String key, bool value) async {
@@ -89,24 +85,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool(key, value);
   }
 
-  // void _showSettingToast(String msg) {
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text(msg, style: const TextStyle(color: Colors.white)),
-  //       backgroundColor: const Color(0xFF2C2C2C),
-  //       duration: const Duration(seconds: 2),
-  //     ),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      //backgroundColor: Color(0xFF100F0F),
       backgroundColor: isDarkMode ? const Color(0xFF100F0F) : const Color(0xFFE3E2E2),
       appBar: AppBar(
-        //backgroundColor: const Color(0xFF1E1E1E),
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black,),
         title: Text(
@@ -133,7 +117,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _buildSectionHeader("Document Settings"),
 
                   Card(
-                    //color: const Color(0xFF1A1A1A),
                     color: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -172,7 +155,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             });
 
                             _saveSetting('pref_page_size', newValue);
-                            //_showSettingToast("Default size set to $_defaultPageSize");
                             CustomToast.show(
                               context,
                               message: "Default size set to $_defaultPageSize",
@@ -311,7 +293,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // FUNCTION: Custom Dialog ke sath Cache Clear Logic
   Future<void> _clearAppCache() async {
     bool confirmClear = await showCustomConfirmDialog(
       context,
@@ -327,12 +308,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (!mounted) return;
 
-    //_showSettingToast("Clearing cache... Please wait.");
     CustomToast.show(
       context,
       message: "Clearing cache... Please wait.",
-      icon: Icons.cleaning_services_rounded, // Cache clean karne ka feel dega
-      iconColor: Colors.blueAccent, // Thoda loading/processing wala look
+      icon: Icons.cleaning_services_rounded,
+      iconColor: Colors.blueAccent,
     );
 
     try {
@@ -351,8 +331,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           }
         }
 
-        // Success Message
-        //_showSettingToast("Success! Freed up space from $deletedFilesCount temp files.");
         CustomToast.show(
           context,
           message: "Success! Freed up space from $deletedFilesCount temp files.",
@@ -362,12 +340,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           textColor: Colors.white,
         );
       } else {
-        //_showSettingToast("Cache is already clean!");
         CustomToast.show(
           context,
           message: "Cache is already clean!",
           icon: Icons.done_all,
-          iconColor: Colors.blueAccent, // Info ke liye thoda blue touch
+          iconColor: Colors.blueAccent,
         );
       }
     } catch (e) {
@@ -375,7 +352,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (!mounted) return;
 
-      //_showSettingToast("Failed to clear cache properly.");
       CustomToast.show(
         context,
         message: "Failed to clear cache properly.",
@@ -447,7 +423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         trailing: Switch(
           value: value,
           onChanged: (newValue) {
-            if (isHapticEnabled) HapticFeedback.lightImpact(); // Haptic setting check
+            if (isHapticEnabled) HapticFeedback.lightImpact();
             onChanged(newValue);
           },
           activeThumbColor: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
@@ -457,13 +433,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         onTap: () {
           if (isHapticEnabled) HapticFeedback.lightImpact();
-          onChanged(!value); // Pura tile click karne pe bhi toggle ho jayega
+          onChanged(!value);
         },
       ),
     );
   }
 
-  //  FUNCTION: Native In-App Review
   Future<void> _handleRateUs() async {
     final InAppReview inAppReview = InAppReview.instance;
 
@@ -476,7 +451,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } catch (e) {
       print("Rate Us Error: $e");
-      // _showSettingToast("Unable to open rating dialog.");
       CustomToast.show(
         context,
         message: "Unable to open rating dialog.",
@@ -503,7 +477,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  //  GLOBAL FUNCTION: Customer Support Dialog
   void showSupportDialog(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     showDialog(
@@ -539,7 +512,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(10),
                   onTap: () async {
-                    // Email open karne ka logic
                     const String supportEmail = "support.sptechstudios@gmail.com";
                     final Uri emailUri = Uri.parse("mailto:$supportEmail?subject=Support Request: PDF Scanner Pro");
 
@@ -582,7 +554,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // GLOBAL FUNCTION: Premium About Dialog
   void showAboutAppDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -650,7 +621,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // FUNCTION: Folder Picker (Using SAF to sync with Downloads)
   Future<void> _changeStorageLocation() async {
     try {
       Uri? folderUri = await saf.openDocumentTree();
@@ -662,7 +632,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _storageLocation = folderUri.toString();
         });
 
-        // _showSettingToast("Download location updated successfully!");
         CustomToast.show(
           context,
           message: "Download location updated successfully!",
@@ -675,7 +644,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       print("Folder Picker Error: $e");
       if (!mounted) return;
-      // _showSettingToast("Failed to pick folder.");
       CustomToast.show(
         context,
         message: "Failed to pick folder.",
