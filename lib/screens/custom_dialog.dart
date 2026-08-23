@@ -13,14 +13,12 @@ Future<bool> showCustomConfirmDialog(
 }) async {
   bool? result = await showDialog<bool>(
     context: context,
-    //builder: (context) => AlertDialog(
     builder: (context) {
       bool isDarkMode = Theme
           .of(context)
           .brightness == Brightness.dark;
 
       return AlertDialog(
-        //backgroundColor: backgroundColor,
         backgroundColor: backgroundColor ?? (isDarkMode ? const Color(0xFF2C2C2C) : Colors.white),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
