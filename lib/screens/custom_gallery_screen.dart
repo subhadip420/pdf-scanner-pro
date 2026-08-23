@@ -103,7 +103,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-      // onTap: _showAlbumListModal,
       onTap: () {
         if (isHapticEnabled) HapticFeedback.lightImpact();
         _showAlbumListModal();
@@ -158,7 +157,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
           child: Column(
             children: [
               const SizedBox(height: 10),
-              // Top ka chhota sa handle bar
               Container(
                 width: 40,
                 height: 4,
@@ -239,15 +237,12 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      //backgroundColor: const Color(0xFF151515),
       backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        //backgroundColor: const Color(0xFF1E1E1E),
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.close, color: isDarkMode ? Colors.white : Colors.black),
-          // onPressed: () => Navigator.pop(context),
           onPressed: () {
             if (isHapticEnabled) HapticFeedback.lightImpact();
             Navigator.pop(context);
@@ -258,16 +253,14 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
         title: _albums.isEmpty ? const SizedBox() : _buildAlbumSelectorButton(),
 
         actions: [
-          // TOP RIGHT CORNER: Confirm Tick mark
           IconButton(
             icon: Icon(
               Icons.check,
               color: _selectedAssets.isNotEmpty
-                  ? (isDarkMode ? Colors.blueAccent : Colors.blue) // Active state with theme support
+                  ? (isDarkMode ? Colors.blueAccent : Colors.blue)
                   : Colors.grey,
               size: 28,
             ),
-            //onPressed: _selectedAssets.isNotEmpty ? _completeSelection : null,
             onPressed: _selectedAssets.isNotEmpty
                 ? () {
               if (isHapticEnabled) HapticFeedback.lightImpact();
@@ -341,7 +334,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
 
       /// BOTTOM BAR: "Show all photos..." ka option
       bottomNavigationBar: Container(
-        //color: const Color(0xFF1E1E1E),
         color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         child: SafeArea(
@@ -354,7 +346,6 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                //Icon(Icons.photo_library_outlined, color: Colors.white70),
                 const SizedBox(width: 8),
                 Text(
                   "Show all photos...",
