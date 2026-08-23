@@ -138,10 +138,8 @@ class _ReorderScreenState extends State<ReorderScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // backgroundColor: const Color(0xFF333333),
       backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        //backgroundColor: const Color(0xFF151515),
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
         elevation: 0,
         leading: IconButton(
