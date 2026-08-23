@@ -71,7 +71,6 @@ class TermsAndConditionsScreen extends StatelessWidget {
     );
   }
 
-  // T&C ke normal text ke liye design
   Widget _buildSectionText(String text, bool isDarkMode) {
     return Text(text, style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 14, height: 1.5));
   }
