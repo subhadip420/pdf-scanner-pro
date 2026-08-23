@@ -10,7 +10,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final ValueNotifier<bool> isDarkModeNotifier = ValueNotifier(true);
-//late List<CameraDescription> cameras;
 List<CameraDescription> cameras = [];
 
 Future<void> main() async {
@@ -20,15 +19,10 @@ Future<void> main() async {
   bool savedTheme = prefs.getBool('pref_dark_mode') ?? true;
   isDarkModeNotifier.value = savedTheme;
 
-  //cameras = await availableCameras();
-  //WidgetsFlutterBinding.ensureInitialized();
   await MobileAds.instance.initialize();
   runApp(const PdfScannerPro());
 
 }
-
-// class PdfScannerPro extends StatelessWidget {
-//   const PdfScannerPro({super.key});
 
 class PdfScannerPro extends StatefulWidget {
   const PdfScannerPro({super.key});
@@ -42,7 +36,6 @@ class _PdfScannerProState extends State<PdfScannerPro> {
   void initState() {
     super.initState();
 
-    // UI render hone ke turant baad permission popups dikhane ke liye
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _requestAllPermissionsOnStartup();
     });
@@ -77,21 +70,14 @@ class _PdfScannerProState extends State<PdfScannerPro> {
 
   @override
   Widget build(BuildContext context) {
-    // return MaterialApp(
-    //   debugShowCheckedModeBanner: false,
-    //   //home: const SplashScreen(),
-    //   home: const ScannerScreen(isOpenedFromEditor: false),
-    // );
 
     return ScreenUtilInit(
-      designSize: const Size(360, 800), // Standard base size (Mobile)
+      designSize: const Size(360, 800),
       minTextAdapt: true,
       splitScreenMode: true,
-      // builder: (context, child) {
-      //   return MaterialApp(
+
 
     builder: (context, child) {
-    // 1. YAHAN ValueListenableBuilder lagana zaroori hai
     return ValueListenableBuilder<bool>(
     valueListenable: isDarkModeNotifier,
     builder: (context, isDark, _) {
@@ -105,7 +91,7 @@ class _PdfScannerProState extends State<PdfScannerPro> {
             scaffoldBackgroundColor: const Color(0xFFE3E2E2),
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.white,
-              foregroundColor: Colors.black, // Text/Icons color
+              foregroundColor: Colors.black,
             ),
           ),
 
@@ -115,17 +101,16 @@ class _PdfScannerProState extends State<PdfScannerPro> {
             scaffoldBackgroundColor: const Color(0xFF121212),
             appBarTheme: const AppBarTheme(
               backgroundColor: Color(0xFF1E1E1E),
-              foregroundColor: Colors.white, // Text/Icons color
+              foregroundColor: Colors.white,
             ),
           ),
 
-          // home: const SplashScreen(),
-          home: child, // 3. Yahan 'child' lagana zaroori hai optimization ke liye
+          home: child,
         );
       },
     );
     },
-      child: const ScannerScreen(isOpenedFromEditor: false), // 4. Tumhari screen yahan aayegi
+      child: const ScannerScreen(isOpenedFromEditor: false),
     );
   }
 }
