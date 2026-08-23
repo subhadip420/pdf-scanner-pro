@@ -12,7 +12,6 @@ import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 
 class MergeScreen extends StatefulWidget {
-  //  Editor screen se selected files yahan receive karenge
   final List<File> selectedImages;
 
   const MergeScreen({Key? key, required this.selectedImages}) : super(key: key);
@@ -21,7 +20,6 @@ class MergeScreen extends StatefulWidget {
   State<MergeScreen> createState() => _MergeScreenState();
 }
 
-// Photo ki saari state (position, size, rotation) store karne ke liye
 class MergedImageState {
   File file;
   Offset position;
@@ -41,7 +39,6 @@ class MergedImageState {
     this.isLocked = false,
   });
 
-  // Undo/Redo ke liye state ki Deep Copy banane ka function
   MergedImageState clone() {
     return MergedImageState(
       file: file,
@@ -54,7 +51,6 @@ class MergedImageState {
   }
 }
 
-// CLASS: Yeh canvas ka poora snapshot save karega
 class EditorSnapshot {
   final List<MergedImageState> imageStates;
   final String pageSize;
@@ -164,7 +160,6 @@ class _MergeScreenState extends State<MergeScreen> {
   void _redo() {
     if (_redoHistory.isEmpty) return;
     setState(() {
-      // Current state ko Undo me daal do
       _undoHistory.add(
         EditorSnapshot(
           imageStates: _imageStates.map((e) => e.clone()).toList(),
@@ -197,15 +192,12 @@ class _MergeScreenState extends State<MergeScreen> {
         }
       },
       child: Scaffold(
-        //backgroundColor: const Color(0xFF2C2C2C),
         backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.grey.shade100,
         appBar: AppBar(
-          //backgroundColor: const Color(0xFF1E1E1E),
           backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade300,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.close_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 26),
-            //onPressed: () => Navigator.pop(context),
             onPressed: () async {
               if (isHapticEnabled) HapticFeedback.lightImpact();
               bool shouldExit = await _onWillPop();
@@ -226,7 +218,6 @@ class _MergeScreenState extends State<MergeScreen> {
                   ? (isDarkMode ? Colors.white : Colors.black87)
                   : (isDarkMode ? Colors.white24 : Colors.black12), size: 24),
               tooltip: "Undo",
-              // onPressed: _undoHistory.isNotEmpty ? _undo : null,
               onPressed: _undoHistory.isNotEmpty
                   ? () {
                 if (isHapticEnabled) HapticFeedback.selectionClick();
@@ -240,7 +231,6 @@ class _MergeScreenState extends State<MergeScreen> {
                   ? (isDarkMode ? Colors.white : Colors.black87)
                   : (isDarkMode ? Colors.white24 : Colors.black12), size: 24),
               tooltip: "Redo",
-              //onPressed: _redoHistory.isNotEmpty ? _redo : null,
               onPressed: _redoHistory.isNotEmpty
                   ? () {
                 if (isHapticEnabled) HapticFeedback.lightImpact();
@@ -335,7 +325,6 @@ class _MergeScreenState extends State<MergeScreen> {
                                   double baseWidth = 150.0;
                                   bool isAutoFit = _selectedPageSize == "Auto Fit";
 
-                                  // AGAR SELECTED NAHI HAI YA LOCKED HAI (Normal render, No border)
                                   if (!isSelected || imgState.isLocked) {
                                     return Positioned(
                                       left: offsetX + imgState.position.dx,
@@ -833,7 +822,6 @@ class _MergeScreenState extends State<MergeScreen> {
               children: [
                 Icon(
                   icon,
-                  //color: isDisabled ? Colors.white24 : Colors.white,
                   color: isDisabled
                       ? (isDarkMode ? Colors.white24 : Colors.black45)  // Disabled state
                       : (isSelected ? Colors.white : (isDarkMode ? Colors.white : Colors.black)),
@@ -843,7 +831,6 @@ class _MergeScreenState extends State<MergeScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    //color: isDisabled ? Colors.white24 : Colors.white,
                     color: isDisabled
                         ? (isDarkMode ? Colors.white24 : Colors.black45)  // Disabled state
                         : (isSelected ? Colors.white : (isDarkMode ? Colors.white : Colors.black)),
@@ -969,7 +956,7 @@ class _MergeScreenState extends State<MergeScreen> {
                       _imageStates[_selectedImageIndex!].isLocked ||
                       _imageStates[_selectedImageIndex!].isHidden,
                   onTap: () {
-                    _duplicateSelectedImage(); // Yahan function call ho raha hai
+                    _duplicateSelectedImage();
                   },
                 ),
 
