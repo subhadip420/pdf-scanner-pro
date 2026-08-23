@@ -10,14 +10,10 @@ class CustomToast {
         Color? iconColor,
         Duration duration = const Duration(seconds: 3),
       }) {
-    // Current theme check karna (Dark ya Light)
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    // Default colors agar user custom color pass na kare
     final defaultBgColor = isDarkMode ? const Color(0xFF333333) : const Color(0xFF2D2D2D);
     final defaultTextColor = isDarkMode ? Colors.white : Colors.white;
 
-    // Pehle se koi snackbar open ho toh use hide kar do
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -32,7 +28,6 @@ class CustomToast {
         duration: duration,
         content: Row(
           children: [
-            // Agar icon pass kiya hai tabhi dikhayega
             if (icon != null) ...[
               Icon(
                 icon,
@@ -41,7 +36,6 @@ class CustomToast {
               ),
               const SizedBox(width: 12),
             ],
-            // Text hamesha Expanded mein taaki overflow na ho
             Expanded(
               child: Text(
                 message,
@@ -50,7 +44,7 @@ class CustomToast {
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
-                maxLines: 2, // Maximum 2 lines tak dikhayega
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
