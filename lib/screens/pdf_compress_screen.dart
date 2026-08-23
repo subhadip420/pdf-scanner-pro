@@ -127,19 +127,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
     );
   }
 
-  // void showToast(String message) {
-  //   bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Text(message, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
-  //       backgroundColor: isDarkMode ? Colors.grey.shade900 : Colors.white,
-  //       behavior: SnackBarBehavior.floating,
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-  //       duration: const Duration(seconds: 2),
-  //     ),
-  //   );
-  // }
-
   Future<void> _handleBackButton() async {
     bool shouldDiscard = await showCustomConfirmDialog(
       context,
@@ -171,7 +158,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          //backgroundColor: const Color(0xFF2C2C2C),
           backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
@@ -247,7 +233,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         });
       }
 
-      // showToast("Failed to compress PDF. File might be protected or too complex.");
       CustomToast.show(
         context,
         message: "Failed to compress PDF. File might be protected or too complex.",
@@ -278,7 +263,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
             message: "Back",
             child: IconButton(
               icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black),
-              // onPressed: () => _handleBackButton(),
               onPressed: () {
                 if (isHapticEnabled) HapticFeedback.lightImpact();
                 _handleBackButton();
@@ -323,7 +307,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         const SizedBox(width: 4),
                         IconButton(
                           icon: Icon(Icons.info_outline, color: isDarkMode ? Colors.white54 : Colors.black, size: 20),
-                          //onPressed: _showInfoDialog,
                           onPressed: () {
                             if (isHapticEnabled) HapticFeedback.lightImpact();
                             _showInfoDialog();
@@ -379,7 +362,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
                     /// Compress Button
                     ElevatedButton(
-                      //onPressed: _isCompressing ? null : _startCompression,
                       onPressed: _isCompressing
                           ? null
                           : () {
@@ -455,7 +437,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                             height: 180,
                             width: 130,
                             decoration: BoxDecoration(
-                              //color: Colors.grey.shade800,
                               color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(color: isDarkMode ? Colors.white24 : Colors.grey.shade400),
@@ -495,7 +476,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            //onPressed: _newSize == null ? null : () => _saveAsZip(),
                             onPressed: _newSize == null
                                 ? null
                                 : () {
@@ -521,7 +501,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                         const SizedBox(width: 15),
                         Expanded(
                           child: OutlinedButton.icon(
-                            //onPressed: _newSize == null ? null : () => _shareCompressedPdf(),
                             onPressed: _newSize == null
                                 ? null
                                 : () {
@@ -550,7 +529,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
 
                     /// Download PDF Button
                     ElevatedButton.icon(
-                      //onPressed: _newSize == null ? null : () => _saveCompressedPdf(),
                       onPressed: _newSize == null
                           ? null
                           : () {
@@ -591,7 +569,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         if (!mounted) return;
 
         if (selectedDirectory == null) {
-          //showToast("Save cancelled");
           CustomToast.show(
             context,
             message: "Save cancelled",
@@ -621,7 +598,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           File zipFile = File(zipPath);
           await zipFile.writeAsBytes(zipData);
 
-          //showToast("Saved successfully in selected folder!");
           if (!mounted) return;
 
           CustomToast.show(
@@ -633,12 +609,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
             iconColor: Colors.white,
           );
 
-          // if (mounted) {
-          //   Navigator.pop(context);
-          // }
           Navigator.pop(context);
         } else {
-          //showToast("Failed to encode ZIP!");
           if (!mounted) return;
           CustomToast.show(
             context,
@@ -651,7 +623,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         }
       } catch (e) {
         print("Zip Error: $e");
-        //showToast("Failed to save ZIP!");
         if (!mounted) return;
 
         CustomToast.show(
@@ -676,7 +647,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           if (rewardEarned) {
             performZipSave();
           } else {
-            //showToast("Please watch the full ad to save ZIP");
             CustomToast.show(
               context,
               message: "Please watch the full ad to save ZIP",
@@ -722,7 +692,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
       );
     } catch (e) {
       print("Share Error: $e");
-      //showToast("Failed to share PDF!");
       if (!mounted) return;
 
       CustomToast.show(
@@ -753,8 +722,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         File tempFile = File(_tempCompressedFilePath!);
         await tempFile.copy(savePath);
 
-        //showToast("Saved as: $newFileName");
-
         if (!mounted) return;
 
         CustomToast.show(
@@ -766,14 +733,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
           iconColor: Colors.white,
         );
 
-        // if (mounted) {
-        //   Navigator.pushAndRemoveUntil(
-        //     context,
-        //     MaterialPageRoute(builder: (context) => const HomeScreen()),
-        //     (Route<dynamic> route) => false,
-        //   );
-        // }
-
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -781,7 +740,6 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         );
       } catch (e) {
         print("Save Error: $e");
-        //showToast("Failed to save PDF!");
         if (!mounted) return;
 
         CustomToast.show(
