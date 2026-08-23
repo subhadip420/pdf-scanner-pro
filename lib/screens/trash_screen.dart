@@ -120,7 +120,6 @@ class _TrashScreenState extends State<TrashScreen> {
       try {
         await trashFile.delete();
         if (!mounted) return;
-        //Fluttertoast.showToast(msg: "Deleted permanently");
         CustomToast.show(
           context,
           message: "Deleted permanently",
@@ -131,7 +130,6 @@ class _TrashScreenState extends State<TrashScreen> {
       } catch (e) {
         print("Error deleting file permanently: $e");
         if (!mounted) return;
-        // Fluttertoast.showToast(msg: "Error deleting file");
         CustomToast.show(
           context,
           message: "Error deleting file",
@@ -143,7 +141,6 @@ class _TrashScreenState extends State<TrashScreen> {
     }
   }
 
-  // --- 4. EMPTY TRASH (DELETE ALL) ---
   Future<void> _emptyTrash() async {
     if (_trashFiles.isEmpty) return;
 
@@ -164,7 +161,6 @@ class _TrashScreenState extends State<TrashScreen> {
           await file.delete();
         }
         if (!mounted) return;
-        //Fluttertoast.showToast(msg: "Trash Emptied");
         CustomToast.show(
           context,
           message: "Trash Emptied",
@@ -175,7 +171,6 @@ class _TrashScreenState extends State<TrashScreen> {
       } catch (e) {
         print("Error emptying trash: $e");
         if (!mounted) return;
-        //Fluttertoast.showToast(msg: "Error emptying trash");
         CustomToast.show(
           context,
           message: "Error emptying trash",
@@ -201,11 +196,10 @@ class _TrashScreenState extends State<TrashScreen> {
         actions: [
           if (_trashFiles.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(right: 8.0), // Value ko apne hisaab se adjust kar sakte ho
+              padding: const EdgeInsets.only(right: 8.0),
               child: IconButton(
                 icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
                 tooltip: "Empty Trash",
-                //onPressed: _emptyTrash,
                 onPressed: () {
                   if (isHapticEnabled) HapticFeedback.lightImpact();
                   _emptyTrash();
@@ -234,11 +228,10 @@ class _TrashScreenState extends State<TrashScreen> {
           File file = _trashFiles[index];
           String fileName = file.path.split('/').last;
 
-          // Days remaining logic calculate karna
           DateTime deleteDate = file.lastModifiedSync();
           int daysElapsed = DateTime.now().difference(deleteDate).inDays;
           int daysLeft = 30 - daysElapsed;
-          if (daysLeft < 0) daysLeft = 0; // Negative se bachne ke liye
+          if (daysLeft < 0) daysLeft = 0;
 
           return Card(
             color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
@@ -295,7 +288,6 @@ class _TrashScreenState extends State<TrashScreen> {
                     message: "Delete Permanently",
                     child: IconButton(
                       icon: Icon(Icons.delete_forever_rounded, color: isDarkMode ? Colors.white54 : Colors.black54,),
-                      //onPressed: () => _deleteForever(file),
                       onPressed: () {
                         if (isHapticEnabled) HapticFeedback.lightImpact();
                         _deleteForever(file);
