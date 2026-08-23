@@ -113,12 +113,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
     _loadInterstitialAd();
     _loadBannerAd();
-    // _imageQuarterTurns = List.filled(docFiles.length, 0);
-    // _pageFilters = List.filled(docFiles.length, "Original color");
-    // _pageBrightness = List.filled(docFiles.length, 0.0); // Default 0
-    // _pageContrast = List.filled(docFiles.length, 0.0); // Default 0
-    // _pageMarkups = List.filled(docFiles.length, null);
-    // selectedPagesList = List.filled(docFiles.length, false);
 
     _imageQuarterTurns = List.filled(docFiles.length, 0);
     _pageFilters = List.filled(docFiles.length, "Original color");
@@ -355,7 +349,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   ColorFilter _getAdjustColorFilter(double brightness, double contrast) {
     double b = brightness * 2.55;
     double c = 1.0 + (contrast / 100.0);
-    double t = (1.0 - c) * 127.5; // Offset for contrast centering
+    double t = (1.0 - c) * 127.5;
 
     return ColorFilter.matrix([c, 0, 0, 0, t + b, 0, c, 0, 0, t + b, 0, 0, c, 0, t + b, 0, 0, 0, 1, 0]);
   }
@@ -464,12 +458,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       } else {
         if (!mounted) return;
         setState(() => _isDetectingText = false);
-        //showToast("No text found in this image");
         CustomToast.show(
           context,
           message: "No text found in this image",
           icon: Icons.warning_amber_rounded,
-          backgroundColor: Colors.orange, // Warning/Empty state theme
+          backgroundColor: Colors.orange,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -478,12 +471,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isDetectingText = false);
-      // showToast("Failed to extract text");
       CustomToast.show(
         context,
         message: "Failed to extract text",
-        icon: Icons.error_outline, // Error icon
-        backgroundColor: Colors.red, // Critical error theme
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -498,12 +490,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       final croppedFile = docFiles[currentPage]['cropped'] as File?;
 
       if (originalFile == null || croppedFile == null) {
-        //showToast("Error: Image data not found");
+
         CustomToast.show(
           context,
           message: "Error: Image data not found",
-          icon: Icons.broken_image_outlined, // Missing image ke liye perfect icon
-          backgroundColor: Colors.red, // Data failure ke liye Red theme
+          icon: Icons.broken_image_outlined,
+          backgroundColor: Colors.red,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -578,12 +570,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         } else {
           if (!mounted) return;
           setState(() => isProcessing = false);
-          //showToast("Could not process image");
           CustomToast.show(
             context,
             message: "Could not process image",
             icon: Icons.image_not_supported_outlined,
-            backgroundColor: Colors.red, // Processing failed
+            backgroundColor: Colors.red,
             textColor: Colors.white,
             iconColor: Colors.white,
           );
@@ -591,12 +582,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       } catch (e) {
         if (!mounted) return;
         setState(() => isProcessing = false);
-        //showToast("Error: $e");
         CustomToast.show(
           context,
           message: "Error: ${e.toString()}",
           icon: Icons.error,
-          backgroundColor: Colors.red, // Exception theme
+          backgroundColor: Colors.red,
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -617,14 +607,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   Future<void> _openReorderScreen() async {
     if (docFiles.length <= 1) {
-      //showToast("Only one page available");
       CustomToast.show(
         context,
-        message: "Need at least 2 pages to reorder", // Message ko thoda aur clear kar diya
-        //icon: Icons.layers_clear, // Perfect icon for document layers/pages
-        backgroundColor: Colors.orange, // Validation/Warning theme
+        message: "Need at least 2 pages to reorder",
+        backgroundColor: Colors.orange,
         textColor: Colors.white,
-        //iconColor: Colors.white,
+
       );
       return;
     }
@@ -650,12 +638,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       docFiles.addAll(reorderedList);
       _loadEditsFromMemory();
       _pageController.jumpToPage(0);
-      //showToast("Pages reordered successfully");
       CustomToast.show(
         context,
         message: "Pages reordered successfully",
-        icon: Icons.check_circle, // Success icon
-        backgroundColor: Colors.green, // Success theme
+        icon: Icons.check_circle,
+        backgroundColor: Colors.green,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -687,12 +674,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               _isInterstitialAdLoaded = false;
               _loadInterstitialAd();
 
-              //showToast("Saving PDF...");
               CustomToast.show(
                 context,
                 message: "Saving PDF...",
-                icon: Icons.picture_as_pdf, // Process ko match karta icon
-                backgroundColor: Colors.grey.shade800, // Neutral/Process theme
+                icon: Icons.picture_as_pdf,
+                backgroundColor: Colors.grey.shade800,
                 textColor: Colors.white,
                 iconColor: Colors.white,
               );
@@ -703,12 +689,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               _interstitialAd = null;
               _isInterstitialAdLoaded = false;
 
-              //showToast("Saving PDF...");
               CustomToast.show(
                 context,
                 message: "Saving PDF...",
                 icon: Icons.picture_as_pdf,
-                backgroundColor: Colors.grey.shade800, // Neutral/Process theme
+                backgroundColor: Colors.grey.shade800,
                 textColor: Colors.white,
                 iconColor: Colors.white,
               );
@@ -752,7 +737,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         context,
         message: "Saving PDF...",
         icon: Icons.picture_as_pdf,
-        backgroundColor: Colors.grey.shade800, // Neutral/Process theme
+        backgroundColor: Colors.grey.shade800,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -965,7 +950,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           final ByteData? byteData = await finalUiImg.toByteData(format: ui.ImageByteFormat.png);
 
           if (byteData != null) {
-            imageBytes = byteData.buffer.asUint8List(); // Data replace kar do
+            imageBytes = byteData.buffer.asUint8List();
           }
         }
 
@@ -1023,44 +1008,34 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         counter++;
       }
 
-      // 3. File Save karo
       await file.writeAsBytes(await pdf.save());
-
       if (!mounted) return;
 
-      //showToast("PDF Saved Successfully!");
       CustomToast.show(
         context,
         message: "PDF Saved Successfully!",
-        icon: Icons.check_circle, // Success icon
-        backgroundColor: Colors.green, // Success theme
+        icon: Icons.check_circle,
+        backgroundColor: Colors.green,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
 
-      // 4. Spinner close karo aur Home Screen par jao
       if (mounted) {
-        Navigator.pop(context); // Ye line Loading spinner ko band karegi
+        Navigator.pop(context);
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (Route<dynamic> route) => false, // Pichle saare screens clear kar dega
+          (Route<dynamic> route) => false,
         );
       }
     } catch (e) {
-      // Agar beech me koi error aa jaye toh spinner phasna nahi chahiye
-      // if (mounted) {
-      //   Navigator.pop(context); // Spinner band
-      // }
-
       if (!mounted) return;
       Navigator.pop(context);
-      //showToast("Error saving PDF: $e");
       CustomToast.show(
         context,
         message: "Error saving PDF: $e",
-        icon: Icons.error_outline, // Alert/Error icon
-        backgroundColor: Colors.red.shade700, // Critical Error theme
+        icon: Icons.error_outline,
+        backgroundColor: Colors.red.shade700,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -1068,28 +1043,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     }
   }
 
-  // void showToast(String msg) {
-  //   bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-  //
-  //   Fluttertoast.showToast(
-  //     msg: msg,
-  //     toastLength: Toast.LENGTH_SHORT,
-  //     gravity: ToastGravity.BOTTOM,
-  //     backgroundColor: isDarkMode ? Colors.white : Colors.black,
-  //     textColor: isDarkMode ? Colors.black : Colors.white,
-  //   );
-  // }
-
   void _previousPage() {
     if (currentPage > 0) {
       _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
-      //showToast("First page");
       CustomToast.show(
         context,
-        message: "Already on the first page", // Thoda aur clear UX message
-        icon: Icons.info_outline, // Info ya warning icon
-        backgroundColor: Colors.orange.shade700, // Warning theme
+        message: "Already on the first page",
+        icon: Icons.info_outline,
+        backgroundColor: Colors.orange.shade700,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -1100,12 +1062,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     if (currentPage < docFiles.length - 1) {
       _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
-      //showToast("Last page");
       CustomToast.show(
         context,
-        message: "Already on the last page", // Better UX copy
+        message: "Already on the last page",
         icon: Icons.info_outline,
-        backgroundColor: Colors.orange.shade700, // Warning theme
+        backgroundColor: Colors.orange.shade700,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -1140,7 +1101,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           _pageContrast[currentPage] = 0.0;
         });
 
-        //showToast("Page ${currentPage + 1} replaced successfully!");
         CustomToast.show(
           context,
           message: "Page ${currentPage + 1} replaced successfully!",
@@ -1151,13 +1111,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         );
       }
     } catch (e) {
-      //showToast("Error replacing photo: $e");
       print("Retake Error: $e");
       CustomToast.show(
         context,
         message: "Error replacing photo: $e",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red.shade700, // Critical Error
+        backgroundColor: Colors.red.shade700,
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -1178,12 +1137,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         await _promptDiscard();
       },
       child: Scaffold(
-        //backgroundColor: const Color(0xFF2C2C2C),
         backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.grey.shade300,
         resizeToAvoidBottomInset: false,
 
         appBar: AppBar(
-          //backgroundColor: const Color(0xFF1E1E1E),
           backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade100,
           elevation: 0,
           automaticallyImplyLeading: false,
@@ -1205,7 +1162,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           ///  MIDDLE (TITLE / BANNER AD): Teeno modes me Ad dikhayega, warna Rename Title
           title: (isCroppingMode || isSelectionMode || isResizeMode)
               ? (_isBannerAdLoaded && _bannerAd != null
-                    // 1. Agar Ad ready hai toh Banner Ad dikhao
                     ? SizedBox(
                         width: _bannerAd!.size.width.toDouble(),
                         height: _bannerAd!.size.height.toDouble(),
@@ -1261,12 +1217,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               child: CircularProgressIndicator(color: isDarkMode ? Colors.white : Colors.black, strokeWidth: 2),
                             )
                           : Icon(Icons.document_scanner_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 24),
-                      // onPressed: _isDetectingText ? null : _extractTextFromCurrentImage,
                       onPressed: _isDetectingText
                           ? null
                           : () {
                         _triggerHaptic('medium');
-                        _extractTextFromCurrentImage(); // Main function call
+                        _extractTextFromCurrentImage();
                       },
                     ),
                   ),
@@ -1573,8 +1528,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                   child: AspectRatio(
                                                     aspectRatio: targetRatio,
                                                     child: Container(
-                                                      color: Colors.white, // Paper ka white background
-                                                      //child: pagePreviewContent,
+                                                      color: Colors.white,
                                                       child: Center(child: pagePreviewContent),
                                                     ),
                                                   ),
@@ -1602,7 +1556,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Tooltip(
                                         message: "Previous Page",
                                         child: GestureDetector(
-                                          // onTap: currentPage > 0 ? _previousPage : null,
                                           onTap: currentPage > 0
                                               ? () {
                                             _triggerHaptic('selection');
@@ -1613,7 +1566,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             width: 40,
                                             height: 40,
                                             decoration: BoxDecoration(
-                                              //color: currentPage > 0 ? Colors.black87 : Colors.black38,
                                               color: currentPage > 0
                                                   ? (isDarkMode ? Colors.black : Colors.white)
                                                   : (isDarkMode ? Colors.black38 : Colors.white.withAlpha(70)),
@@ -1649,7 +1601,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 width: 40,
                                                 height: 40,
                                                 decoration: BoxDecoration(
-                                                  // color: isSelectionMode ? Colors.blueAccent : Colors.black87,
                                                   color: isSelectionMode
                                                       ? (isDarkMode ? Colors.blueAccent : Colors.blue)
                                                       : (isDarkMode ? Colors.black87 : Colors.white),
@@ -1657,7 +1608,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 ),
                                                 child: Icon(
                                                   Icons.library_add_check_rounded,
-                                                  // color: isDarkMode ? Colors.white : Colors.black,
                                                   color: isSelectionMode
                                                       ? Colors.white
                                                       : (isDarkMode ? Colors.white : Colors.black),
@@ -1712,7 +1662,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       Tooltip(
                                         message: "Next Page",
                                         child: GestureDetector(
-                                          // onTap: currentPage < docFiles.length - 1 ? _nextPage : null,
                                           onTap: currentPage < docFiles.length - 1
                                               ? () {
                                             _triggerHaptic('selection');
@@ -1723,9 +1672,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             width: 40,
                                             height: 40,
                                             decoration: BoxDecoration(
-                                              // color: currentPage < docFiles.length - 1
-                                              //     ? Colors.black87
-                                              //     : Colors.black38,
                                               color: currentPage < docFiles.length - 1
                                                   ? (isDarkMode ? Colors.black : Colors.white)
                                                   : (isDarkMode ? Colors.black38 : Colors.white.withAlpha(70)),
@@ -1734,7 +1680,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                             ),
                                             child: Icon(
                                               Icons.arrow_forward_ios_rounded,
-                                              //color: currentPage < docFiles.length - 1 ? Colors.white : Colors.white30,
                                               color: currentPage < docFiles.length - 1
                                                   ? (isDarkMode ? Colors.white : Colors.black)
                                                   : (isDarkMode ? Colors.white30 : Colors.black12),
@@ -1765,8 +1710,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 itemCount: docFiles.length,
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                 onReorderStart: (int index) {
-                                  _saveEditsToMemory(); // Memory me save kardo
-                                  //HapticFeedback.mediumImpact(); // Solid vibration feel
+                                  _saveEditsToMemory();
                                   _triggerHaptic('selection');
                                   if (!isSelectionMode) {
                                     setState(() {
@@ -1805,8 +1749,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                       _pageController.jumpToPage(currentPage);
                                     }
                                   });
-
-                                  //HapticFeedback.lightImpact();
                                   _triggerHaptic('selection');
                                 },
 
@@ -2098,10 +2040,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                     padding: const EdgeInsets.all(2),
                                                     decoration: BoxDecoration(
                                                       color: isChecked ? Colors.blueAccent : Colors.black45,
-                                                      //color: isChecked ? (isDarkMode ? Colors.blueAccent : Colors.blue) : (isDarkMode ? Colors.black45 : Colors.white70),
                                                       borderRadius: BorderRadius.circular(4),
                                                       border: Border.all(color: Colors.white, width: 1.5),
-                                                      //border: Border.all(color: isDarkMode ? Colors.white : Colors.black, width: 1.5),
                                                     ),
                                                     child: Icon(
                                                       Icons.check_rounded,
@@ -2177,7 +2117,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       Positioned.fill(
                         child: GestureDetector(
                           behavior: HitTestBehavior.translucent,
-                          // onTap: () => setState(() => _showCopyBanner = false),
                           onTap: () {
                             _triggerHaptic('selection');
                             setState(() => _showCopyBanner = false);
@@ -2209,12 +2148,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                           onPressed: () {
                                             _triggerHaptic('selection');
                                             Clipboard.setData(ClipboardData(text: _extractedText!));
-                                            //showToast("Text copied to clipboard!");
                                             CustomToast.show(
                                               context,
                                               message: "Text copied to clipboard!",
-                                              icon: Icons.copy, // Ya Icons.check_circle bhi achha lagega
-                                              backgroundColor: Colors.green, // Success theme
+                                              icon: Icons.copy,
+                                              backgroundColor: Colors.green,
                                               textColor: Colors.white,
                                               iconColor: Colors.white,
                                             );
@@ -2240,7 +2178,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
                                         /// 'X' Close Icon
                                         GestureDetector(
-                                          //onTap: () => setState(() => _showCopyBanner = false),
                                           onTap: () {
                                             _triggerHaptic('selection');
                                             setState(() => _showCopyBanner = false);
@@ -2283,7 +2220,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     AnimatedSlide(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
-                      //offset: isCroppingMode ? const Offset(0, 1.0) : Offset.zero,
                       offset: (isCroppingMode || isSelectionMode || isResizeMode) ? const Offset(0, 1.0) : Offset.zero,
                       child: _buildNormalTools(),
                     ),
@@ -2331,8 +2267,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             : () {
                                 _triggerHaptic('light');
                                 _saveEditsToMemory();
-                                //showToast("Opening scanner...");
-
                                 if (widget.isFromGallery) {
                                   Navigator.push(
                                     context,
@@ -2364,7 +2298,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     Opacity(
                       opacity: isAnyToolActive ? 0.4 : 1.0,
                       child: ElevatedButton(
-                        // onPressed: isAnyToolActive ? null : _handleSaveClick,
                         onPressed: isAnyToolActive
                             ? null
                             : () {
@@ -2470,7 +2403,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     side: BorderSide(color: isDarkMode ? Colors.grey : Colors.black),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
-                  //onPressed: () => Navigator.pop(context),
                   onPressed: () {
                     _triggerHaptic('light');
                     Navigator.pop(context);
@@ -2479,7 +2411,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 ),
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: isDarkMode ? Colors.blueAccent : Colors.blue, width: 1.5), // Colored Border
+                    side: BorderSide(color: isDarkMode ? Colors.blueAccent : Colors.blue, width: 1.5),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
@@ -2492,12 +2424,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       });
                       Navigator.pop(context);
                     } else {
-                      //showToast("Name cannot be empty");
                       CustomToast.show(
                         context,
                         message: "Name cannot be empty",
-                        icon: Icons.warning_amber_rounded, // Ya fir Icons.edit_off
-                        backgroundColor: Colors.orange.shade700, // Validation/Warning theme
+                        icon: Icons.warning_amber_rounded,
+                        backgroundColor: Colors.orange.shade700,
                         textColor: Colors.white,
                         iconColor: Colors.white,
                       );
@@ -2506,7 +2437,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   child: Text(
                     "Rename",
                     style: TextStyle(
-                      color: isDarkMode ? Colors.blueAccent : Colors.blue, // Colored Text
+                      color: isDarkMode ? Colors.blueAccent : Colors.blue,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2642,9 +2573,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               activeColor: Colors.white,
                               activeTrackColor: isDarkMode ?Colors.blueAccent : Colors.blue,
                               inactiveThumbColor: const Color(0xFFC0C0C0),
-                              //inactiveThumbColor: isDarkMode ? const Color(0xFFC0C0C0) : Colors.white,
                               inactiveTrackColor: const Color(0xFF505050),
-                              //inactiveTrackColor: isDarkMode ? const Color(0xFF505050) : Colors.grey.shade300,
                               trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
                             ),
                           ),
@@ -2678,7 +2607,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
   /// --- DEFAULT FILTER DIALOG ---
   Future<void> _showDefaultFilterDialog(BuildContext context) async {
-    // Ye temporary variable user ki selection track karega dialog ke andar
     String tempSelectedFilter = _defaultFilter;
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // 5 filter options
@@ -2736,7 +2664,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     side: BorderSide(color: isDarkMode ? Colors.grey : Colors.black),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
-                  //onPressed: () => Navigator.pop(context),
                   onPressed: () {
                     _triggerHaptic('light');
                     Navigator.pop(context);
@@ -2767,7 +2694,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       textColor: Colors.white,
                     );
                     Navigator.pop(context);
-                    //showToast("Default filter set to $tempSelectedFilter");
                   },
                   child: Text(
                     "Save",
@@ -2807,7 +2733,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 GestureDetector(
-                  // onTap: () => setState(() => _activeAdjustTab = "Brightness"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() => _activeAdjustTab = "Brightness");
@@ -2833,7 +2758,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   ),
                 ),
                 GestureDetector(
-                  // onTap: () => setState(() => _activeAdjustTab = "Contrast"),
                   onTap: () {
                     _triggerHaptic('light');
                     setState(() => _activeAdjustTab = "Contrast");
@@ -2878,11 +2802,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             SliderTheme(
               data: SliderThemeData(
                 trackHeight: 2.5,
-                //activeTrackColor: Colors.grey.shade500,
                 activeTrackColor: isDarkMode ? Colors.grey.shade400 : Colors.blue.shade700,
-                //inactiveTrackColor: Colors.grey.shade800,
                 inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
-                //thumbColor: Colors.grey.shade400,
                 thumbColor: isDarkMode ? Colors.white : Colors.blue,
                 overlayShape: SliderComponentShape.noOverlay,
               ),
@@ -2985,7 +2906,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                             }
                           }
                         } else {
-                          // Normal mode logic
                           if (_applyToAllPages) {
                             for (int i = 0; i < _pageBrightness.length; i++) {
                               _pageBrightness[i] = 0.0;
@@ -2997,7 +2917,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           }
                         }
                       });
-                      //showToast("$_activeAdjustTab reset to 0");
                     },
                     child: Text(
                       "Reset",
@@ -3030,10 +2949,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         children: [
           _buildToolItem(
             label: "Retake",
-            //icon: Symbols.reset_image_rounded,
             icon: Icons.restart_alt_rounded,
             tooltipMessage: "Retake current photo",
-            // onTap: _retakeImage,
             onTap: () {
               _triggerHaptic('light');
               _retakeImage();
@@ -3044,7 +2961,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             icon: Icons.crop_rounded,
             tooltipMessage: "Crop & adjust borders",
             isSelected: isCroppingMode,
-            // onTap: _toggleCropMode,
             onTap: () {
               _triggerHaptic('selection');
               _toggleCropMode();
@@ -3055,7 +2971,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Rotate",
             icon: Icons.rotate_right_rounded,
             tooltipMessage: "Rotate 90 degrees",
-            //onTap: _rotateImage,
             onTap: () {
               _triggerHaptic('light');
               _rotateImage();
@@ -3095,7 +3010,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Markup",
             icon: Icons.border_color_rounded,
             tooltipMessage: "Draw or add text on image",
-            //onTap: _openMarkupScreen,
             onTap: () {
               _triggerHaptic('medium');
               _openMarkupScreen();
@@ -3106,7 +3020,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Duplicate",
             icon: Icons.content_copy_rounded,
             tooltipMessage: "Duplicate current page",
-            //onTap: _duplicateCurrentPage,
             onTap: () {
               _triggerHaptic('medium');
               _duplicateCurrentPage();
@@ -3133,7 +3046,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Reorder",
             icon: Icons.swap_horizontal_circle_outlined,
             tooltipMessage: "Rearrange page sequence",
-            //onTap: _openReorderScreen,
             onTap: () {
               _triggerHaptic('light');
               _openReorderScreen();
@@ -3143,7 +3055,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Delete",
             icon: Icons.delete_outline_rounded,
             tooltipMessage: "Delete current page",
-            //onTap: _promptDeletePage,
             onTap: () {
               _triggerHaptic('heavy');
               _promptDeletePage();
@@ -3166,7 +3077,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               label: "Cancel",
               icon: Icons.close_rounded,
               tooltipMessage: "Cancel Crop",
-              //onTap: _cancelCrop
             onTap: () {
               _triggerHaptic('selection');
               _cancelCrop();
@@ -3176,7 +3086,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             label: "Auto",
             icon: Icons.auto_awesome_mosaic_rounded,
             tooltipMessage: "Reset to auto detect",
-            // onTap: _resetToAutoCrop,
             onTap: () {
               _triggerHaptic('selection');
               _resetToAutoCrop();
@@ -3238,7 +3147,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.fit_screen_rounded,
                   tooltipMessage: "Auto fit to image size",
                   isSelected: _selectedPageSize == "Auto Fit",
-                  // onTap: () => setState(() => _selectedPageSize = "Auto Fit"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3251,9 +3159,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   label: "Letter (P)",
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "US Letter Portrait",
-                  //onTap: () => showToast("US Letter Portrait applied"),
                   isSelected: _selectedPageSize == "Letter (P)",
-                  // onTap: () => setState(() => _selectedPageSize = "Letter (P)"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3266,7 +3172,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Letter Landscape",
                   isSelected: _selectedPageSize == "Letter (L)",
-                  // onTap: () => setState(() => _selectedPageSize = "Letter (L)"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3280,7 +3185,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "US Legal Portrait",
                   isSelected: _selectedPageSize == "Legal (P)",
-                  // onTap: () => setState(() => _selectedPageSize = "Legal (P)"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3293,7 +3197,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "US Legal Landscape",
                   isSelected: _selectedPageSize == "Legal (L)",
-                  // onTap: () => setState(() => _selectedPageSize = "Legal (L)"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3307,7 +3210,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A4 Portrait",
                   isSelected: _selectedPageSize == "A4 (P)",
-                  //onTap: () => setState(() => _selectedPageSize = "A4 (P)"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3320,7 +3222,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_landscape_rounded,
                   tooltipMessage: "A4 Landscape",
                   isSelected: _selectedPageSize == "A4 (L)",
-                  // onTap: () => setState(() => _selectedPageSize = "A4 (L)"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3334,7 +3235,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   icon: Icons.crop_portrait_rounded,
                   tooltipMessage: "A3 Portrait",
                   isSelected: _selectedPageSize == "A3 (P)",
-                  // onTap: () => setState(() => _selectedPageSize = "A3 (P)"),
                   onTap: () {
                     _triggerHaptic('selection');
                     setState(() {
@@ -3508,7 +3408,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 }
                               });
                               if (!mounted) return;
-                              //showToast("Merged photo added!");
                               CustomToast.show(
                                 context,
                                 message: "Merged photo added!",
@@ -3604,7 +3503,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
 
     HapticFeedback.lightImpact();
-    //showToast("Page duplicated successfully");
     CustomToast.show(
       context,
       message: "Page duplicated successfully",
@@ -3667,8 +3565,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           MarkupExportData exportData = _pageMarkups[i];
 
           double scaleRatio = targetWidth / 400.0;
-
-          //  Draw Strokes (Drawing)
           DrawingPainter painter = DrawingPainter(
             paths: exportData.paths,
             currentPoints: [],
@@ -3787,7 +3683,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
         }
 
-        // ---  EXPORT (Extremely Fast Native PNG Encoding) ---
         final ui.Picture picture = recorder.endRecording();
 
         final ui.Image finalImg = await picture.toImage(targetWidth.toInt(), targetHeight.toInt());
@@ -3817,10 +3712,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     });
 
     int selectedCount = selectedPagesList.where((e) => e == true).length;
-    //showToast("$selectedCount page(s) rotated");
   }
 
-  // Delete Page Logic with Memory Sync
   Future<void> _promptDeletePage() async {
     _saveEditsToMemory();
 
@@ -3845,14 +3738,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           textColor: Colors.white,
         );
 
-        // if (mounted) {
-        //   Navigator.pushAndRemoveUntil(
-        //     context,
-        //     MaterialPageRoute(builder: (context) => const HomeScreen()),
-        //     (route) => false,
-        //   );
-        // }
-
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -3873,7 +3758,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
         });
 
-        //showToast("Page deleted");
         CustomToast.show(
           context,
           message: "Page deleted",
@@ -3920,14 +3804,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           backgroundColor: Colors.grey.shade800,
           textColor: Colors.white,
         );
-
-        // if (mounted) {
-        //   Navigator.pushAndRemoveUntil(
-        //     context,
-        //     MaterialPageRoute(builder: (context) => const HomeScreen()),
-        //     (route) => false,
-        //   );
-        // }
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -3946,7 +3822,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
 
           isSelectionMode = false;
-          //selectedPagesList = List.filled(docFiles.length, false);
           selectedPagesList = List.filled(docFiles.length, false, growable: true);
         });
 
@@ -3958,7 +3833,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           }
         });
 
-        //showToast("$selectedCount page(s) deleted");
         CustomToast.show(
           context,
           message: "$selectedCount page(s) deleted",
@@ -4020,14 +3894,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     return Tooltip(
       message: tooltipMessage,
       child: GestureDetector(
-        //onTap: onTap ?? () => showToast("$label clicked"),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              //color: isSelected ? Colors.blueAccent : Colors.transparent,
               color: isSelected
                   ? (isDarkMode ? Colors.blueAccent : Colors.blue)
                   : Colors.transparent,
@@ -4144,7 +4016,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         message: "Error saving crop",
         backgroundColor: Colors.red,
         textColor: Colors.white,
-        icon: Icons.error_outline, // Important/Alert ke liye icon allowed hai
+        icon: Icons.error_outline,
       );
 
     }
@@ -4179,7 +4051,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // 1. Original Blur Image background
                   SizedBox(
                     width: _cropAreaWidth,
                     height: _cropAreaHeight,
@@ -4252,7 +4123,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             width: isVertical ? 40 : double.infinity,
             height: isVertical ? double.infinity : 40,
             color: Colors.transparent,
-            // Touch area dikhega nahi par exist karega
             alignment: Alignment.center,
             child: Container(
               width: isVertical ? 8 : 40,
@@ -4298,8 +4168,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
 
 /// --- CUSTOM DOTTED UNDERLINE PAINTER ---
 class DottedLinePainter extends CustomPainter {
-  //bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
   final bool isDarkMode;
 
   DottedLinePainter({required this.isDarkMode});
@@ -4311,7 +4179,6 @@ class DottedLinePainter extends CustomPainter {
     double startX = 0;
 
     final paint = Paint()
-      //..color = Colors.white54
       ..color = isDarkMode ? Colors.white54 : Colors.black87
       ..strokeWidth = size.height
       ..strokeCap = StrokeCap.round;
@@ -4323,7 +4190,6 @@ class DottedLinePainter extends CustomPainter {
   }
 
   @override
-  //bool shouldRepaint(CustomPainter oldDelegate) => false;
   bool shouldRepaint(covariant DottedLinePainter oldDelegate) {
     return oldDelegate.isDarkMode != isDarkMode;
   }
