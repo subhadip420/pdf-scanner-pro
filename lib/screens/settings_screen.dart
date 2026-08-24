@@ -1,4 +1,3 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -428,8 +427,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
           activeThumbColor: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
           activeTrackColor: isDarkMode
-              ? Colors.lightBlueAccent.withOpacity(0.4)
-              : Colors.blue.withOpacity(0.4),
+              ? Colors.lightBlueAccent.withValues(alpha:0.4)
+              : Colors.blue.withValues(alpha:0.4),
         ),
         onTap: () {
           if (isHapticEnabled) HapticFeedback.lightImpact();
@@ -525,9 +524,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.lightBlueAccent.withOpacity(0.1),
+                      color: Colors.lightBlueAccent.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.lightBlueAccent.withOpacity(0.5)),
+                      border: Border.all(color: Colors.lightBlueAccent.withValues(alpha:0.5)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
