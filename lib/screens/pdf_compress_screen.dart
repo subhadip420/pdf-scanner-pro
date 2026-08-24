@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf_compressor/pdf_compressor.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
@@ -38,8 +37,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
   //final String _bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111'; // test ad id
   final String _bannerAdUnitId = 'ca-app-pub-5454466291921987/1268883000'; // real ad id
 
-  InterstitialAd? _interstitialAd;
-  bool _isInterstitialAdLoaded = false;
+  //InterstitialAd? _interstitialAd;
+  //bool _isInterstitialAdLoaded = false;
 
   RewardedAd? _rewardedAd;
 
@@ -328,8 +327,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                               inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
                               thumbColor: isDarkMode ? Colors.white : Colors.blue,
                               overlayColor: isDarkMode
-                                  ? Colors.blueAccent.withOpacity(0.2)
-                                  : Colors.blue.withOpacity(0.2),
+                                  ? Colors.blueAccent.withValues(alpha:0.2)
+                                  : Colors.blue.withValues(alpha:0.2),
                               valueIndicatorTextStyle: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                             ),
                             child: Slider(
