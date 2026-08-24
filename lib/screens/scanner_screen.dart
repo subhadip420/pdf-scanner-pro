@@ -1,19 +1,17 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gal/gal.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import '../../main.dart';
 import 'dart:io';
 import 'package:scroll_snap_list/scroll_snap_list.dart';
-import 'package:flutter/services.dart'; // For locking orientation
-import 'package:sensors_plus/sensors_plus.dart'; // For accelerometer
+import 'package:flutter/services.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
 import 'package:image/image.dart' as img;
 import 'camera_settings_screen.dart';
@@ -1177,9 +1175,29 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
 
     // return Scaffold(
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    // return WillPopScope(
+    //   onWillPop: _onWillPop,
+    //
+    //   child: Listener(
+    //     onPointerDown: (_) {
+    //       if (!_isCameraSleeping) {
+    //         _resetSleepTimer();
+    //       }
+    //     },
+    //     child: Scaffold(
+    //       backgroundColor: const Color(0xFF2C2C2C),
+    //       body: GestureDetector(
 
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) return;
+
+        final bool shouldPop = await _onWillPop();
+        if (shouldPop && context.mounted) {
+          Navigator.pop(context, result);
+        }
+      },
       child: Listener(
         onPointerDown: (_) {
           if (!_isCameraSleeping) {
@@ -1255,7 +1273,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           child: Container(
                             padding:  EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.4),
+                              color: Colors.black.withValues(alpha:0.4),
                               borderRadius: BorderRadius.circular(20.r),
                             ),
                             child: Text(
@@ -1279,7 +1297,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, spreadRadius: 2),
+                              BoxShadow(color: Colors.black.withValues(alpha:0.5), blurRadius: 10, spreadRadius: 2),
                             ],
                           ),
                           child: Column(
@@ -1458,7 +1476,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               child: Container(
                                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.25),
+                                  color: Colors.black.withValues(alpha:0.25),
                                   borderRadius: BorderRadius.circular(30.r),
                                 ),
                                 child: Row(
@@ -1628,7 +1646,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 40),
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.45),
+                              color: Colors.black.withValues(alpha:0.45),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -1690,7 +1708,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       case "Flash":
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.35), borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.35), borderRadius: BorderRadius.circular(30)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1713,7 +1731,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       case "Timer":
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.35), borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.35), borderRadius: BorderRadius.circular(30)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1736,7 +1754,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       default:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: Colors.black.withOpacity(0.35), borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.35), borderRadius: BorderRadius.circular(30)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -2003,7 +2021,7 @@ class GridOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = Colors.white.withOpacity(0.4)
+      ..color = Colors.white.withValues(alpha:0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
