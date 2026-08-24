@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_file_dialog/flutter_file_dialog.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:io';
@@ -23,15 +21,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_storage/shared_storage.dart' as saf;
 import '../main.dart';
 import 'custom_dialog.dart';
-import 'custom_gallery_screen.dart'; // Apni gallery wali screen
+import 'custom_gallery_screen.dart';
 import 'custom_toast.dart';
-import 'document_editor_screen.dart'; // Apna editor
+import 'document_editor_screen.dart';
 import 'package:gal/gal.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart' as syncfusion;
 
 class HomeScreen extends StatefulWidget {
@@ -413,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+    //final double bottomPadding = MediaQuery.of(context).padding.bottom;
     return PopScope(
       canPop: !_isSelectionMode,
       onPopInvokedWithResult: (bool didPop, Object? result) {
@@ -554,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   setState(() => _isFabMenuOpen = false);
                 },
                 child: Container(
-                  color: Colors.black.withOpacity(0.85),
+                  color: Colors.black.withValues(alpha:0.85),
                   width: double.infinity,
                   height: double.infinity,
                 ),
@@ -818,7 +812,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _selectedFiles.contains(file.path)
-                      ? Colors.lightBlueAccent.withOpacity(0.5)
+                      ? Colors.lightBlueAccent.withValues(alpha:0.5)
                       : (isDarkMode ? Colors.white12 : Colors.black12),
                 ),
               ),
@@ -1154,7 +1148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _selectedFiles.contains(file.path)
-                          ? (isDarkMode ? Colors.lightBlueAccent.withOpacity(0.5) : Colors.blue.withOpacity(0.5))
+                          ? (isDarkMode ? Colors.lightBlueAccent.withValues(alpha:0.5) : Colors.blue.withValues(alpha:0.5))
                           : (isDarkMode ? Colors.white12 : Colors.black12),
                     ),
                   ),
@@ -1697,7 +1691,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSelectionBottomBar({Key? key}) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final double bottomPadding = MediaQuery.of(context).padding.bottom;
+    //final double bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return BottomAppBar(
       key: key,
