@@ -2,19 +2,15 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image/image.dart' as img;
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:open_file/open_file.dart';
 import 'package:pdf_scanner_pro/screens/reorder_screen.dart';
 import 'package:pdf_scanner_pro/screens/scanner_screen.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
 import 'custom_toast.dart';
@@ -39,7 +35,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late PageController _pageController;
   int currentPage = 0;
   bool isThumbnailVisible = true;
-  RewardedAd? _rewardedAd;
+  //RewardedAd? _rewardedAd;
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
 
@@ -59,7 +55,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   double _iconRotationTurns = 0.0;
   late List<int> _imageQuarterTurns;
 
-  int _currentPageIndex = 0;
+  //int _currentPageIndex = 0;
 
   // Filter Menu State Variables
   bool _showFilterMenu = false;
@@ -876,7 +872,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             Color bgColor = item.appearance == 1
                 ? item.color
                 : item.appearance == 2
-                ? item.color.withOpacity(0.5)
+                //? item.color.withOpacity(0.5)
+                ? item.color.withValues(alpha: 0.5)
                 : Colors.transparent;
 
             TextDecoration decoration = TextDecoration.none;
@@ -1129,7 +1126,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     bool isAnyToolActive = isCroppingMode || _showFilterMenu || _showAdjustMenu || isResizeMode || isSelectionMode;
     return PopScope(
       canPop: false,
-      onPopInvoked: (bool didPop) async {
+      //onPopInvoked: (bool didPop) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) {
           return;
         }
@@ -1383,7 +1381,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                     Color bgColor = item.appearance == 1
                                                                         ? item.color
                                                                         : item.appearance == 2
-                                                                        ? item.color.withOpacity(0.5)
+                                                                        //? item.color.withOpacity(0.5)
+                                                                        ? item.color.withValues(alpha: 0.5)
                                                                         : Colors.transparent;
                                                                     TextDecoration decoration = TextDecoration.none;
                                                                     if (item.isUnderline && item.isStrikethrough) {
@@ -1861,7 +1860,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                       Color bgColor = item.appearance == 1
                                                                           ? item.color
                                                                           : item.appearance == 2
-                                                                          ? item.color.withOpacity(0.5)
+                                                                          //? item.color.withOpacity(0.5)
+                                                                          ? item.color.withValues(alpha: 0.5)
                                                                           : Colors.transparent;
                                                                       TextDecoration decoration = TextDecoration.none;
                                                                       if (item.isUnderline && item.isStrikethrough) {
@@ -2058,7 +2058,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 margin: const EdgeInsets.all(4),
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: isDarkMode ? Colors.black.withOpacity(0.6) : Colors.white.withOpacity(0.6),
+                                                  //color: isDarkMode ? Colors.black.withOpacity(0.6) : Colors.white.withOpacity(0.6),
+                                                  color: isDarkMode ? Colors.black.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.6),
                                                   borderRadius: BorderRadius.circular(10),
                                                 ),
                                                 child: Text(
@@ -2134,7 +2135,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                     decoration: BoxDecoration(
                                       color: isDarkMode ? const Color(0xFF2C2C2C)  : Colors.grey.shade300,
                                       borderRadius: BorderRadius.circular(30),
-                                      border: Border.all(color: Colors.blueAccent.withOpacity(0.5), width: 1.5),
+                                      border: Border.all(color: Colors.blueAccent.withValues(alpha:0.5), width: 1.5),
                                       boxShadow: const [
                                         BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 5)),
                                       ],
@@ -2308,8 +2309,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           backgroundColor: Colors.blueAccent,
                           foregroundColor: Colors.white,
                           disabledBackgroundColor: isDarkMode
-                              ?  Colors.blueAccent.withOpacity(0.3)
-                              : Colors.blue.withOpacity(0.6),
+                              ?  Colors.blueAccent.withValues(alpha:0.3)
+                              : Colors.blue.withValues(alpha:0.6),
                           disabledForegroundColor: isDarkMode ? Colors.white60: Colors.black45,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -2570,7 +2571,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   }
                                 });
                               },
-                              activeColor: Colors.white,
+                              //activeColor: Colors.white,
+                              activeThumbColor: Colors.white,
                               activeTrackColor: isDarkMode ?Colors.blueAccent : Colors.blue,
                               inactiveThumbColor: const Color(0xFFC0C0C0),
                               inactiveTrackColor: const Color(0xFF505050),
@@ -2875,13 +2877,15 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 }
                               });
                             },
-                            activeColor: Colors.white,
+                            //activeColor: Colors.white,
+                            activeThumbColor: Colors.white,
                             activeTrackColor: Colors.blueAccent,
                             //inactiveThumbColor: const Color(0xFFC0C0C0),
                             inactiveThumbColor: isDarkMode ? const Color(0xFFC0C0C0) : const Color(0xFF505050),
                             // inactiveTrackColor: const Color(0xFF505050),
                             inactiveTrackColor: isDarkMode ? const Color(0xFF505050) : const Color(0xFFC0C0C0),
-                            trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+                            //trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+                            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -3614,7 +3618,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             Color bgColor = item.appearance == 1
                 ? item.color
                 : item.appearance == 2
-                ? item.color.withOpacity(0.5)
+                ? item.color.withValues(alpha:0.5)
                 : Colors.transparent;
 
             TextDecoration decoration = TextDecoration.none;
@@ -3711,7 +3715,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       }
     });
 
-    int selectedCount = selectedPagesList.where((e) => e == true).length;
+    //int selectedCount = selectedPagesList.where((e) => e == true).length;
   }
 
   Future<void> _promptDeletePage() async {
@@ -4057,7 +4061,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     child: Image.file(originalFile, fit: BoxFit.fill),
                   ),
                   // 2. Dark Overlay
-                  Container(color: Colors.black.withOpacity(0.6)),
+                  Container(color: Colors.black.withValues(alpha:0.6)),
 
                   // 3. Main Crop Box
                   Positioned(
@@ -4152,7 +4156,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               width: 26,
               height: 26,
               decoration: BoxDecoration(
-                color: Colors.blueAccent.withOpacity(0.3),
+                color: Colors.blueAccent.withValues(alpha:0.3),
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.blueAccent, width: 3.5),
               ),
