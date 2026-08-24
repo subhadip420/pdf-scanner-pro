@@ -147,8 +147,10 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeColor: Colors.blueAccent,
-      activeTrackColor: Colors.blueAccent.withOpacity(0.4),
+      //activeColor: Colors.blueAccent,
+      activeThumbColor: Colors.blueAccent,
+      //activeTrackColor: Colors.blueAccent.withOpacity(0.4),
+      activeTrackColor: Colors.blueAccent.withValues(alpha: 0.4),
       inactiveThumbColor: Colors.grey.shade400,
       inactiveTrackColor: Colors.grey.shade700,
       title: Text(
@@ -161,6 +163,7 @@ class _CameraSettingsScreenState extends State<CameraSettingsScreen> {
   }
 
   Widget _buildDivider() {
-    return Divider(color: Colors.white.withOpacity(0.1), height: 1, thickness: 1, indent: 16, endIndent: 16);
+    //return Divider(color: Colors.white.withOpacity(0.1), height: 1, thickness: 1, indent: 16, endIndent: 16);
+    return Divider(color: Colors.white.withValues(alpha: 0.1), height: 1, thickness: 1, indent: 16, endIndent: 16);
   }
 } //end main class
