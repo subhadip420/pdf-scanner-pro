@@ -3,10 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:open_file/open_file.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_dialog.dart';
-import 'custom_toast.dart'; // Tumhara custom dialog import
+import 'custom_toast.dart';
 
 class TrashScreen extends StatefulWidget {
   const TrashScreen({Key? key}) : super(key: key);
@@ -245,7 +244,7 @@ class _TrashScreenState extends State<TrashScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.2),
+                  color: Colors.redAccent.withValues(alpha:0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent),
