@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 
@@ -314,7 +313,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
     }
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> colorsToSave = _recentColors.map((c) => c.value.toString()).toList();
+    //List<String> colorsToSave = _recentColors.map((c) => c.value.toString()).toList();
+    List<String> colorsToSave = _recentColors.map((c) => c.toARGB32().toString()).toList();
     await prefs.setStringList('markup_recent_colors', colorsToSave);
 
     setState(() {});
@@ -462,8 +462,19 @@ class _MarkupScreenState extends State<MarkupScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    // return WillPopScope(
+    //   onWillPop: _onWillPop,
+    //   child: GestureDetector(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) return;
+
+        final bool shouldPop = await _onWillPop();
+        if (shouldPop && context.mounted) {
+          Navigator.pop(context, result);
+        }
+      },
       child: GestureDetector(
         onTap: _unfocusAll,
         child: Scaffold(
@@ -685,7 +696,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                           Color bgColor = item.appearance == 1
                                               ? item.color
                                               : item.appearance == 2
-                                              ? item.color.withOpacity(0.5)
+                                              ? item.color.withValues(alpha:0.5)
                                               : Colors.transparent;
 
                                           TextDecoration decoration = TextDecoration.none;
@@ -915,13 +926,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                     builder: (context, constraints) {
                                       double canvasW = constraints.maxWidth;
                                       double canvasH = constraints.maxHeight;
-                                      double scaleRatio = canvasW / 400.0;
+                                      //double scaleRatio = canvasW / 400.0;
 
                                       return Stack(
                                         clipBehavior: Clip.none,
                                         children: _shapeItems.map((shape) {
                                           bool isActive = _activeShapeItem == shape;
-                                          double scaledIconSize = shape.size * scaleRatio;
+                                          //double scaledIconSize = shape.size * scaleRatio;
 
                                           return Positioned(
                                             left: shape.offset.dx * canvasW,
@@ -1270,7 +1281,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: !_isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+                        color: !_isEraserMode ? Colors.blueAccent.withValues(alpha:0.2) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -1294,7 +1305,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: _isEraserMode ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+                        color: _isEraserMode ? Colors.blueAccent.withValues(alpha:0.2) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -1569,7 +1580,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isBold ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      color: activeItem.isBold ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(Icons.format_bold_rounded,
@@ -1593,7 +1604,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isUnderline ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      color: activeItem.isUnderline ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -1617,7 +1628,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isItalic ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      color: activeItem.isItalic ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -1641,7 +1652,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isStrikethrough ? Colors.blueAccent.withOpacity(0.3) : Colors.transparent,
+                      color: activeItem.isStrikethrough ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -1905,10 +1916,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
         const SizedBox(height: 0),
 
         /// Opacity Slider
-        _buildSlider("Opacity", active?.color.opacity ?? 1.0, 0.1, 1.0, (val) {
+        //_buildSlider("Opacity", active?.color.opacity ?? 1.0, 0.1, 1.0, (val) {
+        _buildSlider("Opacity", active?.color.a ?? 1.0, 0.1, 1.0, (val) {
           setState(() {
             if (active != null) {
-              active.color = active.color.withOpacity(val);
+              active.color = active.color.withValues(alpha:val);
             }
           });
         }),
@@ -2022,7 +2034,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 8),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blueAccent.withOpacity(0.2) : Colors.transparent,
+          color: isSelected ? Colors.blueAccent.withValues(alpha:0.2) : Colors.transparent,
           border: Border.all(color: isDarkMode ? Colors.white70 : Colors.black),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -2069,7 +2081,7 @@ class DrawingPainter extends CustomPainter {
       }
 
       Paint p = Paint()
-        ..color = path.isEraser ? Colors.transparent : path.color.withOpacity(path.opacity)
+        ..color = path.isEraser ? Colors.transparent : path.color.withValues(alpha:path.opacity)
         ..strokeWidth =
             path.strokeWidth *
             strokeScale // Scaling applied
@@ -2091,7 +2103,7 @@ class DrawingPainter extends CustomPainter {
 
     if (currentPoints.isNotEmpty) {
       Paint p = Paint()
-        ..color = isEraser ? Colors.transparent : currentColor.withOpacity(currentOpacity)
+        ..color = isEraser ? Colors.transparent : currentColor.withValues(alpha:currentOpacity)
         ..strokeWidth =
             currentStrokeWidth *
             strokeScale // Scaling applied
