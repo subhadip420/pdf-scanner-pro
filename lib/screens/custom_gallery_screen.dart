@@ -305,7 +305,8 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                       if (isSelected)
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.3),
+                            // color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             border: Border.all(color: isDarkMode ? Colors.blueAccent : Colors.blue, width: 3),
                           ),
                         ),
