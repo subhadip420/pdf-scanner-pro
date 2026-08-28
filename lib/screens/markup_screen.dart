@@ -313,7 +313,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
     }
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    //List<String> colorsToSave = _recentColors.map((c) => c.value.toString()).toList();
     List<String> colorsToSave = _recentColors.map((c) => c.toARGB32().toString()).toList();
     await prefs.setStringList('markup_recent_colors', colorsToSave);
 
@@ -346,7 +345,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue,)),
+      builder: (_) => Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue)),
     );
 
     for (int i = 0; i < 20; i++) {
@@ -386,7 +385,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     await showDialog(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: isDarkMode ?  const Color(0xFF2C2C2C) :  Colors.white,
+        backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -447,7 +446,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 SizedBox(
                   height: 38,
                   child: Center(
-                    child: Text("No recent colors", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 12)),
+                    child: Text(
+                      "No recent colors",
+                      style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 12),
+                    ),
                   ),
                 ),
             ],
@@ -462,9 +464,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    // return WillPopScope(
-    //   onWillPop: _onWillPop,
-    //   child: GestureDetector(
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
@@ -479,14 +478,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
         onTap: _unfocusAll,
         child: Scaffold(
           resizeToAvoidBottomInset: false,
-          //backgroundColor: const Color(0xFF1E1E1E),
           backgroundColor: isDarkMode ? const Color(0xFF100F0F) : Colors.white,
           appBar: AppBar(
-            //backgroundColor: const Color(0xFF1E1E1E),
             backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFE3E2E2),
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.close_rounded, color: isDarkMode ?  Colors.white : Colors.black, size: 28),
+              icon: Icon(Icons.close_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 28),
               onPressed: () async {
                 if (isHapticEnabled) HapticFeedback.mediumImpact();
                 if (await _onWillPop()) {
@@ -496,16 +493,22 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ),
             title: Text(
               "Markup",
-              style: TextStyle(color: isDarkMode ?  Colors.white : Colors.black, fontSize: 18, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             actions: [
               if (_activeTab == "Drawing") ...[
                 Tooltip(
                   message: "Undo",
                   child: IconButton(
-                    icon: Icon(Icons.undo_rounded, color: _paths.isNotEmpty
-                        ? (isDarkMode ? Colors.white : Colors.black87)
-                        : (isDarkMode ? Colors.white38 : Colors.black26)
+                    icon: Icon(
+                      Icons.undo_rounded,
+                      color: _paths.isNotEmpty
+                          ? (isDarkMode ? Colors.white : Colors.black87)
+                          : (isDarkMode ? Colors.white38 : Colors.black26),
                     ),
                     onPressed: () {
                       if (isHapticEnabled) HapticFeedback.selectionClick();
@@ -520,9 +523,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Tooltip(
                   message: "Redo",
                   child: IconButton(
-                    icon: Icon(Icons.redo_rounded, color: _undonePaths.isNotEmpty
-                        ? (isDarkMode ? Colors.white : Colors.black87)
-                        : (isDarkMode ? Colors.white38 : Colors.black26),
+                    icon: Icon(
+                      Icons.redo_rounded,
+                      color: _undonePaths.isNotEmpty
+                          ? (isDarkMode ? Colors.white : Colors.black87)
+                          : (isDarkMode ? Colors.white38 : Colors.black26),
                     ),
                     onPressed: () {
                       if (isHapticEnabled) HapticFeedback.selectionClick();
@@ -549,7 +554,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
               /// --- MAIN PREVIEW AREA (With Zoom & Draw) ---
               Expanded(
                 child: Container(
-                  color:  isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+                  color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
                   child: InteractiveViewer(
                     minScale: 1.0,
                     maxScale: 8.0,
@@ -676,100 +681,130 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                 Positioned.fill(
                                   child: IgnorePointer(
                                     ignoring: _activeTab != "Text",
-                                  child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      double canvasW = constraints.maxWidth;
-                                      double canvasH = constraints.maxHeight;
-                                      double scaleRatio = canvasW / 400.0;
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        double canvasW = constraints.maxWidth;
+                                        double canvasH = constraints.maxHeight;
+                                        double scaleRatio = canvasW / 400.0;
 
-                                      return Stack(
-                                        clipBehavior: Clip.none,
-                                        children: _textItems.map((item) {
-                                          bool isActive = _activeTextItem == item;
-                                          double scaledFontSize = item.fontSize * scaleRatio;
+                                        return Stack(
+                                          clipBehavior: Clip.none,
+                                          children: _textItems.map((item) {
+                                            bool isActive = _activeTextItem == item;
+                                            double scaledFontSize = item.fontSize * scaleRatio;
 
-                                          Color textColor = item.appearance == 0
-                                              ? item.color
-                                              : (item.appearance == 1 || item.appearance == 2)
-                                              ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
-                                              : Colors.white;
-                                          Color bgColor = item.appearance == 1
-                                              ? item.color
-                                              : item.appearance == 2
-                                              ? item.color.withValues(alpha:0.5)
-                                              : Colors.transparent;
+                                            Color textColor = item.appearance == 0
+                                                ? item.color
+                                                : (item.appearance == 1 || item.appearance == 2)
+                                                ? (item.color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                                                : Colors.white;
+                                            Color bgColor = item.appearance == 1
+                                                ? item.color
+                                                : item.appearance == 2
+                                                ? item.color.withValues(alpha: 0.5)
+                                                : Colors.transparent;
 
-                                          TextDecoration decoration = TextDecoration.none;
-                                          if (item.isUnderline && item.isStrikethrough) {
-                                            decoration = TextDecoration.combine([
-                                              TextDecoration.underline,
-                                              TextDecoration.lineThrough,
-                                            ]);
-                                          } else if (item.isUnderline) {
-                                            decoration = TextDecoration.underline;
-                                          } else if (item.isStrikethrough) {
-                                            decoration = TextDecoration.lineThrough;
-                                          }
+                                            TextDecoration decoration = TextDecoration.none;
+                                            if (item.isUnderline && item.isStrikethrough) {
+                                              decoration = TextDecoration.combine([
+                                                TextDecoration.underline,
+                                                TextDecoration.lineThrough,
+                                              ]);
+                                            } else if (item.isUnderline) {
+                                              decoration = TextDecoration.underline;
+                                            } else if (item.isStrikethrough) {
+                                              decoration = TextDecoration.lineThrough;
+                                            }
 
-                                          return Positioned(
-                                            left: item.offset.dx * canvasW,
-                                            top: item.offset.dy * canvasH,
-                                            child: FractionalTranslation(
-                                              translation: const Offset(-0.5, -0.5),
-                                              child: Transform.rotate(
-                                                angle: item.rotation,
-                                                child: GestureDetector(
-                                                  onPanUpdate: (details) {
-                                                    if (_activeTab == "Text") {
-                                                      setState(() {
-                                                        RenderBox renderBox =
-                                                            _canvasKey.currentContext!.findRenderObject() as RenderBox;
-                                                        double c = math.cos(item.rotation);
-                                                        double s = math.sin(item.rotation);
+                                            return Positioned(
+                                              left: item.offset.dx * canvasW,
+                                              top: item.offset.dy * canvasH,
+                                              child: FractionalTranslation(
+                                                translation: const Offset(-0.5, -0.5),
+                                                child: Transform.rotate(
+                                                  angle: item.rotation,
+                                                  child: GestureDetector(
+                                                    onPanUpdate: (details) {
+                                                      if (_activeTab == "Text") {
+                                                        setState(() {
+                                                          RenderBox renderBox =
+                                                              _canvasKey.currentContext!.findRenderObject()
+                                                                  as RenderBox;
+                                                          double c = math.cos(item.rotation);
+                                                          double s = math.sin(item.rotation);
 
-                                                        double dx = details.delta.dx * c - details.delta.dy * s;
-                                                        double dy = details.delta.dx * s + details.delta.dy * c;
+                                                          double dx = details.delta.dx * c - details.delta.dy * s;
+                                                          double dy = details.delta.dx * s + details.delta.dy * c;
 
-                                                        item.offset += Offset(
-                                                          dx / renderBox.size.width,
-                                                          dy / renderBox.size.height,
-                                                        );
-                                                      });
-                                                    }
-                                                  },
-                                                  onTap: () {
-                                                    if (_activeTab == "Text") {
-                                                      setState(() {
-                                                        _activeTextItem = item;
-                                                        _textEditorController.text = item.text;
-                                                      });
-                                                    }
-                                                  },
-                                                  child: Stack(
-                                                    clipBehavior: Clip.none,
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      Container(
-                                                        padding: EdgeInsets.symmetric(
-                                                          horizontal: 16 * scaleRatio,
-                                                          vertical: 8 * scaleRatio,
-                                                        ),
-                                                        decoration: BoxDecoration(
-                                                          color: bgColor,
-                                                          borderRadius: BorderRadius.circular(8 * scaleRatio),
-                                                          border: isActive
-                                                              ? Border.all(color: Colors.white, width: 2)
-                                                              : Border.all(color: Colors.transparent, width: 2),
-                                                        ),
-                                                        child: IntrinsicWidth(
-                                                          child: Stack(
-                                                            alignment: Alignment.center,
-                                                            children: [
-                                                              if (item.appearance == 3)
-                                                                Text(
-                                                                  item.text.isEmpty ? "Text" : item.text,
+                                                          item.offset += Offset(
+                                                            dx / renderBox.size.width,
+                                                            dy / renderBox.size.height,
+                                                          );
+                                                        });
+                                                      }
+                                                    },
+                                                    onTap: () {
+                                                      if (_activeTab == "Text") {
+                                                        setState(() {
+                                                          _activeTextItem = item;
+                                                          _textEditorController.text = item.text;
+                                                        });
+                                                      }
+                                                    },
+                                                    child: Stack(
+                                                      clipBehavior: Clip.none,
+                                                      alignment: Alignment.center,
+                                                      children: [
+                                                        Container(
+                                                          padding: EdgeInsets.symmetric(
+                                                            horizontal: 16 * scaleRatio,
+                                                            vertical: 8 * scaleRatio,
+                                                          ),
+                                                          decoration: BoxDecoration(
+                                                            color: bgColor,
+                                                            borderRadius: BorderRadius.circular(8 * scaleRatio),
+                                                            border: isActive
+                                                                ? Border.all(color: Colors.white, width: 2)
+                                                                : Border.all(color: Colors.transparent, width: 2),
+                                                          ),
+                                                          child: IntrinsicWidth(
+                                                            child: Stack(
+                                                              alignment: Alignment.center,
+                                                              children: [
+                                                                if (item.appearance == 3)
+                                                                  Text(
+                                                                    item.text.isEmpty ? "Text" : item.text,
+                                                                    textAlign: item.alignment,
+                                                                    style: TextStyle(
+                                                                      fontSize: scaledFontSize,
+                                                                      fontFamily: item.font,
+                                                                      fontWeight: item.isBold
+                                                                          ? FontWeight.bold
+                                                                          : FontWeight.normal,
+                                                                      fontStyle: item.isItalic
+                                                                          ? FontStyle.italic
+                                                                          : FontStyle.normal,
+                                                                      decoration: decoration,
+                                                                      foreground: Paint()
+                                                                        ..style = PaintingStyle.stroke
+                                                                        ..strokeWidth = scaledFontSize * 0.25
+                                                                        ..strokeJoin = StrokeJoin.round
+                                                                        ..strokeCap = StrokeCap.round
+                                                                        ..color = item.color,
+                                                                    ),
+                                                                  ),
+                                                                TextField(
+                                                                  controller: isActive
+                                                                      ? _textEditorController
+                                                                      : TextEditingController(text: item.text),
+                                                                  enabled: isActive,
+                                                                  autofocus: isActive,
                                                                   textAlign: item.alignment,
+                                                                  maxLines: null,
+                                                                  cursorColor: textColor,
+                                                                  onChanged: (val) => setState(() => item.text = val),
                                                                   style: TextStyle(
+                                                                    color: textColor,
                                                                     fontSize: scaledFontSize,
                                                                     fontFamily: item.font,
                                                                     fontWeight: item.isBold
@@ -779,325 +814,99 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                                         ? FontStyle.italic
                                                                         : FontStyle.normal,
                                                                     decoration: decoration,
-                                                                    foreground: Paint()
-                                                                      ..style = PaintingStyle.stroke
-                                                                      ..strokeWidth = scaledFontSize * 0.25
-                                                                      ..strokeJoin = StrokeJoin.round
-                                                                      ..strokeCap = StrokeCap.round
-                                                                      ..color = item.color,
+                                                                    decorationColor: textColor,
+                                                                    shadows: item.appearance == 0
+                                                                        ? [
+                                                                            Shadow(
+                                                                              color: Colors.black54,
+                                                                              blurRadius: 4,
+                                                                              offset: Offset(1, 1),
+                                                                            ),
+                                                                          ]
+                                                                        : null,
+                                                                  ),
+                                                                  decoration: InputDecoration(
+                                                                    isDense: true,
+                                                                    contentPadding: EdgeInsets.zero,
+                                                                    border: InputBorder.none,
+                                                                    hintText: isActive ? "Text" : "",
+                                                                    hintStyle: TextStyle(
+                                                                      color: item.appearance == 3
+                                                                          ? Colors.transparent
+                                                                          : Colors.white54,
+                                                                      fontSize: scaledFontSize,
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              TextField(
-                                                                controller: isActive
-                                                                    ? _textEditorController
-                                                                    : TextEditingController(text: item.text),
-                                                                enabled: isActive,
-                                                                autofocus: isActive,
-                                                                textAlign: item.alignment,
-                                                                maxLines: null,
-                                                                cursorColor: textColor,
-                                                                onChanged: (val) => setState(() => item.text = val),
-                                                                style: TextStyle(
-                                                                  color: textColor,
-                                                                  fontSize: scaledFontSize,
-                                                                  fontFamily: item.font,
-                                                                  fontWeight: item.isBold
-                                                                      ? FontWeight.bold
-                                                                      : FontWeight.normal,
-                                                                  fontStyle: item.isItalic
-                                                                      ? FontStyle.italic
-                                                                      : FontStyle.normal,
-                                                                  decoration: decoration,
-                                                                  decorationColor: textColor,
-                                                                  shadows: item.appearance == 0
-                                                                      ? [
-                                                                          Shadow(
-                                                                            color: Colors.black54,
-                                                                            blurRadius: 4,
-                                                                            offset: Offset(1, 1),
-                                                                          ),
-                                                                        ]
-                                                                      : null,
-                                                                ),
-                                                                decoration: InputDecoration(
-                                                                  isDense: true,
-                                                                  contentPadding: EdgeInsets.zero,
-                                                                  border: InputBorder.none,
-                                                                  hintText: isActive ? "Text" : "",
-                                                                  hintStyle: TextStyle(
-                                                                    color: item.appearance == 3
-                                                                        ? Colors.transparent
-                                                                        : Colors.white54,
-                                                                    fontSize: scaledFontSize,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      if (isActive)
-                                                        Positioned(
-                                                          bottom: -10,
-                                                          right: -10,
-                                                          child: GestureDetector(
-                                                            onPanUpdate: (details) {
-                                                              setState(() {
-                                                                item.rotation += details.delta.dx * 0.015;
-                                                              });
-                                                            },
-                                                            child: Transform.rotate(
-                                                              angle: -item.rotation,
-                                                              child: Container(
-                                                                width: 28,
-                                                                height: 28,
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.white,
-                                                                  shape: BoxShape.circle,
-                                                                  border: Border.all(
-                                                                    color: Colors.blueAccent,
-                                                                    width: 2,
-                                                                  ),
-                                                                  boxShadow: const [
-                                                                    BoxShadow(color: Colors.black26, blurRadius: 4),
-                                                                  ],
-                                                                ),
-                                                                child: const Icon(
-                                                                  Icons.rotate_right_rounded,
-                                                                  color: Colors.blueAccent,
-                                                                  size: 18,
-                                                                ),
-                                                              ),
+                                                              ],
                                                             ),
                                                           ),
                                                         ),
-                                                      if (isActive)
-                                                        Positioned(
-                                                          top: -10,
-                                                          left: -10,
-                                                          child: GestureDetector(
-                                                            onTap: () {
-                                                              if (isHapticEnabled) HapticFeedback.lightImpact();
-                                                              setState(() {
-                                                                _textItems.remove(item);
-                                                                _activeTextItem = null;
-                                                              });
-                                                            },
-                                                            child: Transform.rotate(
-                                                              angle: -item.rotation,
-                                                              child: Container(
-                                                                width: 25,
-                                                                height: 25,
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.redAccent,
-                                                                  shape: BoxShape.circle,
-                                                                  border: Border.all(color: Colors.white, width: 2),
-                                                                  boxShadow: const [
-                                                                    BoxShadow(color: Colors.black26, blurRadius: 4),
-                                                                  ],
-                                                                ),
-                                                                child: const Icon(
-                                                                  Icons.close_rounded,
-                                                                  color: Colors.white,
-                                                                  size: 16,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      );
-                                    },
-                                  ),
-                                  ),
-                                ),
-
-                                /// SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    ignoring: _activeTab != "Shapes",
-                                  child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      double canvasW = constraints.maxWidth;
-                                      double canvasH = constraints.maxHeight;
-                                      //double scaleRatio = canvasW / 400.0;
-
-                                      return Stack(
-                                        clipBehavior: Clip.none,
-                                        children: _shapeItems.map((shape) {
-                                          bool isActive = _activeShapeItem == shape;
-                                          //double scaledIconSize = shape.size * scaleRatio;
-
-                                          return Positioned(
-                                            left: shape.offset.dx * canvasW,
-                                            top: shape.offset.dy * canvasH,
-                                            child: FractionalTranslation(
-                                              translation: const Offset(-0.5, -0.5),
-                                              child: Transform.rotate(
-                                                angle: shape.rotation,
-                                                child: GestureDetector(
-                                                  behavior: HitTestBehavior.translucent,
-                                                  onPanUpdate: (details) {
-                                                    if (_activeTab == "Shapes") {
-                                                      setState(() {
-                                                        double angle = -widget.rotationTurns * (math.pi / 2);
-                                                        double dx =
-                                                            details.delta.dx * math.cos(angle) -
-                                                            details.delta.dy * math.sin(angle);
-                                                        double dy =
-                                                            details.delta.dx * math.sin(angle) +
-                                                            details.delta.dy * math.cos(angle);
-
-                                                        shape.offset += Offset(dx / canvasW, dy / canvasH);
-                                                      });
-                                                    }
-                                                  },
-                                                  onTap: () {
-                                                    if (_activeTab == "Shapes") {
-                                                      setState(() {
-                                                        _activeShapeItem = shape;
-                                                        _activeTextItem = null;
-                                                      });
-                                                    }
-                                                  },
-                                                  child: Container(
-                                                    padding: const EdgeInsets.all(24),
-                                                    child: Stack(
-                                                      clipBehavior: Clip.none,
-                                                      alignment: Alignment.center,
-                                                      children: [
-                                                        // Border aur Shape
-                                                        Container(
-                                                          padding: const EdgeInsets.all(8),
-                                                          decoration: isActive
-                                                              ? BoxDecoration(
-                                                                  border: Border.all(color: Colors.white, width: 2),
-                                                                )
-                                                              : null,
-                                                          child: SizedBox(
-                                                            width:
-                                                                (shape.size * shape.scaleX.abs()) * (canvasW / 400.0),
-                                                            height:
-                                                                (shape.size * shape.scaleY.abs()) * (canvasW / 400.0),
-                                                            child: FittedBox(
-                                                              fit: BoxFit.fill,
-                                                              child: Transform.scale(
-                                                                scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
-                                                                scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
-                                                                child: Icon(shape.icon, color: shape.color),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-
                                                         if (isActive)
                                                           Positioned(
                                                             bottom: -10,
                                                             right: -10,
                                                             child: GestureDetector(
-                                                              behavior: HitTestBehavior.opaque,
-                                                              onPanUpdate: (details) => setState(
-                                                                () => shape.rotation += details.delta.dx * 0.015,
-                                                              ),
-                                                              child: Container(
-                                                                width: 28,
-                                                                height: 28,
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.white,
-                                                                  shape: BoxShape.circle,
-                                                                  border: Border.all(color: Colors.black, width: 1),
-                                                                ),
-                                                                child: const Icon(
-                                                                  Icons.rotate_right_rounded,
-                                                                  color: Colors.blueAccent,
-                                                                  size: 18,
+                                                              onPanUpdate: (details) {
+                                                                setState(() {
+                                                                  item.rotation += details.delta.dx * 0.015;
+                                                                });
+                                                              },
+                                                              child: Transform.rotate(
+                                                                angle: -item.rotation,
+                                                                child: Container(
+                                                                  width: 28,
+                                                                  height: 28,
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.white,
+                                                                    shape: BoxShape.circle,
+                                                                    border: Border.all(
+                                                                      color: Colors.blueAccent,
+                                                                      width: 2,
+                                                                    ),
+                                                                    boxShadow: const [
+                                                                      BoxShadow(color: Colors.black26, blurRadius: 4),
+                                                                    ],
+                                                                  ),
+                                                                  child: const Icon(
+                                                                    Icons.rotate_right_rounded,
+                                                                    color: Colors.blueAccent,
+                                                                    size: 18,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),
                                                           ),
-
                                                         if (isActive)
                                                           Positioned(
                                                             top: -10,
                                                             left: -10,
                                                             child: GestureDetector(
-                                                              behavior: HitTestBehavior.opaque,
                                                               onTap: () {
                                                                 if (isHapticEnabled) HapticFeedback.lightImpact();
                                                                 setState(() {
-                                                                  _shapeItems.remove(shape);
-                                                                  _activeShapeItem = null;
+                                                                  _textItems.remove(item);
+                                                                  _activeTextItem = null;
                                                                 });
                                                               },
-                                                              child: Container(
-                                                                width: 24,
-                                                                height: 24,
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.redAccent,
-                                                                  shape: BoxShape.circle,
-                                                                  border: Border.all(color: Colors.white, width: 1),
-                                                                ),
-                                                                child: const Icon(
-                                                                  Icons.close_rounded,
-                                                                  color: Colors.white,
-                                                                  size: 16,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-
-                                                        /// --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
-                                                        if (isActive)
-                                                          Positioned(
-                                                            left: -12,
-                                                            bottom: -12,
-                                                            child: GestureDetector(
-                                                              behavior: HitTestBehavior.opaque,
-                                                              onPanUpdate: (details) {
-                                                                setState(() {
-                                                                  double sensitivity = 0.01;
-
-                                                                  double totalAngle =
-                                                                      (widget.rotationTurns * (math.pi / 2)) +
-                                                                      shape.rotation;
-                                                                  double angle = -totalAngle;
-
-                                                                  double dx =
-                                                                      details.delta.dx * math.cos(angle) -
-                                                                      details.delta.dy * math.sin(angle);
-                                                                  double dy =
-                                                                      details.delta.dx * math.sin(angle) +
-                                                                      details.delta.dy * math.cos(angle);
-
-                                                                  double newScaleX = shape.scaleX - (dx * sensitivity);
-                                                                  double newScaleY = shape.scaleY + (dy * sensitivity);
-
-                                                                  if (newScaleX.abs() < 0.1)
-                                                                    newScaleX = newScaleX < 0 ? -0.1 : 0.1;
-                                                                  if (newScaleY.abs() < 0.1)
-                                                                    newScaleY = newScaleY < 0 ? -0.1 : 0.1;
-
-                                                                  shape.scaleX = newScaleX;
-                                                                  shape.scaleY = newScaleY;
-                                                                });
-                                                              },
-                                                              child: Container(
-                                                                padding: const EdgeInsets.all(5),
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors.white,
-                                                                  shape: BoxShape.circle,
-                                                                  border: Border.all(color: Colors.black, width: 1),
-                                                                ),
-                                                                child: const Icon(
-                                                                  Icons.open_in_full_rounded,
-                                                                  color: Colors.blueAccent,
-                                                                  size: 14,
+                                                              child: Transform.rotate(
+                                                                angle: -item.rotation,
+                                                                child: Container(
+                                                                  width: 25,
+                                                                  height: 25,
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.redAccent,
+                                                                    shape: BoxShape.circle,
+                                                                    border: Border.all(color: Colors.white, width: 2),
+                                                                    boxShadow: const [
+                                                                      BoxShadow(color: Colors.black26, blurRadius: 4),
+                                                                    ],
+                                                                  ),
+                                                                  child: const Icon(
+                                                                    Icons.close_rounded,
+                                                                    color: Colors.white,
+                                                                    size: 16,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),
@@ -1107,12 +916,211 @@ class _MarkupScreenState extends State<MarkupScreen> {
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      );
-                                    },
+                                            );
+                                          }).toList(),
+                                        );
+                                      },
+                                    ),
                                   ),
+                                ),
+
+                                /// SHAPE LAYER (FIXED FOR DYNAMIC SCALING)
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    ignoring: _activeTab != "Shapes",
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        double canvasW = constraints.maxWidth;
+                                        double canvasH = constraints.maxHeight;
+
+                                        return Stack(
+                                          clipBehavior: Clip.none,
+                                          children: _shapeItems.map((shape) {
+                                            bool isActive = _activeShapeItem == shape;
+
+                                            return Positioned(
+                                              left: shape.offset.dx * canvasW,
+                                              top: shape.offset.dy * canvasH,
+                                              child: FractionalTranslation(
+                                                translation: const Offset(-0.5, -0.5),
+                                                child: Transform.rotate(
+                                                  angle: shape.rotation,
+                                                  child: GestureDetector(
+                                                    behavior: HitTestBehavior.translucent,
+                                                    onPanUpdate: (details) {
+                                                      if (_activeTab == "Shapes") {
+                                                        setState(() {
+                                                          double angle = -widget.rotationTurns * (math.pi / 2);
+                                                          double dx =
+                                                              details.delta.dx * math.cos(angle) -
+                                                              details.delta.dy * math.sin(angle);
+                                                          double dy =
+                                                              details.delta.dx * math.sin(angle) +
+                                                              details.delta.dy * math.cos(angle);
+
+                                                          shape.offset += Offset(dx / canvasW, dy / canvasH);
+                                                        });
+                                                      }
+                                                    },
+                                                    onTap: () {
+                                                      if (_activeTab == "Shapes") {
+                                                        setState(() {
+                                                          _activeShapeItem = shape;
+                                                          _activeTextItem = null;
+                                                        });
+                                                      }
+                                                    },
+                                                    child: Container(
+                                                      padding: const EdgeInsets.all(24),
+                                                      child: Stack(
+                                                        clipBehavior: Clip.none,
+                                                        alignment: Alignment.center,
+                                                        children: [
+                                                          // Border aur Shape
+                                                          Container(
+                                                            padding: const EdgeInsets.all(8),
+                                                            decoration: isActive
+                                                                ? BoxDecoration(
+                                                                    border: Border.all(color: Colors.white, width: 2),
+                                                                  )
+                                                                : null,
+                                                            child: SizedBox(
+                                                              width:
+                                                                  (shape.size * shape.scaleX.abs()) * (canvasW / 400.0),
+                                                              height:
+                                                                  (shape.size * shape.scaleY.abs()) * (canvasW / 400.0),
+                                                              child: FittedBox(
+                                                                fit: BoxFit.fill,
+                                                                child: Transform.scale(
+                                                                  scaleX: shape.scaleX < 0 ? -1.0 : 1.0,
+                                                                  scaleY: shape.scaleY < 0 ? -1.0 : 1.0,
+                                                                  child: Icon(shape.icon, color: shape.color),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+
+                                                          if (isActive)
+                                                            Positioned(
+                                                              bottom: -10,
+                                                              right: -10,
+                                                              child: GestureDetector(
+                                                                behavior: HitTestBehavior.opaque,
+                                                                onPanUpdate: (details) => setState(
+                                                                  () => shape.rotation += details.delta.dx * 0.015,
+                                                                ),
+                                                                child: Container(
+                                                                  width: 28,
+                                                                  height: 28,
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.white,
+                                                                    shape: BoxShape.circle,
+                                                                    border: Border.all(color: Colors.black, width: 1),
+                                                                  ),
+                                                                  child: const Icon(
+                                                                    Icons.rotate_right_rounded,
+                                                                    color: Colors.blueAccent,
+                                                                    size: 18,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+
+                                                          if (isActive)
+                                                            Positioned(
+                                                              top: -10,
+                                                              left: -10,
+                                                              child: GestureDetector(
+                                                                behavior: HitTestBehavior.opaque,
+                                                                onTap: () {
+                                                                  if (isHapticEnabled) HapticFeedback.lightImpact();
+                                                                  setState(() {
+                                                                    _shapeItems.remove(shape);
+                                                                    _activeShapeItem = null;
+                                                                  });
+                                                                },
+                                                                child: Container(
+                                                                  width: 24,
+                                                                  height: 24,
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.redAccent,
+                                                                    shape: BoxShape.circle,
+                                                                    border: Border.all(color: Colors.white, width: 1),
+                                                                  ),
+                                                                  child: const Icon(
+                                                                    Icons.close_rounded,
+                                                                    color: Colors.white,
+                                                                    size: 16,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+
+                                                          /// --- STRETCH / SHRINK / MIRROR HANDLE (Bottom-Left) ---
+                                                          if (isActive)
+                                                            Positioned(
+                                                              left: -12,
+                                                              bottom: -12,
+                                                              child: GestureDetector(
+                                                                behavior: HitTestBehavior.opaque,
+                                                                onPanUpdate: (details) {
+                                                                  setState(() {
+                                                                    double sensitivity = 0.01;
+
+                                                                    double totalAngle =
+                                                                        (widget.rotationTurns * (math.pi / 2)) +
+                                                                        shape.rotation;
+                                                                    double angle = -totalAngle;
+
+                                                                    double dx =
+                                                                        details.delta.dx * math.cos(angle) -
+                                                                        details.delta.dy * math.sin(angle);
+                                                                    double dy =
+                                                                        details.delta.dx * math.sin(angle) +
+                                                                        details.delta.dy * math.cos(angle);
+
+                                                                    double newScaleX =
+                                                                        shape.scaleX - (dx * sensitivity);
+                                                                    double newScaleY =
+                                                                        shape.scaleY + (dy * sensitivity);
+
+                                                                    if (newScaleX.abs() < 0.1) {
+                                                                      newScaleX = newScaleX < 0 ? -0.1 : 0.1;
+                                                                    }
+                                                                    if (newScaleY.abs() < 0.1) {
+                                                                      newScaleY = newScaleY < 0 ? -0.1 : 0.1;
+                                                                    }
+
+                                                                    shape.scaleX = newScaleX;
+                                                                    shape.scaleY = newScaleY;
+                                                                  });
+                                                                },
+                                                                child: Container(
+                                                                  padding: const EdgeInsets.all(5),
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.white,
+                                                                    shape: BoxShape.circle,
+                                                                    border: Border.all(color: Colors.black, width: 1),
+                                                                  ),
+                                                                  child: const Icon(
+                                                                    Icons.open_in_full_rounded,
+                                                                    color: Colors.blueAccent,
+                                                                    size: 14,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1127,7 +1135,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
 
               /// --- SETTINGS PANEL (Animated Hide/Show) ---
               Container(
-                color: isDarkMode ? const Color(0xFF2C2C2C) :  Colors.white,
+                color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
                 child: AnimatedSize(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -1162,7 +1170,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                             child: Container(
                               width: 40,
                               height: 4,
-                              decoration: BoxDecoration(color: isDarkMode ? Colors.white30 : Colors.black26, borderRadius: BorderRadius.circular(2)),
+                              decoration: BoxDecoration(
+                                color: isDarkMode ? Colors.white30 : Colors.black26,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
                             ),
                           ),
                         ),
@@ -1181,7 +1192,6 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildBottomTab("Drawing", Icons.draw_rounded),
-                    // _buildBottomTab("Eraser", Icons.cleaning_services_rounded),
                     _buildBottomTab("Text", Icons.title_rounded),
                     _buildBottomTab("Shapes", Icons.category_rounded),
                   ],
@@ -1210,13 +1220,23 @@ class _MarkupScreenState extends State<MarkupScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isSelected
-                ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
-                : (isDarkMode ? Colors.white54 : Colors.black), size: 24),
+            Icon(
+              icon,
+              color: isSelected
+                  ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                  : (isDarkMode ? Colors.white54 : Colors.black),
+              size: 24,
+            ),
             const SizedBox(height: 4),
-            Text(title, style: TextStyle(color: isSelected
-                ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
-                : (isDarkMode ? Colors.white54 : Colors.black), fontSize: 11)),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected
+                    ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                    : (isDarkMode ? Colors.white54 : Colors.black),
+                fontSize: 11,
+              ),
+            ),
           ],
         ),
       ),
@@ -1281,7 +1301,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: !_isEraserMode ? Colors.blueAccent.withValues(alpha:0.2) : Colors.transparent,
+                        color: !_isEraserMode ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -1298,22 +1318,24 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 Tooltip(
                   message: "Eraser",
                   child: GestureDetector(
-                    onTap: canEraseOrClear ? () {
-                      if (isHapticEnabled) HapticFeedback.selectionClick();
-                      setState(() => _isEraserMode = true);
-                    } : null,
+                    onTap: canEraseOrClear
+                        ? () {
+                            if (isHapticEnabled) HapticFeedback.selectionClick();
+                            setState(() => _isEraserMode = true);
+                          }
+                        : null,
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: _isEraserMode ? Colors.blueAccent.withValues(alpha:0.2) : Colors.transparent,
+                        color: _isEraserMode ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Symbols.ink_eraser_rounded,
                         color: canEraseOrClear
                             ? (_isEraserMode
-                            ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
-                            : (isDarkMode ? Colors.white70 : Colors.black54))
+                                  ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                                  : (isDarkMode ? Colors.white70 : Colors.black54))
                             : (isDarkMode ? Colors.white38 : Colors.black26),
                         size: 24,
                       ),
@@ -1327,7 +1349,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                   child: GestureDetector(
                     onTap: canEraseOrClear
                         ? () {
-                      if (isHapticEnabled) HapticFeedback.selectionClick();
+                            if (isHapticEnabled) HapticFeedback.selectionClick();
                             setState(() {
                               _paths.add(
                                 DrawnPath(
@@ -1345,9 +1367,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       padding: const EdgeInsets.all(6),
                       child: Icon(
                         Icons.delete_outline_rounded,
-                        color: canEraseOrClear
-                            ? Colors.redAccent
-                            : (isDarkMode ? Colors.white38 : Colors.black26),
+                        color: canEraseOrClear ? Colors.redAccent : (isDarkMode ? Colors.white38 : Colors.black26),
                         size: 24,
                       ),
                     ),
@@ -1364,7 +1384,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text("Stroke width", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14)),
-            Text("${_strokeWidth.toInt()}", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14)),
+            Text(
+              "${_strokeWidth.toInt()}",
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 14),
+            ),
           ],
         ),
         SliderTheme(
@@ -1375,7 +1398,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
             thumbColor: isDarkMode ? Colors.white : Colors.blue,
           ),
           child: Slider(
-              value: _strokeWidth, min: 1, max: 50,
+            value: _strokeWidth,
+            min: 1,
+            max: 50,
             onChanged: (val) {
               if (isHapticEnabled) HapticFeedback.lightImpact();
               setState(() => _strokeWidth = val);
@@ -1386,16 +1411,23 @@ class _MarkupScreenState extends State<MarkupScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Opacity", style: TextStyle(color: _isEraserMode
-                ? (isDarkMode ? Colors.white38 : Colors.black26)
-                : (isDarkMode ? Colors.white : Colors.black87),
-                fontSize: 14)),
+            Text(
+              "Opacity",
+              style: TextStyle(
+                color: _isEraserMode
+                    ? (isDarkMode ? Colors.white38 : Colors.black26)
+                    : (isDarkMode ? Colors.white : Colors.black87),
+                fontSize: 14,
+              ),
+            ),
             Text(
               "${(_opacity * 100).toInt()}%",
-              style: TextStyle(color: _isEraserMode
-                  ? (isDarkMode ? Colors.white38 : Colors.black26)
-                  : (isDarkMode ? Colors.white : Colors.black87),
-                  fontSize: 14),
+              style: TextStyle(
+                color: _isEraserMode
+                    ? (isDarkMode ? Colors.white38 : Colors.black26)
+                    : (isDarkMode ? Colors.white : Colors.black87),
+                fontSize: 14,
+              ),
             ),
           ],
         ),
@@ -1412,10 +1444,12 @@ class _MarkupScreenState extends State<MarkupScreen> {
             value: _opacity,
             min: 0.1,
             max: 1.0,
-            onChanged: _isEraserMode ? null : (val) {
-              if (isHapticEnabled) HapticFeedback.lightImpact();
-              setState(() => _opacity = val);
-            },
+            onChanged: _isEraserMode
+                ? null
+                : (val) {
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    setState(() => _opacity = val);
+                  },
           ),
         ),
       ],
@@ -1504,7 +1538,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
             ),
             Text(
               "T",
-              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: isDarkMode ? Colors.white : Colors.black,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -1531,8 +1569,8 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       color: activeItem.appearance == 1
                           ? (isDarkMode ? Colors.white : Colors.black87)
                           : (activeItem.appearance == 2
-                          ? (isDarkMode ? Colors.white38 : Colors.black26)
-                          : Colors.transparent),
+                                ? (isDarkMode ? Colors.white38 : Colors.black26)
+                                : Colors.transparent),
                       border: Border.all(color: isDarkMode ? Colors.white : Colors.black),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -1554,9 +1592,9 @@ class _MarkupScreenState extends State<MarkupScreen> {
                         Text(
                           "T",
                           style: TextStyle(
-                          color: (activeItem.appearance == 1 || activeItem.appearance == 2)
-                              ? (isDarkMode ? Colors.black : Colors.white)
-                              : (isDarkMode ? Colors.white : Colors.black),
+                            color: (activeItem.appearance == 1 || activeItem.appearance == 2)
+                                ? (isDarkMode ? Colors.black : Colors.white)
+                                : (isDarkMode ? Colors.white : Colors.black),
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1580,13 +1618,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isBold ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
+                      color: activeItem.isBold ? Colors.blueAccent.withValues(alpha: 0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.format_bold_rounded,
-                        color: activeItem.isBold
-                        ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
-                        : (isDarkMode ? Colors.white : Colors.black)
+                    child: Icon(
+                      Icons.format_bold_rounded,
+                      color: activeItem.isBold
+                          ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                          : (isDarkMode ? Colors.white : Colors.black),
                     ),
                   ),
                 ),
@@ -1604,12 +1643,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isUnderline ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
+                      color: activeItem.isUnderline ? Colors.blueAccent.withValues(alpha: 0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.format_underlined_rounded,
-                      color: activeItem.isUnderline ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                      color: activeItem.isUnderline
+                          ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
                           : (isDarkMode ? Colors.white : Colors.black),
                     ),
                   ),
@@ -1628,12 +1668,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isItalic ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
+                      color: activeItem.isItalic ? Colors.blueAccent.withValues(alpha: 0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.format_italic_rounded,
-                      color: activeItem.isItalic ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                      color: activeItem.isItalic
+                          ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
                           : (isDarkMode ? Colors.white : Colors.black),
                     ),
                   ),
@@ -1652,12 +1693,13 @@ class _MarkupScreenState extends State<MarkupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: activeItem.isStrikethrough ? Colors.blueAccent.withValues(alpha:0.3) : Colors.transparent,
+                      color: activeItem.isStrikethrough ? Colors.blueAccent.withValues(alpha: 0.3) : Colors.transparent,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.format_strikethrough_rounded,
-                      color: activeItem.isStrikethrough ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
+                      color: activeItem.isStrikethrough
+                          ? (isDarkMode ? Colors.blueAccent : Colors.blue.shade700)
                           : (isDarkMode ? Colors.white : Colors.black),
                     ),
                   ),
@@ -1671,11 +1713,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 child: GestureDetector(
                   onTap: hasActiveText
                       ? () {
-                    if (isHapticEnabled) HapticFeedback.lightImpact();
-                    setState(() {
-                      _activeTextItem!.rotation += (math.pi / 2);
-                    });
-                  }
+                          if (isHapticEnabled) HapticFeedback.lightImpact();
+                          setState(() {
+                            _activeTextItem!.rotation += (math.pi / 2);
+                          });
+                        }
                       : null,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1686,7 +1728,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       color: hasActiveText
                           ? (isDarkMode ? Colors.white : Colors.black)
                           : (isDarkMode ? Colors.white38 : Colors.black26),
-                    )
+                    ),
                   ),
                 ),
               ),
@@ -1695,14 +1737,14 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 child: GestureDetector(
                   onTap: hasActiveText
                       ? () {
-                    if (isHapticEnabled) HapticFeedback.lightImpact();
-                    setState(() {
-                      TextOverlayItem duplicateItem = _activeTextItem!.clone();
-                      _textItems.add(duplicateItem);
-                      _activeTextItem = duplicateItem;
-                      _textEditorController.text = duplicateItem.text;
-                    });
-                  }
+                          if (isHapticEnabled) HapticFeedback.lightImpact();
+                          setState(() {
+                            TextOverlayItem duplicateItem = _activeTextItem!.clone();
+                            _textItems.add(duplicateItem);
+                            _activeTextItem = duplicateItem;
+                            _textEditorController.text = duplicateItem.text;
+                          });
+                        }
                       : null,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1713,7 +1755,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
                       color: hasActiveText
                           ? (isDarkMode ? Colors.white : Colors.black)
                           : (isDarkMode ? Colors.white38 : Colors.black26),
-                    )
+                    ),
                   ),
                 ),
               ),
@@ -1723,20 +1765,21 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 child: GestureDetector(
                   onTap: hasActiveText
                       ? () {
-                    if (isHapticEnabled) HapticFeedback.lightImpact();
-                    setState(() {
-                      _textItems.remove(_activeTextItem);
-                      _activeTextItem = null;
-                    });
-                  }
+                          if (isHapticEnabled) HapticFeedback.lightImpact();
+                          setState(() {
+                            _textItems.remove(_activeTextItem);
+                            _activeTextItem = null;
+                          });
+                        }
                       : null,
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
                     width: 36,
                     height: 36,
-                    child: Icon(Icons.delete_forever_rounded, color: hasActiveText
-                        ? Colors.redAccent
-                        : (isDarkMode ? Colors.white38 : Colors.black26),),
+                    child: Icon(
+                      Icons.delete_forever_rounded,
+                      color: hasActiveText ? Colors.redAccent : (isDarkMode ? Colors.white38 : Colors.black26),
+                    ),
                   ),
                 ),
               ),
@@ -1785,7 +1828,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
                             decoration: BoxDecoration(
                               color: c,
                               shape: BoxShape.circle,
-                              border: Border.all(color: isDarkMode ? Colors.white : Colors.black26, width: isSelected ? 2.5 : 1.5),
+                              border: Border.all(
+                                color: isDarkMode ? Colors.white : Colors.black26,
+                                width: isSelected ? 2.5 : 1.5,
+                              ),
                             ),
                             child: isSelected ? Icon(Icons.check_rounded, color: iconColor, size: 20) : null,
                           ),
@@ -1895,13 +1941,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.delete_forever_rounded,
-                    color: _activeShapeItem != null
-                        ? Colors.redAccent
-                        : (isDarkMode ? Colors.white38 : Colors.black26),
+                    color: _activeShapeItem != null ? Colors.redAccent : (isDarkMode ? Colors.white38 : Colors.black26),
                   ),
                   onPressed: _activeShapeItem != null
                       ? () {
-                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                          if (isHapticEnabled) HapticFeedback.lightImpact();
                           setState(() {
                             _shapeItems.remove(_activeShapeItem);
                             _activeShapeItem = null;
@@ -1916,11 +1960,10 @@ class _MarkupScreenState extends State<MarkupScreen> {
         const SizedBox(height: 0),
 
         /// Opacity Slider
-        //_buildSlider("Opacity", active?.color.opacity ?? 1.0, 0.1, 1.0, (val) {
         _buildSlider("Opacity", active?.color.a ?? 1.0, 0.1, 1.0, (val) {
           setState(() {
             if (active != null) {
-              active.color = active.color.withValues(alpha:val);
+              active.color = active.color.withValues(alpha: val);
             }
           });
         }),
@@ -1988,7 +2031,7 @@ class _MarkupScreenState extends State<MarkupScreen> {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
-        Text(label, style: TextStyle(color: isDarkMode ? Colors.white70  : Colors.black, fontSize: 14)),
+        Text(label, style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 14)),
         const SizedBox(width: 10),
         Expanded(
           child: SliderTheme(
@@ -2034,11 +2077,11 @@ class _MarkupScreenState extends State<MarkupScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 8),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blueAccent.withValues(alpha:0.2) : Colors.transparent,
+          color: isSelected ? Colors.blueAccent.withValues(alpha: 0.2) : Colors.transparent,
           border: Border.all(color: isDarkMode ? Colors.white70 : Colors.black),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: isDarkMode ?  Colors.white : Colors.black54, size: 28),
+        child: Icon(icon, color: isDarkMode ? Colors.white : Colors.black54, size: 28),
       ),
     );
   }
@@ -2081,7 +2124,7 @@ class DrawingPainter extends CustomPainter {
       }
 
       Paint p = Paint()
-        ..color = path.isEraser ? Colors.transparent : path.color.withValues(alpha:path.opacity)
+        ..color = path.isEraser ? Colors.transparent : path.color.withValues(alpha: path.opacity)
         ..strokeWidth =
             path.strokeWidth *
             strokeScale // Scaling applied
@@ -2103,7 +2146,7 @@ class DrawingPainter extends CustomPainter {
 
     if (currentPoints.isNotEmpty) {
       Paint p = Paint()
-        ..color = isEraser ? Colors.transparent : currentColor.withValues(alpha:currentOpacity)
+        ..color = isEraser ? Colors.transparent : currentColor.withValues(alpha: currentOpacity)
         ..strokeWidth =
             currentStrokeWidth *
             strokeScale // Scaling applied
