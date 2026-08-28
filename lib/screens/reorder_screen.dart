@@ -21,6 +21,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
   bool isHapticEnabled = true;
+
   @override
   void initState() {
     super.initState();
@@ -189,11 +190,8 @@ class _ReorderScreenState extends State<ReorderScreen> {
             final currentItem = _items[index];
 
             return DragTarget<Map<String, dynamic>>(
-              //onWillAccept: (draggedItem) => draggedItem != null && draggedItem != currentItem,
               onWillAcceptWithDetails: (details) => details.data != currentItem,
-              //onAccept: (draggedItem) {
               onAcceptWithDetails: (details) {
-                //final fromIndex = _items.indexOf(draggedItem);
                 final fromIndex = _items.indexOf(details.data);
                 if (fromIndex != -1) {
                   setState(() {
@@ -321,7 +319,7 @@ class _ReorderScreenState extends State<ReorderScreen> {
                                     Color bgColor = textItem.appearance == 1
                                         ? textItem.color
                                         : textItem.appearance == 2
-                                        ? textItem.color.withValues(alpha:0.5)
+                                        ? textItem.color.withValues(alpha: 0.5)
                                         : Colors.transparent;
 
                                     TextDecoration decoration = TextDecoration.none;
