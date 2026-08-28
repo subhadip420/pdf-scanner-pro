@@ -18,6 +18,7 @@ class _TrashScreenState extends State<TrashScreen> {
   List<File> _trashFiles = [];
   bool _isLoading = true;
   bool isHapticEnabled = true;
+
   @override
   void initState() {
     super.initState();
@@ -83,17 +84,10 @@ class _TrashScreenState extends State<TrashScreen> {
       await trashFile.copy(restoredFile.path); // Copy to Home
       await trashFile.delete(); // Delete from Trash
       if (!mounted) return;
-      // Fluttertoast.showToast(msg: "File Restored");
-      CustomToast.show(
-        context,
-        message: "File Restored",
-        backgroundColor: Colors.green, // Success ko represent karne ke liye
-        textColor: Colors.white,
-      );
+      CustomToast.show(context, message: "File Restored", backgroundColor: Colors.green, textColor: Colors.white);
       _loadTrashFiles(); // List update karo
     } catch (e) {
       print("Error restoring file: $e");
-      //Fluttertoast.showToast(msg: "Error restoring file");
       CustomToast.show(
         context,
         message: "Error restoring file",
@@ -160,12 +154,7 @@ class _TrashScreenState extends State<TrashScreen> {
           await file.delete();
         }
         if (!mounted) return;
-        CustomToast.show(
-          context,
-          message: "Trash Emptied",
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-        );
+        CustomToast.show(context, message: "Trash Emptied", backgroundColor: Colors.green, textColor: Colors.white);
         _loadTrashFiles();
       } catch (e) {
         print("Error emptying trash: $e");
@@ -190,8 +179,11 @@ class _TrashScreenState extends State<TrashScreen> {
       appBar: AppBar(
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         elevation: 0,
-        title: Text("Recently Deleted", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 18)),
-        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black,),
+        title: Text(
+          "Recently Deleted",
+          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 18),
+        ),
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
         actions: [
           if (_trashFiles.isNotEmpty)
             Padding(
@@ -211,94 +203,101 @@ class _TrashScreenState extends State<TrashScreen> {
           ? Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue))
           : _trashFiles.isEmpty
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.recycling_rounded, size: 80, color: isDarkMode ? Colors.white24 : Colors.black26),
-            const SizedBox(height: 16),
-            Text("Trash is empty", style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white54 : Colors.black54)),
-          ],
-        ),
-      )
-          : ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: _trashFiles.length,
-        itemBuilder: (context, index) {
-          File file = _trashFiles[index];
-          String fileName = file.path.split('/').last;
-
-          DateTime deleteDate = file.lastModifiedSync();
-          int daysElapsed = DateTime.now().difference(deleteDate).inDays;
-          int daysLeft = 30 - daysElapsed;
-          if (daysLeft < 0) daysLeft = 0;
-
-          return Card(
-            color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              onTap: () {
-                OpenFile.open(file.path);
-              },
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              leading: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.redAccent.withValues(alpha:0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent),
-              ),
-              title: Text(
-                fileName,
-                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.w500),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: Text(
-                  daysLeft == 0
-                      ? "Will be deleted today"
-                      : "$daysLeft days left",
-                  style: TextStyle(
-                    color: daysLeft <= 3
-                        ? (isDarkMode ? Colors.redAccent : Colors.red)
-                        : (isDarkMode ? Colors.orangeAccent : Colors.orange.shade800),
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Tooltip(
-                    message: "Restore",
-                    child: IconButton(
-                      icon: Icon(Icons.restore_rounded, color: isDarkMode ? Colors.blueAccent : Colors.blue.shade700,),
-                      //onPressed: () => _restoreFile(file),
-                      onPressed: () {
-                        if (isHapticEnabled) HapticFeedback.selectionClick();
-                        _restoreFile(file);
-                      },
-                    ),
-                  ),
-                  Tooltip(
-                    message: "Delete Permanently",
-                    child: IconButton(
-                      icon: Icon(Icons.delete_forever_rounded, color: isDarkMode ? Colors.white54 : Colors.black54,),
-                      onPressed: () {
-                        if (isHapticEnabled) HapticFeedback.lightImpact();
-                        _deleteForever(file);
-                      },
-                    ),
+                  Icon(Icons.recycling_rounded, size: 80, color: isDarkMode ? Colors.white24 : Colors.black26),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Trash is empty",
+                    style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white54 : Colors.black54),
                   ),
                 ],
               ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: _trashFiles.length,
+              itemBuilder: (context, index) {
+                File file = _trashFiles[index];
+                String fileName = file.path.split('/').last;
+
+                DateTime deleteDate = file.lastModifiedSync();
+                int daysElapsed = DateTime.now().difference(deleteDate).inDays;
+                int daysLeft = 30 - daysElapsed;
+                if (daysLeft < 0) daysLeft = 0;
+
+                return Card(
+                  color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    onTap: () {
+                      OpenFile.open(file.path);
+                    },
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent),
+                    ),
+                    title: Text(
+                      fileName,
+                      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.w500),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        daysLeft == 0 ? "Will be deleted today" : "$daysLeft days left",
+                        style: TextStyle(
+                          color: daysLeft <= 3
+                              ? (isDarkMode ? Colors.redAccent : Colors.red)
+                              : (isDarkMode ? Colors.orangeAccent : Colors.orange.shade800),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Tooltip(
+                          message: "Restore",
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.restore_rounded,
+                              color: isDarkMode ? Colors.blueAccent : Colors.blue.shade700,
+                            ),
+                            //onPressed: () => _restoreFile(file),
+                            onPressed: () {
+                              if (isHapticEnabled) HapticFeedback.selectionClick();
+                              _restoreFile(file);
+                            },
+                          ),
+                        ),
+                        Tooltip(
+                          message: "Delete Permanently",
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.delete_forever_rounded,
+                              color: isDarkMode ? Colors.white54 : Colors.black54,
+                            ),
+                            onPressed: () {
+                              if (isHapticEnabled) HapticFeedback.lightImpact();
+                              _deleteForever(file);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
