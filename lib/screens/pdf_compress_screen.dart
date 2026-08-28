@@ -327,8 +327,8 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                               inactiveTrackColor: isDarkMode ? Colors.grey.shade800 : Colors.grey,
                               thumbColor: isDarkMode ? Colors.white : Colors.blue,
                               overlayColor: isDarkMode
-                                  ? Colors.blueAccent.withValues(alpha:0.2)
-                                  : Colors.blue.withValues(alpha:0.2),
+                                  ? Colors.blueAccent.withValues(alpha: 0.2)
+                                  : Colors.blue.withValues(alpha: 0.2),
                               valueIndicatorTextStyle: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                             ),
                             child: Slider(
@@ -364,9 +364,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                       onPressed: _isCompressing
                           ? null
                           : () {
-                        if (isHapticEnabled) HapticFeedback.lightImpact();
-                        _startCompression();
-                      },
+                              if (isHapticEnabled) HapticFeedback.lightImpact();
+                              _startCompression();
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDarkMode ? Colors.blueAccent : Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -478,9 +478,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                             onPressed: _newSize == null
                                 ? null
                                 : () {
-                              if (isHapticEnabled) HapticFeedback.lightImpact();
-                              _saveAsZip();
-                            },
+                                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                                    _saveAsZip();
+                                  },
                             icon: Icon(
                               Icons.folder_zip_outlined,
                               size: 20,
@@ -503,9 +503,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                             onPressed: _newSize == null
                                 ? null
                                 : () {
-                              if (isHapticEnabled) HapticFeedback.lightImpact();
-                              _shareCompressedPdf();
-                            },
+                                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                                    _shareCompressedPdf();
+                                  },
                             icon: Icon(
                               Icons.share_outlined,
                               size: 20,
@@ -531,9 +531,9 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
                       onPressed: _newSize == null
                           ? null
                           : () {
-                        if (isHapticEnabled) HapticFeedback.lightImpact();
-                        _saveCompressedPdf();
-                      },
+                              if (isHapticEnabled) HapticFeedback.lightImpact();
+                              _saveCompressedPdf();
+                            },
                       icon: const Icon(Icons.download_rounded, color: Colors.white),
                       label: const Text(
                         "SAVE COMPRESSED PDF",
@@ -735,7 +735,7 @@ class _PdfCompressScreenState extends State<PdfCompressScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (Route<dynamic> route) => false,
+          (Route<dynamic> route) => false,
         );
       } catch (e) {
         print("Save Error: $e");
