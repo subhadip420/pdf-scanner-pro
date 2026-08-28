@@ -35,6 +35,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
   late PageController _pageController;
   int currentPage = 0;
   bool isThumbnailVisible = true;
+
   //RewardedAd? _rewardedAd;
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
@@ -486,7 +487,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
       final croppedFile = docFiles[currentPage]['cropped'] as File?;
 
       if (originalFile == null || croppedFile == null) {
-
         CustomToast.show(
           context,
           message: "Error: Image data not found",
@@ -608,7 +608,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         message: "Need at least 2 pages to reorder",
         backgroundColor: Colors.orange,
         textColor: Colors.white,
-
       );
       return;
     }
@@ -728,7 +727,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     if (_isInterstitialAdLoaded && _interstitialAd != null) {
       _interstitialAd!.show();
     } else {
-      //showToast("Saving PDF...");
       CustomToast.show(
         context,
         message: "Saving PDF...",
@@ -872,7 +870,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             Color bgColor = item.appearance == 1
                 ? item.color
                 : item.appearance == 2
-                //? item.color.withOpacity(0.5)
                 ? item.color.withValues(alpha: 0.5)
                 : Colors.transparent;
 
@@ -1102,7 +1099,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           context,
           message: "Page ${currentPage + 1} replaced successfully!",
           icon: Icons.check_circle,
-          backgroundColor: Colors.green, // Success
+          backgroundColor: Colors.green,
+          // Success
           textColor: Colors.white,
           iconColor: Colors.white,
         );
@@ -1186,7 +1184,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         children: [
                           Text(
                             documentName,
-                            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 16, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                              color: isDarkMode ? Colors.white : Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           SizedBox(
@@ -1212,15 +1214,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           ? SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(color: isDarkMode ? Colors.white : Colors.black, strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                                strokeWidth: 2,
+                              ),
                             )
-                          : Icon(Icons.document_scanner_rounded, color: isDarkMode ? Colors.white : Colors.black, size: 24),
+                          : Icon(
+                              Icons.document_scanner_rounded,
+                              color: isDarkMode ? Colors.white : Colors.black,
+                              size: 24,
+                            ),
                       onPressed: _isDetectingText
                           ? null
                           : () {
-                        _triggerHaptic('medium');
-                        _extractTextFromCurrentImage();
-                      },
+                              _triggerHaptic('medium');
+                              _extractTextFromCurrentImage();
+                            },
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1557,9 +1566,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         child: GestureDetector(
                                           onTap: currentPage > 0
                                               ? () {
-                                            _triggerHaptic('selection');
-                                            _previousPage();
-                                          }
+                                                  _triggerHaptic('selection');
+                                                  _previousPage();
+                                                }
                                               : null,
                                           child: Container(
                                             width: 40,
@@ -1663,9 +1672,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                         child: GestureDetector(
                                           onTap: currentPage < docFiles.length - 1
                                               ? () {
-                                            _triggerHaptic('selection');
-                                            _nextPage();
-                                          }
+                                                  _triggerHaptic('selection');
+                                                  _nextPage();
+                                                }
                                               : null,
                                           child: Container(
                                             width: 40,
@@ -1860,7 +1869,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                                       Color bgColor = item.appearance == 1
                                                                           ? item.color
                                                                           : item.appearance == 2
-                                                                          //? item.color.withOpacity(0.5)
                                                                           ? item.color.withValues(alpha: 0.5)
                                                                           : Colors.transparent;
                                                                       TextDecoration decoration = TextDecoration.none;
@@ -2058,8 +2066,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                                 margin: const EdgeInsets.all(4),
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  //color: isDarkMode ? Colors.black.withOpacity(0.6) : Colors.white.withOpacity(0.6),
-                                                  color: isDarkMode ? Colors.black.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.6),
+                                                  color: isDarkMode
+                                                      ? Colors.black.withValues(alpha: 0.6)
+                                                      : Colors.white.withValues(alpha: 0.6),
                                                   borderRadius: BorderRadius.circular(10),
                                                 ),
                                                 child: Text(
@@ -2109,7 +2118,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       Positioned.fill(
                         child: Container(
                           color: isDarkMode ? Colors.black54 : Colors.white,
-                          child: Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue)),
+                          child: Center(
+                            child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue),
+                          ),
                         ),
                       ),
 
@@ -2133,9 +2144,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: isDarkMode ? const Color(0xFF2C2C2C)  : Colors.grey.shade300,
+                                      color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.grey.shade300,
                                       borderRadius: BorderRadius.circular(30),
-                                      border: Border.all(color: Colors.blueAccent.withValues(alpha:0.5), width: 1.5),
+                                      border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.5), width: 1.5),
                                       boxShadow: const [
                                         BoxShadow(color: Colors.black54, blurRadius: 10, offset: Offset(0, 5)),
                                       ],
@@ -2189,11 +2200,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                               color: isDarkMode ? Colors.white10 : Colors.white,
                                               shape: BoxShape.circle,
                                             ),
-                                            child: Icon(Icons.close_rounded,
-                                                color: isDarkMode
-                                                    ? Colors.white70
-                                                    : Colors.black,
-                                                size: 20),
+                                            child: Icon(
+                                              Icons.close_rounded,
+                                              color: isDarkMode ? Colors.white70 : Colors.black,
+                                              size: 20,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -2302,16 +2313,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         onPressed: isAnyToolActive
                             ? null
                             : () {
-                          _triggerHaptic('light');
-                          _handleSaveClick();
-                        },
+                                _triggerHaptic('light');
+                                _handleSaveClick();
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueAccent,
                           foregroundColor: Colors.white,
                           disabledBackgroundColor: isDarkMode
-                              ?  Colors.blueAccent.withValues(alpha:0.3)
-                              : Colors.blue.withValues(alpha:0.6),
-                          disabledForegroundColor: isDarkMode ? Colors.white60: Colors.black45,
+                              ? Colors.blueAccent.withValues(alpha: 0.3)
+                              : Colors.blue.withValues(alpha: 0.6),
+                          disabledForegroundColor: isDarkMode ? Colors.white60 : Colors.black45,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         ),
@@ -2345,12 +2356,16 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) :  Colors.grey.shade300,
+              backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.grey.shade300,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               titlePadding: const EdgeInsets.only(top: 20, left: 24, right: 24, bottom: 12),
               title: Text(
                 "Rename",
-                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
               contentPadding: const EdgeInsets.only(left: 24, right: 24, bottom: 8),
               content: Column(
@@ -2408,7 +2423,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     _triggerHaptic('light');
                     Navigator.pop(context);
                   },
-                  child: Text("Cancel", style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 15)),
+                  child: Text(
+                    "Cancel",
+                    style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 15),
+                  ),
                 ),
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
@@ -2533,7 +2551,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           Text(
                             filterName,
                             style: TextStyle(
-                              color: isSelected ? (isDarkMode ? Colors.blueAccent : Colors.blue) : (isDarkMode ? Colors.white70 : Colors.black87),
+                              color: isSelected
+                                  ? (isDarkMode ? Colors.blueAccent : Colors.blue)
+                                  : (isDarkMode ? Colors.white70 : Colors.black87),
                               fontSize: 11,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
@@ -2573,14 +2593,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                               },
                               //activeColor: Colors.white,
                               activeThumbColor: Colors.white,
-                              activeTrackColor: isDarkMode ?Colors.blueAccent : Colors.blue,
+                              activeTrackColor: isDarkMode ? Colors.blueAccent : Colors.blue,
                               inactiveThumbColor: const Color(0xFFC0C0C0),
                               inactiveTrackColor: const Color(0xFF505050),
                               trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text("Apply to all pages", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14)),
+                          Text(
+                            "Apply to all pages",
+                            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14),
+                          ),
 
                           const Spacer(),
 
@@ -2630,7 +2653,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 children: [
                   Text(
                     "Set default filter",
-                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Divider(color: isDarkMode ? Colors.white24 : Colors.black45, thickness: 1, height: 1), // Divider Line
@@ -2642,7 +2669,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: filters.map((filter) {
                   return RadioListTile<String>(
-                    title: Text(filter, style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 16)),
+                    title: Text(
+                      filter,
+                      style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87, fontSize: 16),
+                    ),
                     value: filter,
                     groupValue: tempSelectedFilter,
                     activeColor: isDarkMode ? Colors.blueAccent : Colors.blue,
@@ -2670,7 +2700,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     _triggerHaptic('light');
                     Navigator.pop(context);
                   },
-                  child: Text("Cancel", style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 15)),
+                  child: Text(
+                    "Cancel",
+                    style: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black, fontSize: 15),
+                  ),
                 ),
 
                 // Save Button
@@ -2699,7 +2732,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                   },
                   child: Text(
                     "Save",
-                    style: TextStyle(color: isDarkMode ? Colors.blueAccent : Colors.blue, fontSize: 15, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.blueAccent : Colors.blue,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -2744,17 +2781,19 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       Icon(
                         Icons.light_mode_outlined,
                         color: isBrightness
-                            ? (isDarkMode ? Colors.blueAccent  : Colors.blue)
+                            ? (isDarkMode ? Colors.blueAccent : Colors.blue)
                             : (isDarkMode ? Colors.white70 : Colors.black87),
                         size: 22,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "Brightness",
-                        style: TextStyle(color: isBrightness
-                            ? (isDarkMode ? Colors.blueAccent : Colors.blue)
-                            : (isDarkMode ? Colors.white70 : Colors.black87),
-                            fontSize: 15),
+                        style: TextStyle(
+                          color: isBrightness
+                              ? (isDarkMode ? Colors.blueAccent : Colors.blue)
+                              : (isDarkMode ? Colors.white70 : Colors.black87),
+                          fontSize: 15,
+                        ),
                       ),
                     ],
                   ),
@@ -2776,10 +2815,12 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       const SizedBox(width: 8),
                       Text(
                         "Contrast",
-                        style: TextStyle(color: !isBrightness
-                            ? (isDarkMode ? Colors.blueAccent : Colors.blue)
-                            : (isDarkMode ? Colors.white70 : Colors.black87),
-                            fontSize: 15),
+                        style: TextStyle(
+                          color: !isBrightness
+                              ? (isDarkMode ? Colors.blueAccent : Colors.blue)
+                              : (isDarkMode ? Colors.white70 : Colors.black87),
+                          fontSize: 15,
+                        ),
                       ),
                     ],
                   ),
@@ -2794,8 +2835,14 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(_activeAdjustTab, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14)),
-                  Text("${currentValue.toInt()}", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14)),
+                  Text(
+                    _activeAdjustTab,
+                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14),
+                  ),
+                  Text(
+                    "${currentValue.toInt()}",
+                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14),
+                  ),
                 ],
               ),
             ),
@@ -2831,13 +2878,17 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                       // Normal Mode
                       if (isBrightness) {
                         if (_applyToAllPages) {
-                          for (int i = 0; i < _pageBrightness.length; i++) _pageBrightness[i] = val;
+                          for (int i = 0; i < _pageBrightness.length; i++) {
+                            _pageBrightness[i] = val;
+                          }
                         } else {
                           _pageBrightness[currentPage] = val;
                         }
                       } else {
                         if (_applyToAllPages) {
-                          for (int i = 0; i < _pageContrast.length; i++) _pageContrast[i] = val;
+                          for (int i = 0; i < _pageContrast.length; i++) {
+                            _pageContrast[i] = val;
+                          }
                         } else {
                           _pageContrast[currentPage] = val;
                         }
@@ -2877,23 +2928,18 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                                 }
                               });
                             },
-                            //activeColor: Colors.white,
                             activeThumbColor: Colors.white,
                             activeTrackColor: Colors.blueAccent,
-                            //inactiveThumbColor: const Color(0xFFC0C0C0),
                             inactiveThumbColor: isDarkMode ? const Color(0xFFC0C0C0) : const Color(0xFF505050),
-                            // inactiveTrackColor: const Color(0xFF505050),
                             inactiveTrackColor: isDarkMode ? const Color(0xFF505050) : const Color(0xFFC0C0C0),
-                            //trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
                             trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text("Apply to all pages",
-                            style: TextStyle(color: isDarkMode
-                                ? Colors.white
-                                : Colors.black,
-                                fontSize: 14)),
+                        Text(
+                          "Apply to all pages",
+                          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 14),
+                        ),
                       ],
                     ),
 
@@ -2924,11 +2970,11 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     },
                     child: Text(
                       "Reset",
-                      style: TextStyle(color: isDarkMode
-                          ? Colors.blueAccent
-                          : Colors.blue,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.blueAccent : Colors.blue,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -3078,9 +3124,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildToolItem(
-              label: "Cancel",
-              icon: Icons.close_rounded,
-              tooltipMessage: "Cancel Crop",
+            label: "Cancel",
+            icon: Icons.close_rounded,
+            tooltipMessage: "Cancel Crop",
             onTap: () {
               _triggerHaptic('selection');
               _cancelCrop();
@@ -3350,7 +3396,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder: (_) => Center(child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue)),
+                            builder: (_) => Center(
+                              child: CircularProgressIndicator(color: isDarkMode ? Colors.blueAccent : Colors.blue),
+                            ),
                           );
 
                           List<File> filesToMerge = await _prepareImagesForMerge();
@@ -3618,7 +3666,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             Color bgColor = item.appearance == 1
                 ? item.color
                 : item.appearance == 2
-                ? item.color.withValues(alpha:0.5)
+                ? item.color.withValues(alpha: 0.5)
                 : Colors.transparent;
 
             TextDecoration decoration = TextDecoration.none;
@@ -3714,8 +3762,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         }
       }
     });
-
-    //int selectedCount = selectedPagesList.where((e) => e == true).length;
   }
 
   Future<void> _promptDeletePage() async {
@@ -3731,7 +3777,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     );
 
     if (confirmDelete) {
-
       if (!mounted) return;
       if (docFiles.length == 1) {
         //showToast("Document deleted");
@@ -3745,9 +3790,8 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (route) => false,
+          (route) => false,
         );
-
       } else {
         setState(() {
           docFiles.removeAt(currentPage);
@@ -3800,8 +3844,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
     if (confirmDelete) {
       if (!mounted) return;
       if (selectedCount == docFiles.length) {
-        // showToast("Document deleted");
-
         CustomToast.show(
           context,
           message: "Document deleted",
@@ -3811,7 +3853,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (route) => false,
+          (route) => false,
         );
       } else {
         setState(() {
@@ -3904,9 +3946,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? (isDarkMode ? Colors.blueAccent : Colors.blue)
-                  : Colors.transparent,
+              color: isSelected ? (isDarkMode ? Colors.blueAccent : Colors.blue) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -3919,19 +3959,22 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         duration: const Duration(milliseconds: 300),
                         child: Icon(icon, color: isDarkMode ? Colors.white : Colors.black, size: 22),
                       )
-                    : Icon(icon, color: isSelected
-                    ? (isDarkMode ?  Colors.white : Colors.white)
-                    : (isDarkMode ? Colors.white : Colors.black),
-                    size: 22),
+                    : Icon(
+                        icon,
+                        color: isSelected
+                            ? (isDarkMode ? Colors.white : Colors.white)
+                            : (isDarkMode ? Colors.white : Colors.black),
+                        size: 22,
+                      ),
 
                 const SizedBox(height: 6),
                 Text(
                   label,
-                  style: TextStyle(color: isSelected
-                      ? Colors.white
-                      : (isDarkMode ?  Colors.white : Colors.black),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : (isDarkMode ? Colors.white : Colors.black),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -4022,7 +4065,6 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
         textColor: Colors.white,
         icon: Icons.error_outline,
       );
-
     }
   }
 
@@ -4061,7 +4103,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                     child: Image.file(originalFile, fit: BoxFit.fill),
                   ),
                   // 2. Dark Overlay
-                  Container(color: Colors.black.withValues(alpha:0.6)),
+                  Container(color: Colors.black.withValues(alpha: 0.6)),
 
                   // 3. Main Crop Box
                   Positioned(
@@ -4086,7 +4128,9 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
                         ),
 
                         Container(
-                          decoration: BoxDecoration(border: Border.all(color: isDarkMode ? Colors.blueAccent : Colors.blue, width: 3.5)),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: isDarkMode ? Colors.blueAccent : Colors.blue, width: 3.5),
+                          ),
                         ),
 
                         _buildEdgeHandle(Alignment.topCenter, (d) => _updateCropBounds(d.delta.dy, 0, 0, 0)),
@@ -4131,7 +4175,10 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
             child: Container(
               width: isVertical ? 8 : 40,
               height: isVertical ? 40 : 8,
-              decoration: BoxDecoration(color: isDarkMode ? Colors.blueAccent : Colors.blue, borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.blueAccent : Colors.blue,
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
           ),
         ),
@@ -4156,7 +4203,7 @@ class _DocumentEditorScreenState extends State<DocumentEditorScreen> {
               width: 26,
               height: 26,
               decoration: BoxDecoration(
-                color: Colors.blueAccent.withValues(alpha:0.3),
+                color: Colors.blueAccent.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.blueAccent, width: 3.5),
               ),
