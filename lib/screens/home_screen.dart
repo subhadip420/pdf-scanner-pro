@@ -221,7 +221,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (await directory.exists()) {
         List<FileSystemEntity> entities = directory.listSync();
 
-
         List<File> files = entities.whereType<File>().where((f) => f.path.toLowerCase().endsWith('.pdf')).toList();
 
         files.sort((a, b) {
@@ -280,12 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         } else {
           _savedFilePaths.add(filePath);
-          CustomToast.show(
-            context,
-            message: "Added to saved",
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-          );
+          CustomToast.show(context, message: "Added to saved", backgroundColor: Colors.green, textColor: Colors.white);
         }
       });
       await prefs.setStringList('saved_pdf_paths', _savedFilePaths);
@@ -514,7 +508,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         showSearch(context: context, delegate: PdfSearchDelegate(_getAllKnownFiles, _triggerHaptic));
                       },
                     ),
-
                   ),
                   _buildMainAppBarMenu(),
                 ],
@@ -548,7 +541,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   setState(() => _isFabMenuOpen = false);
                 },
                 child: Container(
-                  color: Colors.black.withValues(alpha:0.85),
+                  color: Colors.black.withValues(alpha: 0.85),
                   width: double.infinity,
                   height: double.infinity,
                 ),
@@ -604,129 +597,128 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
         /// BOTTOM TAB BAR (Flicker-Free Smooth Slide-Up Animation)
-          bottomNavigationBar: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 350),
-            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
-              return Stack(
-                alignment: Alignment.bottomCenter,
-                children: <Widget>[...previousChildren, if (currentChild != null) currentChild],
-              );
-            },
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.0, 1.2),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCirc)),
-                child: child,
-              );
-            },
+        bottomNavigationBar: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
+            return Stack(
+              alignment: Alignment.bottomCenter,
+              children: <Widget>[...previousChildren, if (currentChild != null) currentChild],
+            );
+          },
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.0, 1.2),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCirc)),
+              child: child,
+            );
+          },
 
-            child: _isSelectionMode
-                ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
-                      : BottomAppBar(
-                          key: const ValueKey('normalModeBar'),
-                          color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-                          shape: const CircularNotchedRectangle(),
-                          notchMargin: 4.0,
-                          padding: EdgeInsets.zero,
-                            height: 70,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+          child: _isSelectionMode
+              ? _buildSelectionBottomBar(key: const ValueKey('selectionModeBar'))
+              : BottomAppBar(
+                  key: const ValueKey('normalModeBar'),
+                  color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                  shape: const CircularNotchedRectangle(),
+                  notchMargin: 4.0,
+                  padding: EdgeInsets.zero,
+                  height: 70,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      /// HOME OPTION
+                      Tooltip(
+                        message: "Home",
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            _triggerHaptic('light');
+                            setState(() {
+                              _currentIndex = 0;
+                              _isFabMenuOpen = false;
+                            });
+                          },
+                          child: SizedBox(
+                            width: 80,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                /// HOME OPTION
-                                Tooltip(
-                                  message: "Home",
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      _triggerHaptic('light');
-                                      setState(() {
-                                        _currentIndex = 0;
-                                        _isFabMenuOpen = false;
-                                      });
-                                    },
-                                    child: SizedBox(
-                                      width: 80,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.home_filled,
-                                            color: _currentIndex == 0
-                                                ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            "Home",
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
-                                              color: _currentIndex == 0
-                                                  ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                  : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                Icon(
+                                  Icons.home_filled,
+                                  color: _currentIndex == 0
+                                      ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
+                                      : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
                                 ),
-
-                                const SizedBox(width: 40),
-
-                                /// FILES OPTION
-                                Tooltip(
-                                  message: "Files",
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () {
-                                      _triggerHaptic('light');
-                                      //setState(() => _currentIndex = 1);
-                                      setState(() {
-                                        _currentIndex = 1;
-                                        _isFabMenuOpen = false;
-                                      });
-                                      if (!_hasStoragePermission && _allDevicePdfFiles.isEmpty) {
-                                        _loadAllDevicePdfFiles();
-                                      }
-                                    },
-                                    child: SizedBox(
-                                      width: 80,
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.insert_drive_file_outlined,
-                                            color: _currentIndex == 1
-                                                ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            "All Files",
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
-                                              color: _currentIndex == 1
-                                                  ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
-                                                  : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Home",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: _currentIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                                    color: _currentIndex == 0
+                                        ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
+                                        : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
                                   ),
                                 ),
                               ],
                             ),
-                          // ),
-                          // ),
-                        )
-            //),
-          ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 40),
+
+                      /// FILES OPTION
+                      Tooltip(
+                        message: "Files",
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            _triggerHaptic('light');
+                            setState(() {
+                              _currentIndex = 1;
+                              _isFabMenuOpen = false;
+                            });
+                            if (!_hasStoragePermission && _allDevicePdfFiles.isEmpty) {
+                              _loadAllDevicePdfFiles();
+                            }
+                          },
+                          child: SizedBox(
+                            width: 80,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.insert_drive_file_outlined,
+                                  color: _currentIndex == 1
+                                      ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
+                                      : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "All Files",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: _currentIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                                    color: _currentIndex == 1
+                                        ? (isDarkMode ? Colors.lightBlueAccent : Colors.blue) // Active color
+                                        : (isDarkMode ? Colors.white54 : Colors.black54), // Inactive color
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // ),
+                  // ),
+                ),
+          //),
+        ),
         // ),
       ),
     );
@@ -812,7 +804,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _selectedFiles.contains(file.path)
-                      ? Colors.lightBlueAccent.withValues(alpha:0.5)
+                      ? Colors.lightBlueAccent.withValues(alpha: 0.5)
                       : (isDarkMode ? Colors.white12 : Colors.black12),
                 ),
               ),
@@ -963,7 +955,6 @@ class _HomeScreenState extends State<HomeScreen> {
       onOpened: () {
         _triggerHaptic('selection');
       },
-      //color: const Color(0xFF2C2C2C),
       color: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
       surfaceTintColor: Colors.transparent,
       icon: Icon(Icons.more_vert, color: isDarkMode ? Colors.white : Colors.black),
@@ -1148,7 +1139,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _selectedFiles.contains(file.path)
-                          ? (isDarkMode ? Colors.lightBlueAccent.withValues(alpha:0.5) : Colors.blue.withValues(alpha:0.5))
+                          ? (isDarkMode
+                                ? Colors.lightBlueAccent.withValues(alpha: 0.5)
+                                : Colors.blue.withValues(alpha: 0.5))
                           : (isDarkMode ? Colors.white12 : Colors.black12),
                     ),
                   ),
@@ -1691,7 +1684,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSelectionBottomBar({Key? key}) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    //final double bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return BottomAppBar(
       key: key,
@@ -1719,8 +1711,8 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
         ],
       ),
-    // ),
-    //   ),
+      // ),
+      //   ),
     );
   }
 
@@ -1819,10 +1811,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (_rewardedAd != null) {
-      _rewardedAd!.show(
-        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
-        },
-      );
+      _rewardedAd!.show(onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {});
 
       _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
         onAdDismissedFullScreenContent: (Ad ad) {
@@ -2603,7 +2592,8 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         message: "Failed to extract pages.",
         icon: Icons.error_outline,
-        backgroundColor: Colors.red, // Critical error theme
+        backgroundColor: Colors.red,
+        // Critical error theme
         textColor: Colors.white,
         iconColor: Colors.white,
       );
@@ -2916,7 +2906,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const Text(
                         "PDF Saved Successfully!",
-                        style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -3218,9 +3208,7 @@ class PdfSearchDelegate extends SearchDelegate {
           elevation: 1.5,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
@@ -3300,44 +3288,42 @@ class _SavedPdfScreenState extends State<SavedPdfScreen> {
               ),
             )
           : ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        itemCount: _savedFilesList.length,
-        itemBuilder: (context, index) {
-          final file = _savedFilesList[index];
-          final fileName = file.path.split('/').last;
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              itemCount: _savedFilesList.length,
+              itemBuilder: (context, index) {
+                final file = _savedFilesList[index];
+                final fileName = file.path.split('/').last;
 
-          return Card(
-            elevation: 1.5,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
-              title: Text(
-                fileName,
-                style: TextStyle(
-                  color: isDarkMode ? Colors.white : Colors.black87,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(
-                DateFormat('dd MMM yyyy').format(file.statSync().modified),
-                style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
-              ),
-              onTap: () {
-                // Click karne par file direct open ho jayegi
-                OpenFile.open(file.path);
+                return Card(
+                  elevation: 1.5,
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    leading: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 30),
+                    title: Text(
+                      fileName,
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black87,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      DateFormat('dd MMM yyyy').format(file.statSync().modified),
+                      style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+                    ),
+                    onTap: () {
+                      // Click karne par file direct open ho jayegi
+                      OpenFile.open(file.path);
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
     );
   }
 }
