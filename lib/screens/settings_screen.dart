@@ -91,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: isDarkMode ? const Color(0xFF100F0F) : const Color(0xFFE3E2E2),
       appBar: AppBar(
         backgroundColor: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
-        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black,),
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
         title: Text(
           "Settings",
           style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
@@ -99,7 +99,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       body: Column(
         children: [
-
           if (_isBannerAdLoaded && _bannerAd != null)
             Container(
               color: Colors.transparent,
@@ -120,12 +119,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: ListTile(
-                      leading: Icon(Icons.text_snippet_rounded, color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,),
-                      title: Text("Default Page Size", style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15)),
+                      leading: Icon(
+                        Icons.text_snippet_rounded,
+                        color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                      ),
+                      title: Text(
+                        "Default Page Size",
+                        style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15),
+                      ),
                       trailing: DropdownButton<String>(
                         value: _defaultPageSize,
                         dropdownColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
-                        icon: Icon(Icons.arrow_drop_down, color: isDarkMode ? Colors.white : Colors.black87,),
+                        icon: Icon(Icons.arrow_drop_down, color: isDarkMode ? Colors.white : Colors.black87),
                         underline: const SizedBox(),
                         items:
                             <String>[
@@ -143,7 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ].map((String value) {
                               return DropdownMenuItem<String>(
                                 value: value,
-                                child: Text(value, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87,)),
+                                child: Text(value, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87)),
                               );
                             }).toList(),
                         onChanged: (newValue) {
@@ -390,7 +395,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: Icon(icon,color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,),
+        leading: Icon(icon, color: isDarkMode ? Colors.lightBlueAccent : Colors.blue),
         title: Text(title, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15)),
         subtitle: Text(subtitle, style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 12)),
         trailing: Icon(Icons.arrow_forward_ios_rounded, color: isDarkMode ? Colors.white24 : Colors.black26, size: 16),
@@ -411,12 +416,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      //color: const Color(0xFF1A1A1A),
       color: isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        leading: Icon(icon, color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,),
+        leading: Icon(icon, color: isDarkMode ? Colors.lightBlueAccent : Colors.blue),
         title: Text(title, style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 15)),
         subtitle: Text(subtitle, style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 12)),
         trailing: Switch(
@@ -427,8 +431,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
           activeThumbColor: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
           activeTrackColor: isDarkMode
-              ? Colors.lightBlueAccent.withValues(alpha:0.4)
-              : Colors.blue.withValues(alpha:0.4),
+              ? Colors.lightBlueAccent.withValues(alpha: 0.4)
+              : Colors.blue.withValues(alpha: 0.4),
         ),
         onTap: () {
           if (isHapticEnabled) HapticFeedback.lightImpact();
@@ -490,7 +494,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Text(
                 "Customer Help",
-                style: TextStyle(color: isDarkMode ?  Colors.white : Colors.black, fontWeight: FontWeight.bold),
+                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Divider(color: isDarkMode ? Colors.white24 : Colors.black12, thickness: 1, height: 1),
@@ -524,16 +528,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                     decoration: BoxDecoration(
-                      color: Colors.lightBlueAccent.withValues(alpha:0.1),
+                      color: Colors.lightBlueAccent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.lightBlueAccent.withValues(alpha:0.5)),
+                      border: Border.all(color: Colors.lightBlueAccent.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           "support.sptechstudios@gmail.com",
-                          style: TextStyle(color: isDarkMode ? Colors.lightBlueAccent : Colors.blue, fontSize: 13, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.lightBlueAccent : Colors.blue,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -545,7 +553,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Close", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54,)),
+              child: Text("Close", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54)),
             ),
           ],
         );
@@ -568,10 +576,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // App Name & Version
               Text(
                 "PDF Scanner Pro",
-                style: TextStyle(color: isDarkMode ? Colors.white : Colors.black87, fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 6),
-              Text("Version 1.0.0", style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13)),
+              Text(
+                "Version 1.0.0",
+                style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13),
+              ),
               const SizedBox(height: 20),
 
               Divider(color: isDarkMode ? Colors.white12 : Colors.black12, thickness: 1),
@@ -592,7 +607,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(width: 8),
                   Text(
                     "Developed by SP Tech Studios",
-                    style: TextStyle(color: isDarkMode ? Colors.white54 : Colors.black54, fontSize: 13, fontStyle: FontStyle.italic),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white54 : Colors.black54,
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
               ),
