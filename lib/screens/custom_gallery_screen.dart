@@ -68,9 +68,7 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
 
   void _completeSelection() async {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     if (_selectedAssets.isEmpty) return;
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -256,16 +254,14 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
           IconButton(
             icon: Icon(
               Icons.check,
-              color: _selectedAssets.isNotEmpty
-                  ? (isDarkMode ? Colors.blueAccent : Colors.blue)
-                  : Colors.grey,
+              color: _selectedAssets.isNotEmpty ? (isDarkMode ? Colors.blueAccent : Colors.blue) : Colors.grey,
               size: 28,
             ),
             onPressed: _selectedAssets.isNotEmpty
                 ? () {
-              if (isHapticEnabled) HapticFeedback.lightImpact();
-              _completeSelection();
-            }
+                    if (isHapticEnabled) HapticFeedback.lightImpact();
+                    _completeSelection();
+                  }
                 : null,
           ),
         ],
@@ -301,17 +297,14 @@ class _CustomGalleryScreenState extends State<CustomGalleryScreen> {
                     children: [
                       _AssetThumbnail(asset: asset),
 
-                      // SELECTED PHOTO PAR BLUE BORDER aur halka blackish overlay
                       if (isSelected)
                         Container(
                           decoration: BoxDecoration(
-                            // color: Colors.black.withOpacity(0.3),
                             color: Colors.black.withValues(alpha: 0.3),
                             border: Border.all(color: isDarkMode ? Colors.blueAccent : Colors.blue, width: 3),
                           ),
                         ),
 
-                      // SELECTED PHOTO MEIN SIRF NUMBER (Blue Circle mein)
                       if (isSelected)
                         Positioned(
                           top: 6,
