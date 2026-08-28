@@ -231,7 +231,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
     } catch (e) {
       debugPrint("Camera init error: $e");
       if (mounted) {
-        //showToast("Error starting camera. Please restart the app.");
         if (!mounted) return;
 
         CustomToast.show(
@@ -538,8 +537,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
           await _applyFlashMode("Off");
           if (mounted) setState(() => selectedFlashMode = "Off");
         }
-        Navigator.pop(context, File(photo.path)); // Seedha photo wapas bhej do
-        return; // Niche ka code nahi chalega
+        Navigator.pop(context, File(photo.path));
+        return;
       }
 
       /// Update the state with the new photo and increment the counter
@@ -562,7 +561,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         isCapturing = false;
         currentCountdown = 0;
       });
-      //showToast("Error capturing photo");
       CustomToast.show(
         context,
         message: "Error capturing photo",
@@ -1174,20 +1172,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ),
     );
 
-    // return Scaffold(
-    // return WillPopScope(
-    //   onWillPop: _onWillPop,
-    //
-    //   child: Listener(
-    //     onPointerDown: (_) {
-    //       if (!_isCameraSleeping) {
-    //         _resetSleepTimer();
-    //       }
-    //     },
-    //     child: Scaffold(
-    //       backgroundColor: const Color(0xFF2C2C2C),
-    //       body: GestureDetector(
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, Object? result) async {
@@ -1254,7 +1238,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     right: 0,
                     child: SafeArea(
                       child: Padding(
-                        padding:  EdgeInsets.symmetric(horizontal: 16.w, vertical: 9.h),
+                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 9.h),
                         child: _buildTopBarContent(),
                       ),
                     ),
@@ -1271,14 +1255,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           turns: _iconTurns,
                           duration: const Duration(milliseconds: 300),
                           child: Container(
-                            padding:  EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha:0.4),
+                              color: Colors.black.withValues(alpha: 0.4),
                               borderRadius: BorderRadius.circular(20.r),
                             ),
                             child: Text(
                               autoScanStatus,
-                              style:  TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.normal),
+                              style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.normal),
                             ),
                           ),
                         ),
@@ -1292,107 +1276,107 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       left: 20,
                       right: 20,
                       child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withValues(alpha:0.5), blurRadius: 10, spreadRadius: 2),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.qr_code_scanner_rounded, color: Colors.blueAccent),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    child: Text(
-                                      "QR Code Detected",
-                                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
-                                    ),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10, spreadRadius: 2),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(Icons.qr_code_scanner_rounded, color: Colors.blueAccent),
+                                const SizedBox(width: 8),
+                                const Expanded(
+                                  child: Text(
+                                    "QR Code Detected",
+                                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
-                                  IconButton(
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                                ),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: const Icon(Icons.close_rounded, color: Colors.grey),
+                                  onPressed: () async {
+                                    await _triggerVibration();
+                                    if (!mounted) return;
+                                    //_detectedQrCode = null;
+                                    setState(() {
+                                      _detectedQrCode = null;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _detectedQrCode!,
+                              style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () async {
+                                    await _triggerVibration();
+                                    if (!mounted) return;
+                                    Clipboard.setData(ClipboardData(text: _detectedQrCode!));
+
+                                    CustomToast.show(
+                                      context,
+                                      message: "Copied to clipboard",
+                                      icon: Icons.copy_rounded,
+                                      backgroundColor: Colors.green,
+                                      textColor: Colors.white,
+                                      iconColor: Colors.white,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.copy_rounded, size: 18),
+                                  label: const Text("Copy"),
+                                ),
+                                const SizedBox(width: 8),
+                                if (_detectedQrCode!.startsWith("http"))
+                                  ElevatedButton.icon(
                                     onPressed: () async {
                                       await _triggerVibration();
+                                      final Uri url = Uri.parse(_detectedQrCode!);
+
+                                      bool canLaunch = await canLaunchUrl(url);
                                       if (!mounted) return;
-                                      //_detectedQrCode = null;
-                                      setState(() {
-                                        _detectedQrCode = null;
-                                      });
+
+                                      if (canLaunch) {
+                                        await launchUrl(url, mode: LaunchMode.externalApplication);
+                                      } else {
+                                        CustomToast.show(
+                                          context,
+                                          message: "Could not open link",
+                                          icon: Icons.error_outline_rounded,
+                                          backgroundColor: Colors.redAccent,
+                                          textColor: Colors.white,
+                                          iconColor: Colors.white,
+                                        );
+                                      }
                                     },
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _detectedQrCode!,
-                                style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  TextButton.icon(
-                                    onPressed: () async {
-                                      await _triggerVibration();
-                                      if (!mounted) return;
-                                      Clipboard.setData(ClipboardData(text: _detectedQrCode!));
-
-                                      CustomToast.show(
-                                        context,
-                                        message: "Copied to clipboard",
-                                        icon: Icons.copy_rounded,
-                                        backgroundColor: Colors.green,
-                                        textColor: Colors.white,
-                                        iconColor: Colors.white,
-                                      );
-                                    },
-                                    icon: const Icon(Icons.copy_rounded, size: 18),
-                                    label: const Text("Copy"),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  if (_detectedQrCode!.startsWith("http"))
-                                    ElevatedButton.icon(
-                                      onPressed: () async {
-                                        await _triggerVibration();
-                                        final Uri url = Uri.parse(_detectedQrCode!);
-
-                                        bool canLaunch = await canLaunchUrl(url);
-                                        if (!mounted) return;
-
-                                        if (canLaunch) {
-                                          await launchUrl(url, mode: LaunchMode.externalApplication);
-                                        } else {
-                                          CustomToast.show(
-                                            context,
-                                            message: "Could not open link",
-                                            icon: Icons.error_outline_rounded,
-                                            backgroundColor: Colors.redAccent,
-                                            textColor: Colors.white,
-                                            iconColor: Colors.white,
-                                          );
-                                        }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blueAccent,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      ),
-                                      icon: const Icon(Icons.open_in_browser_rounded, size: 18),
-                                      label: const Text("Open"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blueAccent,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                     ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                    icon: const Icon(Icons.open_in_browser_rounded, size: 18),
+                                    label: const Text("Open"),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
                         // ),
                       ),
                     ),
@@ -1476,7 +1460,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               child: Container(
                                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
                                 decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha:0.25),
+                                  color: Colors.black.withValues(alpha: 0.25),
                                   borderRadius: BorderRadius.circular(30.r),
                                 ),
                                 child: Row(
@@ -1503,18 +1487,30 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                               if (isFromEditor) {
                                                 Navigator.pop(context);
                                               } else {
-                                                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeScreen()), (route) => false);
+                                                Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                                  (route) => false,
+                                                );
                                               }
                                             }
                                           } else {
                                             if (isFromEditor) {
                                               Navigator.pop(context);
                                             } else {
-                                              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeScreen()), (route) => false);
+                                              Navigator.pushAndRemoveUntil(
+                                                context,
+                                                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                                                (route) => false,
+                                              );
                                             }
                                           }
                                         },
-                                        icon: _buildRotatedIcon(widget.isOpenedFromEditor ? Icons.close_rounded : Icons.home_rounded, color: Colors.white, size: 24.r),
+                                        icon: _buildRotatedIcon(
+                                          widget.isOpenedFromEditor ? Icons.close_rounded : Icons.home_rounded,
+                                          color: Colors.white,
+                                          size: 24.r,
+                                        ),
                                       )
                                     else
                                       IconButton(
@@ -1526,13 +1522,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       ),
 
                                     IconButton(
-                                      onPressed: selectedIndex == 1 ? null : () async {
-                                        await _triggerVibration();
-                                        await _pickImagesFromGallery();
-                                      },
+                                      onPressed: selectedIndex == 1
+                                          ? null
+                                          : () async {
+                                              await _triggerVibration();
+                                              await _pickImagesFromGallery();
+                                            },
                                       icon: Opacity(
                                         opacity: selectedIndex == 1 ? 0.4 : 1.0,
-                                        child: _buildRotatedIcon(Icons.photo_library_rounded, color: Colors.white, size: 24.r),
+                                        child: _buildRotatedIcon(
+                                          Icons.photo_library_rounded,
+                                          color: Colors.white,
+                                          size: 24.r,
+                                        ),
                                       ),
                                     ),
 
@@ -1548,7 +1550,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                               height: 60.r,
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
-                                                border: Border.all(color: (isCapturing && selectedTimer == 0) ? Colors.grey : Colors.white, width: 4.w),
+                                                border: Border.all(
+                                                  color: (isCapturing && selectedTimer == 0)
+                                                      ? Colors.grey
+                                                      : Colors.white,
+                                                  width: 4.w,
+                                                ),
                                               ),
                                             ),
                                             if (isCapturing && selectedTimer > 0)
@@ -1559,7 +1566,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                                   tween: Tween<double>(begin: 0.0, end: 1.0),
                                                   duration: Duration(seconds: selectedTimer),
                                                   builder: (context, value, child) {
-                                                    return CircularProgressIndicator(value: value, strokeWidth: 4.w, valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue), backgroundColor: Colors.transparent);
+                                                    return CircularProgressIndicator(
+                                                      value: value,
+                                                      strokeWidth: 4.w,
+                                                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                                                      backgroundColor: Colors.transparent,
+                                                    );
                                                   },
                                                 ),
                                               )
@@ -1567,17 +1579,39 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                               SizedBox(
                                                 width: 56.r,
                                                 height: 56.r,
-                                                child: CircularProgressIndicator(value: (_stableFrames / 10.0).clamp(0.0, 1.0), strokeWidth: 4.w, valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent), backgroundColor: Colors.transparent),
+                                                child: CircularProgressIndicator(
+                                                  value: (_stableFrames / 10.0).clamp(0.0, 1.0),
+                                                  strokeWidth: 4.w,
+                                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                                                  backgroundColor: Colors.transparent,
+                                                ),
                                               ),
                                             if (isCapturing && currentCountdown > 0)
-                                              Text('$currentCountdown', style: TextStyle(color: Colors.white, fontSize: 24.sp, fontWeight: FontWeight.bold))
+                                              Text(
+                                                '$currentCountdown',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 24.sp,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
                                             else if (!isCapturing && selectedTimer > 0)
-                                              Text('$selectedTimer', style: TextStyle(color: Colors.white, fontSize: 24.sp, fontWeight: FontWeight.bold))
+                                              Text(
+                                                '$selectedTimer',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 24.sp,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
                                             else
                                               Container(
                                                 width: 45.r,
                                                 height: 45.r,
-                                                decoration: BoxDecoration(color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white, shape: BoxShape.circle),
+                                                decoration: BoxDecoration(
+                                                  color: (isCapturing || isHoldingSteady) ? Colors.grey : Colors.white,
+                                                  shape: BoxShape.circle,
+                                                ),
                                               ),
                                           ],
                                         ),
@@ -1585,21 +1619,29 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                     ),
 
                                     IconButton(
-                                      onPressed: selectedIndex == 1 ? null : () async {
-                                        await _triggerVibration();
-                                        _toggleAutoDetect();
-                                      },
+                                      onPressed: selectedIndex == 1
+                                          ? null
+                                          : () async {
+                                              await _triggerVibration();
+                                              _toggleAutoDetect();
+                                            },
                                       icon: Opacity(
                                         opacity: selectedIndex == 1 ? 0.4 : 1.0,
-                                        child: _buildRotatedIcon(Icons.document_scanner_outlined, color: isAutoDetectOn ? Colors.blueAccent : Colors.white, size: 24.r),
+                                        child: _buildRotatedIcon(
+                                          Icons.document_scanner_outlined,
+                                          color: isAutoDetectOn ? Colors.blueAccent : Colors.white,
+                                          size: 24.r,
+                                        ),
                                       ),
                                     ),
 
                                     GestureDetector(
-                                      onTap: selectedIndex == 1 ? null : () async {
-                                        await _triggerVibration();
-                                        if (capturedPhotosCount > 0) _goToEditor();
-                                      },
+                                      onTap: selectedIndex == 1
+                                          ? null
+                                          : () async {
+                                              await _triggerVibration();
+                                              if (capturedPhotosCount > 0) _goToEditor();
+                                            },
                                       child: Opacity(
                                         opacity: selectedIndex == 1 ? 0.4 : 1.0,
                                         child: Stack(
@@ -1608,8 +1650,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                             Container(
                                               width: 42.r,
                                               height: 42.r,
-                                              decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8.r)),
-                                              child: lastCapturedImage == null ? const SizedBox() : ClipRRect(borderRadius: BorderRadius.circular(8.r), child: Image.file(File(lastCapturedImage!.path), fit: BoxFit.cover)),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white24,
+                                                borderRadius: BorderRadius.circular(8.r),
+                                              ),
+                                              child: lastCapturedImage == null
+                                                  ? const SizedBox()
+                                                  : ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8.r),
+                                                      child: Image.file(
+                                                        File(lastCapturedImage!.path),
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                    ),
                                             ),
                                             if (capturedPhotosCount > 0)
                                               Positioned(
@@ -1617,8 +1670,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                                 right: -6.w,
                                                 child: Container(
                                                   padding: EdgeInsets.all(5.r),
-                                                  decoration: const BoxDecoration(color: Colors.amber, shape: BoxShape.circle),
-                                                  child: Text('$capturedPhotosCount', style: TextStyle(color: Colors.black, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+                                                  decoration: const BoxDecoration(
+                                                    color: Colors.amber,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: Text(
+                                                    '$capturedPhotosCount',
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 10.sp,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
                                                 ),
                                               ),
                                           ],
@@ -1646,7 +1709,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 40),
                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha:0.45),
+                              color: Colors.black.withValues(alpha: 0.45),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
@@ -1708,7 +1771,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       case "Flash":
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.35), borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(30),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1731,7 +1797,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       case "Timer":
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.35), borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(30),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -1754,7 +1823,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
       default:
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: Colors.black.withValues(alpha:0.35), borderRadius: BorderRadius.circular(30)),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(30),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -1792,9 +1864,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           CustomToast.show(
                             context,
                             message: isMultiScanMode ? "Multi-scan ON" : "Single-scan ON",
-                            icon: isMultiScanMode
-                                ? Icons.file_copy_rounded
-                                : Icons.insert_drive_file_outlined,
+                            icon: isMultiScanMode ? Icons.file_copy_rounded : Icons.insert_drive_file_outlined,
                             backgroundColor: Colors.green,
                             textColor: Colors.white,
                             iconColor: Colors.white,
@@ -2021,7 +2091,7 @@ class GridOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = Colors.white.withValues(alpha:0.4)
+      ..color = Colors.white.withValues(alpha: 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
