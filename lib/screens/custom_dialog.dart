@@ -8,7 +8,6 @@ Future<bool> showCustomConfirmDialog(
   String negativeBtnText = "Cancel",
   Color positiveBtnColor = Colors.blueAccent,
   Color negativeBtnBorderColor = Colors.grey,
-  //Color backgroundColor = const Color(0xFF2C2C2C),
   Color? backgroundColor,
 }) async {
   bool? result = await showDialog<bool>(
