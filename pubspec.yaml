@@ -150,8 +150,8 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: "assets/icon/app_logo6.png"
+  image_path: "assets/icon/app_logo7.png"
 
   # 👇 Android 8+ Adaptive Icons Setup
   adaptive_icon_background: "#F44336" # Background color (Hex code), yahan white diya hai
-  adaptive_icon_foreground: "assets/icon/app_logo5.png"
+  adaptive_icon_foreground: "assets/icon/app_logo7.png"
