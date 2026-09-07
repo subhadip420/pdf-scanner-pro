@@ -442,21 +442,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// In app rating code
+  // Future<void> _handleRateUs() async {
+  //   final InAppReview inAppReview = InAppReview.instance;
+  //
+  //   try {
+  //     if (await inAppReview.isAvailable()) {
+  //       await inAppReview.requestReview();
+  //     } else {
+  //       await inAppReview.openStoreListing(appStoreId: 'com.sptechstudios.pdfscannerpro');
+  //       //TODO: change to original link
+  //     }
+  //   } catch (e) {
+  //     print("Rate Us Error: $e");
+  //     CustomToast.show(
+  //       context,
+  //       message: "Unable to open rating dialog.",
+  //       icon: Icons.error_outline,
+  //       backgroundColor: Colors.redAccent,
+  //       iconColor: Colors.white,
+  //       textColor: Colors.white,
+  //     );
+  //   }
+  // }
+
   Future<void> _handleRateUs() async {
-    final InAppReview inAppReview = InAppReview.instance;
+    final Uri playStoreUrl = Uri.parse(
+        "https://play.google.com/store/apps/details?id=com.sptechstudios.pdf_scanner_pro");
 
     try {
-      if (await inAppReview.isAvailable()) {
-        await inAppReview.requestReview();
+      if (await canLaunchUrl(playStoreUrl)) {
+        /// mode: LaunchMode.externalApplication ensure karega ki
+        /// link browser mein nahi, balki direct Play Store App mein open ho.
+        await launchUrl(playStoreUrl, mode: LaunchMode.externalApplication);
       } else {
-        await inAppReview.openStoreListing(appStoreId: 'com.sptechstudios.pdfscannerpro');
-        //TODO: change to original link
+        throw 'Could not launch Play Store link';
       }
     } catch (e) {
       print("Rate Us Error: $e");
       CustomToast.show(
         context,
-        message: "Unable to open rating dialog.",
+        message: "Unable to open Play Store.",
         icon: Icons.error_outline,
         backgroundColor: Colors.redAccent,
         iconColor: Colors.white,
